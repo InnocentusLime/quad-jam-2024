@@ -1,13 +1,11 @@
-use game_model::{player_won, GameModel};
+use game_model::GameModel;
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
-use physics::Physics;
 use render::Render;
 use sound_director::SoundDirector;
 use sys::*;
 use ui::Ui;
 
-mod physics;
 mod render;
 mod sys;
 mod ui;
@@ -51,7 +49,6 @@ async fn main() {
 async fn run() -> anyhow::Result<()> {
     set_default_filter_mode(FilterMode::Nearest);
 
-    let mut phys = Physics::new();
     let mut render = Render::new().await?;
     let mut sounder = SoundDirector::new().await?;
     let ui = Ui::new().await?;
@@ -90,42 +87,24 @@ async fn run() -> anyhow::Result<()> {
         }
 
         let mut game_model = GameModel {
-            dt: get_frame_time(),
             prev_state: state,
             state,
-            old_physics: phys,
-            physics: phys,
         };
 
-        phys.new_frame();
         match state {
             GameState::Start if ui_model.confirmation_detected() => {
                 state = GameState::Active;
             },
             GameState::Win | GameState::GameOver if ui_model.confirmation_detected() => {
-                phys = Physics::new();
-                game_model.old_physics = phys;
                 state = GameState::Active;
             },
             GameState::Paused if ui_model.pause_requested() => {
                 state = GameState::Active;
             },
             GameState::Active => {
-                if ui_model.move_left() {
-                    phys.move_player(dt, false);
-                }
+                /* Update game */
 
-                if ui_model.move_right() {
-                    phys.move_player(dt, true);
-                }
-
-                let hit_floor = phys.update(dt);
-
-                if player_won(&phys) {
-                    state = GameState::Win;
-                } else if hit_floor {
-                    state = GameState::GameOver;
-                } else if ui_model.pause_requested() {
+                if ui_model.pause_requested() {
                     state = GameState::Paused;
                 }
             },
@@ -136,7 +115,6 @@ async fn run() -> anyhow::Result<()> {
         };
 
         game_model.state = state;
-        game_model.physics = phys;
 
         /*  =================== model is valid past this line ================ */
 
