@@ -1,3 +1,5 @@
+use debug::Debug;
+use game::Game;
 use game_model::GameModel;
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
@@ -6,6 +8,8 @@ use sound_director::SoundDirector;
 use sys::*;
 use ui::Ui;
 
+mod debug;
+mod game;
 mod render;
 mod sys;
 mod ui;
@@ -49,9 +53,13 @@ async fn main() {
 async fn run() -> anyhow::Result<()> {
     set_default_filter_mode(FilterMode::Nearest);
 
+    let mut game = Game::new();
+    let mut debug = Debug::new();
     let mut render = Render::new().await?;
     let mut sounder = SoundDirector::new().await?;
     let ui = Ui::new().await?;
+
+    debug.put_event("Runtime created");
 
     let mut state = GameState::Start;
     let mut fullscreen = window_conf().fullscreen;
@@ -64,6 +72,8 @@ async fn run() -> anyhow::Result<()> {
     build_textures_atlas();
 
     done_loading();
+
+    debug.put_event("Done loading");
 
     loop {
         let dt = get_frame_time();
@@ -103,10 +113,11 @@ async fn run() -> anyhow::Result<()> {
             },
             GameState::Active => {
                 /* Update game */
-
                 if ui_model.pause_requested() {
                     state = GameState::Paused;
                 }
+
+                game.update(dt, &ui_model);
             },
             GameState::PleaseRotate if get_orientation() == 0.0 => {
                 state = paused_state;
@@ -121,6 +132,10 @@ async fn run() -> anyhow::Result<()> {
         render.draw(&game_model);
         ui.draw(ui_model);
         sounder.direct_sounds(&game_model);
+
+        debug.new_frame();
+        debug.draw_ui_debug(&ui_model);
+        debug.draw_events();
 
         next_frame().await
     }
