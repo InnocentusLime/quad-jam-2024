@@ -166,7 +166,6 @@
             <h1>WARNING</h1>
             This game needs javascript enabled to run.
         </noscript>
-        <button class="start-button" onclick="javascript:play_game()">Start Game</button>
     </div>
     <div id="err" hidden="true">
         <span id="error-msg">[NO ERROR]</span>
@@ -183,11 +182,12 @@
         function play_game() {
             console.log("Starting");
 
-            document.getElementById("start").remove();
             document.getElementById("loading").hidden = false;
 
             load("./game.wasm");
         }
+
+        play_game();
     </script>
 </body>
 </html>
