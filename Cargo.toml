@@ -1,0 +1,28 @@
+[package]
+name = "mquad-jam"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anyhow = "1"
+macroquad = { version = "0.4.13", features = ["audio"] }
+macroquad-particles = "0.2.1"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies.sapp-jsutils]
+version = "^0.1"
+
+[patch.crates-io]
+macroquad-particles = { git = "https://github.com/InnocentusLime/macroquad.git", rev = "69248b43385ab4afe796040ed5a78718cc753097" }
+macroquad = { git = "https://github.com/InnocentusLime/macroquad.git", rev = "69248b43385ab4afe796040ed5a78718cc753097" }
+miniquad = { git = "https://github.com/not-fl3/miniquad.git", rev = "5d935920857be5520363e4e32e994dd1ec3a2cd9" }
+
+[profile.release]
+opt-level = 3
+codegen-units = 1 # Compile the entire crate as one unit. marginal improvements.
+lto = "thin"      # Do a second optimization pass over the entire program, including dependencies. marginal improvements.
+
+[profile.wasm-release]
+inherits = "release" # Use release profile as default values.
+opt-level = "z"      # Optimize with size in mind (also try "s", sometimes it is better).
+strip = true  # Strip all debugging information from the binary to reduce file size.
+panic = "abort"
