@@ -1,4 +1,4 @@
-use debug::Debug;
+use debug::{init_on_screen_log, Debug};
 use game::Game;
 use game_model::GameModel;
 use macroquad::prelude::*;
@@ -51,6 +51,9 @@ async fn main() {
 }
 
 async fn run() -> anyhow::Result<()> {
+    set_max_level(STATIC_MAX_LEVEL);
+    init_on_screen_log();
+
     set_default_filter_mode(FilterMode::Nearest);
 
     let mut game = Game::new();
@@ -59,7 +62,7 @@ async fn run() -> anyhow::Result<()> {
     let mut sounder = SoundDirector::new().await?;
     let ui = Ui::new().await?;
 
-    debug.put_event("Runtime created");
+    info!("Runtime created");
 
     let mut state = GameState::Start;
     let mut fullscreen = window_conf().fullscreen;
@@ -73,7 +76,7 @@ async fn run() -> anyhow::Result<()> {
 
     done_loading();
 
-    debug.put_event("Done loading");
+    info!("Done loading");
 
     loop {
         let dt = get_frame_time();
@@ -103,17 +106,20 @@ async fn run() -> anyhow::Result<()> {
 
         match state {
             GameState::Start if ui_model.confirmation_detected() => {
+                info!("Starting the game");
                 state = GameState::Active;
             },
             GameState::Win | GameState::GameOver if ui_model.confirmation_detected() => {
                 state = GameState::Active;
             },
             GameState::Paused if ui_model.pause_requested() => {
+                info!("Unpausing");
                 state = GameState::Active;
             },
             GameState::Active => {
                 /* Update game */
                 if ui_model.pause_requested() {
+                    info!("Pausing");
                     state = GameState::Paused;
                 }
 

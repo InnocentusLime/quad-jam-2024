@@ -198,6 +198,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d8adc4bb1803a324070e64a98ae98f38934d91957a99cfb3a43dcbc01bc56439"
 
 [[package]]
+name = "log"
+version = "0.4.22"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a7a70ba024b9dc04c27ea2f0c0548feb474ec5c54bba33a7f72f873a39d07b24"
+
+[[package]]
 name = "macroquad"
 version = "0.4.13"
 source = "git+https://github.com/InnocentusLime/macroquad.git?rev=69248b43385ab4afe796040ed5a78718cc753097#69248b43385ab4afe796040ed5a78718cc753097"
@@ -205,6 +211,7 @@ dependencies = [
  "fontdue",
  "glam",
  "image",
+ "log",
  "macroquad_macro",
  "miniquad",
  "quad-rand",
@@ -344,6 +351,7 @@ name = "quad-jam-2024"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "log",
  "macroquad",
  "macroquad-particles",
  "sapp-jsutils",
