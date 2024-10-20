@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Boring Arcanoid</title>
+    <meta name="description" content="A simple plain Arcanoid clone that can run in your browser! Mobile included." />
+
+    <!-- OpenGraph -->
+    <meta property="og:title" content="Boring Arcanoid" />
+    <meta property="og:description" content="A simple plain Arcanoid clone that can run in your browser! Mobile included." />
+    <meta property="og:url" content="https://innocentuslime.github.io/mquad-arconoid" />
+    <meta property="og:image" content="https://innocentuslime.github.io/mquad-arconoid/banner.png" />
+    <meta property="og:image:height" content="966"/>
+    <meta property="og:image:width" content="1465"/>
+    <meta property="og:site_name" content="InnocentusLime's page"/>
+    <meta property="og:image:alt" content="Click to play the game in your browser"/>
+
+    <!-- Twitter Meta Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta property="twitter:domain" content="innocentuslime.github.io" />
+    <meta property="twitter:url" content="https://innocentuslime.github.io/mquad-arconoid" />
+    <meta name="twitter:title" content="Boring Arcanoid" />
+    <meta name="twitter:description" content="A simple plain Arcanoid clone that can run in your browser! Mobile included." />
+    <meta name="twitter:image" content="https://innocentuslime.github.io/mquad-arconoid/banner.png" />
+
+    <!-- Mobile -->
+    <meta name=HandheldFriendly content="True" />
+    <meta name=mobile-web-app-capable content="yes" />
+    <meta name=apple-mobile-web-app-capable content="yes" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="./favicon.ico">
+
+    <noscript>
+        <style>
+            .start-button {
+                display: none;
+            }
+        </style>
+    </noscript>
+
+    <style>
+        :root {
+            --background-col: rgb(0.0, 0.0, 20);
+            --primary-col: #ddfbff;
+        }
+
+        @font-face {
+            font-family: mainFont;
+            src: url(assets/oegnek.ttf);
+        }
+
+        html,
+        body,
+        canvas {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: absolute;
+            background: black;
+            z-index: 0;
+        }
+        #loading * {
+            margin: 0;
+        }
+		#app {
+			margin: 0;
+			padding: 0;
+			width: 100%;
+			height: 100vh;
+			box-sizing: border-box;
+			overflow: hidden;
+		}
+        #loading {
+            font-family: mainFont;
+            position: absolute;
+            color: var(--primary-col);
+            background-color: var(--background-col);
+            z-index: 1;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 20px;
+        }
+        svg#loadspin {
+            width: 100px;
+            height: 100px;
+        }
+        #start {
+            z-index: 2;
+            position: absolute;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            gap: 20px;
+            background-color: var(--background-col);
+        }
+
+        [hidden] { display: none !important; }
+
+        .start-button {
+            margin:0;
+            padding:20px;
+            font-weight: bold;
+            border-radius: 20px;
+            font-size: larger;
+            background-color: transparent;
+            color: var(--primary-col);
+            border: 1px solid var(--primary-col);
+            transition: all 0.3s ease-in-out;
+            font-family: mainFont;
+        }
+        .start-button:hover {
+            background-color: var(--primary-col);
+            color: var(--background-col);
+        }
+        noscript {
+            color: red;
+            font-family: mainFont;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        #err {
+            z-index: 3;
+            position: absolute;
+            background-color: black;
+            height: 100%;
+            width: 100%;
+        }
+        #error-msg {
+            color: red;
+        }
+
+        #glcanvas {
+            position: absolute;
+        }
+    </style>
+</head>
+<body>
+	<div id="app">
+    <div id="loading" hidden="true">
+        <h1>Loading!</h1>
+        <p>Loading WASM, please wait!</p>
+        <svg id="loadspin" version=" 1.1" id="L3" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px"
+            y="0px" viewBox="0 0 100 100" enable-background="new 0 0 0 0" xml:space="preserve">
+            <circle fill="none" stroke="#30304F" stroke-width="4" cx="50" cy="50" r="44" style="opacity:0.5;" />
+            <circle fill="rgb(40, 40, 40)" stroke="#ddfbff" stroke-width="3" cx="8" cy="54" r="6">
+                <animateTransform attributeName="transform" dur="2s" type="rotate" from="0 50 48" to="360 50 52"
+                    repeatCount="indefinite" />
+            </circle>
+        </svg>
+    </div>
+    <div id="start">
+        <noscript>
+            <h1>WARNING</h1>
+            This game needs javascript enabled to run.
+        </noscript>
+        <button class="start-button" onclick="javascript:play_game()">Start Game</button>
+    </div>
+    <div id="err" hidden="true">
+        <span id="error-msg">[NO ERROR]</span>
+    </div>
+    <canvas id="glcanvas" tabindex='1'>
+    </canvas>
+    </div>
+    <!-- Minified and statically hosted version of https://github.com/not-fl3/macroquad/blob/master/js/mq_js_bundle.js -->
+    <script src="./miniquad.js"></script>
+    <script src="./quad_snd.js"></script>
+    <script src="./sapp_jsutils.js"></script>
+    <script src="./app_essentials.js"></script>
+    <script>
+        function play_game() {
+            console.log("Starting");
+
+            document.getElementById("start").remove();
+            document.getElementById("loading").hidden = false;
+
+            load("./game.wasm");
+        }
+    </script>
+</body>
+</html>
