@@ -60,7 +60,7 @@ jobs:
         uses: manleydev/butler-publish-itchio-action@v1.0.3
         env:
           BUTLER_CREDENTIALS: ${{ secrets.BUTLER_TOKEN }}
-          ITCH_GAME: pirate-jam-15
+          ITCH_GAME: ${{ vars.ITCH_GAME }}
           ITCH_USER: innocentuslime
           CHANNEL: html5
           PACKAGE: ./dist
