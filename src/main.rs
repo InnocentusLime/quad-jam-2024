@@ -99,11 +99,7 @@ async fn run() -> anyhow::Result<()> {
             fullscreen = !fullscreen;
         }
 
-        let mut game_model = GameModel {
-            prev_state: state,
-            state,
-            target_pos: Vec2::ZERO,
-        };
+        let prev_state = state;
 
         match state {
             GameState::Start if ui_model.confirmation_detected() => {
@@ -125,7 +121,6 @@ async fn run() -> anyhow::Result<()> {
                 }
 
                 game.update(dt, &ui_model);
-                game_model.target_pos = game.player_pos();
             },
             GameState::PleaseRotate if get_orientation() == 0.0 => {
                 state = paused_state;
@@ -133,9 +128,11 @@ async fn run() -> anyhow::Result<()> {
             _ => (),
         };
 
-        game_model.state = state;
-
-        /*  =================== model is valid past this line ================ */
+        let game_model = GameModel {
+            prev_state,
+            state,
+            target_pos: game.player_pos(),
+        };
 
         render.draw(&game_model);
         ui.draw(ui_model);
