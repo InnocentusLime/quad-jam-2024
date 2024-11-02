@@ -106,7 +106,7 @@ impl Render {
         })
     }
 
-    pub fn draw(&mut self, _model: &GameModel) {
+    pub fn draw(&mut self, model: &GameModel) {
         self.setup_cam();
 
         clear_background(Color {
@@ -115,6 +115,14 @@ impl Render {
             b: 0.02,
             a: 1.0,
         });
+
+        draw_rectangle(
+            model.target_pos.x,
+            model.target_pos.y,
+            32.0,
+            32.0,
+            GREEN
+        );
     }
 
     fn setup_cam(&mut self) {

@@ -102,6 +102,7 @@ async fn run() -> anyhow::Result<()> {
         let mut game_model = GameModel {
             prev_state: state,
             state,
+            target_pos: Vec2::ZERO,
         };
 
         match state {
@@ -124,6 +125,7 @@ async fn run() -> anyhow::Result<()> {
                 }
 
                 game.update(dt, &ui_model);
+                game_model.target_pos = vec2(mouse_position().0, mouse_position().1);
             },
             GameState::PleaseRotate if get_orientation() == 0.0 => {
                 state = paused_state;
