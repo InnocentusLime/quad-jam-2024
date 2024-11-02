@@ -125,7 +125,7 @@ async fn run() -> anyhow::Result<()> {
                 }
 
                 game.update(dt, &ui_model);
-                game_model.target_pos = vec2(mouse_position().0, mouse_position().1);
+                game_model.target_pos = game.player_pos();
             },
             GameState::PleaseRotate if get_orientation() == 0.0 => {
                 state = paused_state;
