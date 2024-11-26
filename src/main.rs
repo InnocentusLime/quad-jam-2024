@@ -62,6 +62,8 @@ async fn run() -> anyhow::Result<()> {
     let mut sounder = SoundDirector::new().await?;
     let ui = Ui::new().await?;
 
+    info!("Project version: {}", env!("CARGO_PKG_VERSION"));
+    info!("Rapier version: {}", rapier2d::VERSION);
     info!("Runtime created");
 
     let mut state = GameState::Start;
