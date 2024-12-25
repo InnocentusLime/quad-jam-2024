@@ -1,18 +1,22 @@
-use game_model::{player_won, GameModel};
+use debug::{init_on_screen_log, Debug};
+use game::Game;
+use game_model::GameModel;
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
-use physics::Physics;
+use physics::PhysicsState;
 use render::Render;
 use sound_director::SoundDirector;
 use sys::*;
 use ui::Ui;
 
-mod physics;
+mod debug;
+mod game;
 mod render;
 mod sys;
 mod ui;
 mod game_model;
 mod sound_director;
+mod physics;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum GameState {
@@ -49,12 +53,26 @@ async fn main() {
 }
 
 async fn run() -> anyhow::Result<()> {
+    set_max_level(STATIC_MAX_LEVEL);
+    init_on_screen_log();
+
     set_default_filter_mode(FilterMode::Nearest);
 
-    let mut phys = Physics::new();
+    info!("Setting up Rapier");
+
+    let mut rap = PhysicsState::new();
+
+    info!("Rapier version: {}", rapier2d::VERSION);
+
+    let mut game = Game::new();
+    let mut debug = Debug::new();
     let mut render = Render::new().await?;
     let mut sounder = SoundDirector::new().await?;
     let ui = Ui::new().await?;
+
+    info!("Project version: {}", env!("CARGO_PKG_VERSION"));
+
+    info!("Runtime created");
 
     let mut state = GameState::Start;
     let mut fullscreen = window_conf().fullscreen;
@@ -67,6 +85,12 @@ async fn run() -> anyhow::Result<()> {
     build_textures_atlas();
 
     done_loading();
+
+    info!("Done loading");
+
+    let bod = rap.spawn();
+
+    info!("Spawned body {bod:?}");
 
     loop {
         let dt = get_frame_time();
@@ -89,45 +113,29 @@ async fn run() -> anyhow::Result<()> {
             fullscreen = !fullscreen;
         }
 
-        let mut game_model = GameModel {
-            dt: get_frame_time(),
-            prev_state: state,
-            state,
-            old_physics: phys,
-            physics: phys,
-        };
+        let prev_state = state;
 
-        phys.new_frame();
         match state {
             GameState::Start if ui_model.confirmation_detected() => {
+                info!("Starting the game");
                 state = GameState::Active;
             },
             GameState::Win | GameState::GameOver if ui_model.confirmation_detected() => {
-                phys = Physics::new();
-                game_model.old_physics = phys;
                 state = GameState::Active;
             },
             GameState::Paused if ui_model.pause_requested() => {
+                info!("Unpausing");
                 state = GameState::Active;
             },
             GameState::Active => {
-                if ui_model.move_left() {
-                    phys.move_player(dt, false);
-                }
-
-                if ui_model.move_right() {
-                    phys.move_player(dt, true);
-                }
-
-                let hit_floor = phys.update(dt);
-
-                if player_won(&phys) {
-                    state = GameState::Win;
-                } else if hit_floor {
-                    state = GameState::GameOver;
-                } else if ui_model.pause_requested() {
+                /* Update game */
+                if ui_model.pause_requested() {
+                    info!("Pausing");
                     state = GameState::Paused;
                 }
+
+                game.update(dt, &ui_model);
+                rap.step();
             },
             GameState::PleaseRotate if get_orientation() == 0.0 => {
                 state = paused_state;
@@ -135,14 +143,25 @@ async fn run() -> anyhow::Result<()> {
             _ => (),
         };
 
-        game_model.state = state;
-        game_model.physics = phys;
-
-        /*  =================== model is valid past this line ================ */
+        let game_model = GameModel {
+            prev_state,
+            state,
+            target_pos: game.player_pos(),
+            body_pos:
+                rap.get_pos(&bod).unwrap_or_default() * 32.0 *
+                    vec2(1.0, -1.0) +
+                    vec2(0.0, screen_height()) +
+                    vec2(0.0, -32.0)
+            ,
+        };
 
         render.draw(&game_model);
         ui.draw(ui_model);
         sounder.direct_sounds(&game_model);
+
+        debug.new_frame();
+        debug.draw_ui_debug(&ui_model);
+        debug.draw_events();
 
         next_frame().await
     }

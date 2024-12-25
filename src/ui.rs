@@ -4,7 +4,6 @@ use crate::{sys::*, GameState};
 const FONT_SCALE: f32 = 1.0;
 const MAIN_FONT_SIZE: u16 = 32;
 const HINT_FONT_SIZE: u16 = 16;
-const PADDLE_BUTTON_WIDTH: f32 = 64.0;
 const VERTICAL_ORIENT_HORIZONTAL_PADDING: f32 = 16.0;
 
 static WIN_TEXT: &'static str = "Congratulations!";
@@ -20,16 +19,26 @@ static START_TEXT_DESK: &'static str = "Press Space to start";
 static START_TEXT_MOBILE: &'static str = "Tap to start";
 
 #[derive(Clone, Copy, Debug)]
-pub struct InGameUiModel {
+pub struct UiModel {
     state: GameState,
     left_movement_down: bool,
     right_movement_down: bool,
+    up_movement_down: bool,
+    down_movement_down: bool,
     confirmation_detected: bool,
     pause_requested: bool,
     fullscreen_toggle_requested: bool,
 }
 
-impl InGameUiModel {
+impl UiModel {
+    pub fn move_up(&self) -> bool {
+        self.up_movement_down
+    }
+
+    pub fn move_down(&self) -> bool {
+        self.down_movement_down
+    }
+
     pub fn move_left(&self) -> bool {
         self.left_movement_down
     }
@@ -62,25 +71,24 @@ impl Ui {
         })
     }
 
-    pub fn update(&self, state: GameState) -> InGameUiModel {
-        let (mx, my) = mouse_position();
-        let Vec2 { x: mx, y: my } = self.get_cam().screen_to_world(vec2(mx, my));
-        let left_button_rect = self.move_left_button_rect();
-        let right_button_rect = self.move_right_button_rect();
+    pub fn update(&self, state: GameState) -> UiModel {
+        // NOTE: for mobile
+        // let (mx, my) = mouse_position();
+        // let Vec2 { x: mx, y: my } = self.get_cam().screen_to_world(vec2(mx, my));
 
-
+        // TODO: handle mobile
         let left_movement_down =
             is_key_down(KeyCode::A) ||
-            is_key_down(KeyCode::Left) ||
-            (left_button_rect.contains(vec2(mx, my)) &&
-             is_mouse_button_down(MouseButton::Left) &&
-             on_mobile());
+            is_key_down(KeyCode::Left);
         let right_movement_down =
             is_key_down(KeyCode::D) ||
-            is_key_down(KeyCode::Right) ||
-            (right_button_rect.contains(vec2(mx, my)) &&
-             is_mouse_button_down(MouseButton::Left) &&
-             on_mobile());
+            is_key_down(KeyCode::Right);
+        let up_movement_down =
+            is_key_down(KeyCode::W) ||
+            is_key_down(KeyCode::Up);
+        let down_movement_down =
+            is_key_down(KeyCode::S) ||
+            is_key_down(KeyCode::Down);
         let confirmation_detected =
             is_key_pressed(KeyCode::Space) ||
             is_mouse_button_pressed(MouseButton::Left);
@@ -89,38 +97,23 @@ impl Ui {
         let fullscreen_toggle_requested =
             is_key_pressed(KeyCode::F11);
 
-        InGameUiModel {
+        UiModel {
             state,
             left_movement_down,
             right_movement_down,
             confirmation_detected,
+            up_movement_down,
+            down_movement_down,
             pause_requested,
             fullscreen_toggle_requested,
         }
     }
 
-    pub fn draw(&self, model: InGameUiModel) {
+    pub fn draw(&self, model: UiModel) {
         set_camera(&self.get_cam());
 
         if on_mobile() && model.state == GameState::Active {
-            let left_button_rect = self.move_left_button_rect();
-            let right_button_rect = self.move_right_button_rect();
-            draw_rectangle(
-                left_button_rect.x,
-                left_button_rect.y,
-                left_button_rect.w,
-                left_button_rect.h,
-                if model.move_left() { WHITE }
-                else { Color::from_hex(0xDDFBFF) }
-            );
-            draw_rectangle(
-                right_button_rect.x,
-                right_button_rect.y,
-                right_button_rect.w,
-                right_button_rect.h,
-                if model.move_right() { WHITE }
-                else { Color::from_hex(0xDDFBFF) }
-            );
+            /* Mobile controls */
         }
 
         match model.state {
@@ -162,28 +155,6 @@ impl Ui {
             RESTART_HINT_MOBILE
         } else {
             RESTART_HINT_DESK
-        }
-    }
-
-    fn move_left_button_rect(&self) -> Rect {
-        let view_rect = self.view_rect();
-
-        Rect {
-            x: view_rect.left(),
-            y: view_rect.top(),
-            w: PADDLE_BUTTON_WIDTH,
-            h: view_rect.h,
-        }
-    }
-
-    fn move_right_button_rect(&self) -> Rect {
-        let view_rect = self.view_rect();
-
-        Rect {
-            x: view_rect.right() - PADDLE_BUTTON_WIDTH,
-            y: view_rect.top(),
-            w: PADDLE_BUTTON_WIDTH,
-            h: view_rect.h,
         }
     }
 
