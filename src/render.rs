@@ -123,6 +123,14 @@ impl Render {
             32.0,
             GREEN
         );
+
+        draw_rectangle(
+            model.body_pos.x,
+            model.body_pos.y,
+            32.0,
+            32.0,
+            RED
+        );
     }
 
     fn setup_cam(&mut self) {

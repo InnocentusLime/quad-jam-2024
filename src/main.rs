@@ -3,6 +3,7 @@ use game::Game;
 use game_model::GameModel;
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
+use physics::PhysicsState;
 use render::Render;
 use sound_director::SoundDirector;
 use sys::*;
@@ -15,6 +16,7 @@ mod sys;
 mod ui;
 mod game_model;
 mod sound_director;
+mod physics;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum GameState {
@@ -56,6 +58,12 @@ async fn run() -> anyhow::Result<()> {
 
     set_default_filter_mode(FilterMode::Nearest);
 
+    info!("Setting up Rapier");
+
+    let mut rap = PhysicsState::new();
+
+    info!("Rapier version: {}", rapier2d::VERSION);
+
     let mut game = Game::new();
     let mut debug = Debug::new();
     let mut render = Render::new().await?;
@@ -63,7 +71,7 @@ async fn run() -> anyhow::Result<()> {
     let ui = Ui::new().await?;
 
     info!("Project version: {}", env!("CARGO_PKG_VERSION"));
-    info!("Rapier version: {}", rapier2d::VERSION);
+
     info!("Runtime created");
 
     let mut state = GameState::Start;
@@ -79,6 +87,10 @@ async fn run() -> anyhow::Result<()> {
     done_loading();
 
     info!("Done loading");
+
+    let bod = rap.spawn();
+
+    info!("Spawned body {bod:?}");
 
     loop {
         let dt = get_frame_time();
@@ -123,6 +135,7 @@ async fn run() -> anyhow::Result<()> {
                 }
 
                 game.update(dt, &ui_model);
+                rap.step();
             },
             GameState::PleaseRotate if get_orientation() == 0.0 => {
                 state = paused_state;
@@ -134,6 +147,12 @@ async fn run() -> anyhow::Result<()> {
             prev_state,
             state,
             target_pos: game.player_pos(),
+            body_pos:
+                rap.get_pos(&bod).unwrap_or_default() * 32.0 *
+                    vec2(1.0, -1.0) +
+                    vec2(0.0, screen_height()) +
+                    vec2(0.0, -32.0)
+            ,
         };
 
         render.draw(&game_model);
