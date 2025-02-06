@@ -1,6 +1,7 @@
 use macroquad::prelude::*;
+use shipyard::{IntoIter, View, ViewMut, World};
 
-use crate::game_model::GameModel;
+use crate::{game_model::GameModel, Follower, Pos};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 // fn trail() -> particles::EmitterConfig {
@@ -106,7 +107,7 @@ impl Render {
         })
     }
 
-    pub fn draw(&mut self, model: &GameModel) {
+    pub fn draw(&mut self, world: &mut World) {
         self.setup_cam();
 
         clear_background(Color {
@@ -116,21 +117,25 @@ impl Render {
             a: 1.0,
         });
 
-        draw_rectangle(
-            model.target_pos.x,
-            model.target_pos.y,
-            32.0,
-            32.0,
-            GREEN
-        );
+        world.run(|follow: View<Follower>, pos: View<Pos>| {
+            for (_, pos) in (&follow, &pos).iter() {
+                draw_rectangle(
+                    pos.0.x,
+                    pos.0.y,
+                    32.0,
+                    32.0,
+                    GREEN
+                );
+            }
+        });
 
-        draw_rectangle(
-            model.body_pos.x,
-            model.body_pos.y,
-            32.0,
-            32.0,
-            RED
-        );
+        // draw_rectangle(
+        //     model.body_pos.x,
+        //     model.body_pos.y,
+        //     32.0,
+        //     32.0,
+        //     RED
+        // );
     }
 
     fn setup_cam(&mut self) {

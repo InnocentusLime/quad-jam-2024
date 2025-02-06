@@ -5,6 +5,7 @@ use macroquad::prelude::*;
 use miniquad::window::set_window_size;
 use physics::PhysicsState;
 use render::Render;
+use shipyard::{Component, World};
 use sound_director::SoundDirector;
 use sys::*;
 use ui::Ui;
@@ -52,6 +53,16 @@ async fn main() {
     }
 }
 
+#[derive(Debug, Clone, Copy, Component)]
+pub struct Pos(pub Vec2);
+
+#[derive(Debug, Clone, Copy, Component)]
+pub struct Speed(pub Vec2);
+
+
+#[derive(Debug, Clone, Copy, Component)]
+pub struct Follower;
+
 async fn run() -> anyhow::Result<()> {
     set_max_level(STATIC_MAX_LEVEL);
     init_on_screen_log();
@@ -69,6 +80,16 @@ async fn run() -> anyhow::Result<()> {
     let mut render = Render::new().await?;
     let mut sounder = SoundDirector::new().await?;
     let ui = Ui::new().await?;
+
+    let mut world = World::new();
+    let tester = world.add_entity((
+        Pos(Vec2::ZERO),
+    ));
+    let follower = world.add_entity((
+        Speed(Vec2::ZERO),
+        Pos(Vec2::ZERO),
+        Follower,
+    ));
 
     info!("Project version: {}", env!("CARGO_PKG_VERSION"));
 
@@ -113,8 +134,6 @@ async fn run() -> anyhow::Result<()> {
             fullscreen = !fullscreen;
         }
 
-        let prev_state = state;
-
         match state {
             GameState::Start if ui_model.confirmation_detected() => {
                 info!("Starting the game");
@@ -134,7 +153,7 @@ async fn run() -> anyhow::Result<()> {
                     state = GameState::Paused;
                 }
 
-                game.update(dt, &ui_model);
+                game.update(dt, &ui_model, &mut world);
                 rap.step();
             },
             GameState::PleaseRotate if get_orientation() == 0.0 => {
@@ -143,21 +162,9 @@ async fn run() -> anyhow::Result<()> {
             _ => (),
         };
 
-        let game_model = GameModel {
-            prev_state,
-            state,
-            target_pos: game.player_pos(),
-            body_pos:
-                rap.get_pos(&bod).unwrap_or_default() * 32.0 *
-                    vec2(1.0, -1.0) +
-                    vec2(0.0, screen_height()) +
-                    vec2(0.0, -32.0)
-            ,
-        };
-
-        render.draw(&game_model);
+        render.draw(&mut world);
         ui.draw(ui_model);
-        sounder.direct_sounds(&game_model);
+        // sounder.direct_sounds(&game_model);
 
         debug.new_frame();
         debug.draw_ui_debug(&ui_model);
