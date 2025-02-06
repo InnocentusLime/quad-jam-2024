@@ -82,13 +82,13 @@ async fn run() -> anyhow::Result<()> {
     let ui = Ui::new().await?;
 
     let mut world = World::new();
-    let tester = world.add_entity((
-        Pos(Vec2::ZERO),
-    ));
-    let follower = world.add_entity((
+    let _follower = world.add_entity((
         Speed(Vec2::ZERO),
         Pos(Vec2::ZERO),
         Follower,
+    ));
+    let phys_test = world.add_entity((
+        Pos(Vec2::ZERO),
     ));
 
     info!("Project version: {}", env!("CARGO_PKG_VERSION"));
