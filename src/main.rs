@@ -3,7 +3,7 @@ use game::Game;
 use game_model::GameModel;
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
-use physics::PhysicsState;
+use physics::{PhysicsState, RapierHandle};
 use render::Render;
 use shipyard::{Component, World};
 use sound_director::SoundDirector;
@@ -91,6 +91,8 @@ async fn run() -> anyhow::Result<()> {
         Pos(Vec2::ZERO),
     ));
 
+    // world.add_component(phys_test, component);
+
     info!("Project version: {}", env!("CARGO_PKG_VERSION"));
 
     info!("Runtime created");
@@ -109,9 +111,7 @@ async fn run() -> anyhow::Result<()> {
 
     info!("Done loading");
 
-    let bod = rap.spawn();
-
-    info!("Spawned body {bod:?}");
+    rap.spawn(&mut world, phys_test);
 
     loop {
         let dt = get_frame_time();
@@ -153,8 +153,15 @@ async fn run() -> anyhow::Result<()> {
                     state = GameState::Paused;
                 }
 
+                if is_key_pressed(KeyCode::A) {
+                    let res = world.remove::<(RapierHandle,)>(phys_test);
+                    info!("Call! {}", res.0.is_some());
+                    // world.delete_component::<(RapierHandle,)>(phys_test);
+                    // info!("Call!");
+                }
+
                 game.update(dt, &ui_model, &mut world);
-                rap.step();
+                rap.step(&mut world);
             },
             GameState::PleaseRotate if get_orientation() == 0.0 => {
                 state = paused_state;

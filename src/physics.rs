@@ -1,6 +1,11 @@
 use macroquad::prelude::*;
 use nalgebra::Translation2;
 use rapier2d::prelude::*;
+use shipyard::{Component, EntityId, View, World};
+
+#[derive(Clone, Copy, Debug, Component)]
+#[track(Deletion)]
+pub struct RapierHandle(RigidBodyHandle);
 
 pub struct PhysicsState {
     pub islands: IslandManager,
@@ -44,7 +49,7 @@ impl PhysicsState {
         Some(vec2(pos.x, pos.y))
     }
 
-    pub fn spawn(&mut self) -> RigidBodyHandle {
+    pub fn spawn(&mut self, world: &mut World, ent: EntityId) {
         let mut iso = Isometry::identity();
         iso.append_translation_mut(&Translation2::new(2.0, 12.0));
 
@@ -59,10 +64,27 @@ impl PhysicsState {
             &mut self.bodies,
         );
 
-        body
+        world.add_component(
+            ent,
+            RapierHandle(body),
+        );
     }
 
-    pub fn step(&mut self) {
+    pub fn step(&mut self, world: &mut World) {
+        world.run(|view: View<RapierHandle>| {
+            for (_, rap) in view.deleted() {
+                info!("Deletted");
+                self.bodies.remove(
+                    rap.0,
+                    &mut self.islands,
+                    &mut self.colliders,
+                    &mut self.impulse_joints,
+                    &mut self.multibody_joints,
+                    true,
+                );
+            }
+        });
+
         self.pipeline.step(
             &self.gravity,
             &self.integration_parameters,
