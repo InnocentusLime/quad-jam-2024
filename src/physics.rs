@@ -198,13 +198,15 @@ impl PhysicsState {
 
         // Export the new positions to world
         world.run(|rbs: View<RapierHandle>, mut pos: ViewMut<Transform>| for (rb, pos) in (&rbs, &mut pos).iter() {
-            let new_pos = self.bodies.get(rb.body)
-                .unwrap()
-                .translation();
+            let rb  = self.bodies.get(rb.body)
+                .unwrap();
+            let new_pos = rb.translation();
             let new_pos = vec2(new_pos.x, new_pos.y);
             let new_pos = Self::phys_to_world(new_pos);
+            let new_angle = rb.rotation().angle();
 
             pos.pos = new_pos;
+            pos.angle = new_angle;
         });
 
         world.run(|rbs: View<RapierHandle>, mut pbox: ViewMut<PhysBox>| for (rb, pbox) in (&rbs, &mut pbox).iter() {
