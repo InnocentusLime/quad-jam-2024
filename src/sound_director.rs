@@ -1,4 +1,5 @@
 use macroquad::audio::{self, load_sound, PlaySoundParams, Sound};
+use shipyard::World;
 
 use crate::game_model::GameModel;
 
@@ -17,15 +18,6 @@ impl SoundDirector {
         })
     }
 
-    pub fn direct_sounds(&mut self, model: &GameModel) {
-        if model.gameover_just_happened() {
-            audio::play_sound(
-                &self.dead,
-                PlaySoundParams {
-                    looped: false,
-                    volume: 0.4,
-                }
-            );
-        }
+    pub fn direct_sounds(&mut self, world: &mut World) {
     }
 }
