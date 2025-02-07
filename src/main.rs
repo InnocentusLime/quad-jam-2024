@@ -177,7 +177,7 @@ async fn run() -> anyhow::Result<()> {
 
         render.draw(&mut world);
         ui.draw(ui_model);
-        // sounder.direct_sounds(&game_model);
+        sounder.direct_sounds(&mut world);
 
         debug.new_frame();
         debug.draw_ui_debug(&ui_model);
