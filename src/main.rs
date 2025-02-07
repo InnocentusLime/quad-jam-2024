@@ -54,6 +54,7 @@ async fn main() {
 #[derive(Debug, Clone, Copy, Component)]
 pub struct Transform {
     pub pos: Vec2,
+    pub angle: f32,
 }
 
 #[derive(Debug, Clone, Copy, Component)]
@@ -86,12 +87,14 @@ async fn run() -> anyhow::Result<()> {
         Speed(Vec2::ZERO),
         Transform {
             pos: Vec2::ZERO,
+            angle: 0.0f32,
         },
         Follower,
     ));
     let phys_test2 = world.add_entity((
         Transform {
             pos: vec2(0.0, 300.0),
+            angle: 0.0f32,
         },
     ));
 
@@ -126,6 +129,7 @@ async fn run() -> anyhow::Result<()> {
         let phys_test = world.add_entity((
             Transform {
                 pos,
+                angle: 0.0f32,
             },
         ));
         rap.spawn(&mut world, phys_test);
