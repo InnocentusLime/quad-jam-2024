@@ -28,7 +28,6 @@ pub enum ColliderTy {
 pub struct PhysicsInfo {
     col: ColliderTy,
     body: RigidBodyHandle,
-    collider: ColliderHandle,
 }
 
 impl PhysicsInfo {
@@ -104,18 +103,17 @@ impl PhysicsState {
                 height / 2.0 / PIXEL_PER_METER,
             ),
         };
-        let collider = self.colliders.insert_with_parent(
+
+        self.colliders.insert_with_parent(
             ColliderBuilder::new(collider_shape),
             body.clone(),
             &mut self.bodies,
         );
-
         self.mapping.insert(entity, body);
         world.add_component(
             entity,
             PhysicsInfo {
                 body,
-                collider,
                 col: collision,
             }
         );
@@ -214,9 +212,12 @@ impl PhysicsState {
         });
 
         world.run(|rbs: View<PhysicsInfo>, mut pbox: ViewMut<PhysBox>| for (rb, pbox) in (&rbs, &mut pbox).iter() {
-            let aabb = self.colliders.get(rb.collider)
+            let aabb = self.bodies.get(rb.body)
                 .unwrap()
-                .compute_aabb();
+                .colliders()
+                .iter()
+                .map(|x| self.colliders.get(*x).unwrap().compute_aabb())
+                .fold(Aabb::new_invalid(), |acc, x| acc.merged(&x));
 
             *pbox = PhysBox {
                 min: Self::phys_to_world(vec2(aabb.mins.x, aabb.mins.y)),
