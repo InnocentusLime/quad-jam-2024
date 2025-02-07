@@ -116,6 +116,7 @@ async fn run() -> anyhow::Result<()> {
         vec2(0.0, 0.0),
         vec2(64.0, -3.0),
         vec2(128.0, 20.0),
+        vec2(32.0, -40.0),
     ];
 
     for pos in poses {
