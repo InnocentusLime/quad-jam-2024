@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use shipyard::{IntoIter, View, ViewMut, World};
 
-use crate::{game_model::GameModel, physics::{PhysBox, RapierHandle}, Follower, Pos};
+use crate::{physics::{PhysBox, RapierHandle}, Follower, Pos};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 // fn trail() -> particles::EmitterConfig {

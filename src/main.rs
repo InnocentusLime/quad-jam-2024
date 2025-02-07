@@ -1,6 +1,5 @@
 use debug::{init_on_screen_log, Debug};
 use game::Game;
-use game_model::GameModel;
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
 use physics::{PhysicsState, RapierHandle};
@@ -15,7 +14,6 @@ mod game;
 mod render;
 mod sys;
 mod ui;
-mod game_model;
 mod sound_director;
 mod physics;
 
