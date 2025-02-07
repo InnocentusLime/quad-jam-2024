@@ -3,7 +3,9 @@ use std::collections::{HashMap, HashSet};
 use macroquad::prelude::*;
 use nalgebra::Translation2;
 use rapier2d::prelude::*;
-use shipyard::{Component, EntityId, View, World};
+use shipyard::{Component, EntityId, IntoIter, View, ViewMut, World};
+
+use crate::Pos;
 
 #[derive(Clone, Copy, Debug, Component)]
 #[track(Deletion, Removal)]
@@ -70,6 +72,7 @@ impl PhysicsState {
     }
 
     pub fn step(&mut self, world: &mut World) {
+        // GC the dead handles
         world.run(|view: View<RapierHandle>| for remd in view.removed_or_deleted() {
             let Some(rb) = self.mapping.remove(&remd)
                 else { continue; };
@@ -86,6 +89,7 @@ impl PhysicsState {
             );
         });
 
+        // Step simulation
         self.pipeline.step(
             &self.gravity,
             &self.integration_parameters,
@@ -101,5 +105,19 @@ impl PhysicsState {
             &*self.hooks,
             &()
         );
+
+        // Export the new positions to world
+        world.run(|rbs: View<RapierHandle>, mut pos: ViewMut<Pos>| for (rb, pos) in (&rbs, &mut pos).iter() {
+            let new_pos = self.bodies.get(rb.0)
+                .unwrap()
+                .translation();
+            let new_pos = vec2(new_pos.x, new_pos.y);
+            let new_pos = new_pos * 32.0 *
+                    vec2(1.0, -1.0) +
+                    vec2(0.0, screen_height()) +
+                    vec2(0.0, -32.0);
+
+            pos.0 = new_pos;
+        });
     }
 }

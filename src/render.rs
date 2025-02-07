@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use shipyard::{IntoIter, View, ViewMut, World};
 
-use crate::{game_model::GameModel, Follower, Pos};
+use crate::{game_model::GameModel, physics::RapierHandle, Follower, Pos};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 // fn trail() -> particles::EmitterConfig {
@@ -124,18 +124,22 @@ impl Render {
                     pos.0.y,
                     32.0,
                     32.0,
-                    GREEN
+                    GREEN,
                 );
             }
         });
 
-        // draw_rectangle(
-        //     model.body_pos.x,
-        //     model.body_pos.y,
-        //     32.0,
-        //     32.0,
-        //     RED
-        // );
+        world.run(|phys: View<RapierHandle>, pos: View<Pos>| {
+            for (_, pos) in (&phys, &pos).iter() {
+                draw_rectangle(
+                    pos.0.x,
+                    pos.0.y,
+                    32.0,
+                    32.0,
+                    RED,
+                );
+            }
+        });
     }
 
     fn setup_cam(&mut self) {
