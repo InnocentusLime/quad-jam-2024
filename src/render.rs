@@ -130,14 +130,18 @@ impl Render {
         });
 
         world.run(|phys: View<PhysBox>, pos: View<Transform>| {
-            for (pbox, _) in (&phys, &pos).iter() {
-                draw_rectangle_lines(
+            for (pbox, tf) in (&phys, &pos).iter() {
+                draw_rectangle_lines_ex(
                     pbox.min.x,
                     pbox.min.y,
                     pbox.max.x - pbox.min.x,
                     pbox.max.y - pbox.min.y,
                     1.0,
-                    RED,
+                    DrawRectangleParams {
+                        offset: vec2(0.0, 0.0),
+                        rotation: tf.angle,
+                        color: RED,
+                    },
                 );
             }
         });
