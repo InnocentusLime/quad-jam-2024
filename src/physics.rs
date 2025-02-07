@@ -11,7 +11,7 @@ pub const PIXEL_PER_METER : f32 = 32.0;
 
 #[derive(Clone, Copy, Debug, Component)]
 #[track(Deletion, Removal)]
-pub struct RapierHandle {
+pub struct PhysicsInfo {
     body: RigidBodyHandle,
     collider: ColliderHandle,
 }
@@ -77,7 +77,7 @@ impl PhysicsState {
 
         world.add_component(
             ent,
-            RapierHandle {
+            PhysicsInfo {
                 body,
                 collider,
             },
@@ -110,7 +110,7 @@ impl PhysicsState {
 
         world.add_component(
             ent,
-            RapierHandle {
+            PhysicsInfo {
                 body,
                 collider,
             },
@@ -145,7 +145,7 @@ impl PhysicsState {
 
     pub fn step(&mut self, world: &mut World) {
         // GC the dead handles
-        world.run(|view: View<RapierHandle>| for remd in view.removed_or_deleted() {
+        world.run(|view: View<PhysicsInfo>| for remd in view.removed_or_deleted() {
             let Some(rb) = self.mapping.remove(&remd)
                 else { continue; };
 
@@ -162,7 +162,7 @@ impl PhysicsState {
         });
 
         // Import the new positions to world
-        world.run(|rbs: View<RapierHandle>, pos: View<Transform>| for (rb, pos) in (&rbs, &pos).iter() {
+        world.run(|rbs: View<PhysicsInfo>, pos: View<Transform>| for (rb, pos) in (&rbs, &pos).iter() {
             let new_pos = Self::world_to_phys(pos.pos);
             let body = self.bodies.get_mut(rb.body).unwrap();
 
@@ -197,7 +197,7 @@ impl PhysicsState {
         );
 
         // Export the new positions to world
-        world.run(|rbs: View<RapierHandle>, mut pos: ViewMut<Transform>| for (rb, pos) in (&rbs, &mut pos).iter() {
+        world.run(|rbs: View<PhysicsInfo>, mut pos: ViewMut<Transform>| for (rb, pos) in (&rbs, &mut pos).iter() {
             let rb  = self.bodies.get(rb.body)
                 .unwrap();
             let new_pos = rb.translation();
@@ -209,7 +209,7 @@ impl PhysicsState {
             pos.angle = new_angle;
         });
 
-        world.run(|rbs: View<RapierHandle>, mut pbox: ViewMut<PhysBox>| for (rb, pbox) in (&rbs, &mut pbox).iter() {
+        world.run(|rbs: View<PhysicsInfo>, mut pbox: ViewMut<PhysBox>| for (rb, pbox) in (&rbs, &mut pbox).iter() {
             let aabb = self.colliders.get(rb.collider)
                 .unwrap()
                 .compute_aabb();
