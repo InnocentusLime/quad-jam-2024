@@ -2,7 +2,7 @@ use debug::{init_on_screen_log, Debug};
 use game::Game;
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
-use physics::{PhysicsState, RapierHandle};
+use physics::PhysicsState;
 use render::Render;
 use shipyard::{Component, World};
 use sound_director::SoundDirector;
@@ -164,14 +164,6 @@ async fn run() -> anyhow::Result<()> {
                 if ui_model.pause_requested() {
                     info!("Pausing");
                     state = GameState::Paused;
-                }
-
-                if is_key_pressed(KeyCode::A) {
-                    // let res = world.remove::<(RapierHandle,)>(phys_test);
-                    // info!("Call! {}", res.0.is_some());
-                    // world.delete_component::<(RapierHandle,)>(phys_test);
-                    // info!("Call!");
-                    // world.delete_entity(phys_test);
                 }
 
                 game.update(dt, &ui_model, &mut world);
