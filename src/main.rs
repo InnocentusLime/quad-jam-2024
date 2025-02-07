@@ -52,7 +52,7 @@ async fn main() {
 }
 
 #[derive(Debug, Clone, Copy, Component)]
-pub struct Pos(pub Vec2);
+pub struct Transform(pub Vec2);
 
 #[derive(Debug, Clone, Copy, Component)]
 pub struct Speed(pub Vec2);
@@ -82,11 +82,11 @@ async fn run() -> anyhow::Result<()> {
     let mut world = World::new();
     let _follower = world.add_entity((
         Speed(Vec2::ZERO),
-        Pos(Vec2::ZERO),
+        Transform(Vec2::ZERO),
         Follower,
     ));
     let phys_test2 = world.add_entity((
-        Pos(vec2(
+        Transform(vec2(
             0.0,
             300.0,
         )),
@@ -121,7 +121,7 @@ async fn run() -> anyhow::Result<()> {
 
     for pos in poses {
         let phys_test = world.add_entity((
-            Pos(pos),
+            Transform(pos),
         ));
         rap.spawn(&mut world, phys_test);
     }

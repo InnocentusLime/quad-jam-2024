@@ -5,7 +5,7 @@ use nalgebra::Translation2;
 use rapier2d::prelude::*;
 use shipyard::{Component, EntityId, IntoIter, View, ViewMut, World};
 
-use crate::Pos;
+use crate::Transform;
 
 pub const PIXEL_PER_METER : f32 = 32.0;
 
@@ -162,7 +162,7 @@ impl PhysicsState {
         });
 
         // Import the new positions to world
-        world.run(|rbs: View<RapierHandle>, pos: View<Pos>| for (rb, pos) in (&rbs, &pos).iter() {
+        world.run(|rbs: View<RapierHandle>, pos: View<Transform>| for (rb, pos) in (&rbs, &pos).iter() {
             let new_pos = Self::world_to_phys(pos.0);
             let body = self.bodies.get_mut(rb.body).unwrap();
 
@@ -197,7 +197,7 @@ impl PhysicsState {
         );
 
         // Export the new positions to world
-        world.run(|rbs: View<RapierHandle>, mut pos: ViewMut<Pos>| for (rb, pos) in (&rbs, &mut pos).iter() {
+        world.run(|rbs: View<RapierHandle>, mut pos: ViewMut<Transform>| for (rb, pos) in (&rbs, &mut pos).iter() {
             let new_pos = self.bodies.get(rb.body)
                 .unwrap()
                 .translation();

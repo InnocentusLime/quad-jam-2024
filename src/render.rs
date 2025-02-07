@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use shipyard::{IntoIter, View, World};
 
-use crate::{physics::PhysBox, Follower, Pos};
+use crate::{physics::PhysBox, Follower, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 // fn trail() -> particles::EmitterConfig {
@@ -117,7 +117,7 @@ impl Render {
             a: 1.0,
         });
 
-        world.run(|follow: View<Follower>, pos: View<Pos>| {
+        world.run(|follow: View<Follower>, pos: View<Transform>| {
             for (_, pos) in (&follow, &pos).iter() {
                 draw_rectangle(
                     pos.0.x,
@@ -129,7 +129,7 @@ impl Render {
             }
         });
 
-        world.run(|phys: View<PhysBox>, pos: View<Pos>| {
+        world.run(|phys: View<PhysBox>, pos: View<Transform>| {
             for (pbox, _) in (&phys, &pos).iter() {
                 draw_rectangle_lines(
                     pbox.min.x,

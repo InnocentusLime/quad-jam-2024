@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 use shipyard::{IntoIter, View, ViewMut, World};
-use crate::{ui::UiModel, Follower, Pos, Speed};
+use crate::{ui::UiModel, Follower, Transform, Speed};
 
 const PLAYER_SPEED_MAX: f32 = 128.0;
 const PLAYER_ACC: f32 = 128.0;
@@ -21,7 +21,7 @@ impl Game {
     ) {
         let (mx, my) = mouse_position();
 
-        world.run(|follow: View<Follower>, mut pos: ViewMut<Pos>, mut speed: ViewMut<Speed>| {
+        world.run(|follow: View<Follower>, mut pos: ViewMut<Transform>, mut speed: ViewMut<Speed>| {
             for (_, pos, speed) in (&follow, &mut pos, &mut speed).iter() {
                 let dv = (vec2(mx, my) - pos.0).normalize_or_zero();
 
