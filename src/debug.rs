@@ -53,7 +53,7 @@ struct OnScreenLog;
 static ON_SCREEN_LOG: OnScreenLog = OnScreenLog;
 
 impl Log for OnScreenLog {
-    fn enabled(&self, metadata: &Metadata) -> bool {
+    fn enabled(&self, _metadata: &Metadata) -> bool {
         // TODO: fix
         true
     }

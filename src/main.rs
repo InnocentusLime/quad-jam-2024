@@ -1,10 +1,10 @@
 use debug::{init_on_screen_log, Debug};
 use game::Game;
-use game_model::GameModel;
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
-use physics::PhysicsState;
+use physics::{BodyKind, ColliderTy, PhysicsState};
 use render::Render;
+use shipyard::{Component, World};
 use sound_director::SoundDirector;
 use sys::*;
 use ui::Ui;
@@ -14,7 +14,6 @@ mod game;
 mod render;
 mod sys;
 mod ui;
-mod game_model;
 mod sound_director;
 mod physics;
 
@@ -52,6 +51,19 @@ async fn main() {
     }
 }
 
+#[derive(Debug, Clone, Copy, Component)]
+pub struct Transform {
+    pub pos: Vec2,
+    pub angle: f32,
+}
+
+#[derive(Debug, Clone, Copy, Component)]
+pub struct Speed(pub Vec2);
+
+
+#[derive(Debug, Clone, Copy, Component)]
+pub struct Follower;
+
 async fn run() -> anyhow::Result<()> {
     set_max_level(STATIC_MAX_LEVEL);
     init_on_screen_log();
@@ -69,6 +81,24 @@ async fn run() -> anyhow::Result<()> {
     let mut render = Render::new().await?;
     let mut sounder = SoundDirector::new().await?;
     let ui = Ui::new().await?;
+
+    let mut world = World::new();
+    let _follower = world.add_entity((
+        Speed(Vec2::ZERO),
+        Transform {
+            pos: Vec2::ZERO,
+            angle: 0.0f32,
+        },
+        Follower,
+    ));
+    let phys_test2 = world.add_entity((
+        Transform {
+            pos: vec2(0.0, 300.0),
+            angle: 0.0f32,
+        },
+    ));
+
+    // world.add_component(phys_test, component);
 
     info!("Project version: {}", env!("CARGO_PKG_VERSION"));
 
@@ -88,9 +118,39 @@ async fn run() -> anyhow::Result<()> {
 
     info!("Done loading");
 
-    let bod = rap.spawn();
+    let poses = [
+        vec2(0.0, 0.0),
+        vec2(64.0, -3.0),
+        vec2(128.0, 20.0),
+        vec2(32.0, -40.0),
+    ];
 
-    info!("Spawned body {bod:?}");
+    for pos in poses {
+        let phys_test = world.add_entity((
+            Transform {
+                pos,
+                angle: 0.0f32,
+            },
+        ));
+        rap.spawn(
+            &mut world,
+            phys_test,
+            ColliderTy::Box {
+                width: 32.0,
+                height: 32.0,
+            },
+            BodyKind::Dynamic,
+        );
+    }
+    rap.spawn(
+        &mut world,
+        phys_test2,
+        ColliderTy::Box {
+            width: 240.0,
+            height: 32.0,
+        },
+        BodyKind::Static,
+    );
 
     loop {
         let dt = get_frame_time();
@@ -113,8 +173,6 @@ async fn run() -> anyhow::Result<()> {
             fullscreen = !fullscreen;
         }
 
-        let prev_state = state;
-
         match state {
             GameState::Start if ui_model.confirmation_detected() => {
                 info!("Starting the game");
@@ -134,8 +192,8 @@ async fn run() -> anyhow::Result<()> {
                     state = GameState::Paused;
                 }
 
-                game.update(dt, &ui_model);
-                rap.step();
+                game.update(dt, &ui_model, &mut world);
+                rap.step(&mut world);
             },
             GameState::PleaseRotate if get_orientation() == 0.0 => {
                 state = paused_state;
@@ -143,25 +201,15 @@ async fn run() -> anyhow::Result<()> {
             _ => (),
         };
 
-        let game_model = GameModel {
-            prev_state,
-            state,
-            target_pos: game.player_pos(),
-            body_pos:
-                rap.get_pos(&bod).unwrap_or_default() * 32.0 *
-                    vec2(1.0, -1.0) +
-                    vec2(0.0, screen_height()) +
-                    vec2(0.0, -32.0)
-            ,
-        };
-
-        render.draw(&game_model);
+        render.draw(&mut world);
         ui.draw(ui_model);
-        sounder.direct_sounds(&game_model);
+        sounder.direct_sounds(&mut world);
 
         debug.new_frame();
         debug.draw_ui_debug(&ui_model);
         debug.draw_events();
+
+        world.clear_all_removed_and_deleted();
 
         next_frame().await
     }
