@@ -91,7 +91,10 @@ async fn run() -> anyhow::Result<()> {
         Pos(Vec2::ZERO),
     ));
     let phys_test2 = world.add_entity((
-        Pos(Vec2::ZERO),
+        Pos(vec2(
+            0.0,
+            300.0,
+        )),
     ));
 
     // world.add_component(phys_test, component);

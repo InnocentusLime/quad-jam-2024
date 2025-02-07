@@ -61,7 +61,7 @@ impl PhysicsState {
 
     pub fn spawn_ground(&mut self, world: &mut World, ent: EntityId) {
         let mut iso = Isometry::identity();
-        iso.append_translation_mut(&Translation2::new(0.0, -15.0));
+        iso.append_translation_mut(&Translation2::new(0.0, 0.0));
 
         let body = self.bodies.insert(
             RigidBodyBuilder::new(RigidBodyType::Fixed)
@@ -94,8 +94,7 @@ impl PhysicsState {
 
     pub fn spawn(&mut self, world: &mut World, ent: EntityId) {
         let mut iso = Isometry::identity();
-        // iso.append_translation_mut(&Translation2::new(2.0, 12.0));
-        iso.append_translation_mut(&Translation2::new(10.0, 0.0));
+        iso.append_translation_mut(&Translation2::new(0.0, 0.0));
 
         let body = self.bodies.insert(
             RigidBodyBuilder::new(RigidBodyType::Dynamic)
@@ -136,7 +135,12 @@ impl PhysicsState {
     }
 
     pub fn world_to_phys(p: Vec2) -> Vec2 {
-        todo!()
+        let mut out = p;
+
+        out.y *= -1.0;
+        out /= PIXEL_PER_METER;
+
+        out
     }
 
     pub fn step(&mut self, world: &mut World) {
@@ -156,6 +160,24 @@ impl PhysicsState {
                 true,
             );
         });
+
+        // Import the new positions to world
+        world.run(|rbs: View<RapierHandle>, pos: View<Pos>| for (rb, pos) in (&rbs, &pos).iter() {
+            let new_pos = Self::world_to_phys(pos.0);
+            let body = self.bodies.get_mut(rb.body).unwrap();
+
+            body.set_position(
+                Isometry {
+                    translation: rapier2d::na::Translation2::new(
+                        new_pos.x,
+                        new_pos.y,
+                    ),
+                    ..*body.position()
+                },
+                true,
+            );
+        });
+
 
         // Step simulation
         self.pipeline.step(
