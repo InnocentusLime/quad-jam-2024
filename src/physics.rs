@@ -1,10 +1,12 @@
+use std::collections::{HashMap, HashSet};
+
 use macroquad::prelude::*;
 use nalgebra::Translation2;
 use rapier2d::prelude::*;
 use shipyard::{Component, EntityId, View, World};
 
 #[derive(Clone, Copy, Debug, Component)]
-#[track(Deletion)]
+#[track(Deletion, Removal)]
 pub struct RapierHandle(RigidBodyHandle);
 
 pub struct PhysicsState {
@@ -21,6 +23,7 @@ pub struct PhysicsState {
     pub integration_parameters: IntegrationParameters,
     pub gravity: Vector<Real>,
     pub hooks: Box<dyn PhysicsHooks>,
+    pub mapping: HashMap<EntityId, RigidBodyHandle>,
 }
 
 impl PhysicsState {
@@ -39,14 +42,8 @@ impl PhysicsState {
             integration_parameters: IntegrationParameters::default(),
             gravity: Vector::y() * -9.81,
             hooks: Box::new(()),
+            mapping: HashMap::new(),
         }
-    }
-
-    pub fn get_pos(&self, h: &RigidBodyHandle) -> Option<Vec2> {
-        let body = self.bodies.get(h.clone())?;
-        let pos = body.position().translation;
-
-        Some(vec2(pos.x, pos.y))
     }
 
     pub fn spawn(&mut self, world: &mut World, ent: EntityId) {
@@ -64,6 +61,8 @@ impl PhysicsState {
             &mut self.bodies,
         );
 
+        self.mapping.insert(ent, body);
+
         world.add_component(
             ent,
             RapierHandle(body),
@@ -71,18 +70,20 @@ impl PhysicsState {
     }
 
     pub fn step(&mut self, world: &mut World) {
-        world.run(|view: View<RapierHandle>| {
-            for (_, rap) in view.deleted() {
-                info!("Deletted");
-                self.bodies.remove(
-                    rap.0,
-                    &mut self.islands,
-                    &mut self.colliders,
-                    &mut self.impulse_joints,
-                    &mut self.multibody_joints,
-                    true,
-                );
-            }
+        world.run(|view: View<RapierHandle>| for remd in view.removed_or_deleted() {
+            let Some(rb) = self.mapping.remove(&remd)
+                else { continue; };
+
+            info!("ent:{remd:?} body:{rb:?} deletted");
+
+            self.bodies.remove(
+                rb,
+                &mut self.islands,
+                &mut self.colliders,
+                &mut self.impulse_joints,
+                &mut self.multibody_joints,
+                true,
+            );
         });
 
         self.pipeline.step(

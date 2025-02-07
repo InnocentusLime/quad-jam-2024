@@ -154,10 +154,11 @@ async fn run() -> anyhow::Result<()> {
                 }
 
                 if is_key_pressed(KeyCode::A) {
-                    let res = world.remove::<(RapierHandle,)>(phys_test);
-                    info!("Call! {}", res.0.is_some());
+                    // let res = world.remove::<(RapierHandle,)>(phys_test);
+                    // info!("Call! {}", res.0.is_some());
                     // world.delete_component::<(RapierHandle,)>(phys_test);
                     // info!("Call!");
+                    world.delete_entity(phys_test);
                 }
 
                 game.update(dt, &ui_model, &mut world);
@@ -176,6 +177,8 @@ async fn run() -> anyhow::Result<()> {
         debug.new_frame();
         debug.draw_ui_debug(&ui_model);
         debug.draw_events();
+
+        world.clear_all_removed_and_deleted();
 
         next_frame().await
     }
