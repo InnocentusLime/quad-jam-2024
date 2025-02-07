@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use shipyard::{IntoIter, View, World};
 
-use crate::{physics::PhysBox, Follower, Transform};
+use crate::{physics::{ColliderTy, PhysBox, PhysicsInfo}, Follower, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 // fn trail() -> particles::EmitterConfig {
@@ -129,20 +129,23 @@ impl Render {
             }
         });
 
-        world.run(|phys: View<PhysBox>, pos: View<Transform>| {
-            for (pbox, tf) in (&phys, &pos).iter() {
-                draw_rectangle_lines_ex(
-                    pbox.min.x,
-                    pbox.min.y,
-                    pbox.max.x - pbox.min.x,
-                    pbox.max.y - pbox.min.y,
-                    1.0,
-                    DrawRectangleParams {
-                        offset: vec2(0.0, 0.0),
-                        rotation: tf.angle,
-                        color: RED,
-                    },
-                );
+        world.run(|phys: View<PhysicsInfo>, pos: View<Transform>| {
+            for (col, tf) in (&phys, &pos).iter() {
+                match col.col() {
+                    ColliderTy::Box { width, height } => draw_rectangle_lines_ex(
+                        tf.pos.x,
+                        tf.pos.y,
+                        *width,
+                        *height,
+                        1.0,
+                        DrawRectangleParams {
+                            // offset: Vec2::ZERO,
+                            offset: vec2(0.5, 0.5),
+                            rotation: std::f32::consts::PI - tf.angle,
+                            color: RED,
+                        },
+                    ),
+                }
             }
         });
     }

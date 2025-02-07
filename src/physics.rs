@@ -31,6 +31,10 @@ pub struct PhysicsInfo {
     collider: ColliderHandle,
 }
 
+impl PhysicsInfo {
+    pub fn col(&self) -> &ColliderTy { &self.col }
+}
+
 #[derive(Clone, Copy, Debug, Component)]
 pub struct PhysBox {
     pub min: Vec2,

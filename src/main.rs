@@ -146,7 +146,7 @@ async fn run() -> anyhow::Result<()> {
         &mut world,
         phys_test2,
         ColliderTy::Box {
-            width: 100.0,
+            width: 240.0,
             height: 32.0,
         },
         BodyKind::Static,
