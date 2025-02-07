@@ -87,9 +87,6 @@ async fn run() -> anyhow::Result<()> {
         Pos(Vec2::ZERO),
         Follower,
     ));
-    let phys_test = world.add_entity((
-        Pos(Vec2::ZERO),
-    ));
     let phys_test2 = world.add_entity((
         Pos(vec2(
             0.0,
@@ -117,7 +114,18 @@ async fn run() -> anyhow::Result<()> {
 
     info!("Done loading");
 
-    rap.spawn(&mut world, phys_test);
+    let poses = [
+        vec2(0.0, 0.0),
+        vec2(64.0, -3.0),
+        vec2(128.0, 20.0),
+    ];
+
+    for pos in poses {
+        let phys_test = world.add_entity((
+            Pos(pos),
+        ));
+        rap.spawn(&mut world, phys_test);
+    }
     rap.spawn_ground(&mut world, phys_test2);
 
     loop {
@@ -165,7 +173,7 @@ async fn run() -> anyhow::Result<()> {
                     // info!("Call! {}", res.0.is_some());
                     // world.delete_component::<(RapierHandle,)>(phys_test);
                     // info!("Call!");
-                    world.delete_entity(phys_test);
+                    // world.delete_entity(phys_test);
                 }
 
                 game.update(dt, &ui_model, &mut world);
