@@ -9,9 +9,24 @@ use crate::Transform;
 
 pub const PIXEL_PER_METER : f32 = 32.0;
 
+#[derive(Clone, Copy, Debug)]
+pub enum BodyKind {
+    Dynamic,
+    Static,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub enum ColliderTy {
+    Box {
+        width: f32,
+        height: f32,
+    },
+}
+
 #[derive(Clone, Copy, Debug, Component)]
 #[track(Deletion, Removal)]
 pub struct PhysicsInfo {
+    col: ColliderTy,
     body: RigidBodyHandle,
     collider: ColliderHandle,
 }
@@ -59,65 +74,50 @@ impl PhysicsState {
         }
     }
 
-    pub fn spawn_ground(&mut self, world: &mut World, ent: EntityId) {
+    pub fn spawn(
+        &mut self,
+        world: &mut World,
+        entity: EntityId,
+        collision: ColliderTy,
+        kind: BodyKind,
+    ) {
+        let rap_ty = match kind {
+            BodyKind::Dynamic => RigidBodyType::Dynamic,
+            BodyKind::Static => RigidBodyType::Fixed,
+        };
+
+        // FIXME: populate with data from the object
         let mut iso = Isometry::identity();
         iso.append_translation_mut(&Translation2::new(0.0, 0.0));
 
         let body = self.bodies.insert(
-            RigidBodyBuilder::new(RigidBodyType::Fixed)
+            RigidBodyBuilder::new(rap_ty)
                 .position(iso)
         );
+        let collider_shape = match collision {
+            ColliderTy::Box { width, height } => SharedShape::cuboid(
+                width / 2.0 / PIXEL_PER_METER,
+                height / 2.0 / PIXEL_PER_METER,
+            ),
+        };
         let collider = self.colliders.insert_with_parent(
-            ColliderBuilder::new(SharedShape::cuboid(100.0, 0.5)),
+            ColliderBuilder::new(collider_shape),
             body.clone(),
             &mut self.bodies,
         );
 
-        self.mapping.insert(ent, body);
-
+        self.mapping.insert(entity, body);
         world.add_component(
-            ent,
+            entity,
             PhysicsInfo {
                 body,
                 collider,
-            },
+                col: collision,
+            }
         );
 
         world.add_component(
-            ent,
-            PhysBox {
-                min: Vec2::ZERO,
-                max: Vec2::ZERO,
-            },
-        );
-    }
-
-    pub fn spawn(&mut self, world: &mut World, ent: EntityId) {
-        let mut iso = Isometry::identity();
-        iso.append_translation_mut(&Translation2::new(0.0, 0.0));
-
-        let body = self.bodies.insert(
-            RigidBodyBuilder::new(RigidBodyType::Dynamic)
-                .position(iso)
-        );
-        let collider = self.colliders.insert_with_parent(
-            ColliderBuilder::new(SharedShape::cuboid(0.5, 0.5)),
-            body.clone(),
-            &mut self.bodies,
-        );
-
-        self.mapping.insert(ent, body);
-
-        world.add_component(
-            ent,
-            PhysicsInfo {
-                body,
-                collider,
-            },
-        );
-
-        world.add_component(
-            ent,
+            entity,
             PhysBox {
                 min: Vec2::ZERO,
                 max: Vec2::ZERO,

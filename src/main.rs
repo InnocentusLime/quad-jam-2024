@@ -2,7 +2,7 @@ use debug::{init_on_screen_log, Debug};
 use game::Game;
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
-use physics::PhysicsState;
+use physics::{BodyKind, ColliderTy, PhysicsState};
 use render::Render;
 use shipyard::{Component, World};
 use sound_director::SoundDirector;
@@ -132,9 +132,25 @@ async fn run() -> anyhow::Result<()> {
                 angle: 0.0f32,
             },
         ));
-        rap.spawn(&mut world, phys_test);
+        rap.spawn(
+            &mut world,
+            phys_test,
+            ColliderTy::Box {
+                width: 32.0,
+                height: 32.0,
+            },
+            BodyKind::Dynamic,
+        );
     }
-    rap.spawn_ground(&mut world, phys_test2);
+    rap.spawn(
+        &mut world,
+        phys_test2,
+        ColliderTy::Box {
+            width: 100.0,
+            height: 32.0,
+        },
+        BodyKind::Static,
+    );
 
     loop {
         let dt = get_frame_time();
