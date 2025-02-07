@@ -120,8 +120,8 @@ impl Render {
         world.run(|follow: View<Follower>, pos: View<Transform>| {
             for (_, pos) in (&follow, &pos).iter() {
                 draw_rectangle(
-                    pos.0.x,
-                    pos.0.y,
+                    pos.pos.x,
+                    pos.pos.y,
                     32.0,
                     32.0,
                     GREEN,
