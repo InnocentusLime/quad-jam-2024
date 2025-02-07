@@ -90,6 +90,9 @@ async fn run() -> anyhow::Result<()> {
     let phys_test = world.add_entity((
         Pos(Vec2::ZERO),
     ));
+    let phys_test2 = world.add_entity((
+        Pos(Vec2::ZERO),
+    ));
 
     // world.add_component(phys_test, component);
 
@@ -112,6 +115,7 @@ async fn run() -> anyhow::Result<()> {
     info!("Done loading");
 
     rap.spawn(&mut world, phys_test);
+    rap.spawn_ground(&mut world, phys_test2);
 
     loop {
         let dt = get_frame_time();

@@ -7,6 +7,8 @@ use shipyard::{Component, EntityId, IntoIter, View, ViewMut, World};
 
 use crate::Pos;
 
+pub const PIXEL_PER_METER : f32 = 32.0;
+
 #[derive(Clone, Copy, Debug, Component)]
 #[track(Deletion, Removal)]
 pub struct RapierHandle(RigidBodyHandle);
@@ -48,17 +50,17 @@ impl PhysicsState {
         }
     }
 
-    pub fn spawn(&mut self, world: &mut World, ent: EntityId) {
+    pub fn spawn_ground(&mut self, world: &mut World, ent: EntityId) {
         let mut iso = Isometry::identity();
-        iso.append_translation_mut(&Translation2::new(2.0, 12.0));
+        iso.append_translation_mut(&Translation2::new(0.0, -15.0));
 
         let body = self.bodies.insert(
-            RigidBodyBuilder::new(RigidBodyType::Dynamic)
+            RigidBodyBuilder::new(RigidBodyType::Fixed)
                 .position(iso)
         );
 
         self.colliders.insert_with_parent(
-            ColliderBuilder::new(SharedShape::cuboid(1.0, 1.0)),
+            ColliderBuilder::new(SharedShape::cuboid(100.0, 0.5)),
             body.clone(),
             &mut self.bodies,
         );
@@ -69,6 +71,43 @@ impl PhysicsState {
             ent,
             RapierHandle(body),
         );
+    }
+
+    pub fn spawn(&mut self, world: &mut World, ent: EntityId) {
+        let mut iso = Isometry::identity();
+        // iso.append_translation_mut(&Translation2::new(2.0, 12.0));
+        iso.append_translation_mut(&Translation2::new(0.0, 0.0));
+
+        let body = self.bodies.insert(
+            RigidBodyBuilder::new(RigidBodyType::Dynamic)
+                .position(iso)
+        );
+
+        self.colliders.insert_with_parent(
+            ColliderBuilder::new(SharedShape::cuboid(0.5, 0.6)),
+            body.clone(),
+            &mut self.bodies,
+        );
+
+        self.mapping.insert(ent, body);
+
+        world.add_component(
+            ent,
+            RapierHandle(body),
+        );
+    }
+
+    pub fn phys_to_world(p: Vec2) -> Vec2 {
+        let mut out = p;
+
+        out *= PIXEL_PER_METER;
+        out.y *= -1.0;
+
+        out
+    }
+
+    pub fn world_to_phys(p: Vec2) -> Vec2 {
+        todo!()
     }
 
     pub fn step(&mut self, world: &mut World) {
@@ -112,10 +151,7 @@ impl PhysicsState {
                 .unwrap()
                 .translation();
             let new_pos = vec2(new_pos.x, new_pos.y);
-            let new_pos = new_pos * 32.0 *
-                    vec2(1.0, -1.0) +
-                    vec2(0.0, screen_height()) +
-                    vec2(0.0, -32.0);
+            let new_pos = Self::phys_to_world(new_pos);
 
             pos.0 = new_pos;
         });
