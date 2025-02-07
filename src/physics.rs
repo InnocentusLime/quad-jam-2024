@@ -11,7 +11,16 @@ pub const PIXEL_PER_METER : f32 = 32.0;
 
 #[derive(Clone, Copy, Debug, Component)]
 #[track(Deletion, Removal)]
-pub struct RapierHandle(RigidBodyHandle);
+pub struct RapierHandle {
+    body: RigidBodyHandle,
+    collider: ColliderHandle,
+}
+
+#[derive(Clone, Copy, Debug, Component)]
+pub struct PhysBox {
+    pub min: Vec2,
+    pub max: Vec2,
+}
 
 pub struct PhysicsState {
     pub islands: IslandManager,
@@ -58,8 +67,7 @@ impl PhysicsState {
             RigidBodyBuilder::new(RigidBodyType::Fixed)
                 .position(iso)
         );
-
-        self.colliders.insert_with_parent(
+        let collider = self.colliders.insert_with_parent(
             ColliderBuilder::new(SharedShape::cuboid(100.0, 0.5)),
             body.clone(),
             &mut self.bodies,
@@ -69,22 +77,32 @@ impl PhysicsState {
 
         world.add_component(
             ent,
-            RapierHandle(body),
+            RapierHandle {
+                body,
+                collider,
+            },
+        );
+
+        world.add_component(
+            ent,
+            PhysBox {
+                min: Vec2::ZERO,
+                max: Vec2::ZERO,
+            },
         );
     }
 
     pub fn spawn(&mut self, world: &mut World, ent: EntityId) {
         let mut iso = Isometry::identity();
         // iso.append_translation_mut(&Translation2::new(2.0, 12.0));
-        iso.append_translation_mut(&Translation2::new(0.0, 0.0));
+        iso.append_translation_mut(&Translation2::new(10.0, 0.0));
 
         let body = self.bodies.insert(
             RigidBodyBuilder::new(RigidBodyType::Dynamic)
                 .position(iso)
         );
-
-        self.colliders.insert_with_parent(
-            ColliderBuilder::new(SharedShape::cuboid(0.5, 0.6)),
+        let collider = self.colliders.insert_with_parent(
+            ColliderBuilder::new(SharedShape::cuboid(0.5, 0.5)),
             body.clone(),
             &mut self.bodies,
         );
@@ -93,7 +111,18 @@ impl PhysicsState {
 
         world.add_component(
             ent,
-            RapierHandle(body),
+            RapierHandle {
+                body,
+                collider,
+            },
+        );
+
+        world.add_component(
+            ent,
+            PhysBox {
+                min: Vec2::ZERO,
+                max: Vec2::ZERO,
+            },
         );
     }
 
@@ -147,13 +176,24 @@ impl PhysicsState {
 
         // Export the new positions to world
         world.run(|rbs: View<RapierHandle>, mut pos: ViewMut<Pos>| for (rb, pos) in (&rbs, &mut pos).iter() {
-            let new_pos = self.bodies.get(rb.0)
+            let new_pos = self.bodies.get(rb.body)
                 .unwrap()
                 .translation();
             let new_pos = vec2(new_pos.x, new_pos.y);
             let new_pos = Self::phys_to_world(new_pos);
 
             pos.0 = new_pos;
+        });
+
+        world.run(|rbs: View<RapierHandle>, mut pbox: ViewMut<PhysBox>| for (rb, pbox) in (&rbs, &mut pbox).iter() {
+            let aabb = self.colliders.get(rb.collider)
+                .unwrap()
+                .compute_aabb();
+
+            *pbox = PhysBox {
+                min: Self::phys_to_world(vec2(aabb.mins.x, aabb.mins.y)),
+                max: Self::phys_to_world(vec2(aabb.maxs.x, aabb.maxs.y)),
+            };
         });
     }
 }

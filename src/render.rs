@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use shipyard::{IntoIter, View, ViewMut, World};
 
-use crate::{game_model::GameModel, physics::RapierHandle, Follower, Pos};
+use crate::{game_model::GameModel, physics::{PhysBox, RapierHandle}, Follower, Pos};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 // fn trail() -> particles::EmitterConfig {
@@ -129,13 +129,14 @@ impl Render {
             }
         });
 
-        world.run(|phys: View<RapierHandle>, pos: View<Pos>| {
-            for (_, pos) in (&phys, &pos).iter() {
-                draw_rectangle(
-                    pos.0.x,
-                    pos.0.y,
-                    32.0,
-                    32.0,
+        world.run(|phys: View<PhysBox>, pos: View<Pos>| {
+            for (pbox, _) in (&phys, &pos).iter() {
+                draw_rectangle_lines(
+                    pbox.min.x,
+                    pbox.min.y,
+                    pbox.max.x - pbox.min.x,
+                    pbox.max.y - pbox.min.y,
+                    1.0,
                     RED,
                 );
             }
