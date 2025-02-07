@@ -163,7 +163,7 @@ impl PhysicsState {
 
         // Import the new positions to world
         world.run(|rbs: View<RapierHandle>, pos: View<Transform>| for (rb, pos) in (&rbs, &pos).iter() {
-            let new_pos = Self::world_to_phys(pos.0);
+            let new_pos = Self::world_to_phys(pos.pos);
             let body = self.bodies.get_mut(rb.body).unwrap();
 
             body.set_position(
@@ -204,7 +204,7 @@ impl PhysicsState {
             let new_pos = vec2(new_pos.x, new_pos.y);
             let new_pos = Self::phys_to_world(new_pos);
 
-            pos.0 = new_pos;
+            pos.pos = new_pos;
         });
 
         world.run(|rbs: View<RapierHandle>, mut pbox: ViewMut<PhysBox>| for (rb, pbox) in (&rbs, &mut pbox).iter() {

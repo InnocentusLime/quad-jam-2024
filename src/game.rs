@@ -23,12 +23,12 @@ impl Game {
 
         world.run(|follow: View<Follower>, mut pos: ViewMut<Transform>, mut speed: ViewMut<Speed>| {
             for (_, pos, speed) in (&follow, &mut pos, &mut speed).iter() {
-                let dv = (vec2(mx, my) - pos.0).normalize_or_zero();
+                let dv = (vec2(mx, my) - pos.pos).normalize_or_zero();
 
                 speed.0 += dv * PLAYER_ACC * dt;
                 speed.0 = speed.0.clamp_length(0.0, PLAYER_SPEED_MAX);
 
-                pos.0 += speed.0 * dt;
+                pos.pos += speed.0 * dt;
             }
         });
     }
