@@ -113,6 +113,8 @@ impl PhysicsState {
             RigidBodyBuilder::new(rap_ty)
                 .position(iso)
                 .soft_ccd_prediction(2.0)
+                .linear_damping(1.0)
+                .angular_damping(1.0)
         );
         let collider_shape = match collision {
             ColliderTy::Box { width, height } =>
