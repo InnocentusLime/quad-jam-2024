@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use macroquad::prelude::*;
 use nalgebra::Translation2;
-use rapier2d::{parry::query::ShapeCastOptions, prelude::*};
+use rapier2d::{na::Vector2, parry::query::ShapeCastOptions, prelude::*};
 use shipyard::{Component, EntityId, Get, IntoIter, View, ViewMut, World};
 
 use crate::Transform;
@@ -10,6 +10,7 @@ use crate::Transform;
 pub const PIXEL_PER_METER : f32 = 32.0;
 pub const MAX_KINEMATICS_ITERS: i32 = 20;
 pub const KINEMATIC_SKIN: f32 = 0.1;
+pub const KINEMATIC_NORMAL_NUDGE: f32 = 0.05;
 
 #[derive(Clone, Copy, Debug)]
 pub enum BodyKind {
@@ -154,6 +155,18 @@ impl PhysicsState {
         out
     }
 
+    fn get_slide_part(hit: &ShapeCastHit, trans: Vector2<f32>) -> Vector2<f32> {
+        let dist_to_surface = trans.dot(&hit.normal1);
+        let (normal_part, penetration_part) = if dist_to_surface < 0.0 {
+            (Vector2::zeros(), dist_to_surface * *hit.normal1)
+        } else {
+            (dist_to_surface * *hit.normal1, Vector2::zeros())
+        };
+
+        trans - normal_part - penetration_part +
+            *hit.normal1 * KINEMATIC_NORMAL_NUDGE
+    }
+
     // Adapted code of the character controller from rapier2d
     pub fn move_kinematic(
         &mut self,
@@ -216,7 +229,9 @@ impl PhysicsState {
             let allowed_trans = *off_dir * allowed_dist;
 
             final_trans += allowed_trans;
-            trans_rem -= allowed_trans;
+
+            // Reallign
+            trans_rem = Self::get_slide_part(&hit, trans_rem);
 
             // events(CharacterCollision {
             //     handle,
@@ -226,7 +241,6 @@ impl PhysicsState {
             //     hit,
             // });
 
-            // let hit_info = self.compute_hit_info(hit);
         }
 
         let old_trans = kin_pos.translation.vector;
