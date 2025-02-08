@@ -151,9 +151,8 @@ async fn run() -> anyhow::Result<()> {
         vec2(128.0, 50.0),
         vec2(300.0, 50.0),
     ];
-
-    for pos in poses {
-        let phys_test = world.add_entity((
+    let boxes = poses.map(|pos| {
+        let the_box = world.add_entity((
             Transform {
                 pos,
                 angle: 0.0f32,
@@ -161,14 +160,16 @@ async fn run() -> anyhow::Result<()> {
         ));
         rap.spawn(
             &mut world,
-            phys_test,
+            the_box,
             ColliderTy::Box {
                 width: 32.0,
                 height: 32.0,
             },
             BodyKind::Dynamic,
         );
-    }
+
+        the_box
+    });
 
     spawn_walls(&mut world, &mut rap);
 
@@ -210,6 +211,19 @@ async fn run() -> anyhow::Result<()> {
                 if ui_model.pause_requested() {
                     info!("Pausing");
                     state = GameState::Paused;
+                }
+
+                if is_key_pressed(KeyCode::Key1) {
+                    world.delete_entity(boxes[0]);
+                }
+                if is_key_pressed(KeyCode::Key2) {
+                    world.delete_entity(boxes[1]);
+                }
+                if is_key_pressed(KeyCode::Key3) {
+                    world.delete_entity(boxes[2]);
+                }
+                if is_key_pressed(KeyCode::Key4) {
+                    world.delete_entity(boxes[3]);
                 }
 
                 game.update(dt, &ui_model, &mut world);
