@@ -248,14 +248,14 @@ impl PhysicsState {
 
             final_trans += allowed_trans;
 
-            // Reallign
-            trans_rem = Self::get_slide_part(&hit, trans_rem);
-
             self.kinematic_cols.push((
                 trans_rem,
                 shape_pos,
                 hit,
             ));
+
+            // Reallign
+            trans_rem = Self::get_slide_part(&hit, trans_rem);
         }
 
         let old_trans = kin_pos.translation.vector;
@@ -284,12 +284,12 @@ impl PhysicsState {
                     if !bod.is_dynamic()  { return true; }
 
                     self.manifolds.clear();
-                    let pos12 = pos.inv_mul(pos);
+                    let pos12 = pos.inv_mul(col.position());
                     let _ = dispatcher.contact_manifolds(
                         &pos12,
                         &*kin_shape,
                         col.shape(),
-                        2.5 * KINEMATIC_SKIN,
+                        2.0 * KINEMATIC_SKIN,
                         &mut self.manifolds,
                         &mut None,
                     );
@@ -307,22 +307,23 @@ impl PhysicsState {
                 let body = &mut self.bodies[body_handle];
 
                 for pt in &manifold.points {
-                    if pt.dist <= 2.5 * KINEMATIC_SKIN {
-                        let body_mass = body.mass();
-                        let contact_point = body.position() * pt.local_p2;
-                        let delta_vel_per_contact = (velocity_to_transfer
-                            - body.velocity_at_point(&contact_point))
-                        .dot(&manifold.data.normal);
-                        let char_mass = 1000.0;
-                        let mass_ratio = body_mass * char_mass / (body_mass + char_mass);
-
-                        info!("dv {delta_vel_per_contact:?} mr: {mass_ratio:?}");
-                        body.apply_impulse_at_point(
-                            manifold.data.normal * delta_vel_per_contact.max(0.0) * mass_ratio,
-                            contact_point,
-                            true,
-                        );
+                    if pt.dist > 2.0 * KINEMATIC_SKIN {
+                        continue;
                     }
+
+                    let body_mass = body.mass();
+                    let contact_point = body.position() * pt.local_p2;
+                    let delta_vel_per_contact = (velocity_to_transfer
+                        - body.velocity_at_point(&contact_point))
+                    .dot(&manifold.data.normal);
+                    let char_mass = 1.0;
+                    let mass_ratio = body_mass * char_mass / (body_mass + char_mass);
+
+                    body.apply_impulse_at_point(
+                        manifold.data.normal * delta_vel_per_contact.max(0.0) * mass_ratio,
+                        contact_point,
+                        true,
+                    );
                 }
             }
         }
@@ -366,6 +367,7 @@ impl PhysicsState {
 
 
         // Step simulation
+        self.query_pipeline.update(&self.colliders);
         self.pipeline.step(
             &self.gravity,
             &self.integration_parameters,
