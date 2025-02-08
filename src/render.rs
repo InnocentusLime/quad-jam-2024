@@ -141,7 +141,7 @@ impl Render {
                         DrawRectangleParams {
                             // offset: Vec2::ZERO,
                             offset: vec2(0.5, 0.5),
-                            rotation: std::f32::consts::PI - tf.angle,
+                            rotation: tf.angle,
                             color: RED,
                         },
                     ),

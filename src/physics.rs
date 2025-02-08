@@ -174,7 +174,9 @@ impl PhysicsState {
                         new_pos.x,
                         new_pos.y,
                     ),
-                    ..*body.position()
+                    rotation: rapier2d::na::Unit::from_angle(
+                        std::f32::consts::PI - pos.angle,
+                    ),
                 },
                 true,
             );
@@ -205,7 +207,7 @@ impl PhysicsState {
             let new_pos = rb.translation();
             let new_pos = vec2(new_pos.x, new_pos.y);
             let new_pos = Self::phys_to_world(new_pos);
-            let new_angle = rb.rotation().angle();
+            let new_angle = std::f32::consts::PI - rb.rotation().angle();
 
             pos.pos = new_pos;
             pos.angle = new_angle;
