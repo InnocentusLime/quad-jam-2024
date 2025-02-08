@@ -145,6 +145,7 @@ async fn run() -> anyhow::Result<()> {
 
     info!("Done loading");
 
+    let mut angle = 0.0;
     let poses = [
         vec2(200.0, 60.0),
         vec2(64.0, 50.0),
@@ -152,10 +153,11 @@ async fn run() -> anyhow::Result<()> {
         vec2(300.0, 50.0),
     ];
     let boxes = poses.map(|pos| {
+        angle += 0.2;
         let the_box = world.add_entity((
             Transform {
                 pos,
-                angle: 0.0f32,
+                angle,
             },
         ));
         rap.spawn(
