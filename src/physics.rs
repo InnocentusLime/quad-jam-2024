@@ -2,12 +2,14 @@ use std::collections::HashMap;
 
 use macroquad::prelude::*;
 use nalgebra::Translation2;
-use rapier2d::prelude::*;
-use shipyard::{Component, EntityId, IntoIter, View, ViewMut, World};
+use rapier2d::{parry::query::ShapeCastOptions, prelude::*};
+use shipyard::{Component, EntityId, Get, IntoIter, View, ViewMut, World};
 
 use crate::Transform;
 
 pub const PIXEL_PER_METER : f32 = 32.0;
+pub const MAX_KINEMATICS_ITERS: i32 = 20;
+pub const KINEMATIC_SKIN: f32 = 0.1;
 
 #[derive(Clone, Copy, Debug)]
 pub enum BodyKind {
@@ -146,6 +148,84 @@ impl PhysicsState {
         out /= PIXEL_PER_METER;
 
         out
+    }
+
+    // Adapted code of the character controller from rapier2d
+    pub fn move_kinematic(
+        &mut self,
+        world: &mut World,
+        kinematic: EntityId,
+        dr: Vec2,
+    ) {
+        let dr = Self::world_to_phys(dr);
+        let rbh = world.run(|rbs: ViewMut<PhysicsInfo>|
+            (&rbs).get(kinematic).map(|x| x.body)
+        )
+        .expect("Failed to compute RB stuff");
+        let rb = self.bodies.get(rbh).unwrap();
+        let (kin_pos, kin_shape) = ((
+            rb.position(),
+            self.colliders.get(rb.colliders()[0])
+                .unwrap()
+                .shared_shape()
+                .clone()
+        ));
+
+        let mut final_trans = rapier2d::na::Vector2::zeros();
+        let mut trans_rem = rapier2d::na::Vector2::new(
+            dr.x,
+            dr.y,
+        );
+
+        let mut max_iters = MAX_KINEMATICS_ITERS;
+        while let Some((off_dir, off_len)) = UnitVector::try_new_and_get(
+            trans_rem,
+            1.0e-5,
+        ) {
+            if max_iters <= 0 { break; }
+            max_iters -= 1;
+
+            let Some((handle, hit)) = self.query_pipeline.cast_shape(
+                &self.bodies,
+                &self.colliders,
+                kin_pos,
+                &off_dir,
+                &*kin_shape.0,
+                ShapeCastOptions {
+                    target_distance: KINEMATIC_SKIN,
+                    max_time_of_impact: off_len,
+                    stop_at_penetration: false,
+                    compute_impact_geometry_on_penetration: true,
+                },
+                QueryFilter::default(),
+            )
+            else {
+                final_trans += trans_rem;
+                trans_rem.fill(0.0);
+                break;
+            };
+
+            let allowed_dist = hit.time_of_impact;
+            let allowed_trans = *off_dir * allowed_dist;
+
+            final_trans += allowed_trans;
+            trans_rem -= allowed_trans;
+
+            // events(CharacterCollision {
+            //     handle,
+            //     character_pos: Translation::from(result.translation) * character_pos,
+            //     translation_applied: result.translation,
+            //     translation_remaining,
+            //     hit,
+            // });
+
+            // let hit_info = self.compute_hit_info(hit);
+        }
+
+        let old_trans = kin_pos.translation.vector;
+        self.bodies.get_mut(rbh).unwrap().set_next_kinematic_translation(
+            (old_trans + final_trans).into()
+        );
     }
 
     pub fn step(&mut self, world: &mut World) {

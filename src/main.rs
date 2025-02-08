@@ -258,10 +258,16 @@ async fn run() -> anyhow::Result<()> {
                     dir += vec2(0.0, 1.0);
                 }
 
-                world.run(|mut pos: ViewMut<Transform>| {
-                    let dt = rapier2d::prelude::IntegrationParameters::default().dt;
-                    (&mut pos).get(player).unwrap().pos += dir.normalize_or_zero() * dt * 64.0;
-                });
+                // world.run(|mut pos: ViewMut<Transform>| {
+                //     let dt = rapier2d::prelude::IntegrationParameters::default().dt;
+                //     (&mut pos).get(player).unwrap().pos += dir.normalize_or_zero() * dt * 64.0;
+                // });
+
+                rap.move_kinematic(
+                    &mut world,
+                    player,
+                    dir.normalize_or_zero() * dt * 64.0,
+                );
 
                 game.update(dt, &ui_model, &mut world);
                 rap.step(&mut world);
