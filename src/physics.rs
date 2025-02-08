@@ -337,20 +337,20 @@ impl PhysicsState {
             let collider = self.colliders.get(handle).unwrap();
             let rb = collider.parent().unwrap();
             let rb = self.bodies.get(rb).unwrap();
-            if rb.is_dynamic() {
-                final_trans += trans_rem;
-                break;
-            }
+            // if rb.is_dynamic() {
+            //     final_trans += trans_rem;
+            //     break;
+            // }
             // Reallign
             trans_rem = Self::get_slide_part(&hit, trans_rem);
         }
 
         let old_trans = kin_pos.translation.vector;
+        self.move_kinematic_pushes(&*kin_shape);
+
         self.bodies.get_mut(rbh).unwrap().set_next_kinematic_translation(
             (old_trans + final_trans).into()
         );
-
-        self.move_kinematic_pushes(&*kin_shape);
     }
 
     pub fn step(&mut self, world: &mut World) {
