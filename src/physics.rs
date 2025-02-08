@@ -79,7 +79,7 @@ impl PhysicsState {
             pipeline: PhysicsPipeline::new(),
             query_pipeline: QueryPipeline::new(),
             integration_parameters: IntegrationParameters::default(),
-            gravity: Vector::y() * -9.81,
+            gravity: Vector::zeros(), //Vector::y() * -9.81,
             hooks: Box::new(()),
             mapping: HashMap::new(),
             kinematic_cols: Vec::new(),

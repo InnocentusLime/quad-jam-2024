@@ -149,10 +149,10 @@ async fn run() -> anyhow::Result<()> {
 
     let mut angle = 0.0;
     let poses = [
-        vec2(200.0, 60.0),
-        vec2(64.0, 50.0),
-        vec2(128.0, 50.0),
-        vec2(300.0, 50.0),
+        vec2(200.0, 160.0),
+        vec2(64.0, 250.0),
+        vec2(128.0, 150.0),
+        vec2(300.0, 250.0),
     ];
     let boxes = poses.map(|pos| {
         angle += 0.2;
