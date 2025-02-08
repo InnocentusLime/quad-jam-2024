@@ -9,8 +9,8 @@ use crate::Transform;
 
 pub const PIXEL_PER_METER : f32 = 32.0;
 pub const MAX_KINEMATICS_ITERS: i32 = 20;
-pub const KINEMATIC_SKIN: f32 = 0.1;
-pub const KINEMATIC_NORMAL_NUDGE: f32 = 0.001;
+pub const KINEMATIC_SKIN: f32 = 0.001;
+pub const KINEMATIC_NORMAL_NUDGE: f32 = 0.0005;
 pub const LENGTH_EPSILON: f32 = 1.0e-5;
 
 #[derive(Clone, Copy, Debug)]
