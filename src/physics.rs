@@ -11,6 +11,7 @@ pub const PIXEL_PER_METER : f32 = 32.0;
 pub const MAX_KINEMATICS_ITERS: i32 = 20;
 pub const KINEMATIC_SKIN: f32 = 0.1;
 pub const KINEMATIC_NORMAL_NUDGE: f32 = 0.001;
+pub const LENGTH_EPSILON: f32 = 1.0e-5;
 
 #[derive(Clone, Copy, Debug)]
 pub enum BodyKind {
@@ -206,7 +207,7 @@ impl PhysicsState {
         let mut max_iters = MAX_KINEMATICS_ITERS;
         while let Some((off_dir, off_len)) = UnitVector::try_new_and_get(
             trans_rem,
-            1.0e-5,
+            LENGTH_EPSILON,
         ) {
             if max_iters <= 0 { break; }
             max_iters -= 1;
