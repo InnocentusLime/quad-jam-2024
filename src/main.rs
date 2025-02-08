@@ -17,6 +17,8 @@ mod ui;
 mod sound_director;
 mod physics;
 
+pub const PLAYER_SPEED: f32 = 128.0;
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum GameState {
     Start,
@@ -266,7 +268,7 @@ async fn run() -> anyhow::Result<()> {
                 rap.move_kinematic(
                     &mut world,
                     player,
-                    dir.normalize_or_zero() * dt * 64.0,
+                    dir.normalize_or_zero() * dt * PLAYER_SPEED,
                 );
 
                 game.update(dt, &ui_model, &mut world);
