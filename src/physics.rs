@@ -10,7 +10,8 @@ use crate::Transform;
 pub const PIXEL_PER_METER : f32 = 32.0;
 pub const MAX_KINEMATICS_ITERS: i32 = 20;
 pub const KINEMATIC_SKIN: f32 = 0.001;
-pub const KINEMATIC_NORMAL_NUDGE: f32 = 0.0005;
+pub const PUSH_SKIN: f32 = KINEMATIC_SKIN * 2.0;
+pub const KINEMATIC_NORMAL_NUDGE: f32 = 1.0e-4;
 pub const LENGTH_EPSILON: f32 = 1.0e-5;
 
 #[derive(Clone, Copy, Debug)]
@@ -269,7 +270,8 @@ impl PhysicsState {
             let push = *hit.normal1 * rem.dot(
                 &hit.normal1
             );
-            let char_box = kin_shape.compute_aabb(pos);
+            let char_box = kin_shape.compute_aabb(pos)
+                .loosened(PUSH_SKIN);
 
             self.manifolds.clear();
             self.query_pipeline.colliders_with_aabb_intersecting_aabb(
@@ -289,7 +291,7 @@ impl PhysicsState {
                         &pos12,
                         &*kin_shape,
                         col.shape(),
-                        2.0 * KINEMATIC_SKIN,
+                        PUSH_SKIN,
                         &mut self.manifolds,
                         &mut None,
                     );
@@ -307,7 +309,7 @@ impl PhysicsState {
                 let body = &mut self.bodies[body_handle];
 
                 for pt in &manifold.points {
-                    if pt.dist > 2.0 * KINEMATIC_SKIN {
+                    if pt.dist > PUSH_SKIN {
                         continue;
                     }
 
