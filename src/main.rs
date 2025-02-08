@@ -146,10 +146,10 @@ async fn run() -> anyhow::Result<()> {
     info!("Done loading");
 
     let poses = [
-        vec2(0.0, 0.0),
-        vec2(64.0, -3.0),
-        vec2(128.0, 20.0),
-        vec2(32.0, -40.0),
+        vec2(200.0, 60.0),
+        vec2(64.0, 50.0),
+        vec2(128.0, 50.0),
+        vec2(300.0, 50.0),
     ];
 
     for pos in poses {
