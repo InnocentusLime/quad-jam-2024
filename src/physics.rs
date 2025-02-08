@@ -285,6 +285,7 @@ impl PhysicsState {
             );
             let body = self.bodies.get_mut(rb.body).unwrap();
 
+            // NOTE: perhaps we should do an epsilon compare here?
             if new_pos != *body.translation() || new_ang != *body.rotation() {
                 body.set_position(Isometry {
                     rotation: new_ang,
