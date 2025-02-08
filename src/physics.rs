@@ -10,7 +10,7 @@ use crate::Transform;
 pub const PIXEL_PER_METER : f32 = 32.0;
 pub const MAX_KINEMATICS_ITERS: i32 = 20;
 pub const KINEMATIC_SKIN: f32 = 0.001;
-pub const PUSH_SKIN: f32 = KINEMATIC_SKIN * 2.0;
+pub const PUSH_SKIN: f32 = KINEMATIC_SKIN * 0.9;
 pub const KINEMATIC_NORMAL_NUDGE: f32 = 1.0e-4;
 pub const LENGTH_EPSILON: f32 = 1.0e-5;
 
@@ -216,7 +216,7 @@ impl PhysicsState {
                         &pos12,
                         &*kin_shape,
                         col.shape(),
-                        PUSH_SKIN,
+                        KINEMATIC_SKIN,
                         &mut self.manifolds,
                         &mut None,
                     );
@@ -232,9 +232,10 @@ impl PhysicsState {
             for manifold in &self.manifolds {
                 let body_handle = manifold.data.rigid_body2.unwrap();
                 let body = &mut self.bodies[body_handle];
+                info!("CONT: {}", manifold.points.len());
 
                 for pt in &manifold.points {
-                    if pt.dist > PUSH_SKIN {
+                    if pt.dist > KINEMATIC_SKIN {
                         continue;
                     }
 
@@ -245,6 +246,10 @@ impl PhysicsState {
                     .dot(&manifold.data.normal);
                     let char_mass = 1.0;
                     let mass_ratio = body_mass * char_mass / (body_mass + char_mass);
+
+                    info!("{:?}",
+                        manifold.data.normal * delta_vel_per_contact.max(0.0) * mass_ratio,
+                    );
 
                     body.apply_impulse_at_point(
                         manifold.data.normal * delta_vel_per_contact.max(0.0) * mass_ratio,
@@ -321,6 +326,7 @@ impl PhysicsState {
             let allowed_trans = *off_dir * allowed_dist;
 
             final_trans += allowed_trans;
+            trans_rem -= allowed_trans;
 
             self.kinematic_cols.push((
                 trans_rem,
@@ -328,6 +334,13 @@ impl PhysicsState {
                 hit,
             ));
 
+            let collider = self.colliders.get(handle).unwrap();
+            let rb = collider.parent().unwrap();
+            let rb = self.bodies.get(rb).unwrap();
+            if rb.is_dynamic() {
+                final_trans += trans_rem;
+                break;
+            }
             // Reallign
             trans_rem = Self::get_slide_part(&hit, trans_rem);
         }
