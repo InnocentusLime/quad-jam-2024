@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use macroquad::prelude::*;
 use nalgebra::Translation2;
-use rapier2d::{na::{Isometry2, Vector2}, parry::query::ShapeCastOptions, prelude::*};
+use rapier2d::{na::{Isometry, Isometry2, Vector2}, parry::query::ShapeCastOptions, prelude::*};
 use shipyard::{Component, EntityId, Get, IntoIter, View, ViewMut, World};
 
 use crate::Transform;
@@ -279,20 +279,18 @@ impl PhysicsState {
         // Import the new positions to world
         world.run(|rbs: View<PhysicsInfo>, pos: View<Transform>| for (rb, pos) in (&rbs, &pos).iter() {
             let new_pos = Self::world_to_phys(pos.pos);
+            let new_pos = Vector2::new(new_pos.x, new_pos.y);
+            let new_ang = rapier2d::na::Unit::from_angle(
+                Self::world_ang_to_phys(pos.angle)
+            );
             let body = self.bodies.get_mut(rb.body).unwrap();
 
-            // body.set_position(
-            //     Isometry {
-            //         translation: rapier2d::na::Translation2::new(
-            //             new_pos.x,
-            //             new_pos.y,
-            //         ),
-            //         rotation: rapier2d::na::Unit::from_angle(
-            //             std::f32::consts::PI - pos.angle,
-            //         ),
-            //     },
-            //     true,
-            // );
+            if new_pos != *body.translation() || new_ang != *body.rotation() {
+                body.set_position(Isometry {
+                    rotation: new_ang,
+                    translation: new_pos.into(),
+                }, true);
+            }
         });
 
 
