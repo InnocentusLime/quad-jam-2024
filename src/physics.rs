@@ -192,7 +192,7 @@ impl PhysicsState {
             let Some((handle, hit)) = self.query_pipeline.cast_shape(
                 &self.bodies,
                 &self.colliders,
-                kin_pos,
+                &(Translation::from(final_trans) * kin_pos),
                 &off_dir,
                 &*kin_shape.0,
                 ShapeCastOptions {
