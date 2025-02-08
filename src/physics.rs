@@ -201,7 +201,10 @@ impl PhysicsState {
                     stop_at_penetration: false,
                     compute_impact_geometry_on_penetration: true,
                 },
-                QueryFilter::default(),
+                QueryFilter {
+                    exclude_rigid_body: Some(rbh),
+                    ..QueryFilter::default()
+                },
             )
             else {
                 final_trans += trans_rem;
@@ -255,9 +258,6 @@ impl PhysicsState {
             let new_pos = Self::world_to_phys(pos.pos);
             let body = self.bodies.get_mut(rb.body).unwrap();
 
-            if body.is_kinematic() {
-                info!("{:?}", body.next_position().translation.vector - body.position().translation.vector);
-            }
             // body.set_position(
             //     Isometry {
             //         translation: rapier2d::na::Translation2::new(
