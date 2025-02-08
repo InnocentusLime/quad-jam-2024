@@ -13,6 +13,7 @@ pub const PIXEL_PER_METER : f32 = 32.0;
 pub enum BodyKind {
     Dynamic,
     Static,
+    Kinematic,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -87,6 +88,7 @@ impl PhysicsState {
         let rap_ty = match kind {
             BodyKind::Dynamic => RigidBodyType::Dynamic,
             BodyKind::Static => RigidBodyType::Fixed,
+            BodyKind::Kinematic => RigidBodyType::KinematicPositionBased,
         };
 
         // FIXME: populate with data from the object
