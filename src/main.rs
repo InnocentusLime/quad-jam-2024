@@ -64,6 +64,39 @@ pub struct Speed(pub Vec2);
 #[derive(Debug, Clone, Copy, Component)]
 pub struct Follower;
 
+fn spawn_walls(
+    world: &mut World,
+    phys: &mut PhysicsState,
+) {
+    const WALL_THICK: f32 = 32.0;
+    const WALL_SIDE: f32 = 480.0;
+
+    let wall_data = [
+        (WALL_SIDE / 2.0, WALL_SIDE - WALL_THICK / 2.0, WALL_SIDE, WALL_THICK),
+        (WALL_SIDE / 2.0, WALL_THICK / 2.0, WALL_SIDE, WALL_THICK),
+        (WALL_SIDE - WALL_THICK / 2.0, WALL_SIDE / 2.0, WALL_THICK, WALL_SIDE),
+        (WALL_THICK / 2.0, WALL_SIDE / 2.0, WALL_THICK, WALL_SIDE),
+    ];
+
+    for (x, y, width, height) in wall_data {
+        let wall = world.add_entity((
+            Transform {
+                pos: vec2(x, y),
+                angle: 0.0f32,
+            },
+        ));
+        phys.spawn(
+            world,
+            wall,
+            ColliderTy::Box {
+                width,
+                height,
+            },
+            BodyKind::Static,
+        );
+    }
+}
+
 async fn run() -> anyhow::Result<()> {
     set_max_level(STATIC_MAX_LEVEL);
     init_on_screen_log();
@@ -90,12 +123,6 @@ async fn run() -> anyhow::Result<()> {
             angle: 0.0f32,
         },
         Follower,
-    ));
-    let phys_test2 = world.add_entity((
-        Transform {
-            pos: vec2(0.0, 300.0),
-            angle: 0.0f32,
-        },
     ));
 
     // world.add_component(phys_test, component);
@@ -142,15 +169,8 @@ async fn run() -> anyhow::Result<()> {
             BodyKind::Dynamic,
         );
     }
-    rap.spawn(
-        &mut world,
-        phys_test2,
-        ColliderTy::Box {
-            width: 240.0,
-            height: 32.0,
-        },
-        BodyKind::Static,
-    );
+
+    spawn_walls(&mut world, &mut rap);
 
     loop {
         let dt = get_frame_time();
