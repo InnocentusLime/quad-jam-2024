@@ -183,6 +183,77 @@ impl PhysicsState {
             *hit.normal1 * KINEMATIC_NORMAL_NUDGE
     }
 
+    fn move_kinematic_pushes(
+        &mut self,
+        kin_shape: &dyn Shape,
+    ) {
+        let dispatcher = DefaultQueryDispatcher;
+
+        for (rem, pos, hit) in &self.kinematic_cols {
+            let push = *hit.normal1 * rem.dot(
+                &hit.normal1
+            );
+            let char_box = kin_shape.compute_aabb(pos)
+                .loosened(PUSH_SKIN);
+
+            self.manifolds.clear();
+            self.query_pipeline.colliders_with_aabb_intersecting_aabb(
+                &char_box,
+                |handle| {
+                    let Some(col) = self.colliders.get(*handle)
+                        else { return true; };
+                    let Some(bodh) = col.parent()
+                        else { return true; };
+                    let Some(bod) = self.bodies.get(bodh)
+                        else { return true; };
+                    if !bod.is_dynamic()  { return true; }
+
+                    self.manifolds.clear();
+                    let pos12 = pos.inv_mul(col.position());
+                    let _ = dispatcher.contact_manifolds(
+                        &pos12,
+                        &*kin_shape,
+                        col.shape(),
+                        PUSH_SKIN,
+                        &mut self.manifolds,
+                        &mut None,
+                    );
+
+                    for m in &mut self.manifolds {
+                        m.data.rigid_body2 = Some(bodh);
+                        m.data.normal = pos * m.local_n1;
+                    }
+
+                    true
+                });
+            let velocity_to_transfer = push * self.integration_parameters.dt.recip();
+            for manifold in &self.manifolds {
+                let body_handle = manifold.data.rigid_body2.unwrap();
+                let body = &mut self.bodies[body_handle];
+
+                for pt in &manifold.points {
+                    if pt.dist > PUSH_SKIN {
+                        continue;
+                    }
+
+                    let body_mass = body.mass();
+                    let contact_point = body.position() * pt.local_p2;
+                    let delta_vel_per_contact = (velocity_to_transfer
+                        - body.velocity_at_point(&contact_point))
+                    .dot(&manifold.data.normal);
+                    let char_mass = 1.0;
+                    let mass_ratio = body_mass * char_mass / (body_mass + char_mass);
+
+                    body.apply_impulse_at_point(
+                        manifold.data.normal * delta_vel_per_contact.max(0.0) * mass_ratio,
+                        contact_point,
+                        true,
+                    );
+                }
+            }
+        }
+    }
+
     // Adapted code of the character controller from rapier2d
     pub fn move_kinematic(
         &mut self,
@@ -264,71 +335,7 @@ impl PhysicsState {
             (old_trans + final_trans).into()
         );
 
-        let dispatcher = DefaultQueryDispatcher;
-
-        for (rem, pos, hit) in &self.kinematic_cols {
-            let push = *hit.normal1 * rem.dot(
-                &hit.normal1
-            );
-            let char_box = kin_shape.compute_aabb(pos)
-                .loosened(PUSH_SKIN);
-
-            self.manifolds.clear();
-            self.query_pipeline.colliders_with_aabb_intersecting_aabb(
-                &char_box,
-                |handle| {
-                    let Some(col) = self.colliders.get(*handle)
-                        else { return true; };
-                    let Some(bodh) = col.parent()
-                        else { return true; };
-                    let Some(bod) = self.bodies.get(bodh)
-                        else { return true; };
-                    if !bod.is_dynamic()  { return true; }
-
-                    self.manifolds.clear();
-                    let pos12 = pos.inv_mul(col.position());
-                    let _ = dispatcher.contact_manifolds(
-                        &pos12,
-                        &*kin_shape,
-                        col.shape(),
-                        PUSH_SKIN,
-                        &mut self.manifolds,
-                        &mut None,
-                    );
-
-                    for m in &mut self.manifolds {
-                        m.data.rigid_body2 = Some(bodh);
-                        m.data.normal = pos * m.local_n1;
-                    }
-
-                    true
-                });
-            let velocity_to_transfer = push * self.integration_parameters.dt.recip();
-            for manifold in &self.manifolds {
-                let body_handle = manifold.data.rigid_body2.unwrap();
-                let body = &mut self.bodies[body_handle];
-
-                for pt in &manifold.points {
-                    if pt.dist > PUSH_SKIN {
-                        continue;
-                    }
-
-                    let body_mass = body.mass();
-                    let contact_point = body.position() * pt.local_p2;
-                    let delta_vel_per_contact = (velocity_to_transfer
-                        - body.velocity_at_point(&contact_point))
-                    .dot(&manifold.data.normal);
-                    let char_mass = 1.0;
-                    let mass_ratio = body_mass * char_mass / (body_mass + char_mass);
-
-                    body.apply_impulse_at_point(
-                        manifold.data.normal * delta_vel_per_contact.max(0.0) * mass_ratio,
-                        contact_point,
-                        true,
-                    );
-                }
-            }
-        }
+        self.move_kinematic_pushes(&*kin_shape);
     }
 
     pub fn step(&mut self, world: &mut World) {
