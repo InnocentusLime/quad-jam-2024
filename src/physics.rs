@@ -10,7 +10,7 @@ use crate::Transform;
 pub const PIXEL_PER_METER : f32 = 32.0;
 pub const MAX_KINEMATICS_ITERS: i32 = 20;
 pub const KINEMATIC_SKIN: f32 = 0.001;
-pub const PUSH_SKIN: f32 = KINEMATIC_SKIN * 0.9;
+pub const PUSH_SKIN: f32 = KINEMATIC_SKIN * 2.0;
 pub const KINEMATIC_NORMAL_NUDGE: f32 = 1.0e-4;
 pub const LENGTH_EPSILON: f32 = 1.0e-5;
 
@@ -216,7 +216,7 @@ impl PhysicsState {
                         &pos12,
                         &*kin_shape,
                         col.shape(),
-                        KINEMATIC_SKIN,
+                        PUSH_SKIN,
                         &mut self.manifolds,
                         &mut None,
                     );
@@ -235,7 +235,7 @@ impl PhysicsState {
                 info!("CONT: {}", manifold.points.len());
 
                 for pt in &manifold.points {
-                    if pt.dist > KINEMATIC_SKIN {
+                    if pt.dist > PUSH_SKIN {
                         continue;
                     }
 
