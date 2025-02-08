@@ -98,6 +98,7 @@ impl PhysicsState {
         let body = self.bodies.insert(
             RigidBodyBuilder::new(rap_ty)
                 .position(iso)
+                .soft_ccd_prediction(2.0)
         );
         let collider_shape = match collision {
             ColliderTy::Box { width, height } => SharedShape::cuboid(
