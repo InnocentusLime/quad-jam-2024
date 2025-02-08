@@ -4,7 +4,7 @@ use macroquad::prelude::*;
 use miniquad::window::set_window_size;
 use physics::{BodyKind, ColliderTy, PhysicsState};
 use render::Render;
-use shipyard::{Component, World};
+use shipyard::{Component, Get, ViewMut, World};
 use sound_director::SoundDirector;
 use sys::*;
 use ui::Ui;
@@ -175,6 +175,22 @@ async fn run() -> anyhow::Result<()> {
 
     spawn_walls(&mut world, &mut rap);
 
+    let player = world.add_entity(
+        Transform {
+            pos: vec2(300.0, 300.0),
+            angle: 0.0,
+        }
+    );
+    rap.spawn(
+        &mut world,
+        player,
+        ColliderTy::Box {
+            width: 16.0,
+            height: 16.0,
+        },
+        BodyKind::Kinematic,
+    );
+
     loop {
         let dt = get_frame_time();
 
@@ -227,6 +243,25 @@ async fn run() -> anyhow::Result<()> {
                 if is_key_pressed(KeyCode::Key4) {
                     world.delete_entity(boxes[3]);
                 }
+
+                let mut dir = Vec2::ZERO;
+                if is_key_down(KeyCode::A) {
+                    dir += vec2(-1.0, 0.0);
+                }
+                if is_key_down(KeyCode::W) {
+                    dir += vec2(0.0, -1.0);
+                }
+                if is_key_down(KeyCode::D) {
+                    dir += vec2(1.0, 0.0);
+                }
+                if is_key_down(KeyCode::S) {
+                    dir += vec2(0.0, 1.0);
+                }
+
+                world.run(|mut pos: ViewMut<Transform>| {
+                    let dt = rapier2d::prelude::IntegrationParameters::default().dt;
+                    (&mut pos).get(player).unwrap().pos += dir.normalize_or_zero() * dt * 64.0;
+                });
 
                 game.update(dt, &ui_model, &mut world);
                 rap.step(&mut world);
