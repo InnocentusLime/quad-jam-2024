@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use macroquad::prelude::*;
 use nalgebra::Translation2;
-use rapier2d::{na::Vector2, parry::query::ShapeCastOptions, prelude::*};
+use rapier2d::{na::{Isometry2, Vector2}, parry::query::ShapeCastOptions, prelude::*};
 use shipyard::{Component, EntityId, Get, IntoIter, View, ViewMut, World};
 
 use crate::Transform;
@@ -97,11 +97,12 @@ impl PhysicsState {
         let trans = world.run(|tf: View<Transform>| tf.get(entity).map(|x| *x))
             .unwrap();
         let start_pos = Self::world_to_phys(trans.pos);
-
-        // FIXME: populate with data from the object
-        let mut iso = Isometry::identity();
-        iso.append_translation_mut(&Translation2::new(start_pos.x, start_pos.y));
-
+        let iso = Isometry2 {
+            translation: Translation2::new(start_pos.x, start_pos.y),
+            rotation: rapier2d::na::Unit::from_angle(
+                Self::world_ang_to_phys(trans.angle)
+            ),
+        };
         let body = self.bodies.insert(
             RigidBodyBuilder::new(rap_ty)
                 .position(iso)
@@ -135,6 +136,14 @@ impl PhysicsState {
                 max: Vec2::ZERO,
             },
         );
+    }
+
+    pub fn world_ang_to_phys(ang: f32) -> f32 {
+        std::f32::consts::PI - ang
+    }
+
+    pub fn phys_ang_to_world(ang: f32) -> f32 {
+        std::f32::consts::PI - ang
     }
 
     pub fn phys_to_world(p: Vec2) -> Vec2 {
@@ -284,9 +293,6 @@ impl PhysicsState {
             //     },
             //     true,
             // );
-            // if body.is_kinematic() {
-            //     info!("{:?}", body.next_position().translation.vector - body.position().translation.vector);
-            // }
         });
 
 
@@ -314,7 +320,7 @@ impl PhysicsState {
             let new_pos = rb.translation();
             let new_pos = vec2(new_pos.x, new_pos.y);
             let new_pos = Self::phys_to_world(new_pos);
-            let new_angle = std::f32::consts::PI - rb.rotation().angle();
+            let new_angle = Self::phys_ang_to_world(rb.rotation().angle());
 
             pos.pos = new_pos;
             pos.angle = new_angle;
