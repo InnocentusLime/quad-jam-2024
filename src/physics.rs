@@ -334,14 +334,6 @@ impl PhysicsState {
                 hit,
             ));
 
-            let collider = self.colliders.get(handle).unwrap();
-            let rb = collider.parent().unwrap();
-            let rb = self.bodies.get(rb).unwrap();
-            // if rb.is_dynamic() {
-            //     final_trans += trans_rem;
-            //     break;
-            // }
-            // Reallign
             trans_rem = Self::get_slide_part(&hit, trans_rem);
         }
 
