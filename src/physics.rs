@@ -93,9 +93,13 @@ impl PhysicsState {
             BodyKind::Kinematic => RigidBodyType::KinematicPositionBased,
         };
 
+        let trans = world.run(|tf: View<Transform>| tf.get(entity).map(|x| *x))
+            .unwrap();
+        let start_pos = Self::world_to_phys(trans.pos);
+
         // FIXME: populate with data from the object
         let mut iso = Isometry::identity();
-        iso.append_translation_mut(&Translation2::new(0.0, 0.0));
+        iso.append_translation_mut(&Translation2::new(start_pos.x, start_pos.y));
 
         let body = self.bodies.insert(
             RigidBodyBuilder::new(rap_ty)
@@ -251,18 +255,24 @@ impl PhysicsState {
             let new_pos = Self::world_to_phys(pos.pos);
             let body = self.bodies.get_mut(rb.body).unwrap();
 
-            body.set_position(
-                Isometry {
-                    translation: rapier2d::na::Translation2::new(
-                        new_pos.x,
-                        new_pos.y,
-                    ),
-                    rotation: rapier2d::na::Unit::from_angle(
-                        std::f32::consts::PI - pos.angle,
-                    ),
-                },
-                true,
-            );
+            if body.is_kinematic() {
+                info!("{:?}", body.next_position().translation.vector - body.position().translation.vector);
+            }
+            // body.set_position(
+            //     Isometry {
+            //         translation: rapier2d::na::Translation2::new(
+            //             new_pos.x,
+            //             new_pos.y,
+            //         ),
+            //         rotation: rapier2d::na::Unit::from_angle(
+            //             std::f32::consts::PI - pos.angle,
+            //         ),
+            //     },
+            //     true,
+            // );
+            // if body.is_kinematic() {
+            //     info!("{:?}", body.next_position().translation.vector - body.position().translation.vector);
+            // }
         });
 
 
