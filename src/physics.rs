@@ -247,9 +247,9 @@ impl PhysicsState {
                     let char_mass = 1.0;
                     let mass_ratio = body_mass * char_mass / (body_mass + char_mass);
 
-                    info!("{:?}",
-                        manifold.data.normal * delta_vel_per_contact.max(0.0) * mass_ratio,
-                    );
+                    // info!("{:?}",
+                    //     manifold.data.normal * delta_vel_per_contact.max(0.0) * mass_ratio,
+                    // );
 
                     body.apply_impulse_at_point(
                         manifold.data.normal * delta_vel_per_contact.max(0.0) * mass_ratio,
