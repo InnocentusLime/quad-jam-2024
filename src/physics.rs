@@ -232,7 +232,7 @@ impl PhysicsState {
             for manifold in &self.manifolds {
                 let body_handle = manifold.data.rigid_body2.unwrap();
                 let body = &mut self.bodies[body_handle];
-                info!("CONT: {}", manifold.points.len());
+                // info!("CONT: {}", manifold.points.len());
 
                 for pt in &manifold.points {
                     if pt.dist > PUSH_SKIN {
