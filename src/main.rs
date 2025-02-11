@@ -2,13 +2,14 @@ use debug::{init_on_screen_log, Debug};
 use game::Game;
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
-use physics::{BodyKind, ColliderTy, PhysicsState};
-use render::Render;
-use shipyard::{Component, Get, ViewMut, World};
-use sound_director::SoundDirector;
+use physics::{physics_move_kinematic, physics_spawn, physics_step, BodyKind, ColliderTy, PhysicsState};
+use render::{render_draw, Render};
+use shipyard::{Component, World};
+use sound_director::{sound_director_sounds, SoundDirector};
 use sys::*;
 use ui::Ui;
 
+mod util;
 mod debug;
 mod game;
 mod render;
@@ -66,10 +67,7 @@ pub struct Speed(pub Vec2);
 #[derive(Debug, Clone, Copy, Component)]
 pub struct Follower;
 
-fn spawn_walls(
-    world: &mut World,
-    phys: &mut PhysicsState,
-) {
+fn spawn_walls(world: &mut World) {
     const WALL_THICK: f32 = 32.0;
     const WALL_SIDE: f32 = 480.0;
 
@@ -87,7 +85,7 @@ fn spawn_walls(
                 angle: 0.0f32,
             },
         ));
-        phys.spawn(
+        physics_spawn(
             world,
             wall,
             ColliderTy::Box {
@@ -107,17 +105,17 @@ async fn run() -> anyhow::Result<()> {
 
     info!("Setting up Rapier");
 
-    let mut rap = PhysicsState::new();
+    let mut world = World::new();
+    world.add_unique(Render::new().await?);
+    world.add_unique(PhysicsState::new());
+    world.add_unique(SoundDirector::new().await?);
 
     info!("Rapier version: {}", rapier2d::VERSION);
 
     let mut game = Game::new();
     let mut debug = Debug::new();
-    let mut render = Render::new().await?;
-    let mut sounder = SoundDirector::new().await?;
     let ui = Ui::new().await?;
 
-    let mut world = World::new();
     let _follower = world.add_entity((
         Speed(Vec2::ZERO),
         Transform {
@@ -162,7 +160,7 @@ async fn run() -> anyhow::Result<()> {
                 angle,
             },
         ));
-        rap.spawn(
+        physics_spawn(
             &mut world,
             the_box,
             ColliderTy::Box {
@@ -175,7 +173,7 @@ async fn run() -> anyhow::Result<()> {
         the_box
     });
 
-    spawn_walls(&mut world, &mut rap);
+    spawn_walls(&mut world);
 
     let player = world.add_entity(
         Transform {
@@ -183,7 +181,7 @@ async fn run() -> anyhow::Result<()> {
             angle: 0.0,
         }
     );
-    rap.spawn(
+    physics_spawn(
         &mut world,
         player,
         ColliderTy::Box {
@@ -265,14 +263,14 @@ async fn run() -> anyhow::Result<()> {
                 //     (&mut pos).get(player).unwrap().pos += dir.normalize_or_zero() * dt * 64.0;
                 // });
 
-                rap.move_kinematic(
+                physics_move_kinematic(
                     &mut world,
                     player,
                     dir.normalize_or_zero() * dt * PLAYER_SPEED,
                 );
 
                 game.update(dt, &ui_model, &mut world);
-                rap.step(&mut world);
+                world.run(physics_step);
             },
             GameState::PleaseRotate if get_orientation() == 0.0 => {
                 state = paused_state;
@@ -280,9 +278,9 @@ async fn run() -> anyhow::Result<()> {
             _ => (),
         };
 
-        render.draw(&mut world);
+        world.run(render_draw);
         ui.draw(ui_model);
-        sounder.direct_sounds(&mut world);
+        world.run(sound_director_sounds);
 
         debug.new_frame();
         debug.draw_ui_debug(&ui_model);

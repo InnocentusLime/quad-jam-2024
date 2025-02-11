@@ -3,9 +3,9 @@ use std::collections::HashMap;
 use macroquad::prelude::*;
 use nalgebra::Translation2;
 use rapier2d::{na::{Isometry, Isometry2, Vector2}, parry::query::{DefaultQueryDispatcher, PersistentQueryDispatcher, ShapeCastOptions}, prelude::*};
-use shipyard::{Component, EntityId, Get, IntoIter, View, ViewMut, World};
+use shipyard::{Component, EntitiesView, EntityId, Get, IntoIter, Unique, View, ViewMut};
 
-use crate::Transform;
+use crate::{method_as_system, wrap_method, Transform};
 
 pub const PIXEL_PER_METER : f32 = 32.0;
 pub const MAX_KINEMATICS_ITERS: i32 = 20;
@@ -46,6 +46,7 @@ pub struct PhysBox {
     pub max: Vec2,
 }
 
+#[derive(Unique)]
 pub struct PhysicsState {
     pub islands: IslandManager,
     pub broad_phase: DefaultBroadPhase,
@@ -89,7 +90,10 @@ impl PhysicsState {
 
     pub fn spawn(
         &mut self,
-        world: &mut World,
+        entities: EntitiesView,
+        tf: View<Transform>,
+        mut rbs: ViewMut<PhysicsInfo>,
+        mut pbox: ViewMut<PhysBox>,
         entity: EntityId,
         collision: ColliderTy,
         kind: BodyKind,
@@ -100,8 +104,7 @@ impl PhysicsState {
             BodyKind::Kinematic => RigidBodyType::KinematicPositionBased,
         };
 
-        let trans = world.run(|tf: View<Transform>| tf.get(entity).map(|x| *x))
-            .unwrap();
+        let trans = *tf.get(entity).unwrap();
         let start_pos = Self::world_to_phys(trans.pos);
         let iso = Isometry2 {
             translation: Translation2::new(start_pos.x, start_pos.y),
@@ -130,20 +133,18 @@ impl PhysicsState {
             &mut self.bodies,
         );
         self.mapping.insert(entity, body);
-        world.add_component(
+
+        entities.add_component(
             entity,
-            PhysicsInfo {
+            (&mut rbs, &mut pbox),
+            (PhysicsInfo {
                 body,
                 col: collision,
-            }
-        );
-
-        world.add_component(
-            entity,
+            },
             PhysBox {
                 min: Vec2::ZERO,
                 max: Vec2::ZERO,
-            },
+            })
         );
     }
 
@@ -264,25 +265,23 @@ impl PhysicsState {
     // Adapted code of the character controller from rapier2d
     pub fn move_kinematic(
         &mut self,
-        world: &mut World,
+        rbs: ViewMut<PhysicsInfo>,
         kinematic: EntityId,
         dr: Vec2,
     ) {
         self.kinematic_cols.clear();
 
         let dr = Self::world_to_phys(dr);
-        let rbh = world.run(|rbs: ViewMut<PhysicsInfo>|
-            (&rbs).get(kinematic).map(|x| x.body)
-        )
+        let rbh = (&rbs).get(kinematic).map(|x| x.body)
         .expect("Failed to compute RB stuff");
         let rb = self.bodies.get(rbh).unwrap();
-        let (kin_pos, kin_shape) = ((
+        let (kin_pos, kin_shape) = (
             rb.position(),
             self.colliders.get(rb.colliders()[0])
                 .unwrap()
                 .shared_shape()
                 .clone()
-        ));
+        );
 
         let mut final_trans = rapier2d::na::Vector2::zeros();
         let mut trans_rem = rapier2d::na::Vector2::new(
@@ -299,7 +298,7 @@ impl PhysicsState {
             max_iters -= 1;
 
             let shape_pos = Translation::from(final_trans) * kin_pos;
-            let Some((handle, hit)) = self.query_pipeline.cast_shape(
+            let Some((_handle, hit)) = self.query_pipeline.cast_shape(
                 &self.bodies,
                 &self.colliders,
                 &shape_pos,
@@ -345,9 +344,14 @@ impl PhysicsState {
         );
     }
 
-    pub fn step(&mut self, world: &mut World) {
+    pub fn step(
+        &mut self,
+        rbs: View<PhysicsInfo>,
+        mut pos: ViewMut<Transform>,
+        mut pbox: ViewMut<PhysBox>,
+    ) {
         // GC the dead handles
-        world.run(|view: View<PhysicsInfo>| for remd in view.removed_or_deleted() {
+        for remd in rbs.removed_or_deleted() {
             let Some(rb) = self.mapping.remove(&remd)
                 else { continue; };
 
@@ -361,10 +365,10 @@ impl PhysicsState {
                 &mut self.multibody_joints,
                 true,
             );
-        });
+        };
 
         // Import the new positions to world
-        world.run(|rbs: View<PhysicsInfo>, pos: View<Transform>| for (rb, pos) in (&rbs, &pos).iter() {
+        for (rb, pos) in (&rbs, &pos).iter() {
             let new_pos = Self::world_to_phys(pos.pos);
             let new_pos = Vector2::new(new_pos.x, new_pos.y);
             let new_ang = rapier2d::na::Unit::from_angle(
@@ -379,7 +383,7 @@ impl PhysicsState {
                     translation: new_pos.into(),
                 }, true);
             }
-        });
+        };
 
 
         // Step simulation
@@ -401,7 +405,7 @@ impl PhysicsState {
         );
 
         // Export the new positions to world
-        world.run(|rbs: View<PhysicsInfo>, mut pos: ViewMut<Transform>| for (rb, pos) in (&rbs, &mut pos).iter() {
+        for (rb, pos) in (&rbs, &mut pos).iter() {
             let rb  = self.bodies.get(rb.body)
                 .unwrap();
             let new_pos = rb.translation();
@@ -411,9 +415,9 @@ impl PhysicsState {
 
             pos.pos = new_pos;
             pos.angle = new_angle;
-        });
+        };
 
-        world.run(|rbs: View<PhysicsInfo>, mut pbox: ViewMut<PhysBox>| for (rb, pbox) in (&rbs, &mut pbox).iter() {
+        for (rb, pbox) in (&rbs, &mut pbox).iter() {
             let aabb = self.bodies.get(rb.body)
                 .unwrap()
                 .colliders()
@@ -425,6 +429,37 @@ impl PhysicsState {
                 min: Self::phys_to_world(vec2(aabb.mins.x, aabb.mins.y)),
                 max: Self::phys_to_world(vec2(aabb.maxs.x, aabb.maxs.y)),
             };
-        });
+        };
     }
 }
+
+method_as_system!(
+    PhysicsState::step as physics_step(
+        this: PhysicsState,
+        rbs: View<PhysicsInfo>,
+        pos: ViewMut<Transform>,
+        pbox: ViewMut<PhysBox>
+    )
+);
+
+wrap_method!(
+    PhysicsState::move_kinematic as physics_move_kinematic(
+        this: PhysicsState |
+        rbs: ViewMut<PhysicsInfo> |
+        kinematic: EntityId,
+        dr: Vec2
+    )
+);
+
+wrap_method!(
+    PhysicsState::spawn as physics_spawn(
+        this: PhysicsState |
+        entities: EntitiesView,
+        tf: View<Transform>,
+        rbs: ViewMut<PhysicsInfo>,
+        pbox: ViewMut<PhysBox> |
+        entity: EntityId,
+        collision: ColliderTy,
+        kind: BodyKind
+    )
+);

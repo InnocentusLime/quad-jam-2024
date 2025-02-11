@@ -1,6 +1,9 @@
 use macroquad::audio::{self, load_sound, PlaySoundParams, Sound};
-use shipyard::World;
+use shipyard::Unique;
 
+use crate::method_as_system;
+
+#[derive(Unique)]
 pub struct SoundDirector {
     dead: Sound,
     // bsound: Sound,
@@ -16,6 +19,12 @@ impl SoundDirector {
         })
     }
 
-    pub fn direct_sounds(&mut self, world: &mut World) {
+    pub fn direct_sounds(&mut self) {
     }
 }
+
+method_as_system!(
+    SoundDirector::direct_sounds as sound_director_sounds(
+        this: SoundDirector,
+    )
+);
