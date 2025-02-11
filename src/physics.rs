@@ -90,10 +90,10 @@ impl PhysicsState {
 
     pub fn spawn(
         &mut self,
-        entities: EntitiesView,
-        tf: View<Transform>,
-        mut rbs: ViewMut<PhysicsInfo>,
-        mut pbox: ViewMut<PhysBox>,
+        entities: &mut EntitiesView,
+        tf: &mut View<Transform>,
+        rbs: &mut ViewMut<PhysicsInfo>,
+        pbox: &mut ViewMut<PhysBox>,
         entity: EntityId,
         collision: ColliderTy,
         kind: BodyKind,
@@ -136,7 +136,7 @@ impl PhysicsState {
 
         entities.add_component(
             entity,
-            (&mut rbs, &mut pbox),
+            (rbs, pbox),
             (PhysicsInfo {
                 body,
                 col: collision,
@@ -265,14 +265,14 @@ impl PhysicsState {
     // Adapted code of the character controller from rapier2d
     pub fn move_kinematic(
         &mut self,
-        rbs: ViewMut<PhysicsInfo>,
+        rbs: &mut ViewMut<PhysicsInfo>,
         kinematic: EntityId,
         dr: Vec2,
     ) {
         self.kinematic_cols.clear();
 
         let dr = Self::world_to_phys(dr);
-        let rbh = (&rbs).get(kinematic).map(|x| x.body)
+        let rbh = (&*rbs).get(kinematic).map(|x| x.body)
         .expect("Failed to compute RB stuff");
         let rb = self.bodies.get(rbh).unwrap();
         let (kin_pos, kin_shape) = (

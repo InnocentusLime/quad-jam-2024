@@ -21,11 +21,11 @@ macro_rules! wrap_method {
             use shipyard::*;
 
             #[allow(unused_parens)]
-            let ($($carg),*) = world.borrow::<($($cargty),*)>().unwrap();
+            let ($(mut $carg),*) = world.borrow::<($($cargty),*)>().unwrap();
 
             $p(
                 &mut *world.borrow::<UniqueViewMut<$thisty>>().unwrap(),
-                $($carg),*,
+                $(&mut $carg),*,
                 $($parg),*
             )
         }
