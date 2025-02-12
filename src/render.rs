@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
-use shipyard::{IntoIter, View, World};
+use shipyard::{IntoIter, Unique, View};
 
-use crate::{physics::{ColliderTy, PhysBox, PhysicsInfo}, Follower, Transform};
+use crate::{method_as_system, physics::{ColliderTy, PhysicsInfo}, Follower, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 // fn trail() -> particles::EmitterConfig {
@@ -78,6 +78,7 @@ use crate::{physics::{ColliderTy, PhysBox, PhysicsInfo}, Follower, Transform};
 //     }
 // }
 
+#[derive(Unique)]
 pub struct Render {
     // ball_emit: particles::Emitter,
     // pl_emit: particles::Emitter,
@@ -107,7 +108,12 @@ impl Render {
         })
     }
 
-    pub fn draw(&mut self, world: &mut World) {
+    pub fn draw(
+        &mut self,
+        follow: View<Follower>,
+        phys: View<PhysicsInfo>,
+        pos: View<Transform>,
+    ) {
         self.setup_cam();
 
         clear_background(Color {
@@ -117,37 +123,33 @@ impl Render {
             a: 1.0,
         });
 
-        world.run(|follow: View<Follower>, pos: View<Transform>| {
-            for (_, pos) in (&follow, &pos).iter() {
-                draw_rectangle(
-                    pos.pos.x,
-                    pos.pos.y,
-                    32.0,
-                    32.0,
-                    GREEN,
-                );
-            }
-        });
+        for (_, pos) in (&follow, &pos).iter() {
+            draw_rectangle(
+                pos.pos.x,
+                pos.pos.y,
+                32.0,
+                32.0,
+                GREEN,
+            );
+        }
 
-        world.run(|phys: View<PhysicsInfo>, pos: View<Transform>| {
-            for (col, tf) in (&phys, &pos).iter() {
-                match col.col() {
-                    ColliderTy::Box { width, height } => draw_rectangle_lines_ex(
-                        tf.pos.x,
-                        tf.pos.y,
-                        *width,
-                        *height,
-                        1.0,
-                        DrawRectangleParams {
-                            // offset: Vec2::ZERO,
-                            offset: vec2(0.5, 0.5),
-                            rotation: tf.angle,
-                            color: RED,
-                        },
-                    ),
-                }
+        for (col, tf) in (&phys, &pos).iter() {
+            match col.col() {
+                ColliderTy::Box { width, height } => draw_rectangle_lines_ex(
+                    tf.pos.x,
+                    tf.pos.y,
+                    *width,
+                    *height,
+                    1.0,
+                    DrawRectangleParams {
+                        // offset: Vec2::ZERO,
+                        offset: vec2(0.5, 0.5),
+                        rotation: tf.angle,
+                        color: RED,
+                    },
+                ),
             }
-        });
+        }
     }
 
     fn setup_cam(&mut self) {
@@ -163,3 +165,12 @@ impl Render {
         // set_camera(&cam);
     }
 }
+
+method_as_system!(
+    Render::draw as render_draw(
+        this: Render,
+        follow: View<Follower>,
+        phys: View<PhysicsInfo>,
+        pos: View<Transform>
+    )
+);

@@ -1,14 +1,15 @@
 use debug::{init_on_screen_log, Debug};
-use game::Game;
+use game::{game_player_controls, game_update_follower, Game};
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
-use physics::{BodyKind, ColliderTy, PhysicsState};
-use render::Render;
-use shipyard::{Component, Get, ViewMut, World};
-use sound_director::SoundDirector;
+use physics::{physics_step, PhysicsState};
+use render::{render_draw, Render};
+use shipyard::{Component, Unique, UniqueViewMut, World};
+use sound_director::{sound_director_sounds, SoundDirector};
 use sys::*;
-use ui::Ui;
+use ui::{ui_render, Ui, UiModel};
 
+mod util;
 mod debug;
 mod game;
 mod render;
@@ -17,10 +18,8 @@ mod ui;
 mod sound_director;
 mod physics;
 
-pub const PLAYER_SPEED: f32 = 128.0;
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum GameState {
+enum AppState {
     Start,
     Active,
     GameOver,
@@ -66,74 +65,34 @@ pub struct Speed(pub Vec2);
 #[derive(Debug, Clone, Copy, Component)]
 pub struct Follower;
 
-fn spawn_walls(
-    world: &mut World,
-    phys: &mut PhysicsState,
-) {
-    const WALL_THICK: f32 = 32.0;
-    const WALL_SIDE: f32 = 480.0;
-
-    let wall_data = [
-        (WALL_SIDE / 2.0, WALL_SIDE - WALL_THICK / 2.0, WALL_SIDE, WALL_THICK),
-        (WALL_SIDE / 2.0, WALL_THICK / 2.0, WALL_SIDE, WALL_THICK),
-        (WALL_SIDE - WALL_THICK / 2.0, WALL_SIDE / 2.0, WALL_THICK, WALL_SIDE),
-        (WALL_THICK / 2.0, WALL_SIDE / 2.0, WALL_THICK, WALL_SIDE),
-    ];
-
-    for (x, y, width, height) in wall_data {
-        let wall = world.add_entity((
-            Transform {
-                pos: vec2(x, y),
-                angle: 0.0f32,
-            },
-        ));
-        phys.spawn(
-            world,
-            wall,
-            ColliderTy::Box {
-                width,
-                height,
-            },
-            BodyKind::Static,
-        );
-    }
-}
+#[derive(Debug, Clone, Copy)]
+#[derive(Unique)]
+pub struct DeltaTime(pub f32);
 
 async fn run() -> anyhow::Result<()> {
     set_max_level(STATIC_MAX_LEVEL);
     init_on_screen_log();
 
+    info!("Rapier version: {}", rapier2d::VERSION);
+    info!("Project version: {}", env!("CARGO_PKG_VERSION"));
+
     set_default_filter_mode(FilterMode::Nearest);
 
-    info!("Setting up Rapier");
-
-    let mut rap = PhysicsState::new();
-
-    info!("Rapier version: {}", rapier2d::VERSION);
-
-    let mut game = Game::new();
+    let mut state = AppState::Start;
     let mut debug = Debug::new();
-    let mut render = Render::new().await?;
-    let mut sounder = SoundDirector::new().await?;
     let ui = Ui::new().await?;
 
     let mut world = World::new();
-    let _follower = world.add_entity((
-        Speed(Vec2::ZERO),
-        Transform {
-            pos: Vec2::ZERO,
-            angle: 0.0f32,
-        },
-        Follower,
-    ));
+    world.add_unique(Render::new().await?);
+    world.add_unique(PhysicsState::new());
+    world.add_unique(SoundDirector::new().await?);
+    world.add_unique(ui.update(state));
+    world.add_unique(DeltaTime(0.0));
+    world.add_unique(ui); // TODO: remove
 
-    // world.add_component(phys_test, component);
+    let game = Game::new(&mut world);
+    world.add_unique(game);
 
-    info!("Project version: {}", env!("CARGO_PKG_VERSION"));
-
-    info!("Runtime created");
-
-    let mut state = GameState::Start;
     let mut fullscreen = window_conf().fullscreen;
     let mut paused_state = state;
 
@@ -147,61 +106,18 @@ async fn run() -> anyhow::Result<()> {
 
     info!("Done loading");
 
-    let mut angle = 0.0;
-    let poses = [
-        vec2(200.0, 160.0),
-        vec2(64.0, 250.0),
-        vec2(128.0, 150.0),
-        vec2(300.0, 250.0),
-    ];
-    let boxes = poses.map(|pos| {
-        angle += 0.2;
-        let the_box = world.add_entity((
-            Transform {
-                pos,
-                angle,
-            },
-        ));
-        rap.spawn(
-            &mut world,
-            the_box,
-            ColliderTy::Box {
-                width: 32.0,
-                height: 32.0,
-            },
-            BodyKind::Dynamic,
-        );
-
-        the_box
-    });
-
-    spawn_walls(&mut world, &mut rap);
-
-    let player = world.add_entity(
-        Transform {
-            pos: vec2(300.0, 300.0),
-            angle: 0.0,
-        }
-    );
-    rap.spawn(
-        &mut world,
-        player,
-        ColliderTy::Box {
-            width: 16.0,
-            height: 16.0,
-        },
-        BodyKind::Kinematic,
-    );
-
     loop {
-        let dt = get_frame_time();
-
-        if get_orientation() != 0.0 && state != GameState::PleaseRotate {
+        if get_orientation() != 0.0 && state != AppState::PleaseRotate {
             paused_state = state;
-            state = GameState::PleaseRotate;
+            state = AppState::PleaseRotate;
         }
 
-        let ui_model = ui.update(state);
+        let ui_model = world.run(|ui: UniqueViewMut<Ui>, mut ui_model: UniqueViewMut<UiModel>, mut dt: UniqueViewMut<DeltaTime>| {
+            *ui_model = ui.update(state);
+            dt.0 = get_frame_time();
+
+            *ui_model
+        });
 
         if ui_model.fullscreen_toggle_requested() {
             // NOTE: macroquad does not update window config when it goes fullscreen
@@ -215,74 +131,35 @@ async fn run() -> anyhow::Result<()> {
         }
 
         match state {
-            GameState::Start if ui_model.confirmation_detected() => {
+            AppState::Start if ui_model.confirmation_detected() => {
                 info!("Starting the game");
-                state = GameState::Active;
+                state = AppState::Active;
             },
-            GameState::Win | GameState::GameOver if ui_model.confirmation_detected() => {
-                state = GameState::Active;
+            AppState::Win | AppState::GameOver if ui_model.confirmation_detected() => {
+                state = AppState::Active;
             },
-            GameState::Paused if ui_model.pause_requested() => {
+            AppState::Paused if ui_model.pause_requested() => {
                 info!("Unpausing");
-                state = GameState::Active;
+                state = AppState::Active;
             },
-            GameState::Active => {
-                /* Update game */
-                if ui_model.pause_requested() {
-                    info!("Pausing");
-                    state = GameState::Paused;
-                }
-
-                if is_key_pressed(KeyCode::Key1) {
-                    world.delete_entity(boxes[0]);
-                }
-                if is_key_pressed(KeyCode::Key2) {
-                    world.delete_entity(boxes[1]);
-                }
-                if is_key_pressed(KeyCode::Key3) {
-                    world.delete_entity(boxes[2]);
-                }
-                if is_key_pressed(KeyCode::Key4) {
-                    world.delete_entity(boxes[3]);
-                }
-
-                let mut dir = Vec2::ZERO;
-                if is_key_down(KeyCode::A) {
-                    dir += vec2(-1.0, 0.0);
-                }
-                if is_key_down(KeyCode::W) {
-                    dir += vec2(0.0, -1.0);
-                }
-                if is_key_down(KeyCode::D) {
-                    dir += vec2(1.0, 0.0);
-                }
-                if is_key_down(KeyCode::S) {
-                    dir += vec2(0.0, 1.0);
-                }
-
-                // world.run(|mut pos: ViewMut<Transform>| {
-                //     let dt = rapier2d::prelude::IntegrationParameters::default().dt;
-                //     (&mut pos).get(player).unwrap().pos += dir.normalize_or_zero() * dt * 64.0;
-                // });
-
-                rap.move_kinematic(
-                    &mut world,
-                    player,
-                    dir.normalize_or_zero() * dt * PLAYER_SPEED,
-                );
-
-                game.update(dt, &ui_model, &mut world);
-                rap.step(&mut world);
+            AppState::Active if ui_model.pause_requested() => {
+                info!("Pausing");
+                state = AppState::Paused;
             },
-            GameState::PleaseRotate if get_orientation() == 0.0 => {
+            AppState::Active if !ui_model.pause_requested() => {
+                world.run(game_update_follower);
+                world.run(game_player_controls);
+                world.run(physics_step);
+            },
+            AppState::PleaseRotate if get_orientation() == 0.0 => {
                 state = paused_state;
             },
             _ => (),
         };
 
-        render.draw(&mut world);
-        ui.draw(ui_model);
-        sounder.direct_sounds(&mut world);
+        world.run(render_draw);
+        world.run(ui_render);
+        world.run(sound_director_sounds);
 
         debug.new_frame();
         debug.draw_ui_debug(&ui_model);

@@ -1,5 +1,6 @@
 use macroquad::prelude::*;
-use crate::{sys::*, GameState};
+use shipyard::{Unique, UniqueView};
+use crate::{method_as_system, sys::*, AppState};
 
 const FONT_SCALE: f32 = 1.0;
 const MAIN_FONT_SIZE: u16 = 32;
@@ -19,8 +20,9 @@ static START_TEXT_DESK: &'static str = "Press Space to start";
 static START_TEXT_MOBILE: &'static str = "Tap to start";
 
 #[derive(Clone, Copy, Debug)]
+#[derive(Unique)]
 pub struct UiModel {
-    state: GameState,
+    state: AppState,
     left_movement_down: bool,
     right_movement_down: bool,
     up_movement_down: bool,
@@ -60,6 +62,7 @@ impl UiModel {
     }
 }
 
+#[derive(Unique)]
 pub struct Ui {
     oegnek: Font,
 }
@@ -71,7 +74,7 @@ impl Ui {
         })
     }
 
-    pub fn update(&self, state: GameState) -> UiModel {
+    pub fn update(&self, state: AppState) -> UiModel {
         // NOTE: for mobile
         // let (mx, my) = mouse_position();
         // let Vec2 { x: mx, y: my } = self.get_cam().screen_to_world(vec2(mx, my));
@@ -109,31 +112,34 @@ impl Ui {
         }
     }
 
-    pub fn draw(&self, model: UiModel) {
+    pub fn draw(
+        &mut self,
+        model: UniqueView<UiModel>,
+    ) {
         set_camera(&self.get_cam());
 
-        if on_mobile() && model.state == GameState::Active {
+        if on_mobile() && model.state == AppState::Active {
             /* Mobile controls */
         }
 
         match model.state {
-            GameState::Start => self.draw_announcement_text(
+            AppState::Start => self.draw_announcement_text(
                 true,
                 Self::start_text(),
                 None,
             ),
-            GameState::GameOver => self.draw_announcement_text(
+            AppState::GameOver => self.draw_announcement_text(
                 true,
                 GAMEOVER_TEXT,
                 Some(Self::game_restart_hint()),
             ),
-            GameState::Win => self.draw_announcement_text(
+            AppState::Win => self.draw_announcement_text(
                 false,
                 WIN_TEXT,
                 Some(Self::game_restart_hint()),
             ),
-            GameState::Paused => self.draw_announcement_text(true, PAUSE_TEXT, None),
-            GameState::PleaseRotate => self.draw_announcement_text(
+            AppState::Paused => self.draw_announcement_text(true, PAUSE_TEXT, None),
+            AppState::PleaseRotate => self.draw_announcement_text(
                 true,
                 ORIENTATION_TEXT,
                 Some(ORIENTATION_HINT),
@@ -260,3 +266,10 @@ impl Ui {
         cam
     }
 }
+
+method_as_system!(
+    Ui::draw as ui_render(
+        this: Ui,
+        model: UniqueView<UiModel>
+    )
+);
