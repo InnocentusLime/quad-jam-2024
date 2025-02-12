@@ -130,18 +130,19 @@ impl Game {
         mut phys: UniqueViewMut<PhysicsState>,
         mut rbs: ViewMut<PhysicsInfo>,
         dt: UniqueView<DeltaTime>,
+        ui_model: UniqueView<UiModel>,
     ) {
         let mut dir = Vec2::ZERO;
-        if is_key_down(KeyCode::A) {
+        if ui_model.move_left() {
             dir += vec2(-1.0, 0.0);
         }
-        if is_key_down(KeyCode::W) {
+        if ui_model.move_up() {
             dir += vec2(0.0, -1.0);
         }
-        if is_key_down(KeyCode::D) {
+        if ui_model.move_right() {
             dir += vec2(1.0, 0.0);
         }
-        if is_key_down(KeyCode::S) {
+        if ui_model.move_down() {
             dir += vec2(0.0, 1.0);
         }
 
@@ -187,7 +188,8 @@ method_as_system!(
         this: Game,
         phys: UniqueViewMut<PhysicsState>,
         rbs: ViewMut<PhysicsInfo>,
-        dt: UniqueView<DeltaTime>
+        dt: UniqueView<DeltaTime>,
+        ui_model: UniqueView<UiModel>
     )
 );
 
