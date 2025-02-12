@@ -1,5 +1,5 @@
 use debug::{init_on_screen_log, Debug};
-use game::Game;
+use game::{game_update_follower, Game};
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
 use physics::{physics_move_kinematic, physics_spawn, physics_step, BodyKind, ColliderTy, PhysicsState};
@@ -21,7 +21,7 @@ mod physics;
 pub const PLAYER_SPEED: f32 = 128.0;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum GameState {
+enum AppState {
     Start,
     Active,
     GameOver,
@@ -107,7 +107,7 @@ async fn run() -> anyhow::Result<()> {
 
     set_default_filter_mode(FilterMode::Nearest);
 
-    let mut state = GameState::Start;
+    let mut state = AppState::Start;
     let mut debug = Debug::new();
     let ui = Ui::new().await?;
 
@@ -119,10 +119,9 @@ async fn run() -> anyhow::Result<()> {
     world.add_unique(SoundDirector::new().await?);
     world.add_unique(ui.update(state));
     world.add_unique(DeltaTime(0.0));
+    world.add_unique(Game::new());
 
     info!("Rapier version: {}", rapier2d::VERSION);
-
-    let mut game = Game::new();
 
     let _follower = world.add_entity((
         Speed(Vec2::ZERO),
@@ -199,9 +198,9 @@ async fn run() -> anyhow::Result<()> {
     );
 
     loop {
-        if get_orientation() != 0.0 && state != GameState::PleaseRotate {
+        if get_orientation() != 0.0 && state != AppState::PleaseRotate {
             paused_state = state;
-            state = GameState::PleaseRotate;
+            state = AppState::PleaseRotate;
         }
 
         let (ui_model, DeltaTime(dt)) = world.run(|mut ui_model: UniqueViewMut<UiModel>, mut dt: UniqueViewMut<DeltaTime>| {
@@ -222,22 +221,22 @@ async fn run() -> anyhow::Result<()> {
         }
 
         match state {
-            GameState::Start if ui_model.confirmation_detected() => {
+            AppState::Start if ui_model.confirmation_detected() => {
                 info!("Starting the game");
-                state = GameState::Active;
+                state = AppState::Active;
             },
-            GameState::Win | GameState::GameOver if ui_model.confirmation_detected() => {
-                state = GameState::Active;
+            AppState::Win | AppState::GameOver if ui_model.confirmation_detected() => {
+                state = AppState::Active;
             },
-            GameState::Paused if ui_model.pause_requested() => {
+            AppState::Paused if ui_model.pause_requested() => {
                 info!("Unpausing");
-                state = GameState::Active;
+                state = AppState::Active;
             },
-            GameState::Active => {
+            AppState::Active => {
                 /* Update game */
                 if ui_model.pause_requested() {
                     info!("Pausing");
-                    state = GameState::Paused;
+                    state = AppState::Paused;
                 }
 
                 if is_key_pressed(KeyCode::Key1) {
@@ -278,10 +277,10 @@ async fn run() -> anyhow::Result<()> {
                     dir.normalize_or_zero() * dt * PLAYER_SPEED,
                 );
 
-                game.update(dt, &ui_model, &mut world);
+                world.run(game_update_follower);
                 world.run(physics_step);
             },
-            GameState::PleaseRotate if get_orientation() == 0.0 => {
+            AppState::PleaseRotate if get_orientation() == 0.0 => {
                 state = paused_state;
             },
             _ => (),
