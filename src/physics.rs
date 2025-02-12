@@ -40,12 +40,6 @@ impl PhysicsInfo {
     pub fn col(&self) -> &ColliderTy { &self.col }
 }
 
-#[derive(Clone, Copy, Debug, Component)]
-pub struct PhysBox {
-    pub min: Vec2,
-    pub max: Vec2,
-}
-
 #[derive(Unique)]
 pub struct PhysicsState {
     pub islands: IslandManager,
@@ -93,7 +87,6 @@ impl PhysicsState {
         entities: &mut EntitiesView,
         tf: &mut View<Transform>,
         rbs: &mut ViewMut<PhysicsInfo>,
-        pbox: &mut ViewMut<PhysBox>,
         entity: EntityId,
         collision: ColliderTy,
         kind: BodyKind,
@@ -136,15 +129,11 @@ impl PhysicsState {
 
         entities.add_component(
             entity,
-            (rbs, pbox),
-            (PhysicsInfo {
+            rbs,
+            PhysicsInfo {
                 body,
                 col: collision,
             },
-            PhysBox {
-                min: Vec2::ZERO,
-                max: Vec2::ZERO,
-            })
         );
     }
 
@@ -348,7 +337,6 @@ impl PhysicsState {
         &mut self,
         rbs: View<PhysicsInfo>,
         mut pos: ViewMut<Transform>,
-        mut pbox: ViewMut<PhysBox>,
     ) {
         // GC the dead handles
         for remd in rbs.removed_or_deleted() {
@@ -416,20 +404,6 @@ impl PhysicsState {
             pos.pos = new_pos;
             pos.angle = new_angle;
         };
-
-        for (rb, pbox) in (&rbs, &mut pbox).iter() {
-            let aabb = self.bodies.get(rb.body)
-                .unwrap()
-                .colliders()
-                .iter()
-                .map(|x| self.colliders.get(*x).unwrap().compute_aabb())
-                .fold(Aabb::new_invalid(), |acc, x| acc.merged(&x));
-
-            *pbox = PhysBox {
-                min: Self::phys_to_world(vec2(aabb.mins.x, aabb.mins.y)),
-                max: Self::phys_to_world(vec2(aabb.maxs.x, aabb.maxs.y)),
-            };
-        };
     }
 }
 
@@ -437,17 +411,7 @@ method_as_system!(
     PhysicsState::step as physics_step(
         this: PhysicsState,
         rbs: View<PhysicsInfo>,
-        pos: ViewMut<Transform>,
-        pbox: ViewMut<PhysBox>
-    )
-);
-
-wrap_method!(
-    PhysicsState::move_kinematic as physics_move_kinematic(
-        this: PhysicsState |
-        rbs: ViewMut<PhysicsInfo> |
-        kinematic: EntityId,
-        dr: Vec2
+        pos: ViewMut<Transform>
     )
 );
 
@@ -456,8 +420,7 @@ wrap_method!(
         this: PhysicsState |
         entities: EntitiesView,
         tf: View<Transform>,
-        rbs: ViewMut<PhysicsInfo>,
-        pbox: ViewMut<PhysBox> |
+        rbs: ViewMut<PhysicsInfo> |
         entity: EntityId,
         collision: ColliderTy,
         kind: BodyKind

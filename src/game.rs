@@ -1,5 +1,5 @@
 use macroquad::prelude::*;
-use shipyard::{AllStoragesViewMut, EntityId, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
+use shipyard::{EntityId, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
 use crate::{method_as_system, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, DeltaTime, Follower, Speed, Transform};
 
 const PLAYER_SPEED_MAX: f32 = 128.0;

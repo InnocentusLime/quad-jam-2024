@@ -2,7 +2,7 @@ use debug::{init_on_screen_log, Debug};
 use game::{game_player_controls, game_update_follower, Game};
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
-use physics::{physics_move_kinematic, physics_spawn, physics_step, BodyKind, ColliderTy, PhysicsState};
+use physics::{physics_step, PhysicsState};
 use render::{render_draw, Render};
 use shipyard::{Component, Unique, UniqueViewMut, World};
 use sound_director::{sound_director_sounds, SoundDirector};
@@ -73,13 +73,14 @@ async fn run() -> anyhow::Result<()> {
     set_max_level(STATIC_MAX_LEVEL);
     init_on_screen_log();
 
+    info!("Rapier version: {}", rapier2d::VERSION);
+    info!("Project version: {}", env!("CARGO_PKG_VERSION"));
+
     set_default_filter_mode(FilterMode::Nearest);
 
     let mut state = AppState::Start;
     let mut debug = Debug::new();
     let ui = Ui::new().await?;
-
-    info!("Setting up Rapier");
 
     let mut world = World::new();
     world.add_unique(Render::new().await?);
@@ -91,14 +92,6 @@ async fn run() -> anyhow::Result<()> {
 
     let game = Game::new(&mut world);
     world.add_unique(game);
-
-    info!("Rapier version: {}", rapier2d::VERSION);
-
-    // world.add_component(phys_test, component);
-
-    info!("Project version: {}", env!("CARGO_PKG_VERSION"));
-
-    info!("Runtime created");
 
     let mut fullscreen = window_conf().fullscreen;
     let mut paused_state = state;
@@ -119,10 +112,11 @@ async fn run() -> anyhow::Result<()> {
             state = AppState::PleaseRotate;
         }
 
-        let (ui_model, DeltaTime(dt)) = world.run(|ui: UniqueViewMut<Ui>, mut ui_model: UniqueViewMut<UiModel>, mut dt: UniqueViewMut<DeltaTime>| {
+        let ui_model = world.run(|ui: UniqueViewMut<Ui>, mut ui_model: UniqueViewMut<UiModel>, mut dt: UniqueViewMut<DeltaTime>| {
             *ui_model = ui.update(state);
             dt.0 = get_frame_time();
-            (*ui_model, *dt)
+
+            *ui_model
         });
 
         if ui_model.fullscreen_toggle_requested() {
@@ -148,13 +142,11 @@ async fn run() -> anyhow::Result<()> {
                 info!("Unpausing");
                 state = AppState::Active;
             },
-            AppState::Active => {
-                /* Update game */
-                if ui_model.pause_requested() {
-                    info!("Pausing");
-                    state = AppState::Paused;
-                }
-
+            AppState::Active if ui_model.pause_requested() => {
+                info!("Pausing");
+                state = AppState::Paused;
+            },
+            AppState::Active if !ui_model.pause_requested() => {
                 world.run(game_update_follower);
                 world.run(game_player_controls);
                 world.run(physics_step);
