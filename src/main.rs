@@ -1,5 +1,5 @@
 use debug::{init_on_screen_log, Debug};
-use game::{game_update_follower, Game};
+use game::{game_player_controls, game_update_follower, Game};
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
 use physics::{physics_move_kinematic, physics_spawn, physics_step, BodyKind, ColliderTy, PhysicsState};
@@ -17,8 +17,6 @@ mod sys;
 mod ui;
 mod sound_director;
 mod physics;
-
-pub const PLAYER_SPEED: f32 = 128.0;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum AppState {
@@ -71,36 +69,6 @@ pub struct Follower;
 #[derive(Unique)]
 pub struct DeltaTime(pub f32);
 
-fn spawn_walls(world: &mut World) {
-    const WALL_THICK: f32 = 32.0;
-    const WALL_SIDE: f32 = 480.0;
-
-    let wall_data = [
-        (WALL_SIDE / 2.0, WALL_SIDE - WALL_THICK / 2.0, WALL_SIDE, WALL_THICK),
-        (WALL_SIDE / 2.0, WALL_THICK / 2.0, WALL_SIDE, WALL_THICK),
-        (WALL_SIDE - WALL_THICK / 2.0, WALL_SIDE / 2.0, WALL_THICK, WALL_SIDE),
-        (WALL_THICK / 2.0, WALL_SIDE / 2.0, WALL_THICK, WALL_SIDE),
-    ];
-
-    for (x, y, width, height) in wall_data {
-        let wall = world.add_entity((
-            Transform {
-                pos: vec2(x, y),
-                angle: 0.0f32,
-            },
-        ));
-        physics_spawn(
-            world,
-            wall,
-            ColliderTy::Box {
-                width,
-                height,
-            },
-            BodyKind::Static,
-        );
-    }
-}
-
 async fn run() -> anyhow::Result<()> {
     set_max_level(STATIC_MAX_LEVEL);
     init_on_screen_log();
@@ -119,18 +87,11 @@ async fn run() -> anyhow::Result<()> {
     world.add_unique(SoundDirector::new().await?);
     world.add_unique(ui.update(state));
     world.add_unique(DeltaTime(0.0));
-    world.add_unique(Game::new());
+
+    let game = Game::new(&mut world);
+    world.add_unique(game);
 
     info!("Rapier version: {}", rapier2d::VERSION);
-
-    let _follower = world.add_entity((
-        Speed(Vec2::ZERO),
-        Transform {
-            pos: Vec2::ZERO,
-            angle: 0.0f32,
-        },
-        Follower,
-    ));
 
     // world.add_component(phys_test, component);
 
@@ -150,52 +111,6 @@ async fn run() -> anyhow::Result<()> {
     done_loading();
 
     info!("Done loading");
-
-    let mut angle = 0.0;
-    let poses = [
-        vec2(200.0, 160.0),
-        vec2(64.0, 250.0),
-        vec2(128.0, 150.0),
-        vec2(300.0, 250.0),
-    ];
-    let boxes = poses.map(|pos| {
-        angle += 0.2;
-        let the_box = world.add_entity((
-            Transform {
-                pos,
-                angle,
-            },
-        ));
-        physics_spawn(
-            &mut world,
-            the_box,
-            ColliderTy::Box {
-                width: 32.0,
-                height: 32.0,
-            },
-            BodyKind::Dynamic,
-        );
-
-        the_box
-    });
-
-    spawn_walls(&mut world);
-
-    let player = world.add_entity(
-        Transform {
-            pos: vec2(300.0, 300.0),
-            angle: 0.0,
-        }
-    );
-    physics_spawn(
-        &mut world,
-        player,
-        ColliderTy::Box {
-            width: 16.0,
-            height: 16.0,
-        },
-        BodyKind::Kinematic,
-    );
 
     loop {
         if get_orientation() != 0.0 && state != AppState::PleaseRotate {
@@ -239,45 +154,8 @@ async fn run() -> anyhow::Result<()> {
                     state = AppState::Paused;
                 }
 
-                if is_key_pressed(KeyCode::Key1) {
-                    world.delete_entity(boxes[0]);
-                }
-                if is_key_pressed(KeyCode::Key2) {
-                    world.delete_entity(boxes[1]);
-                }
-                if is_key_pressed(KeyCode::Key3) {
-                    world.delete_entity(boxes[2]);
-                }
-                if is_key_pressed(KeyCode::Key4) {
-                    world.delete_entity(boxes[3]);
-                }
-
-                let mut dir = Vec2::ZERO;
-                if is_key_down(KeyCode::A) {
-                    dir += vec2(-1.0, 0.0);
-                }
-                if is_key_down(KeyCode::W) {
-                    dir += vec2(0.0, -1.0);
-                }
-                if is_key_down(KeyCode::D) {
-                    dir += vec2(1.0, 0.0);
-                }
-                if is_key_down(KeyCode::S) {
-                    dir += vec2(0.0, 1.0);
-                }
-
-                // world.run(|mut pos: ViewMut<Transform>| {
-                //     let dt = rapier2d::prelude::IntegrationParameters::default().dt;
-                //     (&mut pos).get(player).unwrap().pos += dir.normalize_or_zero() * dt * 64.0;
-                // });
-
-                physics_move_kinematic(
-                    &mut world,
-                    player,
-                    dir.normalize_or_zero() * dt * PLAYER_SPEED,
-                );
-
                 world.run(game_update_follower);
+                world.run(game_player_controls);
                 world.run(physics_step);
             },
             AppState::PleaseRotate if get_orientation() == 0.0 => {
