@@ -1,4 +1,5 @@
 use macroquad::prelude::*;
+use shipyard::Unique;
 use crate::{sys::*, GameState};
 
 const FONT_SCALE: f32 = 1.0;
@@ -19,6 +20,7 @@ static START_TEXT_DESK: &'static str = "Press Space to start";
 static START_TEXT_MOBILE: &'static str = "Tap to start";
 
 #[derive(Clone, Copy, Debug)]
+#[derive(Unique)]
 pub struct UiModel {
     state: GameState,
     left_movement_down: bool,

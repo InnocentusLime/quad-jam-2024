@@ -4,10 +4,10 @@ use macroquad::prelude::*;
 use miniquad::window::set_window_size;
 use physics::{physics_move_kinematic, physics_spawn, physics_step, BodyKind, ColliderTy, PhysicsState};
 use render::{render_draw, Render};
-use shipyard::{Component, World};
+use shipyard::{Component, Unique, UniqueViewMut, World};
 use sound_director::{sound_director_sounds, SoundDirector};
 use sys::*;
-use ui::Ui;
+use ui::{Ui, UiModel};
 
 mod util;
 mod debug;
@@ -67,6 +67,10 @@ pub struct Speed(pub Vec2);
 #[derive(Debug, Clone, Copy, Component)]
 pub struct Follower;
 
+#[derive(Debug, Clone, Copy)]
+#[derive(Unique)]
+pub struct DeltaTime(pub f32);
+
 fn spawn_walls(world: &mut World) {
     const WALL_THICK: f32 = 32.0;
     const WALL_SIDE: f32 = 480.0;
@@ -103,18 +107,22 @@ async fn run() -> anyhow::Result<()> {
 
     set_default_filter_mode(FilterMode::Nearest);
 
+    let mut state = GameState::Start;
+    let mut debug = Debug::new();
+    let ui = Ui::new().await?;
+
     info!("Setting up Rapier");
 
     let mut world = World::new();
     world.add_unique(Render::new().await?);
     world.add_unique(PhysicsState::new());
     world.add_unique(SoundDirector::new().await?);
+    world.add_unique(ui.update(state));
+    world.add_unique(DeltaTime(0.0));
 
     info!("Rapier version: {}", rapier2d::VERSION);
 
     let mut game = Game::new();
-    let mut debug = Debug::new();
-    let ui = Ui::new().await?;
 
     let _follower = world.add_entity((
         Speed(Vec2::ZERO),
@@ -131,7 +139,6 @@ async fn run() -> anyhow::Result<()> {
 
     info!("Runtime created");
 
-    let mut state = GameState::Start;
     let mut fullscreen = window_conf().fullscreen;
     let mut paused_state = state;
 
@@ -192,14 +199,16 @@ async fn run() -> anyhow::Result<()> {
     );
 
     loop {
-        let dt = get_frame_time();
-
         if get_orientation() != 0.0 && state != GameState::PleaseRotate {
             paused_state = state;
             state = GameState::PleaseRotate;
         }
 
-        let ui_model = ui.update(state);
+        let (ui_model, DeltaTime(dt)) = world.run(|mut ui_model: UniqueViewMut<UiModel>, mut dt: UniqueViewMut<DeltaTime>| {
+            *ui_model = ui.update(state);
+            dt.0 = get_frame_time();
+            (*ui_model, *dt)
+        });
 
         if ui_model.fullscreen_toggle_requested() {
             // NOTE: macroquad does not update window config when it goes fullscreen
