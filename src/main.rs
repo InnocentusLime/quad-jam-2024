@@ -7,7 +7,7 @@ use render::{render_draw, Render};
 use shipyard::{Component, Unique, UniqueViewMut, World};
 use sound_director::{sound_director_sounds, SoundDirector};
 use sys::*;
-use ui::{Ui, UiModel};
+use ui::{ui_render, Ui, UiModel};
 
 mod util;
 mod debug;
@@ -87,6 +87,7 @@ async fn run() -> anyhow::Result<()> {
     world.add_unique(SoundDirector::new().await?);
     world.add_unique(ui.update(state));
     world.add_unique(DeltaTime(0.0));
+    world.add_unique(ui); // TODO: remove
 
     let game = Game::new(&mut world);
     world.add_unique(game);
@@ -118,7 +119,7 @@ async fn run() -> anyhow::Result<()> {
             state = AppState::PleaseRotate;
         }
 
-        let (ui_model, DeltaTime(dt)) = world.run(|mut ui_model: UniqueViewMut<UiModel>, mut dt: UniqueViewMut<DeltaTime>| {
+        let (ui_model, DeltaTime(dt)) = world.run(|ui: UniqueViewMut<Ui>, mut ui_model: UniqueViewMut<UiModel>, mut dt: UniqueViewMut<DeltaTime>| {
             *ui_model = ui.update(state);
             dt.0 = get_frame_time();
             (*ui_model, *dt)
@@ -165,7 +166,7 @@ async fn run() -> anyhow::Result<()> {
         };
 
         world.run(render_draw);
-        ui.draw(ui_model);
+        world.run(ui_render);
         world.run(sound_director_sounds);
 
         debug.new_frame();

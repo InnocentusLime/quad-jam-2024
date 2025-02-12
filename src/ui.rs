@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
-use shipyard::Unique;
-use crate::{sys::*, AppState};
+use shipyard::{Unique, UniqueView};
+use crate::{method_as_system, sys::*, AppState};
 
 const FONT_SCALE: f32 = 1.0;
 const MAIN_FONT_SIZE: u16 = 32;
@@ -62,6 +62,7 @@ impl UiModel {
     }
 }
 
+#[derive(Unique)]
 pub struct Ui {
     oegnek: Font,
 }
@@ -111,7 +112,10 @@ impl Ui {
         }
     }
 
-    pub fn draw(&self, model: UiModel) {
+    pub fn draw(
+        &mut self,
+        model: UniqueView<UiModel>,
+    ) {
         set_camera(&self.get_cam());
 
         if on_mobile() && model.state == AppState::Active {
@@ -262,3 +266,10 @@ impl Ui {
         cam
     }
 }
+
+method_as_system!(
+    Ui::draw as ui_render(
+        this: Ui,
+        model: UniqueView<UiModel>
+    )
+);
