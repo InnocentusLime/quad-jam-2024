@@ -89,8 +89,9 @@ pub struct Render {
 
 impl Render {
     pub async fn new() -> anyhow::Result<Self> {
+        let tiles = load_texture("assets/tiles.png").await?;
         Ok(Self {
-            tiles: load_texture("assets/tiles.png").await?,
+            tiles,
             // ball_emit: particles::Emitter::new(EmitterConfig {
             //     texture: None,
             //     ..trail()
@@ -124,6 +125,48 @@ impl Render {
             b: 0.02,
             a: 1.0,
         });
+
+        for y in 0..15 {
+            let y = y as f32 * 32.0;
+            draw_texture_ex(
+                &self.tiles,
+                0.0,
+                y,
+                WHITE,
+                DrawTextureParams {
+                    dest_size: Some(vec2(32.0, 32.0)),
+                    source: Some(Rect {
+                        x: 232.0,
+                        y: 304.0,
+                        w: 16.0,
+                        h: 16.0,
+                    }),
+                    rotation: 0.0,
+                    flip_x: false,
+                    flip_y: false,
+                    pivot: Some(vec2(0.0, 0.0)),
+                },
+            );
+            draw_texture_ex(
+                &self.tiles,
+                480.0 - 32.0,
+                y,
+                WHITE,
+                DrawTextureParams {
+                    dest_size: Some(vec2(32.0, 32.0)),
+                    source: Some(Rect {
+                        x: 232.0,
+                        y: 304.0,
+                        w: 16.0,
+                        h: 16.0,
+                    }),
+                    rotation: 0.0,
+                    flip_x: false,
+                    flip_y: false,
+                    pivot: Some(vec2(0.0, 0.0)),
+                },
+            );
+        }
 
         for (_, pos) in (&follow, &pos).iter() {
             draw_rectangle(
