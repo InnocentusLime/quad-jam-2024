@@ -84,11 +84,13 @@ pub struct Render {
     // pl_emit: particles::Emitter,
     // brick_emit: particles::Emitter,
     // ball_exp: particles::Emitter,
+    tiles: Texture2D,
 }
 
 impl Render {
     pub async fn new() -> anyhow::Result<Self> {
         Ok(Self {
+            tiles: load_texture("assets/tiles.png").await?,
             // ball_emit: particles::Emitter::new(EmitterConfig {
             //     texture: None,
             //     ..trail()
