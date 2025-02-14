@@ -85,6 +85,7 @@ pub struct Render {
     // brick_emit: particles::Emitter,
     // ball_exp: particles::Emitter,
     tiles: Texture2D,
+    render_colliders: bool,
 }
 
 impl Render {
@@ -92,6 +93,7 @@ impl Render {
         let tiles = load_texture("assets/tiles.png").await?;
         Ok(Self {
             tiles,
+            render_colliders: false,
             // ball_emit: particles::Emitter::new(EmitterConfig {
             //     texture: None,
             //     ..trail()
@@ -165,21 +167,23 @@ impl Render {
             );
         }
 
-        for (col, tf) in (&phys, &pos).iter() {
-            match col.col() {
-                ColliderTy::Box { width, height } => draw_rectangle_lines_ex(
-                    tf.pos.x,
-                    tf.pos.y,
-                    *width,
-                    *height,
-                    1.0,
-                    DrawRectangleParams {
-                        // offset: Vec2::ZERO,
-                        offset: vec2(0.5, 0.5),
-                        rotation: tf.angle,
-                        color: RED,
-                    },
-                ),
+        if self.render_colliders {
+            for (col, tf) in (&phys, &pos).iter() {
+                match col.col() {
+                    ColliderTy::Box { width, height } => draw_rectangle_lines_ex(
+                        tf.pos.x,
+                        tf.pos.y,
+                        *width,
+                        *height,
+                        1.0,
+                        DrawRectangleParams {
+                            // offset: Vec2::ZERO,
+                            offset: vec2(0.5, 0.5),
+                            rotation: tf.angle,
+                            color: RED,
+                        },
+                    ),
+                }
             }
         }
     }
