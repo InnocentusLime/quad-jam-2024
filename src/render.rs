@@ -138,7 +138,7 @@ impl Render {
                         &self.tiles,
                         32.0 * x as f32,
                         32.0 * y as f32,
-                        WHITE,
+                        Color::from_rgba(51, 51, 84, 255),
                         DrawTextureParams {
                             dest_size: Some(vec2(32.0, 32.0)),
                             source: Some(Rect {
