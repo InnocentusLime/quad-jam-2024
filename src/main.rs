@@ -52,6 +52,13 @@ async fn main() {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub enum MobType {
+    Player,
+    Box,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Component)]
 pub enum TileType {

@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, Unique, View};
 
-use crate::{method_as_system, physics::{ColliderTy, PhysicsInfo}, Follower, TileStorage, TileType, Transform};
+use crate::{method_as_system, physics::{ColliderTy, PhysicsInfo}, Follower, MobType, TileStorage, TileType, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 // fn trail() -> particles::EmitterConfig {
@@ -120,6 +120,7 @@ impl Render {
         pos: View<Transform>,
         tile_storage: View<TileStorage>,
         tiles: View<TileType>,
+        mob: View<MobType>,
     ) {
         self.setup_cam();
 
@@ -155,6 +156,35 @@ impl Render {
                     ),
                     TileType::Ground => (),
                 });
+        }
+
+        for (mob, pos) in (&mob, &pos).iter() {
+            match mob {
+                MobType::Player => draw_rectangle_ex(
+                    pos.pos.x,
+                    pos.pos.y,
+                    16.0,
+                    16.0,
+                    DrawRectangleParams {
+                        // offset: Vec2::ZERO,
+                        offset: vec2(0.5, 0.5),
+                        rotation: pos.angle,
+                        color: PURPLE,
+                    },
+                ),
+                MobType::Box => draw_rectangle_ex(
+                    pos.pos.x,
+                    pos.pos.y,
+                    32.0,
+                    32.0,
+                    DrawRectangleParams {
+                        // offset: Vec2::ZERO,
+                        offset: vec2(0.5, 0.5),
+                        rotation: pos.angle,
+                        color: YELLOW,
+                    },
+                ),
+            }
         }
 
         for (_, pos) in (&follow, &pos).iter() {
@@ -209,6 +239,7 @@ method_as_system!(
         phys: View<PhysicsInfo>,
         pos: View<Transform>,
         storage: View<TileStorage>,
-        tiles: View<TileType>
+        tiles: View<TileType>,
+        mob: View<MobType>
     )
 );
