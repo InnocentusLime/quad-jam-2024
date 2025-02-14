@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, Unique, View};
 
-use crate::{method_as_system, physics::{ColliderTy, PhysicsInfo}, Follower, MobType, TileStorage, TileType, Transform};
+use crate::{method_as_system, physics::{ColliderTy, PhysicsInfo}, MobType, TileStorage, TileType, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 // fn trail() -> particles::EmitterConfig {
@@ -115,7 +115,6 @@ impl Render {
 
     pub fn draw(
         &mut self,
-        follow: View<Follower>,
         phys: View<PhysicsInfo>,
         pos: View<Transform>,
         tile_storage: View<TileStorage>,
@@ -225,7 +224,6 @@ impl Render {
 method_as_system!(
     Render::draw as render_draw(
         this: Render,
-        follow: View<Follower>,
         phys: View<PhysicsInfo>,
         pos: View<Transform>,
         storage: View<TileStorage>,

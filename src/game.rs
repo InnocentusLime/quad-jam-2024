@@ -1,9 +1,7 @@
 use macroquad::prelude::*;
 use shipyard::{EntityId, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, method_as_system, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, DeltaTime, Follower, MobType, Speed, TileStorage, TileType, Transform};
+use crate::{inline_tilemap, method_as_system, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, DeltaTime, MobType, Speed, TileStorage, TileType, Transform};
 
-const PLAYER_SPEED_MAX: f32 = 128.0;
-const PLAYER_ACC: f32 = 128.0;
 pub const PLAYER_SPEED: f32 = 128.0;
 
 fn spawn_tiles(

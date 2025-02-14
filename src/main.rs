@@ -137,10 +137,6 @@ pub struct Transform {
 #[derive(Debug, Clone, Copy, Component)]
 pub struct Speed(pub Vec2);
 
-
-#[derive(Debug, Clone, Copy, Component)]
-pub struct Follower;
-
 #[derive(Debug, Clone, Copy)]
 #[derive(Unique)]
 pub struct DeltaTime(pub f32);
