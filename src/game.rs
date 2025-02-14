@@ -6,36 +6,6 @@ const PLAYER_SPEED_MAX: f32 = 128.0;
 const PLAYER_ACC: f32 = 128.0;
 pub const PLAYER_SPEED: f32 = 128.0;
 
-fn spawn_walls(world: &mut World) {
-    const WALL_THICK: f32 = 32.0;
-    const WALL_SIDE: f32 = 480.0;
-
-    let wall_data = [
-        (WALL_SIDE / 2.0, WALL_SIDE - WALL_THICK / 2.0, WALL_SIDE, WALL_THICK),
-        (WALL_SIDE / 2.0, WALL_THICK / 2.0, WALL_SIDE, WALL_THICK),
-        (WALL_SIDE - WALL_THICK / 2.0, WALL_SIDE / 2.0, WALL_THICK, WALL_SIDE),
-        (WALL_THICK / 2.0, WALL_SIDE / 2.0, WALL_THICK, WALL_SIDE),
-    ];
-
-    for (x, y, width, height) in wall_data {
-        let wall = world.add_entity((
-            Transform {
-                pos: vec2(x, y),
-                angle: 0.0f32,
-            },
-        ));
-        physics_spawn(
-            world,
-            wall,
-            ColliderTy::Box {
-                width,
-                height,
-            },
-            BodyKind::Static,
-        );
-    }
-}
-
 fn spawn_tiles(
     width: usize,
     height: usize,
@@ -121,8 +91,6 @@ impl Game {
 
             the_box
         });
-
-        spawn_walls(world);
 
         let player = world.add_entity(
             Transform {
