@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 use shipyard::{EntityId, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{method_as_system, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, DeltaTime, Follower, Speed, Transform};
+use crate::{inline_tilemap, method_as_system, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, DeltaTime, Follower, Speed, TileStorage, TileType, Transform};
 
 const PLAYER_SPEED_MAX: f32 = 128.0;
 const PLAYER_ACC: f32 = 128.0;
@@ -36,10 +36,30 @@ fn spawn_walls(world: &mut World) {
     }
 }
 
+fn spawn_tiles(
+    width: usize,
+    height: usize,
+    data: Vec<TileType>,
+    world: &mut World,
+) -> EntityId {
+    assert_eq!(data.len(), width * height);
+
+    let storage = TileStorage::from_data(
+        width,
+        height,
+        data.into_iter()
+            .map(|ty| world.add_entity(ty))
+            .collect()
+    ).unwrap();
+
+    world.add_entity(storage)
+}
+
 #[derive(Unique)]
 pub struct Game {
     player: EntityId,
     boxes: [EntityId; 4],
+    tilemap: EntityId,
 }
 
 impl Game {
@@ -98,9 +118,44 @@ impl Game {
             BodyKind::Kinematic,
         );
 
+        let tilemap = spawn_tiles(
+            26,
+            26,
+            inline_tilemap![
+                w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w
+            ],
+            world,
+        );
+
         Self {
             player,
             boxes,
+            tilemap,
         }
     }
 
