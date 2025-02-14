@@ -148,7 +148,7 @@ impl Render {
                             rotation: 0.0,
                             flip_x: false,
                             flip_y: false,
-                            pivot: Some(vec2(0.0, 0.0)),
+                            pivot: Some(vec2(0.5, 0.5)),
                         },
                     ),
                     TileType::Ground => (),

@@ -52,6 +52,28 @@ fn spawn_tiles(
             .collect()
     ).unwrap();
 
+    for (x, y, tile) in storage.iter_poses() {
+        world.add_component(
+            tile,
+            Transform {
+                pos: vec2(x as f32 * 32.0 + 16.0, y as f32 * 32.0 + 16.0),
+                angle: 0.0,
+            }
+        );
+
+        let ty = world.get::<&TileType>(tile).unwrap();
+
+        match ty.as_ref() {
+            TileType::Wall => physics_spawn(
+                world,
+                tile,
+                ColliderTy::Box { width: 32.0, height: 32.0, },
+                BodyKind::Static,
+            ),
+            TileType::Ground => (),
+        }
+    }
+
     world.add_entity(storage)
 }
 
