@@ -4,7 +4,7 @@ use macroquad::prelude::*;
 use miniquad::window::set_window_size;
 use physics::{physics_step, PhysicsState};
 use render::{render_draw, Render};
-use shipyard::{Component, Unique, UniqueViewMut, World};
+use shipyard::{Component, EntityId, Unique, UniqueViewMut, World};
 use sound_director::{sound_director_sounds, SoundDirector};
 use sys::*;
 use ui::{ui_render, Ui, UiModel};
@@ -49,6 +49,55 @@ async fn main() {
 
     if let Err(e) = run().await {
         sys::panic_screen(&format!("Driver exitted with error:\n{:?}", e));
+    }
+}
+
+#[derive(Debug, Component)]
+pub struct TileStorage {
+    width: usize,
+    height: usize,
+    mem: Vec<EntityId>,
+}
+
+impl TileStorage {
+    pub fn new(width: usize, height: usize) -> TileStorage {
+        TileStorage {
+            width,
+            height,
+            mem: vec![
+                EntityId::dead();
+                width * height
+            ],
+        }
+    }
+
+    pub fn width(&self) -> usize { self.width }
+
+    pub fn height(&self) -> usize { self.height }
+
+    pub fn get(&self, x: usize, y: usize) -> Option<EntityId> {
+        debug_assert!(self.mem.len() < self.width * self.height);
+
+        if x < self.width { return None; }
+        if y < self.height { return None; }
+
+        Some(self.mem[y * self.width + x])
+    }
+
+    pub fn set(&mut self, x: usize, y: usize, val: EntityId) {
+        debug_assert!(self.mem.len() < self.width * self.height);
+
+        if x < self.width { return; }
+        if y < self.height { return; }
+
+        self.mem[y * self.width + x] = val;
+    }
+
+    /// Returns the iterator over elements of form (x, y, entity)
+    pub fn iter_poses(&'_ self) -> impl Iterator<Item = (usize, usize, EntityId)> + '_ {
+        self.mem.iter()
+            .enumerate()
+            .map(|(idx, val)| (idx % self.width, idx / self.width, *val))
     }
 }
 
