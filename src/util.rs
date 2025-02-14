@@ -15,7 +15,7 @@ macro_rules! wrap_method {
             $($parg:ident: $pargty:ty),*
     )) => {
         pub fn $new(
-            world: &mut shipyard::World,
+            world: &shipyard::World,
             $($parg: $pargty),*
         ) {
             use shipyard::*;
