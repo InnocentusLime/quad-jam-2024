@@ -1,10 +1,10 @@
 use debug::{init_on_screen_log, Debug};
-use game::{game_player_controls, game_update_follower, Game};
+use game::{game_player_controls, Game};
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
 use physics::{physics_step, PhysicsState};
 use render::{render_draw, Render};
-use shipyard::{Component, Unique, UniqueViewMut, World};
+use shipyard::{Component, EntityId, Unique, UniqueViewMut, World};
 use sound_director::{sound_director_sounds, SoundDirector};
 use sys::*;
 use ui::{ui_render, Ui, UiModel};
@@ -52,6 +52,82 @@ async fn main() {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub enum MobType {
+    Player,
+    Box,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Component)]
+pub enum TileType {
+    Wall,
+    Ground,
+}
+
+#[derive(Debug, Component)]
+pub struct TileStorage {
+    width: usize,
+    height: usize,
+    mem: Vec<EntityId>,
+}
+
+impl TileStorage {
+    pub fn from_data(
+        width: usize,
+        height: usize,
+        mem: Vec<EntityId>,
+    ) -> Option<TileStorage> {
+        if mem.len() != width * height { return None; }
+
+        Some(TileStorage {
+            width,
+            height,
+            mem,
+        })
+    }
+    pub fn new(width: usize, height: usize) -> TileStorage {
+        TileStorage::from_data(
+            width,
+            height,
+            vec![
+                EntityId::dead();
+                width * height
+            ],
+        ).unwrap()
+    }
+
+    pub fn width(&self) -> usize { self.width }
+
+    pub fn height(&self) -> usize { self.height }
+
+    pub fn get(&self, x: usize, y: usize) -> Option<EntityId> {
+        debug_assert!(self.mem.len() < self.width * self.height);
+
+        if x < self.width { return None; }
+        if y < self.height { return None; }
+
+        Some(self.mem[y * self.width + x])
+    }
+
+    pub fn set(&mut self, x: usize, y: usize, val: EntityId) {
+        debug_assert!(self.mem.len() < self.width * self.height);
+
+        if x < self.width { return; }
+        if y < self.height { return; }
+
+        self.mem[y * self.width + x] = val;
+    }
+
+    /// Returns the iterator over elements of form (x, y, entity)
+    pub fn iter_poses(&'_ self) -> impl Iterator<Item = (usize, usize, EntityId)> + '_ {
+        self.mem.iter()
+            .enumerate()
+            .map(|(idx, val)| (idx % self.width, idx / self.width, *val))
+    }
+}
+
 #[derive(Debug, Clone, Copy, Component)]
 pub struct Transform {
     pub pos: Vec2,
@@ -60,10 +136,6 @@ pub struct Transform {
 
 #[derive(Debug, Clone, Copy, Component)]
 pub struct Speed(pub Vec2);
-
-
-#[derive(Debug, Clone, Copy, Component)]
-pub struct Follower;
 
 #[derive(Debug, Clone, Copy)]
 #[derive(Unique)]
@@ -147,7 +219,6 @@ async fn run() -> anyhow::Result<()> {
                 state = AppState::Paused;
             },
             AppState::Active if !ui_model.pause_requested() => {
-                world.run(game_update_follower);
                 world.run(game_player_controls);
                 world.run(physics_step);
             },

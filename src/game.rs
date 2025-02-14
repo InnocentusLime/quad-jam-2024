@@ -1,57 +1,59 @@
 use macroquad::prelude::*;
 use shipyard::{EntityId, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{method_as_system, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, DeltaTime, Follower, Speed, Transform};
+use crate::{inline_tilemap, method_as_system, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, DeltaTime, MobType, Speed, TileStorage, TileType, Transform};
 
-const PLAYER_SPEED_MAX: f32 = 128.0;
-const PLAYER_ACC: f32 = 128.0;
 pub const PLAYER_SPEED: f32 = 128.0;
 
-fn spawn_walls(world: &mut World) {
-    const WALL_THICK: f32 = 32.0;
-    const WALL_SIDE: f32 = 480.0;
+fn spawn_tiles(
+    width: usize,
+    height: usize,
+    data: Vec<TileType>,
+    world: &mut World,
+) -> EntityId {
+    assert_eq!(data.len(), width * height);
 
-    let wall_data = [
-        (WALL_SIDE / 2.0, WALL_SIDE - WALL_THICK / 2.0, WALL_SIDE, WALL_THICK),
-        (WALL_SIDE / 2.0, WALL_THICK / 2.0, WALL_SIDE, WALL_THICK),
-        (WALL_SIDE - WALL_THICK / 2.0, WALL_SIDE / 2.0, WALL_THICK, WALL_SIDE),
-        (WALL_THICK / 2.0, WALL_SIDE / 2.0, WALL_THICK, WALL_SIDE),
-    ];
+    let storage = TileStorage::from_data(
+        width,
+        height,
+        data.into_iter()
+            .map(|ty| world.add_entity(ty))
+            .collect()
+    ).unwrap();
 
-    for (x, y, width, height) in wall_data {
-        let wall = world.add_entity((
+    for (x, y, tile) in storage.iter_poses() {
+        world.add_component(
+            tile,
             Transform {
-                pos: vec2(x, y),
-                angle: 0.0f32,
-            },
-        ));
-        physics_spawn(
-            world,
-            wall,
-            ColliderTy::Box {
-                width,
-                height,
-            },
-            BodyKind::Static,
+                pos: vec2(x as f32 * 32.0 + 16.0, y as f32 * 32.0 + 16.0),
+                angle: 0.0,
+            }
         );
+
+        let ty = world.get::<&TileType>(tile).unwrap();
+
+        match ty.as_ref() {
+            TileType::Wall => physics_spawn(
+                world,
+                tile,
+                ColliderTy::Box { width: 32.0, height: 32.0, },
+                BodyKind::Static,
+            ),
+            TileType::Ground => (),
+        }
     }
+
+    world.add_entity(storage)
 }
 
 #[derive(Unique)]
 pub struct Game {
     player: EntityId,
     boxes: [EntityId; 4],
+    tilemap: EntityId,
 }
 
 impl Game {
     pub fn new(world: &mut World) -> Self {
-        let _follower = world.add_entity((
-            Speed(Vec2::ZERO),
-            Transform {
-                pos: Vec2::ZERO,
-                angle: 0.0f32,
-            },
-            Follower,
-        ));
         let mut angle = 0.0;
         let poses = [
             vec2(200.0, 160.0),
@@ -66,6 +68,7 @@ impl Game {
                     pos,
                     angle,
                 },
+                MobType::Box,
             ));
             physics_spawn(
                 world,
@@ -80,14 +83,13 @@ impl Game {
             the_box
         });
 
-        spawn_walls(world);
-
-        let player = world.add_entity(
+        let player = world.add_entity((
             Transform {
                 pos: vec2(300.0, 300.0),
                 angle: 0.0,
-            }
-        );
+            },
+            MobType::Player,
+        ));
         physics_spawn(
             world,
             player,
@@ -98,30 +100,34 @@ impl Game {
             BodyKind::Kinematic,
         );
 
+        let tilemap = spawn_tiles(
+            16,
+            16,
+            inline_tilemap![
+                w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, w, w, w, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, w, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, w, g, g, w, g, g, g, g, w,
+                w, g, g, w, g, g, g, g, g, g, w, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, w, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, w, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, w, g, g, g, g, w,
+                w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w
+            ],
+            world,
+        );
+
         Self {
             player,
             boxes,
-        }
-    }
-
-    pub fn update_follower(
-        &mut self,
-        follow: View<Follower>,
-        mut pos: ViewMut<Transform>,
-        mut speed: ViewMut<Speed>,
-        dt: UniqueView<DeltaTime>,
-    ) {
-        let dt = dt.0;
-        // TODO: do not use here
-        let (mx, my) = mouse_position();
-
-        for (_, pos, speed) in (&follow, &mut pos, &mut speed).iter() {
-            let dv = (vec2(mx, my) - pos.pos).normalize_or_zero();
-
-            speed.0 += dv * PLAYER_ACC * dt;
-            speed.0 = speed.0.clamp_length(0.0, PLAYER_SPEED_MAX);
-
-            pos.pos += speed.0 * dt;
+            tilemap,
         }
     }
 
@@ -172,16 +178,6 @@ impl Game {
     //     }
     // }
 }
-
-method_as_system!(
-    Game::update_follower as game_update_follower(
-        this: Game,
-        follow: View<Follower>,
-        pos: ViewMut<Transform>,
-        speed: ViewMut<Speed>,
-        dt: UniqueView<DeltaTime>
-    )
-);
 
 method_as_system!(
     Game::player_controls as game_player_controls(
