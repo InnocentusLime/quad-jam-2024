@@ -56,14 +56,6 @@ pub struct Game {
 
 impl Game {
     pub fn new(world: &mut World) -> Self {
-        let _follower = world.add_entity((
-            Speed(Vec2::ZERO),
-            Transform {
-                pos: Vec2::ZERO,
-                angle: 0.0f32,
-            },
-            Follower,
-        ));
         let mut angle = 0.0;
         let poses = [
             vec2(200.0, 160.0),
@@ -141,27 +133,6 @@ impl Game {
         }
     }
 
-    pub fn update_follower(
-        &mut self,
-        follow: View<Follower>,
-        mut pos: ViewMut<Transform>,
-        mut speed: ViewMut<Speed>,
-        dt: UniqueView<DeltaTime>,
-    ) {
-        let dt = dt.0;
-        // TODO: do not use here
-        let (mx, my) = mouse_position();
-
-        for (_, pos, speed) in (&follow, &mut pos, &mut speed).iter() {
-            let dv = (vec2(mx, my) - pos.pos).normalize_or_zero();
-
-            speed.0 += dv * PLAYER_ACC * dt;
-            speed.0 = speed.0.clamp_length(0.0, PLAYER_SPEED_MAX);
-
-            pos.pos += speed.0 * dt;
-        }
-    }
-
     pub fn player_controls(
         &mut self,
         mut phys: UniqueViewMut<PhysicsState>,
@@ -209,16 +180,6 @@ impl Game {
     //     }
     // }
 }
-
-method_as_system!(
-    Game::update_follower as game_update_follower(
-        this: Game,
-        follow: View<Follower>,
-        pos: ViewMut<Transform>,
-        speed: ViewMut<Speed>,
-        dt: UniqueView<DeltaTime>
-    )
-);
 
 method_as_system!(
     Game::player_controls as game_player_controls(

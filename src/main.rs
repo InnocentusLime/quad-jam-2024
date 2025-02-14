@@ -1,5 +1,5 @@
 use debug::{init_on_screen_log, Debug};
-use game::{game_player_controls, game_update_follower, Game};
+use game::{game_player_controls, Game};
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
 use physics::{physics_step, PhysicsState};
@@ -223,7 +223,6 @@ async fn run() -> anyhow::Result<()> {
                 state = AppState::Paused;
             },
             AppState::Active if !ui_model.pause_requested() => {
-                world.run(game_update_follower);
                 world.run(game_player_controls);
                 world.run(physics_step);
             },

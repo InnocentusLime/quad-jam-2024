@@ -187,16 +187,6 @@ impl Render {
             }
         }
 
-        for (_, pos) in (&follow, &pos).iter() {
-            draw_rectangle(
-                pos.pos.x,
-                pos.pos.y,
-                32.0,
-                32.0,
-                GREEN,
-            );
-        }
-
         if self.render_colliders {
             for (col, tf) in (&phys, &pos).iter() {
                 match col.col() {
