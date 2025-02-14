@@ -52,6 +52,13 @@ async fn main() {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Component)]
+pub enum TileType {
+    Wall,
+    Ground,
+}
+
 #[derive(Debug, Component)]
 pub struct TileStorage {
     width: usize,
@@ -60,15 +67,28 @@ pub struct TileStorage {
 }
 
 impl TileStorage {
-    pub fn new(width: usize, height: usize) -> TileStorage {
-        TileStorage {
+    pub fn from_data(
+        width: usize,
+        height: usize,
+        mem: Vec<EntityId>,
+    ) -> Option<TileStorage> {
+        if mem.len() != width * height { return None; }
+
+        Some(TileStorage {
             width,
             height,
-            mem: vec![
+            mem,
+        })
+    }
+    pub fn new(width: usize, height: usize) -> TileStorage {
+        TileStorage::from_data(
+            width,
+            height,
+            vec![
                 EntityId::dead();
                 width * height
             ],
-        }
+        ).unwrap()
     }
 
     pub fn width(&self) -> usize { self.width }
