@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
-use shipyard::{IntoIter, Unique, View};
+use shipyard::{Get, IntoIter, Unique, View};
 
-use crate::{method_as_system, physics::{ColliderTy, PhysicsInfo}, Follower, Transform};
+use crate::{method_as_system, physics::{ColliderTy, PhysicsInfo}, Follower, TileStorage, TileType, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 // fn trail() -> particles::EmitterConfig {
@@ -116,6 +116,8 @@ impl Render {
         follow: View<Follower>,
         phys: View<PhysicsInfo>,
         pos: View<Transform>,
+        tile_storage: View<TileStorage>,
+        tiles: View<TileType>,
     ) {
         self.setup_cam();
 
@@ -126,46 +128,31 @@ impl Render {
             a: 1.0,
         });
 
-        for y in 0..15 {
-            let y = y as f32 * 32.0;
-            draw_texture_ex(
-                &self.tiles,
-                0.0,
-                y,
-                WHITE,
-                DrawTextureParams {
-                    dest_size: Some(vec2(32.0, 32.0)),
-                    source: Some(Rect {
-                        x: 232.0,
-                        y: 304.0,
-                        w: 16.0,
-                        h: 16.0,
-                    }),
-                    rotation: 0.0,
-                    flip_x: false,
-                    flip_y: false,
-                    pivot: Some(vec2(0.0, 0.0)),
-                },
-            );
-            draw_texture_ex(
-                &self.tiles,
-                480.0 - 32.0,
-                y,
-                WHITE,
-                DrawTextureParams {
-                    dest_size: Some(vec2(32.0, 32.0)),
-                    source: Some(Rect {
-                        x: 232.0,
-                        y: 304.0,
-                        w: 16.0,
-                        h: 16.0,
-                    }),
-                    rotation: 0.0,
-                    flip_x: false,
-                    flip_y: false,
-                    pivot: Some(vec2(0.0, 0.0)),
-                },
-            );
+        for storage in tile_storage.iter() {
+            storage.iter_poses()
+                .map(|(x, y, id)| (x, y, tiles.get(id).unwrap()))
+                .for_each(|(x, y, id)| match id {
+                    TileType::Wall => draw_texture_ex(
+                        &self.tiles,
+                        32.0 * x as f32,
+                        32.0 * y as f32,
+                        WHITE,
+                        DrawTextureParams {
+                            dest_size: Some(vec2(32.0, 32.0)),
+                            source: Some(Rect {
+                                x: 232.0,
+                                y: 304.0,
+                                w: 16.0,
+                                h: 16.0,
+                            }),
+                            rotation: 0.0,
+                            flip_x: false,
+                            flip_y: false,
+                            pivot: Some(vec2(0.0, 0.0)),
+                        },
+                    ),
+                    TileType::Ground => (),
+                });
         }
 
         for (_, pos) in (&follow, &pos).iter() {
@@ -216,6 +203,8 @@ method_as_system!(
         this: Render,
         follow: View<Follower>,
         phys: View<PhysicsInfo>,
-        pos: View<Transform>
+        pos: View<Transform>,
+        storage: View<TileStorage>,
+        tiles: View<TileType>
     )
 );
