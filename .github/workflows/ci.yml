@@ -12,7 +12,7 @@ jobs:
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
-          toolchain: 1.84.1
+          toolchain: ${{ vars.RUST_VERSION }}
           override: true
           target: wasm32-unknown-unknown
           components: rustfmt
@@ -26,8 +26,8 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ci-${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ci-${{ runner.os }}-cargo-
+          key: ci-${{ runner.os }}-${{ vars.RUST_VERSION }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ci-${{ runner.os }}-${{ vars.RUST_VERSION }}-cargo-
       - name: CI for native
         run: cargo check
       - name: CI for wasm
