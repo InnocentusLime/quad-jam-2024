@@ -1,8 +1,10 @@
 use macroquad::prelude::*;
 use shipyard::{EntityId, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, method_as_system, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, DeltaTime, MobType, Speed, TileStorage, TileType, Transform};
+use crate::{inline_tilemap, method_as_system, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, DeltaTime, MobType, Speed, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
+pub const BALL_THROW_TIME: f32 = 0.6;
+pub const BALL_PICK_TIME: f32 = 0.3;
 
 fn spawn_tiles(
     width: usize,
@@ -47,6 +49,7 @@ fn spawn_tiles(
 
 #[derive(Unique)]
 pub struct Game {
+    weapon: EntityId,
     player: EntityId,
     boxes: [EntityId; 4],
     tilemap: EntityId,
@@ -100,6 +103,11 @@ impl Game {
             BodyKind::Kinematic,
         );
 
+        let weapon = world.add_entity((
+            BallState::InPocket,
+            MobType::BallOfHurt,
+        ));
+
         let tilemap = spawn_tiles(
             16,
             16,
@@ -126,9 +134,18 @@ impl Game {
 
         Self {
             player,
+            weapon,
             boxes,
             tilemap,
         }
+    }
+
+    pub fn ball_logic(
+        &mut self,
+        mut pos: ViewMut<Transform>,
+        ui_model: UniqueView<UiModel>,
+    ) {
+
     }
 
     pub fn player_controls(
@@ -185,6 +202,14 @@ method_as_system!(
         phys: UniqueViewMut<PhysicsState>,
         rbs: ViewMut<PhysicsInfo>,
         dt: UniqueView<DeltaTime>,
+        ui_model: UniqueView<UiModel>
+    )
+);
+
+method_as_system!(
+    Game::ball_logic as game_ball_logic(
+        this: Game,
+        pos: ViewMut<Transform>,
         ui_model: UniqueView<UiModel>
     )
 );
