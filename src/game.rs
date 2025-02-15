@@ -1,5 +1,5 @@
 use macroquad::prelude::*;
-use shipyard::{EntityId, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
+use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
 use crate::{inline_tilemap, method_as_system, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, DeltaTime, MobType, Speed, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
@@ -145,7 +145,9 @@ impl Game {
         mut pos: ViewMut<Transform>,
         ui_model: UniqueView<UiModel>,
     ) {
+        let player_pos = pos.get(self.player).unwrap().pos;
 
+        (&mut pos).get(self.weapon).unwrap().pos = player_pos;
     }
 
     pub fn player_controls(
