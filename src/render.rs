@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, Unique, View};
 
-use crate::{method_as_system, physics::{ColliderTy, PhysicsInfo}, MobType, TileStorage, TileType, Transform};
+use crate::{method_as_system, physics::{ColliderTy, PhysicsInfo}, BallState, MobType, TileStorage, TileType, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 // fn trail() -> particles::EmitterConfig {
@@ -120,6 +120,7 @@ impl Render {
         tile_storage: View<TileStorage>,
         tiles: View<TileType>,
         mob: View<MobType>,
+        ball_state: View<BallState>,
     ) {
         self.setup_cam();
 
@@ -183,7 +184,18 @@ impl Render {
                         color: YELLOW,
                     },
                 ),
-                MobType::BallOfHurt => draw_circle(
+                MobType::BallOfHurt => (),
+            }
+        }
+
+        for (mob, pos, ball) in (&mob, &pos, &ball_state).iter() {
+            if !matches!(mob, MobType::BallOfHurt) { continue; }
+
+            match ball {
+                BallState::InPocket => (),
+                BallState::InProgress { .. } |
+                BallState::RollingBack { .. } |
+                BallState::Deployed => draw_circle(
                     pos.pos.x,
                     pos.pos.y,
                     16.0,
@@ -234,6 +246,7 @@ method_as_system!(
         pos: View<Transform>,
         storage: View<TileStorage>,
         tiles: View<TileType>,
-        mob: View<MobType>
+        mob: View<MobType>,
+        ball_state: View<BallState>
     )
 );
