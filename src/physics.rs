@@ -3,9 +3,9 @@ use std::collections::HashMap;
 use macroquad::prelude::*;
 use nalgebra::Translation2;
 use rapier2d::{na::{Isometry, Isometry2, Vector2}, parry::query::{DefaultQueryDispatcher, PersistentQueryDispatcher, ShapeCastOptions}, prelude::*};
-use shipyard::{Component, EntitiesView, EntityId, Get, IntoIter, Unique, View, ViewMut};
+use shipyard::{Component, EntitiesView, EntityId, Get, IntoIter, Unique, UniqueView, View, ViewMut};
 
-use crate::{method_as_system, wrap_method, Transform};
+use crate::{method_as_system, wrap_method, DeltaTime, Transform};
 
 pub const PIXEL_PER_METER : f32 = 32.0;
 pub const MAX_KINEMATICS_ITERS: i32 = 20;
@@ -58,6 +58,7 @@ pub struct PhysicsState {
     pub mapping: HashMap<EntityId, RigidBodyHandle>,
     kinematic_cols: Vec<(Vector2<f32>, Isometry2<f32>, ShapeCastHit)>,
     manifolds: Vec<ContactManifold>,
+    accumulated_time: f32,
 }
 
 impl PhysicsState {
@@ -79,6 +80,7 @@ impl PhysicsState {
             mapping: HashMap::new(),
             kinematic_cols: Vec::new(),
             manifolds: Vec::new(),
+            accumulated_time: 0.0,
         }
     }
 
@@ -337,7 +339,14 @@ impl PhysicsState {
         &mut self,
         rbs: View<PhysicsInfo>,
         mut pos: ViewMut<Transform>,
+        dt: UniqueView<DeltaTime>,
     ) {
+        self.accumulated_time += dt.0;
+        if self.accumulated_time < self.integration_parameters.dt {
+            return;
+        }
+        self.accumulated_time = self.accumulated_time % self.integration_parameters.dt;
+
         // GC the dead handles
         for remd in rbs.removed_or_deleted() {
             let Some(rb) = self.mapping.remove(&remd)
@@ -411,7 +420,8 @@ method_as_system!(
     PhysicsState::step as physics_step(
         this: PhysicsState,
         rbs: View<PhysicsInfo>,
-        pos: ViewMut<Transform>
+        pos: ViewMut<Transform>,
+        dt: UniqueView<DeltaTime>
     )
 );
 
