@@ -3,8 +3,8 @@ use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View,
 use crate::{inline_tilemap, method_as_system, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, DeltaTime, MobType, Speed, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
-pub const BALL_THROW_TIME: f32 = 0.6;
-pub const BALL_PICK_TIME: f32 = 0.3;
+pub const BALL_THROW_TIME: f32 = 0.2;
+pub const BALL_PICK_TIME: f32 = 0.5;
 
 fn spawn_tiles(
     width: usize,
