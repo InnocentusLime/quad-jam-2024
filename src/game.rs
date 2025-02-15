@@ -104,6 +104,10 @@ impl Game {
         );
 
         let weapon = world.add_entity((
+            Transform {
+                pos: vec2(0.0, 0.0),
+                angle: 0.0,
+            },
             BallState::InPocket,
             MobType::BallOfHurt,
         ));
