@@ -183,6 +183,12 @@ impl Render {
                         color: YELLOW,
                     },
                 ),
+                MobType::BallOfHurt => draw_circle(
+                    pos.pos.x,
+                    pos.pos.y,
+                    16.0,
+                    GREEN,
+                ),
             }
         }
 

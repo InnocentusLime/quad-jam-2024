@@ -54,9 +54,19 @@ async fn main() {
 
 #[derive(Debug, Clone, Copy)]
 #[derive(Component)]
+pub enum PlayerBallThrow {
+    InProgress {
+        time_left: f32,
+    },
+    NoThrow,
+}
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
 pub enum MobType {
     Player,
     Box,
+    BallOfHurt,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
