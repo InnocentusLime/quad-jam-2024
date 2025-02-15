@@ -56,9 +56,13 @@ async fn main() {
 #[derive(Component)]
 pub enum BallState {
     InProgress {
+        from: Vec2,
+        to: Vec2,
         time_left: f32,
     },
     RollingBack {
+        total: f32,
+        from: Vec2,
         time_left: f32,
     },
     InPocket,

@@ -147,11 +147,73 @@ impl Game {
     pub fn ball_logic(
         &mut self,
         mut pos: ViewMut<Transform>,
+        mut state: ViewMut<BallState>,
         ui_model: UniqueView<UiModel>,
+        dt: UniqueView<DeltaTime>,
     ) {
         let player_pos = pos.get(self.player).unwrap().pos;
 
-        (&mut pos).get(self.weapon).unwrap().pos = player_pos;
+        for (state, pos) in (&mut state, &mut pos).iter() {
+            match state {
+                BallState::InProgress {
+                    from,
+                    to,
+                    time_left
+                } => if ui_model.attack_down() {
+                    let k = 1.0 - *time_left / BALL_THROW_TIME;
+                    let dr = *to - *from;
+
+                    *time_left -= dt.0;
+                    pos.pos = *from + dr * k;
+
+                    if *time_left <= 0.0 {
+                        *state = BallState::Deployed;
+                    }
+                } else {
+                    let k = 1.0 - *time_left / BALL_THROW_TIME;
+
+                    info!("rollbacktime: {}", k * BALL_PICK_TIME);
+
+                    *state = BallState::RollingBack {
+                        from: pos.pos,
+                        total: k * BALL_PICK_TIME,
+                        time_left: k * BALL_PICK_TIME,
+                    }
+                },
+                BallState::RollingBack {
+                    total,
+                    from,
+                    time_left,
+                } => {
+                    let k = 1.0 - *time_left / *total;
+                    let dr = player_pos - *from;
+
+                    *time_left -= dt.0;
+                    pos.pos = *from + dr * k;
+
+                    if *time_left <= 0.0 {
+                        *state = BallState::InPocket;
+                    }
+                },
+                BallState::InPocket => if ui_model.attack_down() {
+                    let (mx, my) = mouse_position();
+                    *state = BallState::InProgress {
+                        from: player_pos,
+                        to: vec2(mx, my),
+                        time_left: BALL_THROW_TIME,
+                    }
+                } else {
+                    pos.pos = player_pos;
+                },
+                BallState::Deployed => if !ui_model.attack_down() {
+                    *state = BallState::RollingBack {
+                        from: pos.pos,
+                        total: BALL_PICK_TIME,
+                        time_left: BALL_PICK_TIME,
+                    }
+                },
+            }
+        }
     }
 
     pub fn player_controls(
@@ -216,7 +278,9 @@ method_as_system!(
     Game::ball_logic as game_ball_logic(
         this: Game,
         pos: ViewMut<Transform>,
-        ui_model: UniqueView<UiModel>
+        state: ViewMut<BallState>,
+        ui_model: UniqueView<UiModel>,
+        dt: UniqueView<DeltaTime>
     )
 );
 
