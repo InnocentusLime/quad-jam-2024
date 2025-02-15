@@ -54,11 +54,15 @@ async fn main() {
 
 #[derive(Debug, Clone, Copy)]
 #[derive(Component)]
-pub enum PlayerBallThrow {
+pub enum BallState {
     InProgress {
         time_left: f32,
     },
-    NoThrow,
+    RollingBack {
+        time_left: f32,
+    },
+    InPocket,
+    Deployed,
 }
 
 #[derive(Debug, Clone, Copy)]
