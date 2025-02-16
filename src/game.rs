@@ -178,10 +178,11 @@ impl Game {
         mut phys: UniqueViewMut<PhysicsState>,
         dt: UniqueView<DeltaTime>,
     ) {
+        let mut dr = None;
         let player_pos = pos.get(self.player).unwrap().pos;
 
-        for (state, pos) in (&mut state, &mut pos).iter() {
-            let dr = match state {
+        for (state, pos, bod) in (&mut state, &mut pos, &mut rbs).iter() {
+            dr = match state {
                 BallState::InProgress {
                     from,
                     to,
@@ -232,6 +233,7 @@ impl Game {
                 },
                 BallState::InPocket => if ui_model.attack_down() {
                     let (mx, my) = mouse_position();
+                    bod.enabled = true;
                     *state = BallState::InProgress {
                         from: player_pos,
                         to: vec2(mx, my),
@@ -240,6 +242,7 @@ impl Game {
 
                     None
                 } else {
+                    bod.enabled = false;
                     pos.pos = player_pos;
 
                     None
@@ -254,15 +257,15 @@ impl Game {
                     None
                 },
             };
+        }
 
-            if let Some(dr) = dr {
-                phys.move_kinematic(
-                    &mut rbs,
-                    self.weapon,
-                    dr,
-                    false,
-                );
-            }
+        if let Some(dr) = dr {
+            phys.move_kinematic(
+                &mut rbs,
+                self.weapon,
+                dr,
+                false,
+            );
         }
     }
 
