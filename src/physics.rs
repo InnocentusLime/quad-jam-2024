@@ -278,6 +278,7 @@ impl PhysicsState {
                 .shared_shape()
                 .clone()
         );
+        let groups = self.colliders.get(rb.colliders()[0]).unwrap().collision_groups();
 
         let mut final_trans = rapier2d::na::Vector2::zeros();
         let mut trans_rem = rapier2d::na::Vector2::new(
@@ -308,6 +309,7 @@ impl PhysicsState {
                 },
                 QueryFilter {
                     exclude_rigid_body: Some(rbh),
+                    groups: Some(groups),
                     ..QueryFilter::default()
                 },
             )
