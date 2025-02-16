@@ -42,7 +42,7 @@ fn spawn_tiles(
                 BodyKind::Static,
                 InteractionGroups {
                     memberships: Group::GROUP_1,
-                    filter: Group::GROUP_1 | Group::GROUP_2,
+                    filter: Group::GROUP_1 | Group::GROUP_2 | Group::GROUP_3,
                 },
             ),
             TileType::Ground => (),
@@ -111,7 +111,7 @@ impl Game {
             },
             BodyKind::Kinematic,
             InteractionGroups {
-                memberships: Group::GROUP_1,
+                memberships: Group::GROUP_3,
                 filter: Group::GROUP_1,
             },
         );
@@ -173,13 +173,15 @@ impl Game {
         &mut self,
         mut pos: ViewMut<Transform>,
         mut state: ViewMut<BallState>,
+        mut rbs: ViewMut<PhysicsInfo>,
         ui_model: UniqueView<UiModel>,
+        mut phys: UniqueViewMut<PhysicsState>,
         dt: UniqueView<DeltaTime>,
     ) {
         let player_pos = pos.get(self.player).unwrap().pos;
 
         for (state, pos) in (&mut state, &mut pos).iter() {
-            match state {
+            let dr = match state {
                 BallState::InProgress {
                     from,
                     to,
@@ -189,12 +191,15 @@ impl Game {
                     let dr = *to - *from;
 
                     *time_left -= dt.0;
-                    pos.pos = *from + dr * k;
-
-                    if *time_left <= 0.0 {
-                        pos.pos = *to;
+                    let to = *to;
+                    let new_pos = if *time_left <= 0.0 {
                         *state = BallState::Deployed;
-                    }
+                        to
+                    } else {
+                        *from + dr * k
+                    };
+
+                    Some(new_pos - pos.pos)
                 } else {
                     let k = 1.0 - *time_left / BALL_THROW_TIME;
 
@@ -204,7 +209,9 @@ impl Game {
                         from: pos.pos,
                         total: k * BALL_PICK_TIME,
                         time_left: k * BALL_PICK_TIME,
-                    }
+                    };
+
+                    None
                 },
                 BallState::RollingBack {
                     total,
@@ -215,11 +222,13 @@ impl Game {
                     let dr = player_pos - *from;
 
                     *time_left -= dt.0;
-                    pos.pos = *from + dr * k;
+                    let new_pos = *from + dr * k;
 
                     if *time_left <= 0.0 {
                         *state = BallState::InPocket;
                     }
+
+                    Some(new_pos - pos.pos)
                 },
                 BallState::InPocket => if ui_model.attack_down() {
                     let (mx, my) = mouse_position();
@@ -227,17 +236,31 @@ impl Game {
                         from: player_pos,
                         to: vec2(mx, my),
                         time_left: BALL_THROW_TIME,
-                    }
+                    };
+
+                    None
                 } else {
                     pos.pos = player_pos;
+
+                    None
                 },
                 BallState::Deployed => {
                     *state = BallState::RollingBack {
                         from: pos.pos,
                         total: BALL_PICK_TIME,
                         time_left: BALL_PICK_TIME,
-                    }
+                    };
+
+                    None
                 },
+            };
+
+            if let Some(dr) = dr {
+                phys.move_kinematic(
+                    &mut rbs,
+                    self.weapon,
+                    dr,
+                );
             }
         }
     }
@@ -305,7 +328,9 @@ method_as_system!(
         this: Game,
         pos: ViewMut<Transform>,
         state: ViewMut<BallState>,
+        rbs: ViewMut<PhysicsInfo>,
         ui_model: UniqueView<UiModel>,
+        phys: UniqueViewMut<PhysicsState>,
         dt: UniqueView<DeltaTime>
     )
 );
