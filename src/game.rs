@@ -298,12 +298,20 @@ impl Game {
         mut rbs: ViewMut<PhysicsInfo>,
         mut enemy: ViewMut<EnemyState>,
         mut pos: ViewMut<Transform>,
+        ball_state: View<BallState>,
     ) {
         let ball_pos = pos.get(self.weapon)
             .unwrap()
             .pos;
+        let ball_state = ball_state.get(self.weapon)
+            .unwrap();
+        let ball_can_capture = matches!(ball_state, BallState::InProgress { .. });
 
         for (rb, enemy, pos) in (&mut rbs, &mut enemy, &mut pos).iter() {
+            if !ball_can_capture {
+                enemy.captured = false;
+            }
+
             rb.enabled = !enemy.captured;
 
             if enemy.captured {
@@ -366,7 +374,8 @@ method_as_system!(
         this: Game,
         rbs: ViewMut<PhysicsInfo>,
         enemy: ViewMut<EnemyState>,
-        pos: ViewMut<Transform>
+        pos: ViewMut<Transform>,
+        ball_state: View<BallState>
     )
 );
 
