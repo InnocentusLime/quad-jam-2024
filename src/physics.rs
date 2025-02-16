@@ -35,6 +35,7 @@ pub enum ColliderTy {
 #[derive(Clone, Copy, Debug, Component)]
 #[track(Deletion, Removal)]
 pub struct PhysicsInfo {
+    pub enabled: bool,
     col: ColliderTy,
     body: RigidBodyHandle,
 }
@@ -141,6 +142,7 @@ impl PhysicsState {
             entity,
             rbs,
             PhysicsInfo {
+                enabled: true,
                 body,
                 col: collision,
             },
@@ -380,6 +382,15 @@ impl PhysicsState {
                 true,
             );
         };
+
+        // Enable-disable
+        for rb in rbs.iter() {
+            let body = self.bodies.get_mut(rb.body).unwrap();
+
+            if rb.enabled == body.is_enabled() { continue; }
+
+            body.set_enabled(rb.enabled);
+        }
 
         // Import the new positions to world
         for (rb, pos) in (&rbs, &pos).iter() {
