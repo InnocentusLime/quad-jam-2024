@@ -88,7 +88,7 @@ impl Game {
                 BodyKind::Dynamic,
                 InteractionGroups {
                     memberships: Group::GROUP_1,
-                    filter: Group::GROUP_1 | Group::GROUP_2,
+                    filter: Group::GROUP_1 | Group::GROUP_2 | Group::GROUP_3,
                 },
             );
 
