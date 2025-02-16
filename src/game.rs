@@ -1,4 +1,5 @@
 use macroquad::prelude::*;
+use rapier2d::prelude::{Group, InteractionGroups};
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
 use crate::{inline_tilemap, method_as_system, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, DeltaTime, MobType, Speed, TileStorage, TileType, Transform};
 
@@ -39,6 +40,10 @@ fn spawn_tiles(
                 tile,
                 ColliderTy::Box { width: 32.0, height: 32.0, },
                 BodyKind::Static,
+                InteractionGroups {
+                    memberships: Group::GROUP_1,
+                    filter: Group::GROUP_1,
+                },
             ),
             TileType::Ground => (),
         }
@@ -81,6 +86,10 @@ impl Game {
                     height: 32.0,
                 },
                 BodyKind::Dynamic,
+                InteractionGroups {
+                    memberships: Group::GROUP_1,
+                    filter: Group::GROUP_1,
+                },
             );
 
             the_box
@@ -101,6 +110,10 @@ impl Game {
                 height: 16.0,
             },
             BodyKind::Kinematic,
+            InteractionGroups {
+                memberships: Group::GROUP_1,
+                filter: Group::GROUP_1,
+            },
         );
 
         let weapon = world.add_entity((
@@ -118,6 +131,10 @@ impl Game {
                 radius: 16.0
             },
             BodyKind::Kinematic,
+            InteractionGroups {
+                memberships: Group::GROUP_1,
+                filter: Group::GROUP_1,
+            },
         );
 
         let tilemap = spawn_tiles(
