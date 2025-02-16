@@ -220,6 +220,13 @@ impl Render {
                             color: RED,
                         },
                     ),
+                    ColliderTy::Circle { radius } => draw_circle_lines(
+                        tf.pos.x,
+                        tf.pos.y,
+                        *radius,
+                        1.0,
+                        RED
+                    ),
                 }
             }
         }

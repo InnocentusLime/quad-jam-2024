@@ -27,6 +27,9 @@ pub enum ColliderTy {
         width: f32,
         height: f32,
     },
+    Circle {
+        radius: f32,
+    }
 }
 
 #[derive(Clone, Copy, Debug, Component)]
@@ -115,10 +118,12 @@ impl PhysicsState {
                 .angular_damping(1.0)
         );
         let collider_shape = match collision {
-            ColliderTy::Box { width, height } =>
-            SharedShape::cuboid(
+            ColliderTy::Box { width, height } => SharedShape::cuboid(
                 width / 2.0 / PIXEL_PER_METER,
                 height / 2.0 / PIXEL_PER_METER,
+            ),
+            ColliderTy::Circle { radius } => SharedShape::ball(
+                radius / PIXEL_PER_METER,
             ),
         };
 
