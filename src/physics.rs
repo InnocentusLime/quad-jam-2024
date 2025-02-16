@@ -271,6 +271,7 @@ impl PhysicsState {
         rbs: &mut ViewMut<PhysicsInfo>,
         kinematic: EntityId,
         dr: Vec2,
+        slide: bool,
     ) {
         self.kinematic_cols.clear();
 
@@ -338,7 +339,9 @@ impl PhysicsState {
                 hit,
             ));
 
-            trans_rem = Self::get_slide_part(&hit, trans_rem);
+            if slide {
+                trans_rem = Self::get_slide_part(&hit, trans_rem);
+            }
         }
 
         let old_trans = kin_pos.translation.vector;

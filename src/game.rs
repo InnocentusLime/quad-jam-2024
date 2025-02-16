@@ -260,6 +260,7 @@ impl Game {
                     &mut rbs,
                     self.weapon,
                     dr,
+                    false,
                 );
             }
         }
@@ -290,6 +291,7 @@ impl Game {
             &mut rbs,
             self.player,
             dir.normalize_or_zero() * dt.0 * PLAYER_SPEED,
+            true,
         );
     }
 
