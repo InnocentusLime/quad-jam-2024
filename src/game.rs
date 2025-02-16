@@ -167,6 +167,7 @@ impl Game {
                     pos.pos = *from + dr * k;
 
                     if *time_left <= 0.0 {
+                        pos.pos = *to;
                         *state = BallState::Deployed;
                     }
                 } else {
@@ -205,7 +206,7 @@ impl Game {
                 } else {
                     pos.pos = player_pos;
                 },
-                BallState::Deployed => if !ui_model.attack_down() {
+                BallState::Deployed => {
                     *state = BallState::RollingBack {
                         from: pos.pos,
                         total: BALL_PICK_TIME,
