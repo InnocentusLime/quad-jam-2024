@@ -75,6 +75,7 @@ pub enum MobType {
     Player,
     Box,
     BallOfHurt,
+    Brute,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

@@ -137,6 +137,27 @@ impl Game {
             },
         );
 
+        let brute = world.add_entity((
+            Transform {
+                pos: vec2(200.0, 80.0),
+                angle: 0.0,
+            },
+            MobType::Brute,
+        ));
+        physics_spawn(
+            world,
+            brute,
+            ColliderTy::Box {
+                width: 32.0,
+                height: 32.0,
+            },
+            BodyKind::Kinematic,
+            InteractionGroups {
+                memberships: Group::GROUP_2,
+                filter: Group::GROUP_1,
+            },
+        );
+
         let tilemap = spawn_tiles(
             16,
             16,
