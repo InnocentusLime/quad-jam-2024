@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use rapier2d::prelude::{Group, InteractionGroups};
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, method_as_system, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, DeltaTime, MobType, Speed, TileStorage, TileType, Transform};
+use crate::{inline_tilemap, method_as_system, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, DeltaTime, EnemyState, MobType, Speed, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
 pub const BALL_THROW_TIME: f32 = 0.2;
@@ -143,6 +143,9 @@ impl Game {
                 angle: 0.0,
             },
             MobType::Brute,
+            EnemyState {
+                captured: false,
+            },
         ));
         physics_spawn(
             world,
@@ -290,6 +293,25 @@ impl Game {
         }
     }
 
+    pub fn update_enemy_internals(
+        &mut self,
+        mut rbs: ViewMut<PhysicsInfo>,
+        mut enemy: ViewMut<EnemyState>,
+        mut pos: ViewMut<Transform>,
+    ) {
+        let ball_pos = pos.get(self.weapon)
+            .unwrap()
+            .pos;
+
+        for (rb, enemy, pos) in (&mut rbs, &mut enemy, &mut pos).iter() {
+            rb.enabled = !enemy.captured;
+
+            if enemy.captured {
+                pos.pos = ball_pos;
+            }
+        }
+    }
+
     pub fn player_controls(
         &mut self,
         mut phys: UniqueViewMut<PhysicsState>,
@@ -338,6 +360,15 @@ impl Game {
     //     }
     // }
 }
+
+method_as_system!(
+    Game::update_enemy_internals as game_enemy_internals(
+        this: Game,
+        rbs: ViewMut<PhysicsInfo>,
+        enemy: ViewMut<EnemyState>,
+        pos: ViewMut<Transform>
+    )
+);
 
 method_as_system!(
     Game::player_controls as game_player_controls(

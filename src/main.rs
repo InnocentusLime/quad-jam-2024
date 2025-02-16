@@ -1,5 +1,5 @@
 use debug::{init_on_screen_log, Debug};
-use game::{game_ball_logic, game_player_controls, Game};
+use game::{game_ball_logic, game_enemy_internals, game_player_controls, Game};
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
 use physics::{physics_step, PhysicsState};
@@ -67,6 +67,12 @@ pub enum BallState {
     },
     InPocket,
     Deployed,
+}
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub struct EnemyState {
+    pub captured: bool,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -241,6 +247,7 @@ async fn run() -> anyhow::Result<()> {
                 world.run(game_player_controls);
                 world.run(game_ball_logic);
                 world.run(physics_step);
+                world.run(game_enemy_internals);
             },
             AppState::PleaseRotate if get_orientation() == 0.0 => {
                 state = paused_state;
