@@ -188,6 +188,7 @@ impl PhysicsState {
     fn move_kinematic_pushes(
         &mut self,
         kin_shape: &dyn Shape,
+        kin_groups: InteractionGroups,
     ) {
         let dispatcher = DefaultQueryDispatcher;
 
@@ -208,7 +209,10 @@ impl PhysicsState {
                         else { return true; };
                     let Some(bod) = self.bodies.get(bodh)
                         else { return true; };
-                    if !bod.is_dynamic()  { return true; }
+                    if !bod.is_dynamic() { return true; }
+                    if !col.collision_groups().test(kin_groups) {
+                        return true;
+                    }
 
                     self.manifolds.clear();
                     let pos12 = pos.inv_mul(col.position());
@@ -338,7 +342,7 @@ impl PhysicsState {
         }
 
         let old_trans = kin_pos.translation.vector;
-        self.move_kinematic_pushes(&*kin_shape);
+        self.move_kinematic_pushes(&*kin_shape, groups);
 
         self.bodies.get_mut(rbh).unwrap().set_next_kinematic_translation(
             (old_trans + final_trans).into()
