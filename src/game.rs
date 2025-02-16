@@ -111,6 +111,14 @@ impl Game {
             BallState::InPocket,
             MobType::BallOfHurt,
         ));
+        physics_spawn(
+            world,
+            weapon,
+            ColliderTy::Circle {
+                radius: 16.0
+            },
+            BodyKind::Kinematic,
+        );
 
         let tilemap = spawn_tiles(
             16,
