@@ -42,7 +42,7 @@ fn spawn_tiles(
                 BodyKind::Static,
                 InteractionGroups {
                     memberships: Group::GROUP_1,
-                    filter: Group::GROUP_1,
+                    filter: Group::GROUP_1 | Group::GROUP_2,
                 },
             ),
             TileType::Ground => (),
@@ -132,7 +132,7 @@ impl Game {
             },
             BodyKind::Kinematic,
             InteractionGroups {
-                memberships: Group::GROUP_1,
+                memberships: Group::GROUP_2,
                 filter: Group::GROUP_1,
             },
         );
