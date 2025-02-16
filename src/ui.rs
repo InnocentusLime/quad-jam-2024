@@ -30,6 +30,7 @@ pub struct UiModel {
     confirmation_detected: bool,
     pause_requested: bool,
     fullscreen_toggle_requested: bool,
+    attack_down: bool,
 }
 
 impl UiModel {
@@ -59,6 +60,10 @@ impl UiModel {
 
     pub fn fullscreen_toggle_requested(&self) -> bool {
         self.fullscreen_toggle_requested
+    }
+
+    pub fn attack_down(&self) -> bool {
+        self.attack_down
     }
 }
 
@@ -99,8 +104,11 @@ impl Ui {
             is_key_pressed(KeyCode::Escape);
         let fullscreen_toggle_requested =
             is_key_pressed(KeyCode::F11);
+        let attack_down =
+            is_mouse_button_down(MouseButton::Left);
 
         UiModel {
+            attack_down,
             state,
             left_movement_down,
             right_movement_down,

@@ -1,5 +1,5 @@
 use debug::{init_on_screen_log, Debug};
-use game::{game_player_controls, Game};
+use game::{game_ball_logic, game_player_controls, Game};
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
 use physics::{physics_step, PhysicsState};
@@ -54,9 +54,27 @@ async fn main() {
 
 #[derive(Debug, Clone, Copy)]
 #[derive(Component)]
+pub enum BallState {
+    InProgress {
+        from: Vec2,
+        to: Vec2,
+        time_left: f32,
+    },
+    RollingBack {
+        total: f32,
+        from: Vec2,
+        time_left: f32,
+    },
+    InPocket,
+    Deployed,
+}
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
 pub enum MobType {
     Player,
     Box,
+    BallOfHurt,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -220,6 +238,7 @@ async fn run() -> anyhow::Result<()> {
             },
             AppState::Active if !ui_model.pause_requested() => {
                 world.run(game_player_controls);
+                world.run(game_ball_logic);
                 world.run(physics_step);
             },
             AppState::PleaseRotate if get_orientation() == 0.0 => {

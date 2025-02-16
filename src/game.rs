@@ -1,8 +1,11 @@
 use macroquad::prelude::*;
-use shipyard::{EntityId, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, method_as_system, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, DeltaTime, MobType, Speed, TileStorage, TileType, Transform};
+use rapier2d::prelude::{Group, InteractionGroups};
+use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
+use crate::{inline_tilemap, method_as_system, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, DeltaTime, MobType, Speed, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
+pub const BALL_THROW_TIME: f32 = 0.2;
+pub const BALL_PICK_TIME: f32 = 0.5;
 
 fn spawn_tiles(
     width: usize,
@@ -37,6 +40,10 @@ fn spawn_tiles(
                 tile,
                 ColliderTy::Box { width: 32.0, height: 32.0, },
                 BodyKind::Static,
+                InteractionGroups {
+                    memberships: Group::GROUP_1,
+                    filter: Group::GROUP_1 | Group::GROUP_2 | Group::GROUP_3,
+                },
             ),
             TileType::Ground => (),
         }
@@ -47,6 +54,7 @@ fn spawn_tiles(
 
 #[derive(Unique)]
 pub struct Game {
+    weapon: EntityId,
     player: EntityId,
     boxes: [EntityId; 4],
     tilemap: EntityId,
@@ -78,6 +86,10 @@ impl Game {
                     height: 32.0,
                 },
                 BodyKind::Dynamic,
+                InteractionGroups {
+                    memberships: Group::GROUP_1,
+                    filter: Group::GROUP_1 | Group::GROUP_2 | Group::GROUP_3,
+                },
             );
 
             the_box
@@ -98,6 +110,31 @@ impl Game {
                 height: 16.0,
             },
             BodyKind::Kinematic,
+            InteractionGroups {
+                memberships: Group::GROUP_3,
+                filter: Group::GROUP_1,
+            },
+        );
+
+        let weapon = world.add_entity((
+            Transform {
+                pos: vec2(0.0, 0.0),
+                angle: 0.0,
+            },
+            BallState::InPocket,
+            MobType::BallOfHurt,
+        ));
+        physics_spawn(
+            world,
+            weapon,
+            ColliderTy::Circle {
+                radius: 16.0
+            },
+            BodyKind::Kinematic,
+            InteractionGroups {
+                memberships: Group::GROUP_2,
+                filter: Group::GROUP_1,
+            },
         );
 
         let tilemap = spawn_tiles(
@@ -126,8 +163,109 @@ impl Game {
 
         Self {
             player,
+            weapon,
             boxes,
             tilemap,
+        }
+    }
+
+    pub fn ball_logic(
+        &mut self,
+        mut pos: ViewMut<Transform>,
+        mut state: ViewMut<BallState>,
+        mut rbs: ViewMut<PhysicsInfo>,
+        ui_model: UniqueView<UiModel>,
+        mut phys: UniqueViewMut<PhysicsState>,
+        dt: UniqueView<DeltaTime>,
+    ) {
+        let mut dr = None;
+        let player_pos = pos.get(self.player).unwrap().pos;
+
+        for (state, pos, bod) in (&mut state, &mut pos, &mut rbs).iter() {
+            dr = match state {
+                BallState::InProgress {
+                    from,
+                    to,
+                    time_left
+                } => if ui_model.attack_down() {
+                    let k = 1.0 - *time_left / BALL_THROW_TIME;
+                    let dr = *to - *from;
+
+                    *time_left -= dt.0;
+                    let to = *to;
+                    let new_pos = if *time_left <= 0.0 {
+                        *state = BallState::Deployed;
+                        to
+                    } else {
+                        *from + dr * k
+                    };
+
+                    Some(new_pos - pos.pos)
+                } else {
+                    let k = 1.0 - *time_left / BALL_THROW_TIME;
+
+                    info!("rollbacktime: {}", k * BALL_PICK_TIME);
+
+                    *state = BallState::RollingBack {
+                        from: pos.pos,
+                        total: k * BALL_PICK_TIME,
+                        time_left: k * BALL_PICK_TIME,
+                    };
+
+                    None
+                },
+                BallState::RollingBack {
+                    total,
+                    from,
+                    time_left,
+                } => {
+                    let k = 1.0 - *time_left / *total;
+                    let dr = player_pos - *from;
+
+                    *time_left -= dt.0;
+                    let new_pos = *from + dr * k;
+
+                    if *time_left <= 0.0 {
+                        *state = BallState::InPocket;
+                    }
+
+                    Some(new_pos - pos.pos)
+                },
+                BallState::InPocket => if ui_model.attack_down() {
+                    let (mx, my) = mouse_position();
+                    bod.enabled = true;
+                    *state = BallState::InProgress {
+                        from: player_pos,
+                        to: vec2(mx, my),
+                        time_left: BALL_THROW_TIME,
+                    };
+
+                    None
+                } else {
+                    bod.enabled = false;
+                    pos.pos = player_pos;
+
+                    None
+                },
+                BallState::Deployed => {
+                    *state = BallState::RollingBack {
+                        from: pos.pos,
+                        total: BALL_PICK_TIME,
+                        time_left: BALL_PICK_TIME,
+                    };
+
+                    None
+                },
+            };
+        }
+
+        if let Some(dr) = dr {
+            phys.move_kinematic(
+                &mut rbs,
+                self.weapon,
+                dr,
+                false,
+            );
         }
     }
 
@@ -156,6 +294,7 @@ impl Game {
             &mut rbs,
             self.player,
             dir.normalize_or_zero() * dt.0 * PLAYER_SPEED,
+            true,
         );
     }
 
@@ -186,6 +325,18 @@ method_as_system!(
         rbs: ViewMut<PhysicsInfo>,
         dt: UniqueView<DeltaTime>,
         ui_model: UniqueView<UiModel>
+    )
+);
+
+method_as_system!(
+    Game::ball_logic as game_ball_logic(
+        this: Game,
+        pos: ViewMut<Transform>,
+        state: ViewMut<BallState>,
+        rbs: ViewMut<PhysicsInfo>,
+        ui_model: UniqueView<UiModel>,
+        phys: UniqueViewMut<PhysicsState>,
+        dt: UniqueView<DeltaTime>
     )
 );
 

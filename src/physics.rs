@@ -27,11 +27,15 @@ pub enum ColliderTy {
         width: f32,
         height: f32,
     },
+    Circle {
+        radius: f32,
+    }
 }
 
 #[derive(Clone, Copy, Debug, Component)]
 #[track(Deletion, Removal)]
 pub struct PhysicsInfo {
+    pub enabled: bool,
     col: ColliderTy,
     body: RigidBodyHandle,
 }
@@ -92,6 +96,7 @@ impl PhysicsState {
         entity: EntityId,
         collision: ColliderTy,
         kind: BodyKind,
+        groups: InteractionGroups,
     ) {
         let rap_ty = match kind {
             BodyKind::Dynamic => RigidBodyType::Dynamic,
@@ -115,15 +120,19 @@ impl PhysicsState {
                 .angular_damping(1.0)
         );
         let collider_shape = match collision {
-            ColliderTy::Box { width, height } =>
-            SharedShape::cuboid(
+            ColliderTy::Box { width, height } => SharedShape::cuboid(
                 width / 2.0 / PIXEL_PER_METER,
                 height / 2.0 / PIXEL_PER_METER,
+            ),
+            ColliderTy::Circle { radius } => SharedShape::ball(
+                radius / PIXEL_PER_METER,
             ),
         };
 
         self.colliders.insert_with_parent(
-            ColliderBuilder::new(collider_shape),
+            ColliderBuilder::new(collider_shape)
+                .collision_groups(groups)
+            ,
             body.clone(),
             &mut self.bodies,
         );
@@ -133,6 +142,7 @@ impl PhysicsState {
             entity,
             rbs,
             PhysicsInfo {
+                enabled: true,
                 body,
                 col: collision,
             },
@@ -180,6 +190,7 @@ impl PhysicsState {
     fn move_kinematic_pushes(
         &mut self,
         kin_shape: &dyn Shape,
+        kin_groups: InteractionGroups,
     ) {
         let dispatcher = DefaultQueryDispatcher;
 
@@ -200,7 +211,10 @@ impl PhysicsState {
                         else { return true; };
                     let Some(bod) = self.bodies.get(bodh)
                         else { return true; };
-                    if !bod.is_dynamic()  { return true; }
+                    if !bod.is_dynamic() { return true; }
+                    if !col.collision_groups().test(kin_groups) {
+                        return true;
+                    }
 
                     self.manifolds.clear();
                     let pos12 = pos.inv_mul(col.position());
@@ -259,6 +273,7 @@ impl PhysicsState {
         rbs: &mut ViewMut<PhysicsInfo>,
         kinematic: EntityId,
         dr: Vec2,
+        slide: bool,
     ) {
         self.kinematic_cols.clear();
 
@@ -273,6 +288,7 @@ impl PhysicsState {
                 .shared_shape()
                 .clone()
         );
+        let groups = self.colliders.get(rb.colliders()[0]).unwrap().collision_groups();
 
         let mut final_trans = rapier2d::na::Vector2::zeros();
         let mut trans_rem = rapier2d::na::Vector2::new(
@@ -303,6 +319,7 @@ impl PhysicsState {
                 },
                 QueryFilter {
                     exclude_rigid_body: Some(rbh),
+                    groups: Some(groups),
                     ..QueryFilter::default()
                 },
             )
@@ -324,11 +341,13 @@ impl PhysicsState {
                 hit,
             ));
 
-            trans_rem = Self::get_slide_part(&hit, trans_rem);
+            if slide {
+                trans_rem = Self::get_slide_part(&hit, trans_rem);
+            }
         }
 
         let old_trans = kin_pos.translation.vector;
-        self.move_kinematic_pushes(&*kin_shape);
+        self.move_kinematic_pushes(&*kin_shape, groups);
 
         self.bodies.get_mut(rbh).unwrap().set_next_kinematic_translation(
             (old_trans + final_trans).into()
@@ -363,6 +382,15 @@ impl PhysicsState {
                 true,
             );
         };
+
+        // Enable-disable
+        for rb in rbs.iter() {
+            let body = self.bodies.get_mut(rb.body).unwrap();
+
+            if rb.enabled == body.is_enabled() { continue; }
+
+            body.set_enabled(rb.enabled);
+        }
 
         // Import the new positions to world
         for (rb, pos) in (&rbs, &pos).iter() {
@@ -433,6 +461,7 @@ wrap_method!(
         rbs: ViewMut<PhysicsInfo> |
         entity: EntityId,
         collision: ColliderTy,
-        kind: BodyKind
+        kind: BodyKind,
+        groups: InteractionGroups
     )
 );
