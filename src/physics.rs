@@ -300,18 +300,11 @@ impl PhysicsState {
             },
         };
         let shape_pos = Self::world_tf_to_phys(tf);
-        let Some((handle, _)) = self.query_pipeline.cast_shape(
+        let Some(handle) = self.query_pipeline.intersection_with_shape(
             &self.bodies,
             &self.colliders,
             &shape_pos,
-            &rapier2d::na::Vector2::zeros(),
             shape,
-            ShapeCastOptions {
-                target_distance: KINEMATIC_SKIN,
-                max_time_of_impact: 0.0,
-                stop_at_penetration: false,
-                compute_impact_geometry_on_penetration: true,
-            },
             QueryFilter {
                 groups: Some(groups),
                 ..QueryFilter::default()
