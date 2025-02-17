@@ -308,7 +308,7 @@ impl Game {
         let ball_can_capture = matches!(ball_state, BallState::InProgress { .. });
 
         for (rb, enemy, pos) in (&mut rbs, &mut enemy, &mut pos).iter() {
-            if !ball_can_capture {
+            if !ball_can_capture && enemy.captured {
                 enemy.captured = false;
             }
 
