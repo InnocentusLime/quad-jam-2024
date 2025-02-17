@@ -157,7 +157,7 @@ impl Game {
             BodyKind::Kinematic,
             InteractionGroups {
                 memberships: Group::GROUP_2,
-                filter: Group::GROUP_1,
+                filter: Group::GROUP_1 | Group::GROUP_4,
             },
         );
 
@@ -320,6 +320,28 @@ impl Game {
         }
     }
 
+    pub fn active_ball_collisions(
+        &mut self,
+        mut enemy_state: ViewMut<EnemyState>,
+        mut phys: UniqueViewMut<PhysicsState>,
+        pos: View<Transform>,
+        ball_state: View<BallState>,
+    ) {
+        let ball_tf = pos.get(self.weapon).unwrap();
+        let Some(enemy) = phys.any_collisions(
+            *ball_tf,
+            InteractionGroups {
+                memberships: Group::GROUP_4,
+                filter: Group::GROUP_2,
+            },
+            ColliderTy::Circle { radius: 16.0 },
+        ) else { return; };
+        let mut state = (&mut enemy_state).get(enemy)
+            .unwrap();
+
+        state.captured = true;
+    }
+
     pub fn player_controls(
         &mut self,
         mut phys: UniqueViewMut<PhysicsState>,
@@ -398,6 +420,16 @@ method_as_system!(
         ui_model: UniqueView<UiModel>,
         phys: UniqueViewMut<PhysicsState>,
         dt: UniqueView<DeltaTime>
+    )
+);
+
+method_as_system!(
+    Game::active_ball_collisions as game_active_ball_collisions(
+        this: Game,
+        enemy_state: ViewMut<EnemyState>,
+        phys: UniqueViewMut<PhysicsState>,
+        pos: View<Transform>,
+        ball_state: View<BallState>
     )
 );
 
