@@ -451,19 +451,12 @@ impl PhysicsState {
 
         // Import the new positions to world
         for (rb, pos) in (&rbs, &pos).iter() {
-            let new_pos = Self::world_to_phys(pos.pos);
-            let new_pos = Vector2::new(new_pos.x, new_pos.y);
-            let new_ang = rapier2d::na::Unit::from_angle(
-                Self::world_ang_to_phys(pos.angle)
-            );
             let body = self.bodies.get_mut(rb.body).unwrap();
+            let new_pos= Self::world_tf_to_phys(*pos);
 
             // NOTE: perhaps we should do an epsilon compare here?
-            if new_pos != *body.translation() || new_ang != *body.rotation() {
-                body.set_position(Isometry {
-                    rotation: new_ang,
-                    translation: new_pos.into(),
-                }, true);
+            if new_pos != *body.position() {
+                body.set_position(Self::world_tf_to_phys(*pos), true);
             }
         };
 
