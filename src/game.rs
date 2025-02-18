@@ -6,6 +6,7 @@ use crate::{inline_tilemap, method_as_system, physics::{physics_spawn, BodyKind,
 pub const PLAYER_SPEED: f32 = 128.0;
 pub const BALL_THROW_TIME: f32 = 0.2;
 pub const BALL_PICK_TIME: f32 = 0.5;
+pub const MAX_BALL_DIST: f32 = 256.0;
 
 fn spawn_tiles(
     width: usize,
@@ -257,10 +258,13 @@ impl Game {
                 },
                 BallState::InPocket => if ui_model.attack_down() {
                     let (mx, my) = mouse_position();
+                    let mpos = vec2(mx, my);
+                    let off = (mpos - player_pos).clamp_length(0.0, MAX_BALL_DIST);
+
                     bod.enabled = true;
                     *state = BallState::InProgress {
                         from: player_pos,
-                        to: vec2(mx, my),
+                        to: player_pos + off,
                         time_left: BALL_THROW_TIME,
                     };
 
