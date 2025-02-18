@@ -1,5 +1,5 @@
 use debug::{init_on_screen_log, Debug};
-use game::{game_active_ball_collisions, game_ball_logic, game_enemy_internals, game_player_controls, Game};
+use game::{game_active_ball_collisions, game_ball_logic, game_brute_ai, game_enemy_internals, game_player_controls, Game};
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
 use physics::{physics_step, PhysicsState};
@@ -246,6 +246,7 @@ async fn run() -> anyhow::Result<()> {
             AppState::Active if !ui_model.pause_requested() => {
                 world.run(game_player_controls);
                 world.run(game_ball_logic);
+                world.run(game_brute_ai);
                 world.run(physics_step);
                 world.run(game_active_ball_collisions);
                 world.run(game_enemy_internals);

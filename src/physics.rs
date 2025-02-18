@@ -316,19 +316,16 @@ impl PhysicsState {
         Some(self.mapping_inv[&col.parent().unwrap()])
     }
 
-    // Adapted code of the character controller from rapier2d
-    pub fn move_kinematic(
+    pub fn move_kinematic_raw(
         &mut self,
-        rbs: &mut ViewMut<PhysicsInfo>,
-        kinematic: EntityId,
+        info: &PhysicsInfo,
         dr: Vec2,
         slide: bool,
     ) {
         self.kinematic_cols.clear();
 
         let dr = Self::world_to_phys(dr);
-        let rbh = (&*rbs).get(kinematic).map(|x| x.body)
-        .expect("Failed to compute RB stuff");
+        let rbh = info.body;
         let rb = self.bodies.get(rbh).unwrap();
         let (kin_pos, kin_shape) = (
             rb.position(),
@@ -401,6 +398,19 @@ impl PhysicsState {
         self.bodies.get_mut(rbh).unwrap().set_next_kinematic_translation(
             (old_trans + final_trans).into()
         );
+    }
+
+    // Adapted code of the character controller from rapier2d
+    pub fn move_kinematic(
+        &mut self,
+        rbs: &mut ViewMut<PhysicsInfo>,
+        kinematic: EntityId,
+        dr: Vec2,
+        slide: bool,
+    ) {
+        let info = (&*rbs).get(kinematic).expect("Failed to compute RB stuff");
+
+        self.move_kinematic_raw(info, dr, slide);
     }
 
     pub fn step(

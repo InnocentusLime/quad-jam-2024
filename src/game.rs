@@ -347,6 +347,35 @@ impl Game {
         state.captured = true;
     }
 
+    pub fn brute_ai(
+        &mut self,
+        mob_ty: View<MobType>,
+        mut phys: UniqueViewMut<PhysicsState>,
+        rbs: View<PhysicsInfo>,
+        pos: View<Transform>,
+        state: View<EnemyState>,
+        dt: UniqueView<DeltaTime>,
+    ) {
+        let player_pos = pos.get(self.player).unwrap().pos;
+
+        for (enemy_tf, mob_ty, info, state) in (&pos, &mob_ty, &rbs, &state).iter() {
+            if !matches!(mob_ty, MobType::Brute) {
+                continue;
+            }
+
+            if state.captured {
+                continue;
+            }
+
+            let dr = (player_pos - enemy_tf.pos).normalize_or_zero() * 32.0 * dt.0;
+            phys.move_kinematic_raw(
+                info,
+                dr,
+                true,
+            );
+        }
+    }
+
     pub fn player_controls(
         &mut self,
         mut phys: UniqueViewMut<PhysicsState>,
@@ -435,6 +464,18 @@ method_as_system!(
         phys: UniqueViewMut<PhysicsState>,
         pos: View<Transform>,
         ball_state: View<BallState>
+    )
+);
+
+method_as_system!(
+    Game::brute_ai as game_brute_ai(
+        this: Game,
+        mob_ty: View<MobType>,
+        phys: UniqueViewMut<PhysicsState>,
+        rbs: View<PhysicsInfo>,
+        pos: View<Transform>,
+        state: View<EnemyState>,
+        dt: UniqueView<DeltaTime>
     )
 );
 
