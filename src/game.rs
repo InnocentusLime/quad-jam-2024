@@ -328,6 +328,7 @@ impl Game {
         ball_state: View<BallState>,
     ) {
         let ball_tf = pos.get(self.weapon).unwrap();
+        let ball_state = ball_state.get(self.weapon).unwrap();
         let Some(enemy) = phys.any_collisions(
             *ball_tf,
             InteractionGroups {
@@ -338,6 +339,10 @@ impl Game {
         ) else { return; };
         let mut state = (&mut enemy_state).get(enemy)
             .unwrap();
+
+        if !matches!(ball_state, BallState::InProgress { .. }) {
+            return;
+        }
 
         state.captured = true;
     }
