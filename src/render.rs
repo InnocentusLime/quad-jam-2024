@@ -172,6 +172,18 @@ impl Render {
                         color: PURPLE,
                     },
                 ),
+                MobType::Brute => draw_rectangle_ex(
+                    pos.pos.x,
+                    pos.pos.y,
+                    32.0,
+                    32.0,
+                    DrawRectangleParams {
+                        // offset: Vec2::ZERO,
+                        offset: vec2(0.5, 0.5),
+                        rotation: pos.angle,
+                        color: RED,
+                    },
+                ),
                 MobType::Box => draw_rectangle_ex(
                     pos.pos.x,
                     pos.pos.y,

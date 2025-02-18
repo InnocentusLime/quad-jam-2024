@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use macroquad::prelude::*;
 use nalgebra::Translation2;
-use rapier2d::{na::{Isometry, Isometry2, Vector2}, parry::query::{DefaultQueryDispatcher, PersistentQueryDispatcher, ShapeCastOptions}, prelude::*};
+use rapier2d::{na::{Isometry, Isometry2, UnitComplex, Vector2}, parry::{query::{DefaultQueryDispatcher, PersistentQueryDispatcher, ShapeCastOptions}, shape::{Ball, Cuboid}}, prelude::*};
 use shipyard::{Component, EntitiesView, EntityId, Get, IntoIter, Unique, UniqueView, View, ViewMut};
 
 use crate::{method_as_system, wrap_method, DeltaTime, Transform};
@@ -60,6 +60,7 @@ pub struct PhysicsState {
     pub gravity: Vector<Real>,
     pub hooks: Box<dyn PhysicsHooks + Send + Sync>,
     pub mapping: HashMap<EntityId, RigidBodyHandle>,
+    pub mapping_inv: HashMap<RigidBodyHandle, EntityId>,
     kinematic_cols: Vec<(Vector2<f32>, Isometry2<f32>, ShapeCastHit)>,
     manifolds: Vec<ContactManifold>,
     accumulated_time: f32,
@@ -82,6 +83,7 @@ impl PhysicsState {
             gravity: Vector::zeros(), //Vector::y() * -9.81,
             hooks: Box::new(()),
             mapping: HashMap::new(),
+            mapping_inv: HashMap::new(),
             kinematic_cols: Vec::new(),
             manifolds: Vec::new(),
             accumulated_time: 0.0,
@@ -137,6 +139,7 @@ impl PhysicsState {
             &mut self.bodies,
         );
         self.mapping.insert(entity, body);
+        self.mapping_inv.insert(body, entity);
 
         entities.add_component(
             entity,
@@ -173,6 +176,16 @@ impl PhysicsState {
         out /= PIXEL_PER_METER;
 
         out
+    }
+
+    pub fn world_tf_to_phys(tf: Transform) -> rapier2d::na::Isometry2<f32> {
+        let ang = Self::world_ang_to_phys(tf.angle);
+        let pos = Self::world_to_phys(tf.pos);
+
+        rapier2d::na::Isometry2 {
+            rotation: UnitComplex::from_angle(ang),
+            translation: Translation2::new(pos.x, pos.y),
+        }
     }
 
     fn get_slide_part(hit: &ShapeCastHit, trans: Vector2<f32>) -> Vector2<f32> {
@@ -267,19 +280,52 @@ impl PhysicsState {
         }
     }
 
-    // Adapted code of the character controller from rapier2d
-    pub fn move_kinematic(
+    pub fn any_collisions(
         &mut self,
-        rbs: &mut ViewMut<PhysicsInfo>,
-        kinematic: EntityId,
+        tf: Transform,
+        groups: InteractionGroups,
+        shape: ColliderTy,
+    ) -> Option<EntityId> {
+        let shape = match shape {
+            ColliderTy::Box { width, height } => {
+                &Cuboid::new(rapier2d::na::Vector2::new(
+                    width / 2.0 / PIXEL_PER_METER,
+                    height / 2.0 / PIXEL_PER_METER,
+                )) as &dyn Shape
+            },
+            ColliderTy::Circle { radius } => {
+                &Ball::new(
+                    radius / PIXEL_PER_METER,
+                ) as &dyn Shape
+            },
+        };
+        let shape_pos = Self::world_tf_to_phys(tf);
+        let Some(handle) = self.query_pipeline.intersection_with_shape(
+            &self.bodies,
+            &self.colliders,
+            &shape_pos,
+            shape,
+            QueryFilter {
+                groups: Some(groups),
+                ..QueryFilter::default()
+            },
+        ) else { return None; };
+
+        let col = self.colliders.get(handle).unwrap();
+
+        Some(self.mapping_inv[&col.parent().unwrap()])
+    }
+
+    pub fn move_kinematic_raw(
+        &mut self,
+        info: &PhysicsInfo,
         dr: Vec2,
         slide: bool,
     ) {
         self.kinematic_cols.clear();
 
         let dr = Self::world_to_phys(dr);
-        let rbh = (&*rbs).get(kinematic).map(|x| x.body)
-        .expect("Failed to compute RB stuff");
+        let rbh = info.body;
         let rb = self.bodies.get(rbh).unwrap();
         let (kin_pos, kin_shape) = (
             rb.position(),
@@ -354,6 +400,19 @@ impl PhysicsState {
         );
     }
 
+    // Adapted code of the character controller from rapier2d
+    pub fn move_kinematic(
+        &mut self,
+        rbs: &mut ViewMut<PhysicsInfo>,
+        kinematic: EntityId,
+        dr: Vec2,
+        slide: bool,
+    ) {
+        let info = (&*rbs).get(kinematic).expect("Failed to compute RB stuff");
+
+        self.move_kinematic_raw(info, dr, slide);
+    }
+
     pub fn step(
         &mut self,
         rbs: View<PhysicsInfo>,
@@ -370,6 +429,7 @@ impl PhysicsState {
         for remd in rbs.removed_or_deleted() {
             let Some(rb) = self.mapping.remove(&remd)
                 else { continue; };
+            self.mapping_inv.remove(&rb);
 
             info!("ent:{remd:?} body:{rb:?} deletted");
 
@@ -394,19 +454,12 @@ impl PhysicsState {
 
         // Import the new positions to world
         for (rb, pos) in (&rbs, &pos).iter() {
-            let new_pos = Self::world_to_phys(pos.pos);
-            let new_pos = Vector2::new(new_pos.x, new_pos.y);
-            let new_ang = rapier2d::na::Unit::from_angle(
-                Self::world_ang_to_phys(pos.angle)
-            );
             let body = self.bodies.get_mut(rb.body).unwrap();
+            let new_pos= Self::world_tf_to_phys(*pos);
 
             // NOTE: perhaps we should do an epsilon compare here?
-            if new_pos != *body.translation() || new_ang != *body.rotation() {
-                body.set_position(Isometry {
-                    rotation: new_ang,
-                    translation: new_pos.into(),
-                }, true);
+            if new_pos != *body.position() {
+                body.set_position(Self::world_tf_to_phys(*pos), true);
             }
         };
 

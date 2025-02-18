@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use rapier2d::prelude::{Group, InteractionGroups};
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, method_as_system, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, DeltaTime, MobType, Speed, TileStorage, TileType, Transform};
+use crate::{inline_tilemap, method_as_system, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, DeltaTime, EnemyState, MobType, Speed, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
 pub const BALL_THROW_TIME: f32 = 0.2;
@@ -137,6 +137,30 @@ impl Game {
             },
         );
 
+        let brute = world.add_entity((
+            Transform {
+                pos: vec2(200.0, 80.0),
+                angle: 0.0,
+            },
+            MobType::Brute,
+            EnemyState {
+                captured: false,
+            },
+        ));
+        physics_spawn(
+            world,
+            brute,
+            ColliderTy::Box {
+                width: 32.0,
+                height: 32.0,
+            },
+            BodyKind::Kinematic,
+            InteractionGroups {
+                memberships: Group::GROUP_2,
+                filter: Group::GROUP_1 | Group::GROUP_4,
+            },
+        );
+
         let tilemap = spawn_tiles(
             16,
             16,
@@ -269,6 +293,89 @@ impl Game {
         }
     }
 
+    pub fn update_enemy_internals(
+        &mut self,
+        mut rbs: ViewMut<PhysicsInfo>,
+        mut enemy: ViewMut<EnemyState>,
+        mut pos: ViewMut<Transform>,
+        ball_state: View<BallState>,
+    ) {
+        let ball_pos = pos.get(self.weapon)
+            .unwrap()
+            .pos;
+        let ball_state = ball_state.get(self.weapon)
+            .unwrap();
+        let ball_can_capture = matches!(ball_state, BallState::InProgress { .. });
+
+        for (rb, enemy, pos) in (&mut rbs, &mut enemy, &mut pos).iter() {
+            if !ball_can_capture && enemy.captured {
+                enemy.captured = false;
+            }
+
+            rb.enabled = !enemy.captured;
+
+            if enemy.captured {
+                pos.pos = ball_pos;
+            }
+        }
+    }
+
+    pub fn active_ball_collisions(
+        &mut self,
+        mut enemy_state: ViewMut<EnemyState>,
+        mut phys: UniqueViewMut<PhysicsState>,
+        pos: View<Transform>,
+        ball_state: View<BallState>,
+    ) {
+        let ball_tf = pos.get(self.weapon).unwrap();
+        let ball_state = ball_state.get(self.weapon).unwrap();
+        let Some(enemy) = phys.any_collisions(
+            *ball_tf,
+            InteractionGroups {
+                memberships: Group::GROUP_4,
+                filter: Group::GROUP_2,
+            },
+            ColliderTy::Circle { radius: 16.0 },
+        ) else { return; };
+        let mut state = (&mut enemy_state).get(enemy)
+            .unwrap();
+
+        if !matches!(ball_state, BallState::InProgress { .. }) {
+            return;
+        }
+
+        state.captured = true;
+    }
+
+    pub fn brute_ai(
+        &mut self,
+        mob_ty: View<MobType>,
+        mut phys: UniqueViewMut<PhysicsState>,
+        rbs: View<PhysicsInfo>,
+        pos: View<Transform>,
+        state: View<EnemyState>,
+        dt: UniqueView<DeltaTime>,
+    ) {
+        let player_pos = pos.get(self.player).unwrap().pos;
+
+        for (enemy_tf, mob_ty, info, state) in (&pos, &mob_ty, &rbs, &state).iter() {
+            if !matches!(mob_ty, MobType::Brute) {
+                continue;
+            }
+
+            if state.captured {
+                continue;
+            }
+
+            let dr = (player_pos - enemy_tf.pos).normalize_or_zero() * 32.0 * dt.0;
+            phys.move_kinematic_raw(
+                info,
+                dr,
+                true,
+            );
+        }
+    }
+
     pub fn player_controls(
         &mut self,
         mut phys: UniqueViewMut<PhysicsState>,
@@ -319,6 +426,16 @@ impl Game {
 }
 
 method_as_system!(
+    Game::update_enemy_internals as game_enemy_internals(
+        this: Game,
+        rbs: ViewMut<PhysicsInfo>,
+        enemy: ViewMut<EnemyState>,
+        pos: ViewMut<Transform>,
+        ball_state: View<BallState>
+    )
+);
+
+method_as_system!(
     Game::player_controls as game_player_controls(
         this: Game,
         phys: UniqueViewMut<PhysicsState>,
@@ -336,6 +453,28 @@ method_as_system!(
         rbs: ViewMut<PhysicsInfo>,
         ui_model: UniqueView<UiModel>,
         phys: UniqueViewMut<PhysicsState>,
+        dt: UniqueView<DeltaTime>
+    )
+);
+
+method_as_system!(
+    Game::active_ball_collisions as game_active_ball_collisions(
+        this: Game,
+        enemy_state: ViewMut<EnemyState>,
+        phys: UniqueViewMut<PhysicsState>,
+        pos: View<Transform>,
+        ball_state: View<BallState>
+    )
+);
+
+method_as_system!(
+    Game::brute_ai as game_brute_ai(
+        this: Game,
+        mob_ty: View<MobType>,
+        phys: UniqueViewMut<PhysicsState>,
+        rbs: View<PhysicsInfo>,
+        pos: View<Transform>,
+        state: View<EnemyState>,
         dt: UniqueView<DeltaTime>
     )
 );
