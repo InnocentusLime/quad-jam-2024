@@ -128,7 +128,7 @@ impl Game {
             world,
             weapon,
             ColliderTy::Circle {
-                radius: 16.0
+                radius: 4.0
             },
             BodyKind::Kinematic,
             InteractionGroups {
