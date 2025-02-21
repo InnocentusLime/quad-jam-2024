@@ -1,5 +1,5 @@
 use debug::{init_on_screen_log, Debug};
-use game::{game_active_ball_collisions, game_ball_logic, game_brute_ai, game_enemy_internals, game_player_controls, Game};
+use game::{game_ball_logic, game_brute_ai, game_captured_enemy, game_player_controls, Game};
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
 use physics::{physics_step, PhysicsState};
@@ -55,24 +55,25 @@ async fn main() {
 #[derive(Debug, Clone, Copy)]
 #[derive(Component)]
 pub enum BallState {
-    InProgress {
-        from: Vec2,
-        to: Vec2,
-        time_left: f32,
-    },
-    RollingBack {
-        total: f32,
-        from: Vec2,
-        time_left: f32,
-    },
     InPocket,
-    Deployed,
+    Throwing {
+        to: Vec2,
+    },
+    Retracting,
+    Capturing {
+        enemy: EntityId,
+    },
+    Spinning {
+        enemy: EntityId,
+    },
 }
 
 #[derive(Debug, Clone, Copy)]
 #[derive(Component)]
-pub struct EnemyState {
-    pub captured: bool,
+pub enum EnemyState {
+    Free,
+    Captured,
+    Launched { dir: Vec2 },
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -248,8 +249,7 @@ async fn run() -> anyhow::Result<()> {
                 world.run(game_ball_logic);
                 world.run(game_brute_ai);
                 world.run(physics_step);
-                world.run(game_active_ball_collisions);
-                world.run(game_enemy_internals);
+                world.run(game_captured_enemy);
             },
             AppState::PleaseRotate if get_orientation() == 0.0 => {
                 state = paused_state;
