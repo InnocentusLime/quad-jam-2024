@@ -7,8 +7,8 @@ pub const PLAYER_SPEED: f32 = 128.0;
 pub const BALL_THROW_TIME: f32 = 0.2;
 pub const BALL_PICK_TIME: f32 = 0.5;
 pub const MAX_BALL_DIST: f32 = 256.0;
-pub const BALL_THROW_SPEED: f32 = 256.0;
-pub const BALL_RETRACT_SPEED: f32 = 512.0;
+pub const BALL_THROW_SPEED: f32 = 512.0;
+pub const BALL_RETRACT_SPEED: f32 = 1024.0;
 pub const DISTANCE_EPS: f32 = 0.01;
 
 fn spawn_tiles(
@@ -275,7 +275,7 @@ impl Game {
                 },
                 BallState::Spinning { enemy } => if ui_model.attack_down() {
                     pos.pos = player_pos +
-                        Vec2::from_angle(get_time() as f32 * 3.0 * std::f32::consts::PI) * 32.0;
+                        Vec2::from_angle(get_time() as f32 * 5.0 * std::f32::consts::PI) * 32.0;
                 } else {
                     let (mx, my) = mouse_position();
                     let mpos = vec2(mx, my);
