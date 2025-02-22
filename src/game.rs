@@ -195,6 +195,7 @@ impl Game {
         }
     }
 
+    // FIXME: add timeout
     pub fn ball_logic(
         &mut self,
         mut pos: ViewMut<Transform>,
@@ -227,9 +228,11 @@ impl Game {
                     let step = (diff.normalize_or_zero() * BALL_THROW_SPEED * dt.0)
                         .clamp_length_max(diff.length());
 
-                    phys.move_kinematic_raw(bod, step, false);
-
                     if to.distance(pos.pos) < DISTANCE_EPS {
+                        *state = BallState::Retracting;
+                    }
+
+                    if phys.move_kinematic_raw(bod, step, false) {
                         *state = BallState::Retracting;
                     }
 
@@ -291,6 +294,7 @@ impl Game {
         }
     }
 
+    // FIXME: position relatively to launch direction
     pub fn captured_enemy(
         &mut self,
         mut rbs: ViewMut<PhysicsInfo>,
