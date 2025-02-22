@@ -122,7 +122,7 @@ impl Game {
 
         let weapon = world.add_entity((
             Transform {
-                pos: vec2(0.0, 0.0),
+                pos: vec2(300.0, 300.0),
                 angle: 0.0,
             },
             BallState::InPocket,
@@ -195,7 +195,6 @@ impl Game {
         }
     }
 
-    // FIXME: add timeout
     pub fn ball_logic(
         &mut self,
         mut pos: ViewMut<Transform>,
