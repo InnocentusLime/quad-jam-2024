@@ -206,6 +206,7 @@ impl Game {
         dt: UniqueView<DeltaTime>,
     ) {
         let player_pos = pos.get(self.player).unwrap().pos;
+        let mut upd_ent = None;
 
         for (state, pos, bod) in (&mut state, &mut pos, &mut rbs).iter() {
             bod.enabled = matches!(state, BallState::Throwing { .. });
@@ -243,9 +244,10 @@ impl Game {
                         },
                         ColliderTy::Circle { radius: 16.0 },
                     ) {
-                        let mut enemy_state = (&mut enemy_state).get(enemy)
-                          .unwrap();
-                        *enemy_state = EnemyState::Captured;
+                        upd_ent = Some((
+                            enemy,
+                            EnemyState::Captured
+                        ));
                         *state = BallState::Capturing { enemy };
                     };
                 },
@@ -284,16 +286,29 @@ impl Game {
                     let dir = (mpos - player_pos)
                         .normalize_or(vec2(0.0, 1.0));
 
-                    let mut enemy_state = (&mut enemy_state).get(*enemy)
-                        .unwrap();
-                    *enemy_state = EnemyState::Launched { dir };
+                    upd_ent = Some((
+                        *enemy,
+                        EnemyState::Launched { dir },
+                    ));
                     *state = BallState::InPocket;
                 },
             }
         }
+
+        match upd_ent {
+            Some((enemy, EnemyState::Captured)) => {
+                let (mut enemy_state, _) = (&mut enemy_state, &mut pos).get(enemy).unwrap();
+                *enemy_state = EnemyState::Captured;
+            },
+            Some((enemy, EnemyState::Launched { dir })) => {
+                let (mut enemy_state, mut pos) = (&mut enemy_state, &mut pos).get(enemy).unwrap();
+                *enemy_state = EnemyState::Launched { dir };
+                pos.pos = player_pos + dir * 16.0;
+            },
+            _ => (),
+        }
     }
 
-    // FIXME: position relatively to launch direction
     pub fn captured_enemy(
         &mut self,
         mut rbs: ViewMut<PhysicsInfo>,
