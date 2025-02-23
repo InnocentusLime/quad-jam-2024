@@ -321,7 +321,7 @@ impl PhysicsState {
         info: &PhysicsInfo,
         dr: Vec2,
         slide: bool,
-    ) {
+    ) -> bool {
         self.kinematic_cols.clear();
 
         let dr = Self::world_to_phys(dr);
@@ -392,12 +392,15 @@ impl PhysicsState {
             }
         }
 
+        let has_collided = !self.kinematic_cols.is_empty();
         let old_trans = kin_pos.translation.vector;
         self.move_kinematic_pushes(&*kin_shape, groups);
 
         self.bodies.get_mut(rbh).unwrap().set_next_kinematic_translation(
             (old_trans + final_trans).into()
         );
+
+        has_collided
     }
 
     // Adapted code of the character controller from rapier2d
@@ -407,10 +410,10 @@ impl PhysicsState {
         kinematic: EntityId,
         dr: Vec2,
         slide: bool,
-    ) {
+    ) -> bool {
         let info = (&*rbs).get(kinematic).expect("Failed to compute RB stuff");
 
-        self.move_kinematic_raw(info, dr, slide);
+        self.move_kinematic_raw(info, dr, slide)
     }
 
     pub fn step(

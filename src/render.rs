@@ -205,9 +205,7 @@ impl Render {
 
             match ball {
                 BallState::InPocket => (),
-                BallState::InProgress { .. } |
-                BallState::RollingBack { .. } |
-                BallState::Deployed => draw_circle(
+                _ => draw_circle(
                     pos.pos.x,
                     pos.pos.y,
                     16.0,
