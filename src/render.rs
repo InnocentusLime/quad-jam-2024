@@ -1,7 +1,8 @@
+use jam_macro::method_system;
 use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, Unique, View};
 
-use crate::{method_as_system, physics::{ColliderTy, PhysicsInfo}, BallState, MobType, TileStorage, TileType, Transform};
+use crate::{physics::{ColliderTy, PhysicsInfo}, BallState, MobType, TileStorage, TileType, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 // fn trail() -> particles::EmitterConfig {
@@ -113,6 +114,7 @@ impl Render {
         })
     }
 
+    #[method_system]
     pub fn draw(
         &mut self,
         phys: View<PhysicsInfo>,
@@ -255,15 +257,3 @@ impl Render {
         // set_camera(&cam);
     }
 }
-
-method_as_system!(
-    Render::draw as render_draw(
-        this: Render,
-        phys: View<PhysicsInfo>,
-        pos: View<Transform>,
-        storage: View<TileStorage>,
-        tiles: View<TileType>,
-        mob: View<MobType>,
-        ball_state: View<BallState>
-    )
-);

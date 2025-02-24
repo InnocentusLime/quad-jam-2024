@@ -1,7 +1,8 @@
+use jam_macro::method_system;
 use macroquad::prelude::*;
 use rapier2d::prelude::{Group, InteractionGroups};
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, method_as_system, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, DeltaTime, EnemyState, MobType, Speed, TileStorage, TileType, Transform};
+use crate::{inline_tilemap, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, DeltaTime, EnemyState, MobType, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
 pub const BALL_THROW_TIME: f32 = 0.2;
@@ -195,6 +196,7 @@ impl Game {
         }
     }
 
+    #[method_system]
     pub fn ball_logic(
         &mut self,
         mut pos: ViewMut<Transform>,
@@ -309,6 +311,7 @@ impl Game {
         }
     }
 
+    #[method_system]
     pub fn captured_enemy(
         &mut self,
         mut rbs: ViewMut<PhysicsInfo>,
@@ -338,6 +341,7 @@ impl Game {
         }
     }
 
+    #[method_system]
     pub fn brute_ai(
         &mut self,
         mob_ty: View<MobType>,
@@ -367,6 +371,7 @@ impl Game {
         }
     }
 
+    #[method_system]
     pub fn player_controls(
         &mut self,
         mut phys: UniqueViewMut<PhysicsState>,
@@ -415,52 +420,6 @@ impl Game {
     //     }
     // }
 }
-
-method_as_system!(
-    Game::captured_enemy as game_captured_enemy(
-        this: Game,
-        rbs: ViewMut<PhysicsInfo>,
-        enemy: ViewMut<EnemyState>,
-        pos: ViewMut<Transform>,
-        phys: UniqueViewMut<PhysicsState>,
-        dt: UniqueView<DeltaTime>
-    )
-);
-
-method_as_system!(
-    Game::player_controls as game_player_controls(
-        this: Game,
-        phys: UniqueViewMut<PhysicsState>,
-        rbs: ViewMut<PhysicsInfo>,
-        dt: UniqueView<DeltaTime>,
-        ui_model: UniqueView<UiModel>
-    )
-);
-
-method_as_system!(
-    Game::ball_logic as game_ball_logic(
-        this: Game,
-        pos: ViewMut<Transform>,
-        state: ViewMut<BallState>,
-        rbs: ViewMut<PhysicsInfo>,
-        enemy_state: ViewMut<EnemyState>,
-        ui_model: UniqueView<UiModel>,
-        phys: UniqueViewMut<PhysicsState>,
-        dt: UniqueView<DeltaTime>
-    )
-);
-
-method_as_system!(
-    Game::brute_ai as game_brute_ai(
-        this: Game,
-        mob_ty: View<MobType>,
-        phys: UniqueViewMut<PhysicsState>,
-        rbs: View<PhysicsInfo>,
-        pos: View<Transform>,
-        state: View<EnemyState>,
-        dt: UniqueView<DeltaTime>
-    )
-);
 
 // method_as_system!(
 //     Game::box_deleter as game_box_deleter(

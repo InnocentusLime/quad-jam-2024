@@ -1,11 +1,12 @@
 use std::collections::HashMap;
 
+use jam_macro::method_system;
 use macroquad::prelude::*;
 use nalgebra::Translation2;
 use rapier2d::{na::{Isometry, Isometry2, UnitComplex, Vector2}, parry::{query::{DefaultQueryDispatcher, PersistentQueryDispatcher, ShapeCastOptions}, shape::{Ball, Cuboid}}, prelude::*};
 use shipyard::{Component, EntitiesView, EntityId, Get, IntoIter, Unique, UniqueView, View, ViewMut};
 
-use crate::{method_as_system, wrap_method, DeltaTime, Transform};
+use crate::{wrap_method, DeltaTime, Transform};
 
 pub const PIXEL_PER_METER : f32 = 32.0;
 pub const MAX_KINEMATICS_ITERS: i32 = 20;
@@ -416,6 +417,7 @@ impl PhysicsState {
         self.move_kinematic_raw(info, dr, slide)
     }
 
+    #[method_system]
     pub fn step(
         &mut self,
         rbs: View<PhysicsInfo>,
@@ -499,15 +501,6 @@ impl PhysicsState {
         };
     }
 }
-
-method_as_system!(
-    PhysicsState::step as physics_step(
-        this: PhysicsState,
-        rbs: View<PhysicsInfo>,
-        pos: ViewMut<Transform>,
-        dt: UniqueView<DeltaTime>
-    )
-);
 
 wrap_method!(
     PhysicsState::spawn as physics_spawn(
