@@ -127,7 +127,7 @@ pub fn method_system(attr: TokenStream, item: TokenStream) -> TokenStream {
     {pub_main} fn {old_ident}(mut this: {view}<Self>{args_stream}) {{
         Self::{old_ident}_impl(
             {deref},
-            {args},
+            {args}
         )
     }}
     ",
