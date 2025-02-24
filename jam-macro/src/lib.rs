@@ -1,5 +1,5 @@
 extern crate proc_macro;
-use proc_macro::{Delimiter, Group, Ident, TokenStream, TokenTree};
+use proc_macro::{Ident, TokenStream, TokenTree};
 
 use std::iter::Peekable;
 
@@ -17,7 +17,7 @@ fn next_group(source: &mut Peekable<impl Iterator<Item = TokenTree>>) -> Option<
 
 // A lot of code borrowed from macroquad's main attribute
 #[proc_macro_attribute]
-pub fn method_system(attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn method_system(_attr: TokenStream, item: TokenStream) -> TokenStream {
     let mut modified = TokenStream::new();
     let mut source = item.into_iter().peekable();
 

@@ -2,7 +2,7 @@ use jam_macro::method_system;
 use macroquad::prelude::*;
 use rapier2d::prelude::{Group, InteractionGroups};
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, method_as_system, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, DeltaTime, EnemyState, MobType, Speed, TileStorage, TileType, Transform};
+use crate::{inline_tilemap, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, DeltaTime, EnemyState, MobType, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
 pub const BALL_THROW_TIME: f32 = 0.2;

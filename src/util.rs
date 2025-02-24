@@ -1,13 +1,4 @@
 #[macro_export]
-macro_rules! method_as_system {
-    ($p:path as $new:ident($this:ident:$thisty:ty, $($arg:ident: $argty:ty),*)) => {
-        pub fn $new(mut $this:shipyard::UniqueViewMut<$thisty>, $($arg: $argty),*) {
-            $p(&mut *$this, $($arg),*);
-        }
-    };
-}
-
-#[macro_export]
 macro_rules! wrap_method {
     ($p:path as $new:ident(
         this:$thisty:ty |

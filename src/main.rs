@@ -1,11 +1,11 @@
 use debug::{init_on_screen_log, Debug};
-use game::{Game};
+use game::Game;
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
-use physics::{PhysicsState};
-use render::{Render};
+use physics::PhysicsState;
+use render::Render;
 use shipyard::{Component, EntityId, Unique, UniqueViewMut, World};
-use sound_director::{SoundDirector};
+use sound_director::SoundDirector;
 use sys::*;
 use ui::{Ui, UiModel};
 

@@ -1,7 +1,7 @@
 use jam_macro::method_system;
 use macroquad::prelude::*;
 use shipyard::{Unique, UniqueView};
-use crate::{method_as_system, sys::*, AppState};
+use crate::{sys::*, AppState};
 
 const FONT_SCALE: f32 = 1.0;
 const MAIN_FONT_SIZE: u16 = 32;

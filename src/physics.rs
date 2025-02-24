@@ -6,7 +6,7 @@ use nalgebra::Translation2;
 use rapier2d::{na::{Isometry, Isometry2, UnitComplex, Vector2}, parry::{query::{DefaultQueryDispatcher, PersistentQueryDispatcher, ShapeCastOptions}, shape::{Ball, Cuboid}}, prelude::*};
 use shipyard::{Component, EntitiesView, EntityId, Get, IntoIter, Unique, UniqueView, View, ViewMut};
 
-use crate::{method_as_system, wrap_method, DeltaTime, Transform};
+use crate::{wrap_method, DeltaTime, Transform};
 
 pub const PIXEL_PER_METER : f32 = 32.0;
 pub const MAX_KINEMATICS_ITERS: i32 = 20;
