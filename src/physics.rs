@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use jam_macro::method_system;
 use macroquad::prelude::*;
 use nalgebra::Translation2;
 use rapier2d::{na::{Isometry, Isometry2, UnitComplex, Vector2}, parry::{query::{DefaultQueryDispatcher, PersistentQueryDispatcher, ShapeCastOptions}, shape::{Ball, Cuboid}}, prelude::*};
@@ -416,6 +417,7 @@ impl PhysicsState {
         self.move_kinematic_raw(info, dr, slide)
     }
 
+    #[method_system]
     pub fn step(
         &mut self,
         rbs: View<PhysicsInfo>,
@@ -499,15 +501,6 @@ impl PhysicsState {
         };
     }
 }
-
-method_as_system!(
-    PhysicsState::step as physics_step(
-        this: PhysicsState,
-        rbs: View<PhysicsInfo>,
-        pos: ViewMut<Transform>,
-        dt: UniqueView<DeltaTime>
-    )
-);
 
 wrap_method!(
     PhysicsState::spawn as physics_spawn(

@@ -1,13 +1,13 @@
 use debug::{init_on_screen_log, Debug};
-use game::{game_ball_logic, game_brute_ai, game_captured_enemy, game_player_controls, Game};
+use game::{Game};
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
-use physics::{physics_step, PhysicsState};
-use render::{render_draw, Render};
+use physics::{PhysicsState};
+use render::{Render};
 use shipyard::{Component, EntityId, Unique, UniqueViewMut, World};
-use sound_director::{sound_director_sounds, SoundDirector};
+use sound_director::{SoundDirector};
 use sys::*;
-use ui::{ui_render, Ui, UiModel};
+use ui::{Ui, UiModel};
 
 mod util;
 mod debug;
@@ -245,11 +245,11 @@ async fn run() -> anyhow::Result<()> {
                 state = AppState::Paused;
             },
             AppState::Active if !ui_model.pause_requested() => {
-                world.run(game_player_controls);
-                world.run(game_ball_logic);
-                world.run(game_brute_ai);
-                world.run(physics_step);
-                world.run(game_captured_enemy);
+                world.run(Game::player_controls);
+                world.run(Game::ball_logic);
+                world.run(Game::brute_ai);
+                world.run(PhysicsState::step);
+                world.run(Game::captured_enemy);
             },
             AppState::PleaseRotate if get_orientation() == 0.0 => {
                 state = paused_state;
@@ -257,9 +257,9 @@ async fn run() -> anyhow::Result<()> {
             _ => (),
         };
 
-        world.run(render_draw);
-        world.run(ui_render);
-        world.run(sound_director_sounds);
+        world.run(Render::draw);
+        world.run(Ui::draw);
+        world.run(SoundDirector::direct_sounds);
 
         debug.new_frame();
         debug.draw_ui_debug(&ui_model);

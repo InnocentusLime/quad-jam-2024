@@ -1,3 +1,4 @@
+use jam_macro::method_system;
 use macroquad::prelude::*;
 use shipyard::{Unique, UniqueView};
 use crate::{method_as_system, sys::*, AppState};
@@ -120,6 +121,7 @@ impl Ui {
         }
     }
 
+    #[method_system]
     pub fn draw(
         &mut self,
         model: UniqueView<UiModel>,
@@ -274,10 +276,3 @@ impl Ui {
         cam
     }
 }
-
-method_as_system!(
-    Ui::draw as ui_render(
-        this: Ui,
-        model: UniqueView<UiModel>
-    )
-);

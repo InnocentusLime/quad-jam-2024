@@ -1,3 +1,4 @@
+use jam_macro::method_system;
 use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, Unique, View};
 
@@ -113,6 +114,7 @@ impl Render {
         })
     }
 
+    #[method_system]
     pub fn draw(
         &mut self,
         phys: View<PhysicsInfo>,
@@ -255,15 +257,3 @@ impl Render {
         // set_camera(&cam);
     }
 }
-
-method_as_system!(
-    Render::draw as render_draw(
-        this: Render,
-        phys: View<PhysicsInfo>,
-        pos: View<Transform>,
-        storage: View<TileStorage>,
-        tiles: View<TileType>,
-        mob: View<MobType>,
-        ball_state: View<BallState>
-    )
-);
