@@ -163,6 +163,28 @@ impl Game {
             },
         );
 
+        let brute = world.add_entity((
+            Transform {
+                pos: vec2(100.0, 230.0),
+                angle: 0.0,
+            },
+            BruteTag,
+            EnemyState::Free,
+        ));
+        physics_spawn(
+            world,
+            brute,
+            ColliderTy::Box {
+                width: 32.0,
+                height: 32.0,
+            },
+            BodyKind::Kinematic,
+            InteractionGroups {
+                memberships: groups::NPCS,
+                filter: groups::NPCS_INTERACT,
+            },
+        );
+
         let tilemap = spawn_tiles(
             16,
             16,
@@ -336,6 +358,18 @@ impl Game {
                 EnemyState::Launched { dir } => {
                     rb.enabled = true;
                     if phys.move_kinematic(rb, *dir * 256.0 * dt.0, false) {
+                        *enemy = EnemyState::Free;
+                    }
+                    if let Some(bump) = phys.any_collisions(
+                        *pos,
+                        InteractionGroups {
+                            memberships: groups::PROJECTILES,
+                            filter: groups::NPCS,
+                        },
+                        ColliderTy::Circle { radius: 32.0 },
+                        Some(rb),
+                    ) {
+                        info!("Kill {bump:?} :)");
                         *enemy = EnemyState::Free;
                     }
                 },
