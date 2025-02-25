@@ -137,8 +137,8 @@ impl Game {
             },
             BodyKind::Kinematic,
             InteractionGroups {
-                memberships: groups::NPCS,
-                filter: groups::NPCS_INTERACT,
+                memberships: groups::PROJECTILES,
+                filter: groups::PROJECTILES_INTERACT,
             },
         );
 
@@ -160,7 +160,7 @@ impl Game {
             BodyKind::Kinematic,
             InteractionGroups {
                 memberships: groups::NPCS,
-                filter: groups::NPCS_INTERACT | groups::PROJECTILES,
+                filter: groups::NPCS_INTERACT,
             },
         );
 

@@ -26,10 +26,14 @@ pub mod groups {
     pub const LEVEL_INTERACT: Group =
         LEVEL
             .union(NPCS)
-            .union(PLAYER);
+            .union(PLAYER)
+            .union(PROJECTILES);
     pub const PLAYER_INTERACT: Group =
         LEVEL;
     pub const NPCS_INTERACT: Group =
+        LEVEL
+            .union(PROJECTILES);
+    pub const PROJECTILES_INTERACT: Group =
         LEVEL;
 }
 
