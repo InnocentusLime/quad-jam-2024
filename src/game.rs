@@ -244,6 +244,7 @@ impl Game {
                             filter: groups::NPCS,
                         },
                         ColliderTy::Circle { radius: 16.0 },
+                        None,
                     ) {
                         upd_ent = Some((
                             enemy,

@@ -308,6 +308,7 @@ impl PhysicsState {
         tf: Transform,
         groups: InteractionGroups,
         shape: ColliderTy,
+        ignore: Option<&PhysicsInfo>,
     ) -> Option<EntityId> {
         let shape = match shape {
             ColliderTy::Box { width, height } => {
@@ -330,6 +331,7 @@ impl PhysicsState {
             shape,
             QueryFilter {
                 groups: Some(groups),
+                exclude_rigid_body: ignore.map(|x| x.body),
                 ..QueryFilter::default()
             },
         ) else { return None; };
