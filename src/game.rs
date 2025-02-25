@@ -334,7 +334,9 @@ impl Game {
                 },
                 EnemyState::Launched { dir } => {
                     rb.enabled = true;
-                    phys.move_kinematic(rb, *dir * 256.0 * dt.0, false);
+                    if phys.move_kinematic(rb, *dir * 256.0 * dt.0, false) {
+                        *enemy = EnemyState::Free;
+                    }
                 },
             }
         }
