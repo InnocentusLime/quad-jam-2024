@@ -2,7 +2,7 @@ use jam_macro::method_system;
 use macroquad::prelude::*;
 use rapier2d::prelude::InteractionGroups;
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, physics::{groups, physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, DeltaTime, EnemyState, MobType, TileStorage, TileType, Transform};
+use crate::{inline_tilemap, physics::{groups, physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, BoxTag, BruteTag, DeltaTime, EnemyState, PlayerTag, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
 pub const BALL_THROW_TIME: f32 = 0.2;
@@ -81,7 +81,7 @@ impl Game {
                     pos,
                     angle,
                 },
-                MobType::Box,
+                BoxTag,
             ));
             physics_spawn(
                 world,
@@ -105,7 +105,7 @@ impl Game {
                 pos: vec2(300.0, 300.0),
                 angle: 0.0,
             },
-            MobType::Player,
+            PlayerTag,
         ));
         physics_spawn(
             world,
@@ -127,7 +127,6 @@ impl Game {
                 angle: 0.0,
             },
             BallState::InPocket,
-            MobType::BallOfHurt,
         ));
         physics_spawn(
             world,
@@ -147,7 +146,7 @@ impl Game {
                 pos: vec2(200.0, 80.0),
                 angle: 0.0,
             },
-            MobType::Brute,
+            BruteTag,
             EnemyState::Free,
         ));
         physics_spawn(
@@ -344,7 +343,7 @@ impl Game {
     #[method_system]
     pub fn brute_ai(
         &mut self,
-        mob_ty: View<MobType>,
+        brute_tag: View<BruteTag>,
         mut phys: UniqueViewMut<PhysicsState>,
         rbs: View<PhysicsInfo>,
         pos: View<Transform>,
@@ -353,11 +352,7 @@ impl Game {
     ) {
         let player_pos = pos.get(self.player).unwrap().pos;
 
-        for (enemy_tf, mob_ty, info, state) in (&pos, &mob_ty, &rbs, &state).iter() {
-            if !matches!(mob_ty, MobType::Brute) {
-                continue;
-            }
-
+        for (enemy_tf, _, info, state) in (&pos, &brute_tag, &rbs, &state).iter() {
             if !matches!(state, EnemyState::Free) {
                 continue;
             }
