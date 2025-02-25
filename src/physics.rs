@@ -15,6 +15,28 @@ pub const PUSH_SKIN: f32 = KINEMATIC_SKIN + 0.05;
 pub const KINEMATIC_NORMAL_NUDGE: f32 = 1.0e-4;
 pub const LENGTH_EPSILON: f32 = 1.0e-5;
 
+pub mod groups {
+    use rapier2d::prelude::*;
+
+    pub const LEVEL: Group = Group::GROUP_1;
+    pub const NPCS: Group = Group::GROUP_2;
+    pub const PLAYER: Group = Group::GROUP_3;
+    pub const PROJECTILES: Group = Group::GROUP_4;
+
+    pub const LEVEL_INTERACT: Group =
+        LEVEL
+            .union(NPCS)
+            .union(PLAYER)
+            .union(PROJECTILES);
+    pub const PLAYER_INTERACT: Group =
+        LEVEL;
+    pub const NPCS_INTERACT: Group =
+        LEVEL
+            .union(PROJECTILES);
+    pub const PROJECTILES_INTERACT: Group =
+        LEVEL;
+}
+
 #[derive(Clone, Copy, Debug)]
 pub enum BodyKind {
     Dynamic,
@@ -317,7 +339,7 @@ impl PhysicsState {
         Some(self.mapping_inv[&col.parent().unwrap()])
     }
 
-    pub fn move_kinematic_raw(
+    pub fn move_kinematic(
         &mut self,
         info: &PhysicsInfo,
         dr: Vec2,
@@ -402,19 +424,6 @@ impl PhysicsState {
         );
 
         has_collided
-    }
-
-    // Adapted code of the character controller from rapier2d
-    pub fn move_kinematic(
-        &mut self,
-        rbs: &mut ViewMut<PhysicsInfo>,
-        kinematic: EntityId,
-        dr: Vec2,
-        slide: bool,
-    ) -> bool {
-        let info = (&*rbs).get(kinematic).expect("Failed to compute RB stuff");
-
-        self.move_kinematic_raw(info, dr, slide)
     }
 
     #[method_system]

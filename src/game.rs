@@ -1,8 +1,8 @@
 use jam_macro::method_system;
 use macroquad::prelude::*;
-use rapier2d::prelude::{Group, InteractionGroups};
+use rapier2d::prelude::InteractionGroups;
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, physics::{physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, DeltaTime, EnemyState, MobType, TileStorage, TileType, Transform};
+use crate::{inline_tilemap, physics::{groups, physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, BoxTag, BruteTag, DeltaTime, EnemyState, PlayerTag, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
 pub const BALL_THROW_TIME: f32 = 0.2;
@@ -46,8 +46,8 @@ fn spawn_tiles(
                 ColliderTy::Box { width: 32.0, height: 32.0, },
                 BodyKind::Static,
                 InteractionGroups {
-                    memberships: Group::GROUP_1,
-                    filter: Group::GROUP_1 | Group::GROUP_2 | Group::GROUP_3,
+                    memberships: groups::LEVEL,
+                    filter: groups::LEVEL_INTERACT,
                 },
             ),
             TileType::Ground => (),
@@ -81,7 +81,7 @@ impl Game {
                     pos,
                     angle,
                 },
-                MobType::Box,
+                BoxTag,
             ));
             physics_spawn(
                 world,
@@ -92,8 +92,8 @@ impl Game {
                 },
                 BodyKind::Dynamic,
                 InteractionGroups {
-                    memberships: Group::GROUP_1,
-                    filter: Group::GROUP_1 | Group::GROUP_2 | Group::GROUP_3,
+                    memberships: groups::LEVEL,
+                    filter: groups::LEVEL_INTERACT,
                 },
             );
 
@@ -105,7 +105,7 @@ impl Game {
                 pos: vec2(300.0, 300.0),
                 angle: 0.0,
             },
-            MobType::Player,
+            PlayerTag,
         ));
         physics_spawn(
             world,
@@ -116,8 +116,8 @@ impl Game {
             },
             BodyKind::Kinematic,
             InteractionGroups {
-                memberships: Group::GROUP_3,
-                filter: Group::GROUP_1,
+                memberships: groups::PLAYER,
+                filter: groups::PLAYER_INTERACT,
             },
         );
 
@@ -127,7 +127,6 @@ impl Game {
                 angle: 0.0,
             },
             BallState::InPocket,
-            MobType::BallOfHurt,
         ));
         physics_spawn(
             world,
@@ -137,8 +136,8 @@ impl Game {
             },
             BodyKind::Kinematic,
             InteractionGroups {
-                memberships: Group::GROUP_2,
-                filter: Group::GROUP_1,
+                memberships: groups::PROJECTILES,
+                filter: groups::PROJECTILES_INTERACT,
             },
         );
 
@@ -147,7 +146,7 @@ impl Game {
                 pos: vec2(200.0, 80.0),
                 angle: 0.0,
             },
-            MobType::Brute,
+            BruteTag,
             EnemyState::Free,
         ));
         physics_spawn(
@@ -159,8 +158,8 @@ impl Game {
             },
             BodyKind::Kinematic,
             InteractionGroups {
-                memberships: Group::GROUP_2,
-                filter: Group::GROUP_1 | Group::GROUP_4,
+                memberships: groups::NPCS,
+                filter: groups::NPCS_INTERACT,
             },
         );
 
@@ -234,15 +233,15 @@ impl Game {
                         *state = BallState::Retracting;
                     }
 
-                    if phys.move_kinematic_raw(bod, step, false) {
+                    if phys.move_kinematic(bod, step, false) {
                         *state = BallState::Retracting;
                     }
 
                     if let Some(enemy) = phys.any_collisions(
                         *pos,
                         InteractionGroups {
-                            memberships: Group::GROUP_4,
-                            filter: Group::GROUP_2,
+                            memberships: groups::PROJECTILES,
+                            filter: groups::NPCS,
                         },
                         ColliderTy::Circle { radius: 16.0 },
                     ) {
@@ -335,7 +334,7 @@ impl Game {
                 },
                 EnemyState::Launched { dir } => {
                     rb.enabled = true;
-                    phys.move_kinematic_raw(rb, *dir * 256.0 * dt.0, false);
+                    phys.move_kinematic(rb, *dir * 256.0 * dt.0, false);
                 },
             }
         }
@@ -344,7 +343,7 @@ impl Game {
     #[method_system]
     pub fn brute_ai(
         &mut self,
-        mob_ty: View<MobType>,
+        brute_tag: View<BruteTag>,
         mut phys: UniqueViewMut<PhysicsState>,
         rbs: View<PhysicsInfo>,
         pos: View<Transform>,
@@ -353,17 +352,13 @@ impl Game {
     ) {
         let player_pos = pos.get(self.player).unwrap().pos;
 
-        for (enemy_tf, mob_ty, info, state) in (&pos, &mob_ty, &rbs, &state).iter() {
-            if !matches!(mob_ty, MobType::Brute) {
-                continue;
-            }
-
+        for (enemy_tf, _, info, state) in (&pos, &brute_tag, &rbs, &state).iter() {
             if !matches!(state, EnemyState::Free) {
                 continue;
             }
 
             let dr = (player_pos - enemy_tf.pos).normalize_or_zero() * 32.0 * dt.0;
-            phys.move_kinematic_raw(
+            phys.move_kinematic(
                 info,
                 dr,
                 true,
@@ -393,9 +388,9 @@ impl Game {
             dir += vec2(0.0, 1.0);
         }
 
+        let mut rb = (&mut rbs).get(self.player).unwrap();
         phys.move_kinematic(
-            &mut rbs,
-            self.player,
+            &mut rb,
             dir.normalize_or_zero() * dt.0 * PLAYER_SPEED,
             true,
         );

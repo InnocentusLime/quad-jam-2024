@@ -78,12 +78,15 @@ pub enum EnemyState {
 
 #[derive(Debug, Clone, Copy)]
 #[derive(Component)]
-pub enum MobType {
-    Player,
-    Box,
-    BallOfHurt,
-    Brute,
-}
+pub struct BoxTag;
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub struct PlayerTag;
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub struct BruteTag;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Component)]
@@ -257,7 +260,13 @@ async fn run() -> anyhow::Result<()> {
             _ => (),
         };
 
-        world.run(Render::draw);
+        world.run(Render::new_frame);
+        world.run(Render::draw_tiles);
+        world.run(Render::draw_ballohurt);
+        world.run(Render::draw_brute);
+        world.run(Render::draw_player);
+        world.run(Render::draw_box);
+        world.run(Render::draw_colliders);
         world.run(Ui::draw);
         world.run(SoundDirector::direct_sounds);
 

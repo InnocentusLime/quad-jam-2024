@@ -2,7 +2,7 @@ use jam_macro::method_system;
 use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, Unique, View};
 
-use crate::{physics::{ColliderTy, PhysicsInfo}, BallState, MobType, TileStorage, TileType, Transform};
+use crate::{physics::{ColliderTy, PhysicsInfo}, BallState, BoxTag, BruteTag, PlayerTag, TileStorage, TileType, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 // fn trail() -> particles::EmitterConfig {
@@ -115,14 +115,8 @@ impl Render {
     }
 
     #[method_system]
-    pub fn draw(
+    pub fn new_frame(
         &mut self,
-        phys: View<PhysicsInfo>,
-        pos: View<Transform>,
-        tile_storage: View<TileStorage>,
-        tiles: View<TileType>,
-        mob: View<MobType>,
-        ball_state: View<BallState>,
     ) {
         self.setup_cam();
 
@@ -132,7 +126,14 @@ impl Render {
             b: 0.02,
             a: 1.0,
         });
+    }
 
+    #[method_system]
+    pub fn draw_tiles(
+        &mut self,
+        tile_storage: View<TileStorage>,
+        tiles: View<TileType>,
+    ) {
         for storage in tile_storage.iter() {
             storage.iter_poses()
                 .map(|(x, y, id)| (x, y, tiles.get(id).unwrap()))
@@ -159,52 +160,81 @@ impl Render {
                     TileType::Ground => (),
                 });
         }
+    }
 
-        for (mob, pos) in (&mob, &pos).iter() {
-            match mob {
-                MobType::Player => draw_rectangle_ex(
-                    pos.pos.x,
-                    pos.pos.y,
-                    16.0,
-                    16.0,
-                    DrawRectangleParams {
-                        // offset: Vec2::ZERO,
-                        offset: vec2(0.5, 0.5),
-                        rotation: pos.angle,
-                        color: PURPLE,
-                    },
-                ),
-                MobType::Brute => draw_rectangle_ex(
-                    pos.pos.x,
-                    pos.pos.y,
-                    32.0,
-                    32.0,
-                    DrawRectangleParams {
-                        // offset: Vec2::ZERO,
-                        offset: vec2(0.5, 0.5),
-                        rotation: pos.angle,
-                        color: RED,
-                    },
-                ),
-                MobType::Box => draw_rectangle_ex(
-                    pos.pos.x,
-                    pos.pos.y,
-                    32.0,
-                    32.0,
-                    DrawRectangleParams {
-                        // offset: Vec2::ZERO,
-                        offset: vec2(0.5, 0.5),
-                        rotation: pos.angle,
-                        color: YELLOW,
-                    },
-                ),
-                MobType::BallOfHurt => (),
-            }
+    #[method_system]
+    pub fn draw_player(
+        &mut self,
+        pos: View<Transform>,
+        player: View<PlayerTag>,
+    ) {
+        for (_, pos) in (&player, &pos).iter() {
+            draw_rectangle_ex(
+                pos.pos.x,
+                pos.pos.y,
+                16.0,
+                16.0,
+                DrawRectangleParams {
+                    // offset: Vec2::ZERO,
+                    offset: vec2(0.5, 0.5),
+                    rotation: pos.angle,
+                    color: PURPLE,
+                },
+            );
         }
+    }
 
-        for (mob, pos, ball) in (&mob, &pos, &ball_state).iter() {
-            if !matches!(mob, MobType::BallOfHurt) { continue; }
+    #[method_system]
+    pub fn draw_brute(
+        &mut self,
+        pos: View<Transform>,
+        brute: View<BruteTag>,
+    ) {
+        for (_, pos) in (&brute, &pos).iter() {
+            draw_rectangle_ex(
+                pos.pos.x,
+                pos.pos.y,
+                32.0,
+                32.0,
+                DrawRectangleParams {
+                    // offset: Vec2::ZERO,
+                    offset: vec2(0.5, 0.5),
+                    rotation: pos.angle,
+                    color: RED,
+                },
+            );
+        }
+    }
 
+    #[method_system]
+    pub fn draw_box(
+        &mut self,
+        pos: View<Transform>,
+        boxt: View<BoxTag>,
+    ) {
+        for (_, pos) in (&boxt, &pos).iter() {
+            draw_rectangle_ex(
+                pos.pos.x,
+                pos.pos.y,
+                32.0,
+                32.0,
+                DrawRectangleParams {
+                    // offset: Vec2::ZERO,
+                    offset: vec2(0.5, 0.5),
+                    rotation: pos.angle,
+                    color: YELLOW,
+                },
+            );
+        }
+    }
+
+    #[method_system]
+    pub fn draw_ballohurt(
+        &mut self,
+        pos: View<Transform>,
+        ball_state: View<BallState>,
+    ) {
+        for (pos, ball) in (&pos, &ball_state).iter() {
             match ball {
                 BallState::InPocket => (),
                 _ => draw_circle(
@@ -215,7 +245,14 @@ impl Render {
                 ),
             }
         }
+    }
 
+    #[method_system]
+    pub fn draw_colliders(
+        &mut self,
+        phys: View<PhysicsInfo>,
+        pos: View<Transform>,
+    ) {
         if self.render_colliders {
             for (col, tf) in (&phys, &pos).iter() {
                 match col.col() {
