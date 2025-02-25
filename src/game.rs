@@ -393,9 +393,9 @@ impl Game {
             dir += vec2(0.0, 1.0);
         }
 
-        phys.move_kinematic(
-            &mut rbs,
-            self.player,
+        let mut rb = (&mut rbs).get(self.player).unwrap();
+        phys.move_kinematic_raw(
+            &mut rb,
             dir.normalize_or_zero() * dt.0 * PLAYER_SPEED,
             true,
         );

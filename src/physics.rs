@@ -404,19 +404,6 @@ impl PhysicsState {
         has_collided
     }
 
-    // Adapted code of the character controller from rapier2d
-    pub fn move_kinematic(
-        &mut self,
-        rbs: &mut ViewMut<PhysicsInfo>,
-        kinematic: EntityId,
-        dr: Vec2,
-        slide: bool,
-    ) -> bool {
-        let info = (&*rbs).get(kinematic).expect("Failed to compute RB stuff");
-
-        self.move_kinematic_raw(info, dr, slide)
-    }
-
     #[method_system]
     pub fn step(
         &mut self,
