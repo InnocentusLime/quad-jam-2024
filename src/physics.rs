@@ -317,7 +317,7 @@ impl PhysicsState {
         Some(self.mapping_inv[&col.parent().unwrap()])
     }
 
-    pub fn move_kinematic_raw(
+    pub fn move_kinematic(
         &mut self,
         info: &PhysicsInfo,
         dr: Vec2,

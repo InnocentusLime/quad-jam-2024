@@ -234,7 +234,7 @@ impl Game {
                         *state = BallState::Retracting;
                     }
 
-                    if phys.move_kinematic_raw(bod, step, false) {
+                    if phys.move_kinematic(bod, step, false) {
                         *state = BallState::Retracting;
                     }
 
@@ -335,7 +335,7 @@ impl Game {
                 },
                 EnemyState::Launched { dir } => {
                     rb.enabled = true;
-                    phys.move_kinematic_raw(rb, *dir * 256.0 * dt.0, false);
+                    phys.move_kinematic(rb, *dir * 256.0 * dt.0, false);
                 },
             }
         }
@@ -363,7 +363,7 @@ impl Game {
             }
 
             let dr = (player_pos - enemy_tf.pos).normalize_or_zero() * 32.0 * dt.0;
-            phys.move_kinematic_raw(
+            phys.move_kinematic(
                 info,
                 dr,
                 true,
@@ -394,7 +394,7 @@ impl Game {
         }
 
         let mut rb = (&mut rbs).get(self.player).unwrap();
-        phys.move_kinematic_raw(
+        phys.move_kinematic(
             &mut rb,
             dir.normalize_or_zero() * dt.0 * PLAYER_SPEED,
             true,
