@@ -70,6 +70,11 @@ pub enum BallState {
 
 #[derive(Debug, Clone, Copy)]
 #[derive(Component)]
+#[repr(transparent)]
+pub struct Health(i32);
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
 pub enum EnemyState {
     Free,
     Captured,

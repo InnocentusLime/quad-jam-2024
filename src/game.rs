@@ -2,7 +2,7 @@ use jam_macro::method_system;
 use macroquad::prelude::*;
 use rapier2d::prelude::InteractionGroups;
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, physics::{groups, physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, BoxTag, BruteTag, DeltaTime, EnemyState, PlayerTag, TileStorage, TileType, Transform};
+use crate::{inline_tilemap, physics::{groups, physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, BoxTag, BruteTag, DeltaTime, EnemyState, Health, PlayerTag, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
 pub const BALL_THROW_TIME: f32 = 0.2;
@@ -11,6 +11,9 @@ pub const MAX_BALL_DIST: f32 = 256.0;
 pub const BALL_THROW_SPEED: f32 = 512.0;
 pub const BALL_RETRACT_SPEED: f32 = 1024.0;
 pub const DISTANCE_EPS: f32 = 0.01;
+
+pub const PLAYER_SPAWN_HEALTH: i32 = 10;
+pub const BRUTE_SPAWN_HEALTH: i32 = 3;
 
 fn spawn_tiles(
     width: usize,
@@ -106,6 +109,7 @@ impl Game {
                 angle: 0.0,
             },
             PlayerTag,
+            Health(PLAYER_SPAWN_HEALTH),
         ));
         physics_spawn(
             world,
@@ -148,6 +152,7 @@ impl Game {
             },
             BruteTag,
             EnemyState::Free,
+            Health(BRUTE_SPAWN_HEALTH),
         ));
         physics_spawn(
             world,
@@ -170,6 +175,7 @@ impl Game {
             },
             BruteTag,
             EnemyState::Free,
+            Health(BRUTE_SPAWN_HEALTH),
         ));
         physics_spawn(
             world,
