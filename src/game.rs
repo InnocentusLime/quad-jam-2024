@@ -356,13 +356,25 @@ impl Game {
             match enemy {
                 EnemyState::Free => {
                     rb.enabled = true;
+                    rb.groups = InteractionGroups {
+                        memberships: groups::NPCS,
+                        filter: groups::NPCS_INTERACT,
+                    };
                 },
                 EnemyState::Captured => {
                     rb.enabled = false;
+                    rb.groups = InteractionGroups {
+                        memberships: groups::NPCS,
+                        filter: groups::NPCS_INTERACT,
+                    };
                     pos.pos = ball_pos;
                 },
                 EnemyState::Launched { dir } => {
                     rb.enabled = true;
+                    rb.groups = InteractionGroups {
+                        memberships: groups::PROJECTILES,
+                        filter: groups::PROJECTILES_INTERACT,
+                    };
                     if phys.move_kinematic(rb, *dir * 256.0 * dt.0, false) {
                         *enemy = EnemyState::Free;
                     }
