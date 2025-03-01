@@ -59,6 +59,7 @@ pub enum ColliderTy {
 #[track(Deletion, Removal)]
 pub struct PhysicsInfo {
     pub enabled: bool,
+    pub groups: InteractionGroups,
     col: ColliderTy,
     body: RigidBodyHandle,
 }
@@ -169,6 +170,7 @@ impl PhysicsState {
             rbs,
             PhysicsInfo {
                 enabled: true,
+                groups,
                 body,
                 col: collision,
             },
@@ -462,10 +464,13 @@ impl PhysicsState {
         // Enable-disable
         for rb in rbs.iter() {
             let body = self.bodies.get_mut(rb.body).unwrap();
+            let col = body.colliders()[0];
+            let col = self.colliders.get_mut(col).unwrap();
 
             if rb.enabled == body.is_enabled() { continue; }
 
             body.set_enabled(rb.enabled);
+            col.set_collision_groups(rb.groups);
         }
 
         // Import the new positions to world
