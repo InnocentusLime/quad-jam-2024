@@ -465,8 +465,6 @@ impl PhysicsState {
         for rb in rbs.iter() {
             let body = self.bodies.get_mut(rb.body).unwrap();
 
-            if rb.enabled == body.is_enabled() { continue; }
-
             body.set_enabled(rb.enabled);
 
             for col in body.colliders() {
