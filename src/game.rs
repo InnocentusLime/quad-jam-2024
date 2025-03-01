@@ -352,6 +352,8 @@ impl Game {
             .unwrap()
             .pos;
 
+        let mut target = None;
+
         for (rb, enemy, pos) in (&mut rbs, &mut enemy, &mut pos).iter() {
             match enemy {
                 EnemyState::Free => {
@@ -375,7 +377,10 @@ impl Game {
                         memberships: groups::PROJECTILES,
                         filter: groups::PROJECTILES_INTERACT,
                     };
-                    if phys.move_kinematic(rb, *dir * 256.0 * dt.0, false) {
+
+                    let dir = *dir;
+
+                    if phys.move_kinematic(rb, dir * 256.0 * dt.0, false) {
                         *enemy = EnemyState::Free;
                     }
                     if let Some(bump) = phys.any_collisions(
@@ -388,10 +393,17 @@ impl Game {
                         Some(rb),
                     ) {
                         info!("Kill {bump:?} :)");
-                        *enemy = EnemyState::Free;
+                        // *enemy = EnemyState::Free;
+                        target = Some((bump, dir));
                     }
                 },
             }
+        }
+
+        if let Some((bump, dir)) = target {
+            let mut enemy = (&mut enemy).get(bump)
+                .unwrap();
+            *enemy = EnemyState::Launched { dir };
         }
     }
 
