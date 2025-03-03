@@ -381,7 +381,7 @@ impl Game {
                     let dir = *dir;
 
                     if phys.move_kinematic(rb, dir * 256.0 * dt.0, false) {
-                        *enemy = EnemyState::Free;
+                        *enemy = EnemyState::Stunned { left: 1.5 };
                     }
                     if let Some(bump) = phys.any_collisions(
                         *pos,
@@ -397,6 +397,18 @@ impl Game {
                         target = Some((bump, dir));
                     }
                 },
+                EnemyState::Stunned { left } => {
+                    rb.enabled = false;
+                    rb.groups = InteractionGroups {
+                        memberships: groups::NPCS,
+                        filter: groups::NPCS_INTERACT,
+                    };
+
+                    *left -= dt.0;
+                    if *left < 0.0 {
+                        *enemy = EnemyState::Free;
+                    }
+                }
             }
         }
 

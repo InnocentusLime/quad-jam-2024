@@ -2,7 +2,7 @@ use jam_macro::method_system;
 use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, Unique, View};
 
-use crate::{physics::{ColliderTy, PhysicsInfo}, BallState, BoxTag, BruteTag, PlayerTag, TileStorage, TileType, Transform};
+use crate::{physics::{ColliderTy, PhysicsInfo}, BallState, BoxTag, BruteTag, EnemyState, PlayerTag, TileStorage, TileType, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 // fn trail() -> particles::EmitterConfig {
@@ -189,8 +189,14 @@ impl Render {
         &mut self,
         pos: View<Transform>,
         brute: View<BruteTag>,
+        state: View<EnemyState>,
     ) {
-        for (_, pos) in (&brute, &pos).iter() {
+        for (_, pos, state) in (&brute, &pos, &state).iter() {
+            let is_flickering = matches!(state, EnemyState::Stunned { .. });
+            let color = if is_flickering && (get_time() * 1000.0) as u32 % 2 == 0 {
+               Color::new(0.0, 0.0, 0.0, 0.0)
+            } else { RED };
+
             draw_rectangle_ex(
                 pos.pos.x,
                 pos.pos.y,
@@ -200,7 +206,7 @@ impl Render {
                     // offset: Vec2::ZERO,
                     offset: vec2(0.5, 0.5),
                     rotation: pos.angle,
-                    color: RED,
+                    color,
                 },
             );
         }

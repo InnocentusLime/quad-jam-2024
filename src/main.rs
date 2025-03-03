@@ -79,6 +79,7 @@ pub enum EnemyState {
     Free,
     Captured,
     Launched { dir: Vec2 },
+    Stunned { left: f32 },
 }
 
 #[derive(Debug, Clone, Copy)]
