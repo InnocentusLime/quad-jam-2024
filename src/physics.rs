@@ -312,6 +312,11 @@ impl PhysicsState {
         shape: ColliderTy,
         ignore: Option<&PhysicsInfo>,
     ) -> Option<EntityId> {
+        let predicate = Some(
+            &|_, col: &Collider| -> bool {
+                col.is_enabled()
+            } as &dyn Fn(ColliderHandle, &Collider) -> bool
+        );
         let shape = match shape {
             ColliderTy::Box { width, height } => {
                 &Cuboid::new(rapier2d::na::Vector2::new(
@@ -334,6 +339,7 @@ impl PhysicsState {
             QueryFilter {
                 groups: Some(groups),
                 exclude_rigid_body: ignore.map(|x| x.body),
+                predicate,
                 ..QueryFilter::default()
             },
         ) else { return None; };
@@ -349,6 +355,11 @@ impl PhysicsState {
         dr: Vec2,
         slide: bool,
     ) -> bool {
+        let predicate = Some(
+            &|_, col: &Collider| -> bool {
+                col.is_enabled()
+            } as &dyn Fn(ColliderHandle, &Collider) -> bool
+        );
         self.kinematic_cols.clear();
 
         let dr = Self::world_to_phys(dr);
@@ -393,6 +404,7 @@ impl PhysicsState {
                 QueryFilter {
                     exclude_rigid_body: Some(rbh),
                     groups: Some(groups),
+                    predicate,
                     ..QueryFilter::default()
                 },
             )
