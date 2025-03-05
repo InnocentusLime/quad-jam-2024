@@ -346,16 +346,18 @@ impl Game {
         mut enemy: ViewMut<EnemyState>,
         pos: View<Transform>,
         mut phys: UniqueViewMut<PhysicsState>,
+        mut hp: ViewMut<Health>,
         dt: UniqueView<DeltaTime>,
     ) {
         let mut target = None;
 
-        for (rb, enemy, pos) in (&rbs, &mut enemy, &pos).iter() {
+        for (rb, enemy, pos, hp) in (&rbs, &mut enemy, &pos, &mut hp).iter() {
             match enemy {
                 EnemyState::Launched { dir } => {
                     let dir = *dir;
 
                     if phys.move_kinematic(rb, dir * 256.0 * dt.0, false) {
+                        hp.0 -= 1;
                         *enemy = EnemyState::Stunned { left: 1.5 };
                     }
 
