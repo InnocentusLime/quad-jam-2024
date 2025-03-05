@@ -340,7 +340,58 @@ impl Game {
     }
 
     #[method_system]
-    pub fn captured_enemy(
+    pub fn enemy_states(
+        &mut self,
+        rbs: View<PhysicsInfo>,
+        mut enemy: ViewMut<EnemyState>,
+        pos: View<Transform>,
+        mut phys: UniqueViewMut<PhysicsState>,
+        dt: UniqueView<DeltaTime>,
+    ) {
+        let mut target = None;
+
+        for (rb, enemy, pos) in (&rbs, &mut enemy, &pos).iter() {
+            match enemy {
+                EnemyState::Launched { dir } => {
+                    let dir = *dir;
+
+                    if phys.move_kinematic(rb, dir * 256.0 * dt.0, false) {
+                        *enemy = EnemyState::Stunned { left: 1.5 };
+                    }
+
+                    if let Some(bump) = phys.any_collisions(
+                        *pos,
+                        InteractionGroups {
+                            memberships: groups::PROJECTILES,
+                            filter: groups::NPCS,
+                        },
+                        ColliderTy::Circle { radius: 32.0 },
+                        Some(rb),
+                    ) {
+                        info!("Kill {bump:?} :)");
+                        // *enemy = EnemyState::Free;
+                        target = Some((bump, dir));
+                    }
+                },
+                EnemyState::Stunned { left } => {
+                    *left -= dt.0;
+                    if *left < 0.0 {
+                        *enemy = EnemyState::Free;
+                    }
+                }
+                _ => (),
+            }
+        }
+
+        if let Some((bump, dir)) = target {
+            let mut enemy = (&mut enemy).get(bump)
+                .unwrap();
+            *enemy = EnemyState::Launched { dir };
+        }
+    }
+
+    #[method_system]
+    pub fn enemy_state_data(
         &mut self,
         mut rbs: ViewMut<PhysicsInfo>,
         mut enemy: ViewMut<EnemyState>,
@@ -351,8 +402,6 @@ impl Game {
         let ball_pos = pos.get(self.weapon)
             .unwrap()
             .pos;
-
-        let mut target = None;
 
         for (rb, enemy, pos) in (&mut rbs, &mut enemy, &mut pos).iter() {
             match enemy {
@@ -371,51 +420,21 @@ impl Game {
                     };
                     pos.pos = ball_pos;
                 },
-                EnemyState::Launched { dir } => {
+                EnemyState::Launched { .. } => {
                     rb.enabled = true;
                     rb.groups = InteractionGroups {
                         memberships: groups::PROJECTILES,
                         filter: groups::PROJECTILES_INTERACT,
                     };
-
-                    let dir = *dir;
-
-                    if phys.move_kinematic(rb, dir * 256.0 * dt.0, false) {
-                        *enemy = EnemyState::Stunned { left: 1.5 };
-                    }
-                    if let Some(bump) = phys.any_collisions(
-                        *pos,
-                        InteractionGroups {
-                            memberships: groups::PROJECTILES,
-                            filter: groups::NPCS,
-                        },
-                        ColliderTy::Circle { radius: 32.0 },
-                        Some(rb),
-                    ) {
-                        info!("Kill {bump:?} :)");
-                        // *enemy = EnemyState::Free;
-                        target = Some((bump, dir));
-                    }
                 },
-                EnemyState::Stunned { left } => {
+                EnemyState::Stunned { .. } => {
                     rb.enabled = false;
                     rb.groups = InteractionGroups {
                         memberships: groups::NPCS,
                         filter: groups::NPCS_INTERACT,
                     };
-
-                    *left -= dt.0;
-                    if *left < 0.0 {
-                        *enemy = EnemyState::Free;
-                    }
                 }
             }
-        }
-
-        if let Some((bump, dir)) = target {
-            let mut enemy = (&mut enemy).get(bump)
-                .unwrap();
-            *enemy = EnemyState::Launched { dir };
         }
     }
 
