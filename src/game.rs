@@ -372,8 +372,6 @@ impl Game {
                         ColliderTy::Circle { radius: 32.0 },
                         Some(rb),
                     ) {
-                        info!("Kill {bump:?} :)");
-                        // *enemy = EnemyState::Free;
                         target = Some((bump, dir));
                     }
                 },
