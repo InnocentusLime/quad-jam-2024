@@ -59,6 +59,7 @@ pub enum ColliderTy {
 #[track(Deletion, Removal)]
 pub struct PhysicsInfo {
     pub enabled: bool,
+    pub groups: InteractionGroups,
     col: ColliderTy,
     body: RigidBodyHandle,
 }
@@ -169,6 +170,7 @@ impl PhysicsState {
             rbs,
             PhysicsInfo {
                 enabled: true,
+                groups,
                 body,
                 col: collision,
             },
@@ -308,7 +310,13 @@ impl PhysicsState {
         tf: Transform,
         groups: InteractionGroups,
         shape: ColliderTy,
+        ignore: Option<&PhysicsInfo>,
     ) -> Option<EntityId> {
+        let predicate = Some(
+            &|_, col: &Collider| -> bool {
+                col.is_enabled()
+            } as &dyn Fn(ColliderHandle, &Collider) -> bool
+        );
         let shape = match shape {
             ColliderTy::Box { width, height } => {
                 &Cuboid::new(rapier2d::na::Vector2::new(
@@ -330,6 +338,8 @@ impl PhysicsState {
             shape,
             QueryFilter {
                 groups: Some(groups),
+                exclude_rigid_body: ignore.map(|x| x.body),
+                predicate,
                 ..QueryFilter::default()
             },
         ) else { return None; };
@@ -345,6 +355,11 @@ impl PhysicsState {
         dr: Vec2,
         slide: bool,
     ) -> bool {
+        let predicate = Some(
+            &|_, col: &Collider| -> bool {
+                col.is_enabled()
+            } as &dyn Fn(ColliderHandle, &Collider) -> bool
+        );
         self.kinematic_cols.clear();
 
         let dr = Self::world_to_phys(dr);
@@ -389,6 +404,7 @@ impl PhysicsState {
                 QueryFilter {
                     exclude_rigid_body: Some(rbh),
                     groups: Some(groups),
+                    predicate,
                     ..QueryFilter::default()
                 },
             )
@@ -461,9 +477,12 @@ impl PhysicsState {
         for rb in rbs.iter() {
             let body = self.bodies.get_mut(rb.body).unwrap();
 
-            if rb.enabled == body.is_enabled() { continue; }
-
             body.set_enabled(rb.enabled);
+
+            for col in body.colliders() {
+                let col = self.colliders.get_mut(*col).unwrap();
+                col.set_collision_groups(rb.groups);
+            }
         }
 
         // Import the new positions to world

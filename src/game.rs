@@ -2,7 +2,7 @@ use jam_macro::method_system;
 use macroquad::prelude::*;
 use rapier2d::prelude::InteractionGroups;
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, physics::{groups, physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, BoxTag, BruteTag, DeltaTime, EnemyState, PlayerTag, TileStorage, TileType, Transform};
+use crate::{inline_tilemap, physics::{groups, physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, BoxTag, BruteTag, DeltaTime, EnemyState, Health, PlayerTag, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
 pub const BALL_THROW_TIME: f32 = 0.2;
@@ -11,6 +11,9 @@ pub const MAX_BALL_DIST: f32 = 256.0;
 pub const BALL_THROW_SPEED: f32 = 512.0;
 pub const BALL_RETRACT_SPEED: f32 = 1024.0;
 pub const DISTANCE_EPS: f32 = 0.01;
+
+pub const PLAYER_SPAWN_HEALTH: i32 = 10;
+pub const BRUTE_SPAWN_HEALTH: i32 = 3;
 
 fn spawn_tiles(
     width: usize,
@@ -106,6 +109,7 @@ impl Game {
                 angle: 0.0,
             },
             PlayerTag,
+            Health(PLAYER_SPAWN_HEALTH),
         ));
         physics_spawn(
             world,
@@ -148,6 +152,30 @@ impl Game {
             },
             BruteTag,
             EnemyState::Free,
+            Health(BRUTE_SPAWN_HEALTH),
+        ));
+        physics_spawn(
+            world,
+            brute,
+            ColliderTy::Box {
+                width: 32.0,
+                height: 32.0,
+            },
+            BodyKind::Kinematic,
+            InteractionGroups {
+                memberships: groups::NPCS,
+                filter: groups::NPCS_INTERACT,
+            },
+        );
+
+        let brute = world.add_entity((
+            Transform {
+                pos: vec2(100.0, 230.0),
+                angle: 0.0,
+            },
+            BruteTag,
+            EnemyState::Free,
+            Health(BRUTE_SPAWN_HEALTH),
         ));
         physics_spawn(
             world,
@@ -244,6 +272,7 @@ impl Game {
                             filter: groups::NPCS,
                         },
                         ColliderTy::Circle { radius: 16.0 },
+                        None,
                     ) {
                         upd_ent = Some((
                             enemy,
@@ -311,7 +340,60 @@ impl Game {
     }
 
     #[method_system]
-    pub fn captured_enemy(
+    pub fn enemy_states(
+        &mut self,
+        rbs: View<PhysicsInfo>,
+        mut enemy: ViewMut<EnemyState>,
+        pos: View<Transform>,
+        mut phys: UniqueViewMut<PhysicsState>,
+        mut hp: ViewMut<Health>,
+        dt: UniqueView<DeltaTime>,
+    ) {
+        let mut target = None;
+
+        for (rb, enemy, pos, hp) in (&rbs, &mut enemy, &pos, &mut hp).iter() {
+            match enemy {
+                EnemyState::Launched { dir } => {
+                    let dir = *dir;
+
+                    if phys.move_kinematic(rb, dir * 256.0 * dt.0, false) {
+                        hp.0 -= 1;
+                        *enemy = EnemyState::Stunned { left: 1.5 };
+
+                        if hp.0 <= 0 { *enemy = EnemyState::Dead; }
+                    }
+
+                    if let Some(bump) = phys.any_collisions(
+                        *pos,
+                        InteractionGroups {
+                            memberships: groups::PROJECTILES,
+                            filter: groups::NPCS,
+                        },
+                        ColliderTy::Circle { radius: 32.0 },
+                        Some(rb),
+                    ) {
+                        target = Some((bump, dir));
+                    }
+                },
+                EnemyState::Stunned { left } => {
+                    *left -= dt.0;
+                    if *left < 0.0 {
+                        *enemy = EnemyState::Free;
+                    }
+                }
+                _ => (),
+            }
+        }
+
+        if let Some((bump, dir)) = target {
+            let mut enemy = (&mut enemy).get(bump)
+                .unwrap();
+            *enemy = EnemyState::Launched { dir };
+        }
+    }
+
+    #[method_system]
+    pub fn enemy_state_data(
         &mut self,
         mut rbs: ViewMut<PhysicsInfo>,
         mut enemy: ViewMut<EnemyState>,
@@ -327,14 +409,39 @@ impl Game {
             match enemy {
                 EnemyState::Free => {
                     rb.enabled = true;
+                    rb.groups = InteractionGroups {
+                        memberships: groups::NPCS,
+                        filter: groups::NPCS_INTERACT,
+                    };
                 },
                 EnemyState::Captured => {
                     rb.enabled = false;
+                    rb.groups = InteractionGroups {
+                        memberships: groups::NPCS,
+                        filter: groups::NPCS_INTERACT,
+                    };
                     pos.pos = ball_pos;
                 },
-                EnemyState::Launched { dir } => {
+                EnemyState::Launched { .. } => {
                     rb.enabled = true;
-                    phys.move_kinematic(rb, *dir * 256.0 * dt.0, false);
+                    rb.groups = InteractionGroups {
+                        memberships: groups::PROJECTILES,
+                        filter: groups::PROJECTILES_INTERACT,
+                    };
+                },
+                EnemyState::Stunned { .. } => {
+                    rb.enabled = false;
+                    rb.groups = InteractionGroups {
+                        memberships: groups::NPCS,
+                        filter: groups::NPCS_INTERACT,
+                    };
+                },
+                EnemyState::Dead => {
+                    rb.enabled = false;
+                    rb.groups = InteractionGroups {
+                        memberships: groups::NPCS,
+                        filter: groups::NPCS_INTERACT,
+                    };
                 },
             }
         }

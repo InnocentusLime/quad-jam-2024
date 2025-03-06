@@ -70,10 +70,17 @@ pub enum BallState {
 
 #[derive(Debug, Clone, Copy)]
 #[derive(Component)]
+#[repr(transparent)]
+pub struct Health(i32);
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
 pub enum EnemyState {
     Free,
     Captured,
     Launched { dir: Vec2 },
+    Stunned { left: f32 },
+    Dead,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -252,7 +259,8 @@ async fn run() -> anyhow::Result<()> {
                 world.run(Game::ball_logic);
                 world.run(Game::brute_ai);
                 world.run(PhysicsState::step);
-                world.run(Game::captured_enemy);
+                world.run(Game::enemy_states);
+                world.run(Game::enemy_state_data);
             },
             AppState::PleaseRotate if get_orientation() == 0.0 => {
                 state = paused_state;
