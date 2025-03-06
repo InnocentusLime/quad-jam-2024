@@ -359,6 +359,8 @@ impl Game {
                     if phys.move_kinematic(rb, dir * 256.0 * dt.0, false) {
                         hp.0 -= 1;
                         *enemy = EnemyState::Stunned { left: 1.5 };
+
+                        if hp.0 <= 0 { *enemy = EnemyState::Dead; }
                     }
 
                     if let Some(bump) = phys.any_collisions(
@@ -435,7 +437,14 @@ impl Game {
                         memberships: groups::NPCS,
                         filter: groups::NPCS_INTERACT,
                     };
-                }
+                },
+                EnemyState::Dead => {
+                    rb.enabled = false;
+                    rb.groups = InteractionGroups {
+                        memberships: groups::NPCS,
+                        filter: groups::NPCS_INTERACT,
+                    };
+                },
             }
         }
     }

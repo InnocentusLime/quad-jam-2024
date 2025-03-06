@@ -192,6 +192,10 @@ impl Render {
         state: View<EnemyState>,
     ) {
         for (_, pos, state) in (&brute, &pos, &state).iter() {
+            if matches!(state, EnemyState::Dead) {
+                continue;
+            }
+
             let is_flickering = matches!(state, EnemyState::Stunned { .. });
             let color = if is_flickering && (get_time() * 1000.0) as u32 % 2 == 0 {
                Color::new(0.0, 0.0, 0.0, 0.0)
