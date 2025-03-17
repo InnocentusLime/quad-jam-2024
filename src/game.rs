@@ -69,6 +69,31 @@ pub struct Game {
 }
 
 impl Game {
+    fn spawn_brute(pos: Vec2, world: &mut World) {
+        let brute = world.add_entity((
+            Transform {
+                pos,
+                angle: 0.0,
+            },
+            BruteTag,
+            EnemyState::Free,
+            Health(BRUTE_SPAWN_HEALTH),
+        ));
+        physics_spawn(
+            world,
+            brute,
+            ColliderTy::Box {
+                width: 32.0,
+                height: 32.0,
+            },
+            BodyKind::Kinematic,
+            InteractionGroups {
+                memberships: groups::NPCS,
+                filter: groups::NPCS_INTERACT,
+            },
+        );
+    }
+
     pub fn new(world: &mut World) -> Self {
         let mut angle = 0.0;
         let poses = [
@@ -145,51 +170,8 @@ impl Game {
             },
         );
 
-        let brute = world.add_entity((
-            Transform {
-                pos: vec2(200.0, 80.0),
-                angle: 0.0,
-            },
-            BruteTag,
-            EnemyState::Free,
-            Health(BRUTE_SPAWN_HEALTH),
-        ));
-        physics_spawn(
-            world,
-            brute,
-            ColliderTy::Box {
-                width: 32.0,
-                height: 32.0,
-            },
-            BodyKind::Kinematic,
-            InteractionGroups {
-                memberships: groups::NPCS,
-                filter: groups::NPCS_INTERACT,
-            },
-        );
-
-        let brute = world.add_entity((
-            Transform {
-                pos: vec2(100.0, 230.0),
-                angle: 0.0,
-            },
-            BruteTag,
-            EnemyState::Free,
-            Health(BRUTE_SPAWN_HEALTH),
-        ));
-        physics_spawn(
-            world,
-            brute,
-            ColliderTy::Box {
-                width: 32.0,
-                height: 32.0,
-            },
-            BodyKind::Kinematic,
-            InteractionGroups {
-                memberships: groups::NPCS,
-                filter: groups::NPCS_INTERACT,
-            },
-        );
+        Self::spawn_brute(vec2(200.0, 80.0), world);
+        Self::spawn_brute(vec2(100.0, 230.0), world);
 
         let tilemap = spawn_tiles(
             16,
