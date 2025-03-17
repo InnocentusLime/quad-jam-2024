@@ -32,7 +32,8 @@ pub mod groups {
         LEVEL;
     pub const NPCS_INTERACT: Group =
         LEVEL
-            .union(PROJECTILES);
+            .union(PROJECTILES)
+            .union(NPCS);
     pub const PROJECTILES_INTERACT: Group =
         LEVEL;
 }
