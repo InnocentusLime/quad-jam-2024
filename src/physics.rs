@@ -311,6 +311,7 @@ impl PhysicsState {
         info: &PhysicsInfo,
         force: Vec2,
     ) {
+        let force = Self::world_to_phys(force);
         let body = self.bodies.get_mut(info.body).unwrap();
         body.add_force(nalgebra::vector![force.x, force.y], true);
     }
@@ -320,6 +321,7 @@ impl PhysicsState {
         info: &PhysicsInfo,
         impulse: Vec2,
     ) {
+        let impulse = Self::world_to_phys(impulse);
         let body = self.bodies.get_mut(info.body).unwrap();
         body.apply_impulse(nalgebra::vector![impulse.x, impulse.y], true);
     }
@@ -546,6 +548,11 @@ impl PhysicsState {
             pos.pos = new_pos;
             pos.angle = new_angle;
         };
+
+        // Reset forces
+        for (_, body) in self.bodies.iter_mut() {
+            body.reset_forces(false);
+        }
     }
 }
 
