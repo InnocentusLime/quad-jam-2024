@@ -124,6 +124,7 @@ impl PhysicsState {
         collision: ColliderTy,
         kind: BodyKind,
         groups: InteractionGroups,
+        mass: f32,
     ) {
         let rap_ty = match kind {
             BodyKind::Dynamic => RigidBodyType::Dynamic,
@@ -159,6 +160,7 @@ impl PhysicsState {
         self.colliders.insert_with_parent(
             ColliderBuilder::new(collider_shape)
                 .collision_groups(groups)
+                .mass(mass)
             ,
             body.clone(),
             &mut self.bodies,
@@ -565,6 +567,7 @@ wrap_method!(
         entity: EntityId,
         collision: ColliderTy,
         kind: BodyKind,
-        groups: InteractionGroups
+        groups: InteractionGroups,
+        mass: f32
     )
 );
