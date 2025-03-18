@@ -306,6 +306,24 @@ impl PhysicsState {
         }
     }
 
+    pub fn apply_force(
+        &mut self,
+        info: &PhysicsInfo,
+        force: Vec2,
+    ) {
+        let body = self.bodies.get_mut(info.body).unwrap();
+        body.add_force(nalgebra::vector![force.x, force.y], true);
+    }
+
+    pub fn apply_impulse(
+        &mut self,
+        info: &PhysicsInfo,
+        impulse: Vec2,
+    ) {
+        let body = self.bodies.get_mut(info.body).unwrap();
+        body.apply_impulse(nalgebra::vector![impulse.x, impulse.y], true);
+    }
+
     pub fn any_collisions(
         &mut self,
         tf: Transform,
