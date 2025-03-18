@@ -15,6 +15,9 @@ pub const DISTANCE_EPS: f32 = 0.01;
 pub const PLAYER_SPAWN_HEALTH: i32 = 10;
 pub const BRUTE_SPAWN_HEALTH: i32 = 3;
 
+pub const BRUTE_GROUP_FORCE: f32 = 0.01;
+pub const BRUTE_CHASE_FORCE: f32 = 40.0;
+
 fn spawn_tiles(
     width: usize,
     height: usize,
@@ -83,7 +86,7 @@ impl Game {
             world,
             brute,
             ColliderTy::Circle { radius: 8.0 },
-            BodyKind::Kinematic,
+            BodyKind::Dynamic,
             InteractionGroups {
                 memberships: groups::NPCS,
                 filter: groups::NPCS_INTERACT,
@@ -348,29 +351,29 @@ impl Game {
         for (rb, enemy, pos, hp) in (&rbs, &mut enemy, &pos, &mut hp).iter() {
             match enemy {
                 EnemyState::Launched { dir, by_player } => {
-                    let dir = *dir;
-                    let by_player = *by_player;
+                    // let dir = *dir;
+                    // let by_player = *by_player;
 
-                    if phys.move_kinematic(rb, dir * 256.0 * dt.0, false) {
+                    // if phys.move_kinematic(rb, dir * 256.0 * dt.0, false) {
                         hp.0 -= 1;
                         *enemy = EnemyState::Stunned { left: 1.5 };
 
                         if hp.0 <= 0 { *enemy = EnemyState::Dead; }
-                    }
+                    // }
 
-                    if !by_player { continue; }
+                    // if !by_player { continue; }
 
-                    if let Some(bump) = phys.any_collisions(
-                        *pos,
-                        InteractionGroups {
-                            memberships: groups::PROJECTILES,
-                            filter: groups::NPCS,
-                        },
-                        ColliderTy::Circle { radius: 12.0 },
-                        Some(rb),
-                    ) {
-                        target = Some((bump, dir));
-                    }
+                    // if let Some(bump) = phys.any_collisions(
+                    //     *pos,
+                    //     InteractionGroups {
+                    //         memberships: groups::PROJECTILES,
+                    //         filter: groups::NPCS,
+                    //     },
+                    //     ColliderTy::Circle { radius: 12.0 },
+                    //     Some(rb),
+                    // ) {
+                    //     target = Some((bump, dir));
+                    // }
                 },
                 EnemyState::Stunned { left } => {
                     *left -= dt.0;
@@ -456,18 +459,38 @@ impl Game {
     ) {
         let player_pos = pos.get(self.player).unwrap().pos;
 
-        for (enemy_tf, _, info, state) in (&pos, &brute_tag, &rbs, &state).iter() {
-            if !matches!(state, EnemyState::Free) {
+        for (enemy_tf, _, enemy_info, enemy_state) in (&pos, &brute_tag, &rbs, &state).iter() {
+            if !matches!(enemy_state, EnemyState::Free) {
                 continue;
             }
 
-            let dr = (player_pos - enemy_tf.pos).normalize_or_zero() * 32.0 * dt.0;
-            phys.move_kinematic(
-                info,
-                dr,
-                true,
-            );
+            for (fella_tf, _, fella_state) in (&pos, &brute_tag, &state).iter() {
+                if !matches!(fella_state, EnemyState::Free) {
+                    continue;
+                }
+
+                let dr = fella_tf.pos - enemy_tf.pos;
+
+                phys.apply_force(enemy_info, dr * BRUTE_GROUP_FORCE);
+            }
+
+            let dr = player_pos - enemy_tf.pos;
+
+            phys.apply_force(enemy_info, dr.normalize_or_zero() * BRUTE_CHASE_FORCE);
         }
+
+        // for (enemy_tf, _, info, state) in (&pos, &brute_tag, &rbs, &state).iter() {
+        //     if !matches!(state, EnemyState::Free) {
+        //         continue;
+        //     }
+
+        //     let dr = (player_pos - enemy_tf.pos).normalize_or_zero() * 32.0 * dt.0;
+        //     phys.move_kinematic(
+        //         info,
+        //         dr,
+        //         true,
+        //     );
+        // }
     }
 
     #[method_system]
