@@ -168,16 +168,21 @@ impl Game {
         );
 
         let brute_pos = [
-            vec2(200.0, 80.0),
-            vec2(100.0, 230.0),
-            vec2(132.0, 240.0),
-            vec2(164.0, 280.0),
-            vec2(128.0, 250.0),
-            vec2(170.0, 240.0),
-            vec2(120.0, 260.0),
+            vec2(280.0, 240.0),
         ];
         for pos in brute_pos {
             Self::spawn_brute(pos, world);
+        }
+
+        for x in 0..5 {
+            for y in 0..5 {
+                let pos = vec2(
+                    x as f32 * 16.0 + 100.0,
+                    y as f32 * 16.0 + 200.0,
+                );
+
+                Self::spawn_brute(pos, world);
+            }
         }
 
         let tilemap = spawn_tiles(
