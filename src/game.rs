@@ -15,8 +15,8 @@ pub const DISTANCE_EPS: f32 = 0.01;
 pub const PLAYER_SPAWN_HEALTH: i32 = 10;
 pub const BRUTE_SPAWN_HEALTH: i32 = 3;
 
-pub const BRUTE_GROUP_FORCE: f32 = 0.01;
-pub const BRUTE_CHASE_FORCE: f32 = 40.0;
+pub const BRUTE_GROUP_FORCE: f32 = 0.01 * 22.0;
+pub const BRUTE_CHASE_FORCE: f32 = 40.0 * 24.0;
 
 fn spawn_tiles(
     width: usize,
@@ -55,6 +55,7 @@ fn spawn_tiles(
                     memberships: groups::LEVEL,
                     filter: groups::LEVEL_INTERACT,
                 },
+                1.0,
             ),
             TileType::Ground => (),
         }
@@ -91,6 +92,7 @@ impl Game {
                 memberships: groups::NPCS,
                 filter: groups::NPCS_INTERACT,
             },
+            5.0,
         );
     }
 
@@ -123,6 +125,7 @@ impl Game {
                     memberships: groups::LEVEL,
                     filter: groups::LEVEL_INTERACT,
                 },
+                1.0,
             );
 
             the_box
@@ -148,6 +151,7 @@ impl Game {
                 memberships: groups::PLAYER,
                 filter: groups::PLAYER_INTERACT,
             },
+            1.0,
         );
 
         let weapon = world.add_entity((
@@ -168,6 +172,7 @@ impl Game {
                 memberships: groups::PROJECTILES,
                 filter: groups::PROJECTILES_INTERACT,
             },
+            1.0,
         );
 
         let brute_pos = [
