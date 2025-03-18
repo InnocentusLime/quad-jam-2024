@@ -361,7 +361,7 @@ impl Game {
                             memberships: groups::PROJECTILES,
                             filter: groups::NPCS,
                         },
-                        ColliderTy::Circle { radius: 16.0 },
+                        ColliderTy::Circle { radius: 12.0 },
                         Some(rb),
                     ) {
                         target = Some((bump, dir));
