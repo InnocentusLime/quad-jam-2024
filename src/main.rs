@@ -280,6 +280,8 @@ async fn run() -> anyhow::Result<()> {
 
         debug.new_frame();
         debug.draw_ui_debug(&ui_model);
+        debug.put_debug_text(&format!("FPS: {:?}", get_fps()), YELLOW);
+        debug.new_dbg_line();
         debug.draw_events();
 
         world.clear_all_removed_and_deleted();
