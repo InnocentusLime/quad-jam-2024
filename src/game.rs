@@ -82,10 +82,7 @@ impl Game {
         physics_spawn(
             world,
             brute,
-            ColliderTy::Box {
-                width: 32.0,
-                height: 32.0,
-            },
+            ColliderTy::Circle { radius: 8.0 },
             BodyKind::Kinematic,
             InteractionGroups {
                 memberships: groups::NPCS,
