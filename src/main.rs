@@ -78,7 +78,7 @@ pub struct Health(i32);
 pub enum EnemyState {
     Free,
     Captured,
-    Launched { dir: Vec2 },
+    Launched { dir: Vec2, by_player: bool },
     Stunned { left: f32 },
     Dead,
 }

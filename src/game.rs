@@ -310,7 +310,7 @@ impl Game {
 
                     upd_ent = Some((
                         *enemy,
-                        EnemyState::Launched { dir },
+                        EnemyState::Launched { dir, by_player: true },
                     ));
                     *state = BallState::InPocket;
                 },
@@ -322,9 +322,9 @@ impl Game {
                 let (mut enemy_state, _) = (&mut enemy_state, &mut pos).get(enemy).unwrap();
                 *enemy_state = EnemyState::Captured;
             },
-            Some((enemy, EnemyState::Launched { dir })) => {
+            Some((enemy, EnemyState::Launched { dir, by_player })) => {
                 let (mut enemy_state, mut pos) = (&mut enemy_state, &mut pos).get(enemy).unwrap();
-                *enemy_state = EnemyState::Launched { dir };
+                *enemy_state = EnemyState::Launched { dir, by_player };
                 pos.pos = player_pos + dir * 16.0;
             },
             _ => (),
@@ -345,8 +345,9 @@ impl Game {
 
         for (rb, enemy, pos, hp) in (&rbs, &mut enemy, &pos, &mut hp).iter() {
             match enemy {
-                EnemyState::Launched { dir } => {
+                EnemyState::Launched { dir, by_player } => {
                     let dir = *dir;
+                    let by_player = *by_player;
 
                     if phys.move_kinematic(rb, dir * 256.0 * dt.0, false) {
                         hp.0 -= 1;
@@ -355,13 +356,15 @@ impl Game {
                         if hp.0 <= 0 { *enemy = EnemyState::Dead; }
                     }
 
+                    if !by_player { continue; }
+
                     if let Some(bump) = phys.any_collisions(
                         *pos,
                         InteractionGroups {
                             memberships: groups::PROJECTILES,
                             filter: groups::NPCS,
                         },
-                        ColliderTy::Circle { radius: 32.0 },
+                        ColliderTy::Circle { radius: 16.0 },
                         Some(rb),
                     ) {
                         target = Some((bump, dir));
@@ -380,7 +383,7 @@ impl Game {
         if let Some((bump, dir)) = target {
             let mut enemy = (&mut enemy).get(bump)
                 .unwrap();
-            *enemy = EnemyState::Launched { dir };
+            *enemy = EnemyState::Launched { dir, by_player: false };
         }
     }
 
