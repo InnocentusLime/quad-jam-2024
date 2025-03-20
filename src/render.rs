@@ -201,17 +201,11 @@ impl Render {
                Color::new(0.0, 0.0, 0.0, 0.0)
             } else { RED };
 
-            draw_rectangle_ex(
+            draw_circle(
                 pos.pos.x,
                 pos.pos.y,
-                32.0,
-                32.0,
-                DrawRectangleParams {
-                    // offset: Vec2::ZERO,
-                    offset: vec2(0.5, 0.5),
-                    rotation: pos.angle,
-                    color,
-                },
+                8.0,
+                color,
             );
         }
     }

@@ -32,7 +32,8 @@ pub mod groups {
         LEVEL;
     pub const NPCS_INTERACT: Group =
         LEVEL
-            .union(PROJECTILES);
+            .union(PROJECTILES)
+            .union(NPCS);
     pub const PROJECTILES_INTERACT: Group =
         LEVEL;
 }
@@ -123,6 +124,7 @@ impl PhysicsState {
         collision: ColliderTy,
         kind: BodyKind,
         groups: InteractionGroups,
+        mass: f32,
     ) {
         let rap_ty = match kind {
             BodyKind::Dynamic => RigidBodyType::Dynamic,
@@ -158,6 +160,7 @@ impl PhysicsState {
         self.colliders.insert_with_parent(
             ColliderBuilder::new(collider_shape)
                 .collision_groups(groups)
+                .mass(mass)
             ,
             body.clone(),
             &mut self.bodies,
@@ -303,6 +306,26 @@ impl PhysicsState {
                 }
             }
         }
+    }
+
+    pub fn apply_force(
+        &mut self,
+        info: &PhysicsInfo,
+        force: Vec2,
+    ) {
+        let force = Self::world_to_phys(force);
+        let body = self.bodies.get_mut(info.body).unwrap();
+        body.add_force(nalgebra::vector![force.x, force.y], true);
+    }
+
+    pub fn apply_impulse(
+        &mut self,
+        info: &PhysicsInfo,
+        impulse: Vec2,
+    ) {
+        let impulse = Self::world_to_phys(impulse);
+        let body = self.bodies.get_mut(info.body).unwrap();
+        body.apply_impulse(nalgebra::vector![impulse.x, impulse.y], true);
     }
 
     pub fn any_collisions(
@@ -527,6 +550,11 @@ impl PhysicsState {
             pos.pos = new_pos;
             pos.angle = new_angle;
         };
+
+        // Reset forces
+        for (_, body) in self.bodies.iter_mut() {
+            body.reset_forces(false);
+        }
     }
 }
 
@@ -539,6 +567,7 @@ wrap_method!(
         entity: EntityId,
         collision: ColliderTy,
         kind: BodyKind,
-        groups: InteractionGroups
+        groups: InteractionGroups,
+        mass: f32
     )
 );
