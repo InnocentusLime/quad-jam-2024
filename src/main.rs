@@ -53,6 +53,24 @@ async fn main() {
 }
 
 #[derive(Debug, Clone, Copy)]
+pub enum RewardState {
+    Locked,
+    Pending,
+    Counted,
+}
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub struct RewardInfo {
+    pub state: RewardState,
+    pub amount: u32,
+}
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Unique)]
+pub struct PlayerScore(pub u32);
+
+#[derive(Debug, Clone, Copy)]
 #[derive(Component)]
 pub enum BallState {
     InPocket,
@@ -261,6 +279,8 @@ async fn run() -> anyhow::Result<()> {
                 world.run(PhysicsState::step);
                 world.run(Game::enemy_states);
                 world.run(Game::enemy_state_data);
+                world.run(Game::reward_enemies);
+                world.run(Game::count_rewards);
             },
             AppState::PleaseRotate if get_orientation() == 0.0 => {
                 state = paused_state;
@@ -278,9 +298,14 @@ async fn run() -> anyhow::Result<()> {
         world.run(Ui::draw);
         world.run(SoundDirector::direct_sounds);
 
+        let score = world.get_unique::<&PlayerScore>().unwrap()
+            .0;
+
         debug.new_frame();
         debug.draw_ui_debug(&ui_model);
         debug.put_debug_text(&format!("FPS: {:?}", get_fps()), YELLOW);
+        debug.new_dbg_line();
+        debug.put_debug_text(&format!("Score: {score:}"), YELLOW);
         debug.new_dbg_line();
         debug.draw_events();
 

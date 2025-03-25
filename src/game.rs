@@ -2,7 +2,7 @@ use jam_macro::method_system;
 use macroquad::prelude::*;
 use rapier2d::prelude::InteractionGroups;
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, physics::{groups, physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, BoxTag, BruteTag, DeltaTime, EnemyState, Health, PlayerTag, TileStorage, TileType, Transform};
+use crate::{inline_tilemap, physics::{groups, physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, BoxTag, BruteTag, DeltaTime, EnemyState, Health, PlayerScore, PlayerTag, RewardInfo, RewardState, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
 pub const BALL_THROW_TIME: f32 = 0.2;
@@ -17,6 +17,8 @@ pub const BRUTE_SPAWN_HEALTH: i32 = 3;
 
 pub const BRUTE_GROUP_FORCE: f32 = 0.01 * 22.0;
 pub const BRUTE_CHASE_FORCE: f32 = 40.0 * 24.0;
+
+pub const REWARD_PER_ENEMY: u32 = 10;
 
 fn spawn_tiles(
     width: usize,
@@ -78,6 +80,10 @@ impl Game {
             Transform {
                 pos,
                 angle: 0.0,
+            },
+            RewardInfo {
+                state: RewardState::Locked,
+                amount: REWARD_PER_ENEMY,
             },
             BruteTag,
             EnemyState::Free,
@@ -216,6 +222,8 @@ impl Game {
             ],
             world,
         );
+
+        world.add_unique(PlayerScore(0));
 
         Self {
             player,
@@ -526,6 +534,33 @@ impl Game {
             dir.normalize_or_zero() * dt.0 * PLAYER_SPEED,
             true,
         );
+    }
+
+    #[method_system]
+    pub fn reward_enemies(
+        &mut self,
+        enemy: View<EnemyState>,
+        mut reward: ViewMut<RewardInfo>,
+    ) {
+        for (state, reward) in (&enemy, &mut reward).iter() {
+            if !matches!((state, reward.state), (EnemyState::Dead, RewardState::Locked)) { continue; }
+
+            reward.state = RewardState::Pending;
+        }
+    }
+
+    #[method_system]
+    pub fn count_rewards(
+        &mut self,
+        mut reward: ViewMut<RewardInfo>,
+        mut score: UniqueViewMut<PlayerScore>,
+    ) {
+        for reward in (&mut reward).iter() {
+            if !matches!(reward.state, RewardState::Pending) { continue; }
+
+            reward.state = RewardState::Counted;
+            score.0 += reward.amount;
+        }
     }
 
     // Doesn't work because we end up doing 2 borrows
