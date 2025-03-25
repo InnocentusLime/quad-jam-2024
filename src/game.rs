@@ -2,7 +2,7 @@ use jam_macro::method_system;
 use macroquad::prelude::*;
 use rapier2d::prelude::InteractionGroups;
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, physics::{groups, physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, BoxTag, BruteTag, DeltaTime, EnemyState, Health, PlayerScore, PlayerTag, RewardInfo, RewardState, TileStorage, TileType, Transform};
+use crate::{inline_tilemap, physics::{groups, physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, BoxTag, BruteTag, DeltaTime, EnemyState, Health, PlayerDamageState, PlayerScore, PlayerTag, RewardInfo, RewardState, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
 pub const BALL_THROW_TIME: f32 = 0.2;
@@ -13,6 +13,7 @@ pub const BALL_RETRACT_SPEED: f32 = 1024.0;
 pub const DISTANCE_EPS: f32 = 0.01;
 
 pub const PLAYER_SPAWN_HEALTH: i32 = 10;
+pub const PLAYER_HIT_COOLDOWN: f32 = 2.0;
 pub const BRUTE_SPAWN_HEALTH: i32 = 3;
 
 pub const BRUTE_GROUP_FORCE: f32 = 0.01 * 22.0;
@@ -144,6 +145,7 @@ impl Game {
             },
             PlayerTag,
             Health(PLAYER_SPAWN_HEALTH),
+            PlayerDamageState::Hittable,
         ));
         physics_spawn(
             world,
@@ -507,6 +509,43 @@ impl Game {
     }
 
     #[method_system]
+    pub fn brute_damage(
+        &mut self,
+        mut phys: UniqueViewMut<PhysicsState>,
+        mut rbs: ViewMut<PhysicsInfo>,
+        brute: View<BruteTag>,
+        mut player_dmg: ViewMut<PlayerDamageState>,
+        mut health: ViewMut<Health>,
+        pos: View<Transform>,
+    ) {
+        let (mut player_dmg, mut player_health) = (&mut player_dmg, &mut health).get(self.player)
+            .unwrap();
+
+        if matches!(&*player_dmg, PlayerDamageState::Cooldown(_)) { return; }
+        if player_health.0 <= 0 { return; }
+
+        for (_, brute_rb, brute_pos) in (&brute, &rbs, &pos).iter() {
+            let Some(collision) = phys.any_collisions(
+                *brute_pos,
+                InteractionGroups {
+                    // FIXME: a very dirty hack to have our cast collide with the player
+                    memberships: groups::LEVEL,
+                    filter: groups::PLAYER
+                },
+                *brute_rb.col(),
+                Some(brute_rb),
+            )
+            else { continue; };
+
+            if collision != self.player { continue; }
+
+            info!("You got kicked");
+            player_health.0 -= 1;
+            *player_dmg = PlayerDamageState::Cooldown(PLAYER_HIT_COOLDOWN);
+        }
+    }
+
+    #[method_system]
     pub fn player_controls(
         &mut self,
         mut phys: UniqueViewMut<PhysicsState>,
@@ -560,6 +599,23 @@ impl Game {
 
             reward.state = RewardState::Counted;
             score.0 += reward.amount;
+        }
+    }
+
+    #[method_system]
+    pub fn player_damage_state(
+        &mut self,
+        mut player_dmg: ViewMut<PlayerDamageState>,
+        dt: UniqueView<DeltaTime>,
+    ) {
+        for player_dmg in (&mut player_dmg).iter() {
+            let PlayerDamageState::Cooldown(time) = player_dmg
+                else { continue; };
+
+            *time -= dt.0;
+            if *time > 0.0 { continue; }
+
+            *player_dmg = PlayerDamageState::Hittable;
         }
     }
 

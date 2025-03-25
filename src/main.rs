@@ -4,7 +4,7 @@ use macroquad::prelude::*;
 use miniquad::window::set_window_size;
 use physics::PhysicsState;
 use render::Render;
-use shipyard::{Component, EntityId, Unique, UniqueViewMut, World};
+use shipyard::{Component, EntityId, IntoIter, Unique, UniqueViewMut, View, World};
 use sound_director::SoundDirector;
 use sys::*;
 use ui::{Ui, UiModel};
@@ -195,6 +195,12 @@ pub struct Speed(pub Vec2);
 #[derive(Unique)]
 pub struct DeltaTime(pub f32);
 
+#[derive(Debug, Clone, Copy, Component)]
+pub enum PlayerDamageState {
+    Hittable,
+    Cooldown(f32),
+}
+
 async fn run() -> anyhow::Result<()> {
     set_max_level(STATIC_MAX_LEVEL);
     init_on_screen_log();
@@ -279,6 +285,8 @@ async fn run() -> anyhow::Result<()> {
                 world.run(PhysicsState::step);
                 world.run(Game::enemy_states);
                 world.run(Game::enemy_state_data);
+                world.run(Game::brute_damage);
+                world.run(Game::player_damage_state);
                 world.run(Game::reward_enemies);
                 world.run(Game::count_rewards);
             },
@@ -300,12 +308,17 @@ async fn run() -> anyhow::Result<()> {
 
         let score = world.get_unique::<&PlayerScore>().unwrap()
             .0;
+        let player_health = world.run(|pl: View<PlayerTag>, health: View<Health>| {
+            (&pl, &health).iter().next().unwrap().1.0
+        });
 
         debug.new_frame();
         debug.draw_ui_debug(&ui_model);
         debug.put_debug_text(&format!("FPS: {:?}", get_fps()), YELLOW);
         debug.new_dbg_line();
         debug.put_debug_text(&format!("Score: {score:}"), YELLOW);
+        debug.new_dbg_line();
+        debug.put_debug_text(&format!("Player: {player_health:}"), YELLOW);
         debug.new_dbg_line();
         debug.draw_events();
 
