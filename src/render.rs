@@ -421,8 +421,16 @@ impl Render {
                 "YOU WIN!",
                 ui_x,
                 148.0,
-                32.0,
-                YELLOW,
+                64.0,
+                GREEN,
+            );
+        } else if player_health <= 0 {
+            draw_text(
+                "You are dead!",
+                ui_x,
+                148.0,
+                64.0,
+                RED,
             );
         }
     }
