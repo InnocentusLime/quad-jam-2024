@@ -1,3 +1,5 @@
+use std::iter::Enumerate;
+
 use jam_macro::method_system;
 use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, Unique, UniqueView, View};
@@ -372,6 +374,7 @@ impl Render {
         health: View<Health>,
         player: View<PlayerTag>,
         gun: View<PlayerGunState>,
+        state: View<EnemyState>,
     ) {
         let ui_x = 600.0;
         let score = score.0;
@@ -394,20 +397,34 @@ impl Render {
         );
         match player_gun {
             PlayerGunState::Empty => draw_text(
-                &format!("Your gun is not loaded"),
+                &"Your gun is not loaded",
                 ui_x,
                 96.0,
                 32.0,
                 YELLOW,
             ),
             PlayerGunState::Full => draw_text(
-                &format!("Ready to shoot"),
+                &"Ready to shoot",
                 ui_x,
                 96.0,
                 32.0,
                 YELLOW,
             ),
         };
+
+        let count = state.iter()
+            .filter(|x| !matches!(x, EnemyState::Dead))
+            .count();
+
+        if count == 0 {
+            draw_text(
+                "YOU WIN!",
+                ui_x,
+                148.0,
+                32.0,
+                YELLOW,
+            );
+        }
     }
 
     fn setup_cam(&mut self) {
