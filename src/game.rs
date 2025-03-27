@@ -318,6 +318,7 @@ impl Game {
         mut pos: ViewMut<Transform>,
         mut player_amo: ViewMut<PlayerGunState>,
         mut ray_tag: ViewMut<RayTag>,
+        mut enemy_state: ViewMut<EnemyState>,
         ui_model: UniqueView<UiModel>,
     ) {
         if !ui_model.attack_down() { return; }
@@ -350,12 +351,38 @@ impl Game {
             Some((_, len)) => len + PLAYER_RAY_LEN_NUDGE,
             None => PLAYER_MAX_RAY_LEN,
         };
+        let rayang = shootdir.to_angle();
 
         for (ray_tag, pos) in (&mut ray_tag, &mut pos).iter() {
             ray_tag.len = raylen;
             ray_tag.life_left = PLAYER_RAY_LINGER;
             pos.pos = player_pos;
-            pos.angle = shootdir.to_angle();
+            pos.angle = rayang;
+        }
+
+        let shootdir = shootdir.normalize_or_zero();
+        let cols = phys.all_collisions(
+            Transform {
+                pos: player_pos + shootdir * (raylen / 2.0),
+                angle: rayang,
+            },
+            // FIXME: dirty hack to interact with NPCS
+            InteractionGroups {
+                memberships: groups::PROJECTILES,
+                filter: groups::NPCS,
+            },
+            ColliderTy::Box {
+                width: raylen,
+                height: PLAYER_RAY_WIDTH,
+            },
+            None,
+        );
+
+        info!("cols: {}", cols.len());
+        for col in cols {
+            *(&mut enemy_state).get(col).unwrap() = EnemyState::Stunned {
+                left: PLAYER_HIT_COOLDOWN,
+            };
         }
     }
 
@@ -490,9 +517,13 @@ impl Game {
                 EnemyState::Stunned { left } => {
                     *left -= dt.0;
                     if *left < 0.0 {
+                        hp.0 -= 1;
                         *enemy = EnemyState::Free;
                     }
-                }
+                },
+                EnemyState::Free => {
+                    if hp.0 <= 0 { *enemy = EnemyState::Dead; }
+                },
                 _ => (),
             }
         }
@@ -600,6 +631,7 @@ impl Game {
         brute: View<BruteTag>,
         mut player_dmg: ViewMut<PlayerDamageState>,
         mut health: ViewMut<Health>,
+        state: View<EnemyState>,
         pos: View<Transform>,
     ) {
         let (mut player_dmg, mut player_health) = (&mut player_dmg, &mut health).get(self.player)
@@ -608,7 +640,8 @@ impl Game {
         if matches!(&*player_dmg, PlayerDamageState::Cooldown(_)) { return; }
         if player_health.0 <= 0 { return; }
 
-        for (_, brute_rb, brute_pos) in (&brute, &rbs, &pos).iter() {
+        for (_, brute_rb, brute_pos, brute_state) in (&brute, &rbs, &pos, &state).iter() {
+            if !matches!(brute_state, EnemyState::Free) { continue; }
             let Some(collision) = phys.any_collisions(
                 *brute_pos,
                 InteractionGroups {
