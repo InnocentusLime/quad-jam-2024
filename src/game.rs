@@ -16,7 +16,7 @@ pub const PLAYER_RAY_LINGER: f32 = 2.0;
 pub const PLAYER_MAX_RAY_LEN: f32 = 360.0;
 pub const PLAYER_RAY_LEN_NUDGE: f32 = 8.0;
 pub const PLAYER_RAY_WIDTH: f32 = 3.0;
-pub const PLAYER_SPAWN_HEALTH: i32 = 10;
+pub const PLAYER_SPAWN_HEALTH: i32 = 4;
 pub const PLAYER_HIT_COOLDOWN: f32 = 2.0;
 pub const BRUTE_SPAWN_HEALTH: i32 = 3;
 
