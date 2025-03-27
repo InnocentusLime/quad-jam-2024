@@ -2,7 +2,7 @@ use jam_macro::method_system;
 use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, Unique, View};
 
-use crate::{physics::{ColliderTy, PhysicsInfo}, BallState, BoxTag, BruteTag, EnemyState, Health, PlayerDamageState, PlayerTag, TileStorage, TileType, Transform};
+use crate::{physics::{ColliderTy, PhysicsInfo}, BallState, BoxTag, BruteTag, BulletTag, EnemyState, Health, PlayerDamageState, PlayerTag, TileStorage, TileType, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 // fn trail() -> particles::EmitterConfig {
@@ -257,6 +257,28 @@ impl Render {
                     GREEN,
                 ),
             }
+        }
+    }
+
+    #[method_system]
+    pub fn draw_bullets(
+        &mut self,
+        pos: View<Transform>,
+        bullet: View<BulletTag>,
+    ) {
+        for (pos, _) in (&pos, &bullet).iter() {
+            draw_rectangle_ex(
+                pos.pos.x,
+                pos.pos.y,
+                16.0,
+                16.0,
+                DrawRectangleParams {
+                    // offset: Vec2::ZERO,
+                    offset: vec2(0.5, 0.5),
+                    rotation: pos.angle,
+                    color: YELLOW,
+                },
+            );
         }
     }
 

@@ -101,6 +101,17 @@ pub enum EnemyState {
     Dead,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Component)]
+pub enum PlayerGunState {
+    Empty,
+    Full,
+}
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub struct BulletTag;
+
 #[derive(Debug, Clone, Copy)]
 #[derive(Component)]
 pub struct BoxTag;
@@ -303,6 +314,7 @@ async fn run() -> anyhow::Result<()> {
         world.run(Render::draw_player);
         world.run(Render::draw_box);
         world.run(Render::draw_colliders);
+        world.run(Render::draw_bullets);
         world.run(Ui::draw);
         world.run(SoundDirector::direct_sounds);
 

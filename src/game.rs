@@ -2,7 +2,7 @@ use jam_macro::method_system;
 use macroquad::prelude::*;
 use rapier2d::prelude::InteractionGroups;
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, physics::{groups, physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, BoxTag, BruteTag, DeltaTime, EnemyState, Health, PlayerDamageState, PlayerScore, PlayerTag, RewardInfo, RewardState, TileStorage, TileType, Transform};
+use crate::{inline_tilemap, physics::{groups, physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, BoxTag, BruteTag, BulletTag, DeltaTime, EnemyState, Health, PlayerDamageState, PlayerScore, PlayerTag, RewardInfo, RewardState, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
 pub const BALL_THROW_TIME: f32 = 0.2;
@@ -103,6 +103,16 @@ impl Game {
         );
     }
 
+    fn spawn_bullet(pos: Vec2, world: &mut World) {
+        world.add_entity((
+            Transform {
+                pos,
+                angle: 0.0,
+            },
+            BulletTag,
+        ));
+    }
+
     pub fn new(world: &mut World) -> Self {
         let mut angle = 0.0;
         let poses = [
@@ -200,6 +210,8 @@ impl Game {
                 Self::spawn_brute(pos, world);
             }
         }
+
+        Self::spawn_bullet(vec2(100.0, 100.0), world);
 
         let tilemap = spawn_tiles(
             16,
