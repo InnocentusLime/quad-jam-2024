@@ -338,6 +338,8 @@ impl Game {
         mut ray_tag: ViewMut<RayTag>,
         mut enemy_state: ViewMut<EnemyState>,
         ui_model: UniqueView<UiModel>,
+        mut score: UniqueViewMut<PlayerScore>,
+        mut bullet: ViewMut<BulletTag>,
     ) {
         if !ui_model.attack_down() { return; }
 
@@ -396,11 +398,17 @@ impl Game {
             None,
         );
 
-        info!("cols: {}", cols.len());
+        // info!("cols: {}", cols.len());
+        score.0 += (cols.len() as u32) * 7;
+
         for col in cols {
             *(&mut enemy_state).get(col).unwrap() = EnemyState::Stunned {
                 left: PLAYER_HIT_COOLDOWN,
             };
+        }
+
+        for (pos, _) in (&mut pos, &mut bullet).iter() {
+            pos.pos = player_pos + shootdir * (raylen - 2.0 * PLAYER_RAY_LEN_NUDGE);
         }
     }
 
