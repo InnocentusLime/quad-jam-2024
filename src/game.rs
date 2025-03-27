@@ -266,6 +266,24 @@ impl Game {
     }
 
     #[method_system]
+    pub fn reset_amo_pickup(
+        &mut self,
+        mut bullet: ViewMut<BulletTag>,
+        mut player_amo: ViewMut<PlayerGunState>,
+    ) {
+        let mut pl = (&mut player_amo).get(self.player)
+            .unwrap();
+
+        if *pl != PlayerGunState::Empty {
+            return;
+        }
+
+        for bul in (&mut bullet).iter() {
+            bul.is_picked = false;
+        }
+    }
+
+    #[method_system]
     pub fn player_ammo_pickup(
         &mut self,
         mut phys: UniqueViewMut<PhysicsState>,

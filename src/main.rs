@@ -305,6 +305,7 @@ async fn run() -> anyhow::Result<()> {
                 world.run(Game::brute_ai);
                 world.run(PhysicsState::step);
                 world.run(Game::player_ammo_pickup);
+                world.run(Game::reset_amo_pickup);
                 world.run(Game::enemy_states);
                 world.run(Game::enemy_state_data);
                 world.run(Game::brute_damage);
