@@ -329,27 +329,13 @@ async fn run() -> anyhow::Result<()> {
         world.run(Render::draw_colliders);
         world.run(Render::draw_bullets);
         world.run(Render::draw_rays);
+        world.run(Render::draw_stats);
         world.run(Ui::draw);
         world.run(SoundDirector::direct_sounds);
-
-        let score = world.get_unique::<&PlayerScore>().unwrap()
-            .0;
-        let player_health = world.run(|pl: View<PlayerTag>, health: View<Health>| {
-            (&pl, &health).iter().next().unwrap().1.0
-        });
-        let player_gun = world.run(|gun: View<PlayerGunState>| {
-            *(&gun,).iter().next().unwrap().0
-        });
 
         debug.new_frame();
         debug.draw_ui_debug(&ui_model);
         debug.put_debug_text(&format!("FPS: {:?}", get_fps()), YELLOW);
-        debug.new_dbg_line();
-        debug.put_debug_text(&format!("Score: {score:}"), YELLOW);
-        debug.new_dbg_line();
-        debug.put_debug_text(&format!("Player: {player_health:}"), YELLOW);
-        debug.new_dbg_line();
-        debug.put_debug_text(&format!("Player gun: {player_gun:?}"), YELLOW);
         debug.new_dbg_line();
         debug.draw_events();
 
