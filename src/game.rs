@@ -2,7 +2,7 @@ use jam_macro::method_system;
 use macroquad::prelude::*;
 use rapier2d::prelude::InteractionGroups;
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, physics::{groups, physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, BoxTag, BruteTag, BulletTag, DeltaTime, EnemyState, Health, PlayerDamageState, PlayerScore, PlayerTag, RewardInfo, RewardState, TileStorage, TileType, Transform};
+use crate::{inline_tilemap, physics::{groups, physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, BoxTag, BruteTag, BulletTag, DeltaTime, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RewardInfo, RewardState, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
 pub const BALL_THROW_TIME: f32 = 0.2;
@@ -109,7 +109,9 @@ impl Game {
                 pos,
                 angle: 0.0,
             },
-            BulletTag,
+            BulletTag {
+                is_picked: false,
+            },
         ));
     }
 
@@ -156,6 +158,7 @@ impl Game {
             PlayerTag,
             Health(PLAYER_SPAWN_HEALTH),
             PlayerDamageState::Hittable,
+            PlayerGunState::Empty,
         ));
         physics_spawn(
             world,
@@ -244,6 +247,40 @@ impl Game {
             weapon,
             boxes,
             tilemap,
+        }
+    }
+
+    #[method_system]
+    pub fn player_ammo_pickup(
+        &mut self,
+        mut phys: UniqueViewMut<PhysicsState>,
+        mut player_amo: ViewMut<PlayerGunState>,
+        pos: View<Transform>,
+        mut bullet: ViewMut<BulletTag>,
+    ) {
+        for (bul, tf) in (&mut bullet, &pos).iter() {
+            if bul.is_picked { continue; }
+
+            let mut pl = (&mut player_amo).get(self.player)
+                .unwrap();
+            let Some(col) = phys.any_collisions(
+                *tf,
+                // FIXME: dirty hack
+                InteractionGroups {
+                    memberships: groups::LEVEL,
+                    filter: groups::PLAYER,
+                },
+                ColliderTy::Box { width: 16.0, height: 16.0 },
+                None,
+            )
+            else { continue; };
+
+            if col != self.player { continue; }
+
+            if *pl == PlayerGunState::Full { continue; }
+
+            *pl = PlayerGunState::Full;
+            bul.is_picked = true;
         }
     }
 

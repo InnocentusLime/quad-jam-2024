@@ -268,7 +268,9 @@ impl Render {
         pos: View<Transform>,
         bullet: View<BulletTag>,
     ) {
-        for (pos, _) in (&pos, &bullet).iter() {
+        for (pos, bul) in (&pos, &bullet).iter() {
+            if bul.is_picked { continue; }
+
             draw_rectangle_ex(
                 pos.pos.x,
                 pos.pos.y,
