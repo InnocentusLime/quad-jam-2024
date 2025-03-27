@@ -2,7 +2,7 @@ use jam_macro::method_system;
 use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, Unique, View};
 
-use crate::{physics::{ColliderTy, PhysicsInfo}, BallState, BoxTag, BruteTag, BulletTag, EnemyState, Health, PlayerDamageState, PlayerTag, TileStorage, TileType, Transform};
+use crate::{game::{PLAYER_RAY_LINGER, PLAYER_RAY_WIDTH}, physics::{ColliderTy, PhysicsInfo}, BallState, BoxTag, BruteTag, BulletTag, EnemyState, Health, PlayerDamageState, PlayerTag, RayTag, TileStorage, TileType, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
@@ -282,6 +282,30 @@ impl Render {
                     rotation: pos.angle,
                     color: YELLOW,
                 },
+            );
+        }
+    }
+
+    #[method_system]
+    pub fn draw_rays(
+        &mut self,
+        pos: View<Transform>,
+        ray: View<RayTag>,
+    ) {
+        for (pos, ray) in (&pos, &ray).iter() {
+            draw_rectangle_ex(
+                pos.pos.x,
+                pos.pos.y,
+                ray.len,
+                PLAYER_RAY_WIDTH,
+                DrawRectangleParams {
+                    offset: vec2(0.0, 0.5),
+                    rotation: pos.angle,
+                    color: Color {
+                        a: ray.life_left / PLAYER_RAY_LINGER,
+                        ..GREEN
+                    },
+                }
             );
         }
     }

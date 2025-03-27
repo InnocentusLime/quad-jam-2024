@@ -2,7 +2,7 @@ use jam_macro::method_system;
 use macroquad::prelude::*;
 use rapier2d::prelude::InteractionGroups;
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, physics::{groups, physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, BoxTag, BruteTag, BulletTag, DeltaTime, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RewardInfo, RewardState, TileStorage, TileType, Transform};
+use crate::{inline_tilemap, physics::{groups, physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, BoxTag, BruteTag, BulletTag, DeltaTime, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, RewardInfo, RewardState, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
 pub const BALL_THROW_TIME: f32 = 0.2;
@@ -12,6 +12,10 @@ pub const BALL_THROW_SPEED: f32 = 512.0;
 pub const BALL_RETRACT_SPEED: f32 = 1024.0;
 pub const DISTANCE_EPS: f32 = 0.01;
 
+pub const PLAYER_RAY_LINGER: f32 = 2.0;
+pub const PLAYER_MAX_RAY_LEN: f32 = 360.0;
+pub const PLAYER_RAY_LEN_NUDGE: f32 = 8.0;
+pub const PLAYER_RAY_WIDTH: f32 = 3.0;
 pub const PLAYER_SPAWN_HEALTH: i32 = 10;
 pub const PLAYER_HIT_COOLDOWN: f32 = 2.0;
 pub const BRUTE_SPAWN_HEALTH: i32 = 3;
@@ -175,6 +179,17 @@ impl Game {
             1.0,
         );
 
+        world.add_entity((
+            Transform {
+                pos: vec2(300.0, 300.0),
+                angle: 0.0,
+            },
+            RayTag {
+                len: 10.0,
+                life_left: 0.0,
+             },
+        ));
+
         let weapon = world.add_entity((
             Transform {
                 pos: vec2(300.0, 300.0),
@@ -285,18 +300,63 @@ impl Game {
     }
 
     #[method_system]
+    pub fn ray_tick(
+        &mut self,
+        mut ray_tag: ViewMut<RayTag>,
+        dt: UniqueView<DeltaTime>,
+    ) {
+        for ray in (&mut ray_tag).iter() {
+            ray.life_left -= dt.0;
+            ray.life_left = ray.life_left.max(0.0);
+        }
+    }
+
+    #[method_system]
     pub fn player_shooting(
         &mut self,
+        mut phys: UniqueViewMut<PhysicsState>,
         mut pos: ViewMut<Transform>,
         mut player_amo: ViewMut<PlayerGunState>,
+        mut ray_tag: ViewMut<RayTag>,
         ui_model: UniqueView<UiModel>,
     ) {
         if !ui_model.attack_down() { return; }
 
+        let player_tf = *(&pos).get(self.player)
+            .unwrap();
+        let player_pos = player_tf.pos;
+        let (mx, my) = mouse_position();
+        let mpos = vec2(mx, my);
+        let shootdir = mpos - player_pos;
         let mut amo = (&mut player_amo).get(self.player)
             .unwrap();
 
+        if *amo != PlayerGunState::Full { return; }
+        if shootdir.length() <= DISTANCE_EPS { return; }
+
         *amo = PlayerGunState::Empty;
+
+        let cast = phys.cast_shape(
+            player_tf,
+            InteractionGroups {
+                memberships: groups::PROJECTILES,
+                filter: groups::PROJECTILES_INTERACT,
+            },
+            shootdir,
+            ColliderTy::Box { width: PLAYER_RAY_WIDTH, height: PLAYER_RAY_WIDTH },
+            None
+        );
+        let raylen = match cast {
+            Some((_, len)) => len + PLAYER_RAY_LEN_NUDGE,
+            None => PLAYER_MAX_RAY_LEN,
+        };
+
+        for (ray_tag, pos) in (&mut ray_tag, &mut pos).iter() {
+            ray_tag.len = raylen;
+            ray_tag.life_left = PLAYER_RAY_LINGER;
+            pos.pos = player_pos;
+            pos.angle = shootdir.to_angle();
+        }
     }
 
     // #[method_system]

@@ -127,6 +127,13 @@ pub struct PlayerTag;
 #[derive(Component)]
 pub struct BruteTag;
 
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub struct RayTag {
+    len: f32,
+    life_left: f32,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Component)]
 pub enum TileType {
@@ -304,6 +311,7 @@ async fn run() -> anyhow::Result<()> {
                 world.run(Game::player_damage_state);
                 world.run(Game::reward_enemies);
                 world.run(Game::count_rewards);
+                world.run(Game::ray_tick);
             },
             AppState::PleaseRotate if get_orientation() == 0.0 => {
                 state = paused_state;
@@ -319,6 +327,7 @@ async fn run() -> anyhow::Result<()> {
         world.run(Render::draw_box);
         world.run(Render::draw_colliders);
         world.run(Render::draw_bullets);
+        world.run(Render::draw_rays);
         world.run(Ui::draw);
         world.run(SoundDirector::direct_sounds);
 
