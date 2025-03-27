@@ -284,121 +284,121 @@ impl Game {
         }
     }
 
-    #[method_system]
-    pub fn ball_logic(
-        &mut self,
-        mut pos: ViewMut<Transform>,
-        mut state: ViewMut<BallState>,
-        mut rbs: ViewMut<PhysicsInfo>,
-        mut enemy_state: ViewMut<EnemyState>,
-        ui_model: UniqueView<UiModel>,
-        mut phys: UniqueViewMut<PhysicsState>,
-        dt: UniqueView<DeltaTime>,
-    ) {
-        let player_pos = pos.get(self.player).unwrap().pos;
-        let mut upd_ent = None;
+    // #[method_system]
+    // pub fn ball_logic(
+    //     &mut self,
+    //     mut pos: ViewMut<Transform>,
+    //     mut state: ViewMut<BallState>,
+    //     mut rbs: ViewMut<PhysicsInfo>,
+    //     mut enemy_state: ViewMut<EnemyState>,
+    //     ui_model: UniqueView<UiModel>,
+    //     mut phys: UniqueViewMut<PhysicsState>,
+    //     dt: UniqueView<DeltaTime>,
+    // ) {
+    //     let player_pos = pos.get(self.player).unwrap().pos;
+    //     let mut upd_ent = None;
 
-        for (state, pos, bod) in (&mut state, &mut pos, &mut rbs).iter() {
-            bod.enabled = matches!(state, BallState::Throwing { .. });
+    //     for (state, pos, bod) in (&mut state, &mut pos, &mut rbs).iter() {
+    //         bod.enabled = matches!(state, BallState::Throwing { .. });
 
-            match state {
-                BallState::InPocket => if ui_model.attack_down() {
-                    let (mx, my) = mouse_position();
-                    let mpos = vec2(mx, my);
-                    let off = (mpos - player_pos).clamp_length(0.0, MAX_BALL_DIST);
+    //         match state {
+    //             BallState::InPocket => if ui_model.attack_down() {
+    //                 let (mx, my) = mouse_position();
+    //                 let mpos = vec2(mx, my);
+    //                 let off = (mpos - player_pos).clamp_length(0.0, MAX_BALL_DIST);
 
-                    *state = BallState::Throwing { to: player_pos + off };
-                } else {
-                    pos.pos = player_pos;
-                },
-                BallState::Throwing { to } => {
-                    let this_pos = pos.pos;
-                    let target_pos = *to;
-                    let diff = target_pos - this_pos;
-                    let step = (diff.normalize_or_zero() * BALL_THROW_SPEED * dt.0)
-                        .clamp_length_max(diff.length());
+    //                 *state = BallState::Throwing { to: player_pos + off };
+    //             } else {
+    //                 pos.pos = player_pos;
+    //             },
+    //             BallState::Throwing { to } => {
+    //                 let this_pos = pos.pos;
+    //                 let target_pos = *to;
+    //                 let diff = target_pos - this_pos;
+    //                 let step = (diff.normalize_or_zero() * BALL_THROW_SPEED * dt.0)
+    //                     .clamp_length_max(diff.length());
 
-                    if to.distance(pos.pos) < DISTANCE_EPS {
-                        *state = BallState::Retracting;
-                    }
+    //                 if to.distance(pos.pos) < DISTANCE_EPS {
+    //                     *state = BallState::Retracting;
+    //                 }
 
-                    if phys.move_kinematic(bod, step, false) {
-                        *state = BallState::Retracting;
-                    }
+    //                 if phys.move_kinematic(bod, step, false) {
+    //                     *state = BallState::Retracting;
+    //                 }
 
-                    if let Some(enemy) = phys.any_collisions(
-                        *pos,
-                        InteractionGroups {
-                            memberships: groups::PROJECTILES,
-                            filter: groups::NPCS,
-                        },
-                        ColliderTy::Circle { radius: 16.0 },
-                        None,
-                    ) {
-                        upd_ent = Some((
-                            enemy,
-                            EnemyState::Captured
-                        ));
-                        *state = BallState::Capturing { enemy };
-                    };
-                },
-                BallState::Retracting => {
-                    let this_pos = pos.pos;
-                    let target_pos = player_pos;
-                    let diff = target_pos - this_pos;
-                    let step = (diff.normalize_or_zero() * BALL_THROW_SPEED * dt.0)
-                        .clamp_length_max(diff.length());
+    //                 if let Some(enemy) = phys.any_collisions(
+    //                     *pos,
+    //                     InteractionGroups {
+    //                         memberships: groups::PROJECTILES,
+    //                         filter: groups::NPCS,
+    //                     },
+    //                     ColliderTy::Circle { radius: 16.0 },
+    //                     None,
+    //                 ) {
+    //                     upd_ent = Some((
+    //                         enemy,
+    //                         EnemyState::Captured
+    //                     ));
+    //                     *state = BallState::Capturing { enemy };
+    //                 };
+    //             },
+    //             BallState::Retracting => {
+    //                 let this_pos = pos.pos;
+    //                 let target_pos = player_pos;
+    //                 let diff = target_pos - this_pos;
+    //                 let step = (diff.normalize_or_zero() * BALL_THROW_SPEED * dt.0)
+    //                     .clamp_length_max(diff.length());
 
-                    pos.pos += step;
+    //                 pos.pos += step;
 
-                    if player_pos.distance(pos.pos) < DISTANCE_EPS {
-                        *state = BallState::InPocket;
-                    }
-                },
-                BallState::Capturing { enemy} => {
-                    let this_pos = pos.pos;
-                    let target_pos = player_pos;
-                    let diff = target_pos - this_pos;
-                    let step = (diff.normalize_or_zero() * BALL_THROW_SPEED * dt.0)
-                        .clamp_length_max(diff.length());
+    //                 if player_pos.distance(pos.pos) < DISTANCE_EPS {
+    //                     *state = BallState::InPocket;
+    //                 }
+    //             },
+    //             BallState::Capturing { enemy} => {
+    //                 let this_pos = pos.pos;
+    //                 let target_pos = player_pos;
+    //                 let diff = target_pos - this_pos;
+    //                 let step = (diff.normalize_or_zero() * BALL_THROW_SPEED * dt.0)
+    //                     .clamp_length_max(diff.length());
 
-                    pos.pos += step;
+    //                 pos.pos += step;
 
-                    if player_pos.distance(pos.pos) < DISTANCE_EPS {
-                        *state = BallState::Spinning { enemy: *enemy };
-                    }
-                },
-                BallState::Spinning { enemy } => if ui_model.attack_down() {
-                    pos.pos = player_pos +
-                        Vec2::from_angle(get_time() as f32 * 5.0 * std::f32::consts::PI) * 32.0;
-                } else {
-                    let (mx, my) = mouse_position();
-                    let mpos = vec2(mx, my);
-                    let dir = (mpos - player_pos)
-                        .normalize_or(vec2(0.0, 1.0));
+    //                 if player_pos.distance(pos.pos) < DISTANCE_EPS {
+    //                     *state = BallState::Spinning { enemy: *enemy };
+    //                 }
+    //             },
+    //             BallState::Spinning { enemy } => if ui_model.attack_down() {
+    //                 pos.pos = player_pos +
+    //                     Vec2::from_angle(get_time() as f32 * 5.0 * std::f32::consts::PI) * 32.0;
+    //             } else {
+    //                 let (mx, my) = mouse_position();
+    //                 let mpos = vec2(mx, my);
+    //                 let dir = (mpos - player_pos)
+    //                     .normalize_or(vec2(0.0, 1.0));
 
-                    upd_ent = Some((
-                        *enemy,
-                        EnemyState::Launched { dir, by_player: true },
-                    ));
-                    *state = BallState::InPocket;
-                },
-            }
-        }
+    //                 upd_ent = Some((
+    //                     *enemy,
+    //                     EnemyState::Launched { dir, by_player: true },
+    //                 ));
+    //                 *state = BallState::InPocket;
+    //             },
+    //         }
+    //     }
 
-        match upd_ent {
-            Some((enemy, EnemyState::Captured)) => {
-                let (mut enemy_state, _) = (&mut enemy_state, &mut pos).get(enemy).unwrap();
-                *enemy_state = EnemyState::Captured;
-            },
-            Some((enemy, EnemyState::Launched { dir, by_player })) => {
-                let (mut enemy_state, mut pos) = (&mut enemy_state, &mut pos).get(enemy).unwrap();
-                *enemy_state = EnemyState::Launched { dir, by_player };
-                pos.pos = player_pos + dir * 16.0;
-            },
-            _ => (),
-        }
-    }
+    //     match upd_ent {
+    //         Some((enemy, EnemyState::Captured)) => {
+    //             let (mut enemy_state, _) = (&mut enemy_state, &mut pos).get(enemy).unwrap();
+    //             *enemy_state = EnemyState::Captured;
+    //         },
+    //         Some((enemy, EnemyState::Launched { dir, by_player })) => {
+    //             let (mut enemy_state, mut pos) = (&mut enemy_state, &mut pos).get(enemy).unwrap();
+    //             *enemy_state = EnemyState::Launched { dir, by_player };
+    //             pos.pos = player_pos + dir * 16.0;
+    //         },
+    //         _ => (),
+    //     }
+    // }
 
     #[method_system]
     pub fn enemy_states(
@@ -410,35 +410,8 @@ impl Game {
         mut hp: ViewMut<Health>,
         dt: UniqueView<DeltaTime>,
     ) {
-        let mut target = None;
-
         for (rb, enemy, pos, hp) in (&rbs, &mut enemy, &pos, &mut hp).iter() {
             match enemy {
-                EnemyState::Launched { dir, by_player } => {
-                    // let dir = *dir;
-                    // let by_player = *by_player;
-
-                    // if phys.move_kinematic(rb, dir * 256.0 * dt.0, false) {
-                        hp.0 -= 1;
-                        *enemy = EnemyState::Stunned { left: 1.5 };
-
-                        if hp.0 <= 0 { *enemy = EnemyState::Dead; }
-                    // }
-
-                    // if !by_player { continue; }
-
-                    // if let Some(bump) = phys.any_collisions(
-                    //     *pos,
-                    //     InteractionGroups {
-                    //         memberships: groups::PROJECTILES,
-                    //         filter: groups::NPCS,
-                    //     },
-                    //     ColliderTy::Circle { radius: 12.0 },
-                    //     Some(rb),
-                    // ) {
-                    //     target = Some((bump, dir));
-                    // }
-                },
                 EnemyState::Stunned { left } => {
                     *left -= dt.0;
                     if *left < 0.0 {
@@ -447,12 +420,6 @@ impl Game {
                 }
                 _ => (),
             }
-        }
-
-        if let Some((bump, dir)) = target {
-            let mut enemy = (&mut enemy).get(bump)
-                .unwrap();
-            *enemy = EnemyState::Launched { dir, by_player: false };
         }
     }
 
@@ -485,13 +452,6 @@ impl Game {
                         filter: groups::NPCS_INTERACT,
                     };
                     pos.pos = ball_pos;
-                },
-                EnemyState::Launched { .. } => {
-                    rb.enabled = true;
-                    rb.groups = InteractionGroups {
-                        memberships: groups::PROJECTILES,
-                        filter: groups::PROJECTILES_INTERACT,
-                    };
                 },
                 EnemyState::Stunned { .. } => {
                     rb.enabled = false;

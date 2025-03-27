@@ -96,7 +96,6 @@ pub struct Health(i32);
 pub enum EnemyState {
     Free,
     Captured,
-    Launched { dir: Vec2, by_player: bool },
     Stunned { left: f32 },
     Dead,
 }
@@ -295,7 +294,7 @@ async fn run() -> anyhow::Result<()> {
             },
             AppState::Active if !ui_model.pause_requested() => {
                 world.run(Game::player_controls);
-                world.run(Game::ball_logic);
+                // world.run(Game::ball_logic);
                 world.run(Game::brute_ai);
                 world.run(PhysicsState::step);
                 world.run(Game::player_ammo_pickup);
