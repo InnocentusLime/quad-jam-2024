@@ -1,9 +1,13 @@
+use std::iter::Enumerate;
+
 use jam_macro::method_system;
 use macroquad::prelude::*;
-use shipyard::{Get, IntoIter, Unique, View};
+use shipyard::{Get, IntoIter, Unique, UniqueView, View};
 
-use crate::{physics::{ColliderTy, PhysicsInfo}, BallState, BoxTag, BruteTag, EnemyState, PlayerTag, TileStorage, TileType, Transform};
+use crate::{game::{PLAYER_RAY_LINGER, PLAYER_RAY_WIDTH}, physics::{ColliderTy, PhysicsInfo}, BallState, BoxTag, BruteTag, BulletTag, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, TileStorage, TileType, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
+
+pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
 
 // fn trail() -> particles::EmitterConfig {
 //     particles::EmitterConfig {
@@ -142,7 +146,7 @@ impl Render {
                         &self.tiles,
                         32.0 * x as f32,
                         32.0 * y as f32,
-                        Color::from_rgba(51, 51, 84, 255),
+                        WALL_COLOR,
                         DrawTextureParams {
                             dest_size: Some(vec2(32.0, 32.0)),
                             source: Some(Rect {
@@ -167,8 +171,17 @@ impl Render {
         &mut self,
         pos: View<Transform>,
         player: View<PlayerTag>,
+        health: View<Health>,
+        dmg: View<PlayerDamageState>,
     ) {
-        for (_, pos) in (&player, &pos).iter() {
+        for (_, pos, health, dmg) in (&player, &pos, &health, &dmg).iter() {
+            let is_flickering = matches!(dmg, PlayerDamageState::Cooldown(_));
+            let color = if is_flickering && (get_time() * 1000.0) as u32 % 2 == 0 {
+               Color::new(0.0, 0.0, 0.0, 0.0)
+            }
+            else if health.0 <= 0 { Color::new(0.0, 0.0, 0.0, 0.0) }
+            else { PURPLE };
+
             draw_rectangle_ex(
                 pos.pos.x,
                 pos.pos.y,
@@ -178,7 +191,7 @@ impl Render {
                     // offset: Vec2::ZERO,
                     offset: vec2(0.5, 0.5),
                     rotation: pos.angle,
-                    color: PURPLE,
+                    color,
                 },
             );
         }
@@ -201,17 +214,11 @@ impl Render {
                Color::new(0.0, 0.0, 0.0, 0.0)
             } else { RED };
 
-            draw_rectangle_ex(
+            draw_circle(
                 pos.pos.x,
                 pos.pos.y,
-                32.0,
-                32.0,
-                DrawRectangleParams {
-                    // offset: Vec2::ZERO,
-                    offset: vec2(0.5, 0.5),
-                    rotation: pos.angle,
-                    color,
-                },
+                8.0,
+                color,
             );
         }
     }
@@ -232,7 +239,7 @@ impl Render {
                     // offset: Vec2::ZERO,
                     offset: vec2(0.5, 0.5),
                     rotation: pos.angle,
-                    color: YELLOW,
+                    color: WALL_COLOR,
                 },
             );
         }
@@ -254,6 +261,75 @@ impl Render {
                     GREEN,
                 ),
             }
+        }
+    }
+
+    #[method_system]
+    pub fn draw_bullets(
+        &mut self,
+        pos: View<Transform>,
+        bullet: View<BulletTag>,
+        score: UniqueView<PlayerScore>,
+    ) {
+        let ammo_hint = "AMMO";
+
+        for (pos, bul) in (&pos, &bullet).iter() {
+            if bul.is_picked { continue; }
+
+            let mes = measure_text(
+                &ammo_hint,
+                None,
+                16,
+                1.0
+            );
+
+            if score.0 == 0 {
+                draw_text(
+                    &ammo_hint,
+                    pos.pos.x - mes.width / 2.0,
+                    pos.pos.y - 20.0,
+                    16.0,
+                    YELLOW,
+                );
+            }
+
+            draw_rectangle_ex(
+                pos.pos.x,
+                pos.pos.y,
+                16.0,
+                16.0,
+                DrawRectangleParams {
+                    // offset: Vec2::ZERO,
+                    offset: vec2(0.5, 0.5),
+                    rotation: pos.angle,
+                    color: YELLOW,
+                },
+            );
+        }
+    }
+
+    #[method_system]
+    pub fn draw_rays(
+        &mut self,
+        pos: View<Transform>,
+        ray: View<RayTag>,
+    ) {
+        for (pos, ray) in (&pos, &ray).iter() {
+            let k = ray.life_left / PLAYER_RAY_LINGER;
+            draw_rectangle_ex(
+                pos.pos.x,
+                pos.pos.y,
+                ray.len,
+                PLAYER_RAY_WIDTH * k,
+                DrawRectangleParams {
+                    offset: vec2(0.0, 0.5),
+                    rotation: pos.angle,
+                    color: Color {
+                        a: k,
+                        ..GREEN
+                    },
+                }
+            );
         }
     }
 
@@ -288,6 +364,74 @@ impl Render {
                     ),
                 }
             }
+        }
+    }
+
+    #[method_system]
+    pub fn draw_stats(
+        &mut self,
+        score: UniqueView<PlayerScore>,
+        health: View<Health>,
+        player: View<PlayerTag>,
+        gun: View<PlayerGunState>,
+        state: View<EnemyState>,
+    ) {
+        let ui_x = 600.0;
+        let score = score.0;
+        let player_health = (&player, &health).iter().next().unwrap().1.0;
+        let player_gun = *(&gun,).iter().next().unwrap().0;
+
+        draw_text(
+            &format!("Score:{score}"),
+            ui_x,
+            32.0,
+            32.0,
+            YELLOW,
+        );
+        draw_text(
+            &format!("Health:{player_health}"),
+            ui_x,
+            64.0,
+            32.0,
+            YELLOW,
+        );
+        match player_gun {
+            PlayerGunState::Empty => draw_text(
+                &"Your gun is not loaded",
+                ui_x,
+                96.0,
+                32.0,
+                YELLOW,
+            ),
+            PlayerGunState::Full => draw_text(
+                &"Ready to shoot",
+                ui_x,
+                96.0,
+                32.0,
+                YELLOW,
+            ),
+        };
+
+        let count = state.iter()
+            .filter(|x| !matches!(x, EnemyState::Dead))
+            .count();
+
+        if count == 0 {
+            draw_text(
+                "YOU WIN!",
+                ui_x,
+                148.0,
+                64.0,
+                GREEN,
+            );
+        } else if player_health <= 0 {
+            draw_text(
+                "You are dead!",
+                ui_x,
+                148.0,
+                64.0,
+                RED,
+            );
         }
     }
 

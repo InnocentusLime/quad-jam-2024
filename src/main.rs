@@ -4,7 +4,7 @@ use macroquad::prelude::*;
 use miniquad::window::set_window_size;
 use physics::PhysicsState;
 use render::Render;
-use shipyard::{Component, EntityId, Unique, UniqueViewMut, World};
+use shipyard::{Component, EntityId, IntoIter, Unique, UniqueViewMut, View, World};
 use sound_director::SoundDirector;
 use sys::*;
 use ui::{Ui, UiModel};
@@ -53,6 +53,24 @@ async fn main() {
 }
 
 #[derive(Debug, Clone, Copy)]
+pub enum RewardState {
+    Locked,
+    Pending,
+    Counted,
+}
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub struct RewardInfo {
+    pub state: RewardState,
+    pub amount: u32,
+}
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Unique)]
+pub struct PlayerScore(pub u32);
+
+#[derive(Debug, Clone, Copy)]
 #[derive(Component)]
 pub enum BallState {
     InPocket,
@@ -78,9 +96,23 @@ pub struct Health(i32);
 pub enum EnemyState {
     Free,
     Captured,
-    Launched { dir: Vec2 },
     Stunned { left: f32 },
     Dead,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Component)]
+pub enum PlayerGunState {
+    Empty,
+    Full,
+}
+
+// TODO: this is a hack, because deleting entities
+// in shipyard is unreasonably difficult
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub struct BulletTag {
+    is_picked: bool,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -94,6 +126,13 @@ pub struct PlayerTag;
 #[derive(Debug, Clone, Copy)]
 #[derive(Component)]
 pub struct BruteTag;
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub struct RayTag {
+    len: f32,
+    life_left: f32,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[derive(Component)]
@@ -177,6 +216,12 @@ pub struct Speed(pub Vec2);
 #[derive(Unique)]
 pub struct DeltaTime(pub f32);
 
+#[derive(Debug, Clone, Copy, Component)]
+pub enum PlayerDamageState {
+    Hittable,
+    Cooldown(f32),
+}
+
 async fn run() -> anyhow::Result<()> {
     set_max_level(STATIC_MAX_LEVEL);
     init_on_screen_log();
@@ -256,11 +301,18 @@ async fn run() -> anyhow::Result<()> {
             },
             AppState::Active if !ui_model.pause_requested() => {
                 world.run(Game::player_controls);
-                world.run(Game::ball_logic);
+                world.run(Game::player_shooting);
                 world.run(Game::brute_ai);
                 world.run(PhysicsState::step);
+                world.run(Game::player_ammo_pickup);
+                world.run(Game::reset_amo_pickup);
                 world.run(Game::enemy_states);
                 world.run(Game::enemy_state_data);
+                world.run(Game::brute_damage);
+                world.run(Game::player_damage_state);
+                world.run(Game::reward_enemies);
+                world.run(Game::count_rewards);
+                world.run(Game::ray_tick);
             },
             AppState::PleaseRotate if get_orientation() == 0.0 => {
                 state = paused_state;
@@ -275,11 +327,16 @@ async fn run() -> anyhow::Result<()> {
         world.run(Render::draw_player);
         world.run(Render::draw_box);
         world.run(Render::draw_colliders);
+        world.run(Render::draw_bullets);
+        world.run(Render::draw_rays);
+        world.run(Render::draw_stats);
         world.run(Ui::draw);
         world.run(SoundDirector::direct_sounds);
 
         debug.new_frame();
         debug.draw_ui_debug(&ui_model);
+        debug.put_debug_text(&format!("FPS: {:?}", get_fps()), YELLOW);
+        debug.new_dbg_line();
         debug.draw_events();
 
         world.clear_all_removed_and_deleted();
