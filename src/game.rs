@@ -398,8 +398,20 @@ impl Game {
             None,
         );
 
+        let mul_table = [
+            1,
+            2,
+            2,
+            5,
+            5,
+            7,
+            9,
+            10,
+            20,
+        ];
+
         // info!("cols: {}", cols.len());
-        score.0 += (cols.len() as u32) * 7;
+        score.0 += (cols.len() as u32) * mul_table[cols.len().clamp(0, mul_table.len() - 1)];
 
         for col in cols {
             *(&mut enemy_state).get(col).unwrap() = EnemyState::Stunned {
