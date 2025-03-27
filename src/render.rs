@@ -267,8 +267,9 @@ impl Render {
         &mut self,
         pos: View<Transform>,
         bullet: View<BulletTag>,
+        score: UniqueView<PlayerScore>,
     ) {
-        let ammo_hint = "Pick this to be able to shoot";
+        let ammo_hint = "AMMO";
 
         for (pos, bul) in (&pos, &bullet).iter() {
             if bul.is_picked { continue; }
@@ -279,13 +280,16 @@ impl Render {
                 16,
                 1.0
             );
-            draw_text(
-                &ammo_hint,
-                pos.pos.x - mes.width / 2.0,
-                pos.pos.y - 20.0,
-                16.0,
-                YELLOW,
-            );
+
+            if score.0 == 0 {
+                draw_text(
+                    &ammo_hint,
+                    pos.pos.x - mes.width / 2.0,
+                    pos.pos.y - 20.0,
+                    16.0,
+                    YELLOW,
+                );
+            }
 
             draw_rectangle_ex(
                 pos.pos.x,
