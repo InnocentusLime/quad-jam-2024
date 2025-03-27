@@ -17,7 +17,7 @@ static RESTART_HINT_DESK: &'static str = "Press Space to restart";
 static RESTART_HINT_MOBILE: &'static str = "Tap the screen to restart";
 static ORIENTATION_HINT: &'static str = "Please re-orient your device\ninto landscape";
 
-static START_TEXT_DESK: &'static str = "Press Space to start";
+static START_TEXT_DESK: &'static str = "Read this and THEN press Space to start";
 static START_HINT: &'static str = "Move: WASD\nShoot: Mouse + Left Button\nYou get extra score for hitting multiple enemies at once\nGet ready to run!";
 static START_TEXT_MOBILE: &'static str = "Tap to start";
 
