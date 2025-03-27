@@ -5,6 +5,8 @@ use shipyard::{Get, IntoIter, Unique, View};
 use crate::{physics::{ColliderTy, PhysicsInfo}, BallState, BoxTag, BruteTag, BulletTag, EnemyState, Health, PlayerDamageState, PlayerTag, TileStorage, TileType, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
+pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
+
 // fn trail() -> particles::EmitterConfig {
 //     particles::EmitterConfig {
 //         emitting: true,
@@ -142,7 +144,7 @@ impl Render {
                         &self.tiles,
                         32.0 * x as f32,
                         32.0 * y as f32,
-                        Color::from_rgba(51, 51, 84, 255),
+                        WALL_COLOR,
                         DrawTextureParams {
                             dest_size: Some(vec2(32.0, 32.0)),
                             source: Some(Rect {
@@ -235,7 +237,7 @@ impl Render {
                     // offset: Vec2::ZERO,
                     offset: vec2(0.5, 0.5),
                     rotation: pos.angle,
-                    color: YELLOW,
+                    color: WALL_COLOR,
                 },
             );
         }
