@@ -384,6 +384,56 @@ impl PhysicsState {
         ))
     }
 
+    pub fn all_collisions(
+        &mut self,
+        tf: Transform,
+        groups: InteractionGroups,
+        shape: ColliderTy,
+        ignore: Option<&PhysicsInfo>,
+    ) -> Vec<EntityId> {
+        let predicate = Some(
+            &|_, col: &Collider| -> bool {
+                col.is_enabled()
+            } as &dyn Fn(ColliderHandle, &Collider) -> bool
+        );
+        let shape = match shape {
+            ColliderTy::Box { width, height } => {
+                &Cuboid::new(rapier2d::na::Vector2::new(
+                    width / 2.0 / PIXEL_PER_METER,
+                    height / 2.0 / PIXEL_PER_METER,
+                )) as &dyn Shape
+            },
+            ColliderTy::Circle { radius } => {
+                &Ball::new(
+                    radius / PIXEL_PER_METER,
+                ) as &dyn Shape
+            },
+        };
+        let shape_pos = Self::world_tf_to_phys(tf);
+        let mut res = Vec::new();
+        self.query_pipeline.intersections_with_shape(
+            &self.bodies,
+            &self.colliders,
+            &shape_pos,
+            shape,
+            QueryFilter {
+                groups: Some(groups),
+                exclude_rigid_body: ignore.map(|x| x.body),
+                predicate,
+                ..QueryFilter::default()
+            },
+            |handle| {
+                let col = self.colliders.get(handle).unwrap();
+
+                res.push(self.mapping_inv[&col.parent().unwrap()]);
+
+                true
+            }
+        );
+
+        res
+    }
+
     pub fn any_collisions(
         &mut self,
         tf: Transform,
