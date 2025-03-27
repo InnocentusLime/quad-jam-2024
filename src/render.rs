@@ -293,16 +293,17 @@ impl Render {
         ray: View<RayTag>,
     ) {
         for (pos, ray) in (&pos, &ray).iter() {
+            let k = ray.life_left / PLAYER_RAY_LINGER;
             draw_rectangle_ex(
                 pos.pos.x,
                 pos.pos.y,
                 ray.len,
-                PLAYER_RAY_WIDTH,
+                PLAYER_RAY_WIDTH * k,
                 DrawRectangleParams {
                     offset: vec2(0.0, 0.5),
                     rotation: pos.angle,
                     color: Color {
-                        a: ray.life_left / PLAYER_RAY_LINGER,
+                        a: k,
                         ..GREEN
                     },
                 }
