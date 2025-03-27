@@ -294,7 +294,7 @@ async fn run() -> anyhow::Result<()> {
             },
             AppState::Active if !ui_model.pause_requested() => {
                 world.run(Game::player_controls);
-                // world.run(Game::ball_logic);
+                world.run(Game::player_shooting);
                 world.run(Game::brute_ai);
                 world.run(PhysicsState::step);
                 world.run(Game::player_ammo_pickup);

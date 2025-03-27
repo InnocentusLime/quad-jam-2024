@@ -284,6 +284,21 @@ impl Game {
         }
     }
 
+    #[method_system]
+    pub fn player_shooting(
+        &mut self,
+        mut pos: ViewMut<Transform>,
+        mut player_amo: ViewMut<PlayerGunState>,
+        ui_model: UniqueView<UiModel>,
+    ) {
+        if !ui_model.attack_down() { return; }
+
+        let mut amo = (&mut player_amo).get(self.player)
+            .unwrap();
+
+        *amo = PlayerGunState::Empty;
+    }
+
     // #[method_system]
     // pub fn ball_logic(
     //     &mut self,
