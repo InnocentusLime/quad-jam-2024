@@ -328,6 +328,62 @@ impl PhysicsState {
         body.apply_impulse(nalgebra::vector![impulse.x, impulse.y], true);
     }
 
+    pub fn cast_shape(
+        &mut self,
+        tf: Transform,
+        groups: InteractionGroups,
+        dir: Vec2,
+        shape: ColliderTy,
+        ignore: Option<&PhysicsInfo>,
+    ) -> Option<(EntityId, f32)> {
+        let predicate = Some(
+            &|_, col: &Collider| -> bool {
+                col.is_enabled()
+            } as &dyn Fn(ColliderHandle, &Collider) -> bool
+        );
+        let shape = match shape {
+            ColliderTy::Box { width, height } => {
+                &Cuboid::new(rapier2d::na::Vector2::new(
+                    width / 2.0 / PIXEL_PER_METER,
+                    height / 2.0 / PIXEL_PER_METER,
+                )) as &dyn Shape
+            },
+            ColliderTy::Circle { radius } => {
+                &Ball::new(
+                    radius / PIXEL_PER_METER,
+                ) as &dyn Shape
+            },
+        };
+        let dir = Self::world_to_phys(dir.normalize_or_zero());
+        let shape_pos = Self::world_tf_to_phys(tf);
+        let Some((handle, hit)) = self.query_pipeline.cast_shape(
+            &self.bodies,
+            &self.colliders,
+            &shape_pos,
+            &vector![dir.x, dir.y],
+            shape,
+            ShapeCastOptions {
+                max_time_of_impact: Real::MAX,
+                target_distance: 0.0,
+                stop_at_penetration: true,
+                compute_impact_geometry_on_penetration: true,
+            },
+            QueryFilter {
+                groups: Some(groups),
+                exclude_rigid_body: ignore.map(|x| x.body),
+                predicate,
+                ..QueryFilter::default()
+            },
+        ) else { return None; };
+
+        let col = self.colliders.get(handle).unwrap();
+
+        Some((
+            self.mapping_inv[&col.parent().unwrap()],
+            hit.time_of_impact
+        ))
+    }
+
     pub fn any_collisions(
         &mut self,
         tf: Transform,
