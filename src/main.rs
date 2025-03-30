@@ -355,6 +355,9 @@ async fn run() -> anyhow::Result<()> {
         world.run(Ui::draw);
         world.run(SoundDirector::direct_sounds);
 
+        world.run(PhysicsState::cleanup);
+        world.clear_all_removed_and_deleted();
+
         let ent_count = world.borrow::<EntitiesView>()
             .unwrap().iter().count();
 
@@ -365,8 +368,6 @@ async fn run() -> anyhow::Result<()> {
         debug.put_debug_text(&format!("Entities: {ent_count}"), YELLOW);
         debug.new_dbg_line();
         debug.draw_events();
-
-        world.clear_all_removed_and_deleted();
 
         next_frame().await
     }

@@ -572,18 +572,10 @@ impl PhysicsState {
     }
 
     #[method_system]
-    pub fn step(
+    pub fn cleanup(
         &mut self,
         rbs: View<PhysicsInfo>,
-        mut pos: ViewMut<Transform>,
-        dt: UniqueView<DeltaTime>,
     ) {
-        self.accumulated_time += dt.0;
-        if self.accumulated_time < self.integration_parameters.dt {
-            return;
-        }
-        self.accumulated_time = self.accumulated_time % self.integration_parameters.dt;
-
         // GC the dead handles
         for remd in rbs.removed_or_deleted() {
             let Some(rb) = self.mapping.remove(&remd)
@@ -601,6 +593,20 @@ impl PhysicsState {
                 true,
             );
         };
+    }
+
+    #[method_system]
+    pub fn step(
+        &mut self,
+        rbs: View<PhysicsInfo>,
+        mut pos: ViewMut<Transform>,
+        dt: UniqueView<DeltaTime>,
+    ) {
+        self.accumulated_time += dt.0;
+        if self.accumulated_time < self.integration_parameters.dt {
+            return;
+        }
+        self.accumulated_time = self.accumulated_time % self.integration_parameters.dt;
 
         // Enable-disable
         for rb in rbs.iter() {
