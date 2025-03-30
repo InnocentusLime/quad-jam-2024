@@ -26,6 +26,7 @@ static START_TEXT_MOBILE: &'static str = "Tap to start";
 #[derive(Unique)]
 pub struct UiModel {
     state: AppState,
+    reset_requested: bool,
     left_movement_down: bool,
     right_movement_down: bool,
     up_movement_down: bool,
@@ -68,6 +69,10 @@ impl UiModel {
     pub fn attack_down(&self) -> bool {
         self.attack_down
     }
+
+    pub fn reset_requested(&self) -> bool {
+        self.reset_requested
+    }
 }
 
 #[derive(Unique)]
@@ -109,10 +114,13 @@ impl Ui {
             is_key_pressed(KeyCode::F11);
         let attack_down =
             is_mouse_button_down(MouseButton::Left);
+        let reset_requested =
+            is_key_pressed(KeyCode::R);
 
         UiModel {
             attack_down,
             state,
+            reset_requested,
             left_movement_down,
             right_movement_down,
             confirmation_detected,

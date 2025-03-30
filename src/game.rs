@@ -2,7 +2,7 @@ use jam_macro::method_system;
 use macroquad::prelude::*;
 use rapier2d::prelude::InteractionGroups;
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, physics::{groups, physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, BallState, BoxTag, BruteTag, BulletTag, DeltaTime, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, RewardInfo, RewardState, TileStorage, TileType, Transform};
+use crate::{inline_tilemap, physics::{groups, physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, AppState, BallState, BoxTag, BruteTag, BulletTag, DeltaTime, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, RewardInfo, RewardState, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
 pub const BALL_THROW_TIME: f32 = 0.2;
@@ -800,3 +800,20 @@ impl Game {
 //         stores: AllStoragesViewMut
 //     )
 // );
+
+pub fn decide_next_state(
+    player: View<PlayerTag>,
+    health: View<Health>,
+    enemy_state: View<EnemyState>,
+) -> Option<AppState> {
+    let player_dead = (&player, &health).iter()
+        .all(|(_, hp)| hp.0 <= 0);
+    let enemies_dead = enemy_state.iter()
+        .all(|state| matches!(state, EnemyState::Dead));
+
+    if player_dead { return Some(AppState::GameOver); }
+
+    if enemies_dead { return Some(AppState::Win); }
+
+    None
+}
