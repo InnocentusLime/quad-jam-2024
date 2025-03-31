@@ -32,7 +32,8 @@ pub mod groups {
         LEVEL;
     pub const NPCS_INTERACT: Group =
         LEVEL
-            .union(PROJECTILES);
+            .union(PROJECTILES)
+            .union(NPCS);
     pub const PROJECTILES_INTERACT: Group =
         LEVEL;
 }
@@ -123,6 +124,7 @@ impl PhysicsState {
         collision: ColliderTy,
         kind: BodyKind,
         groups: InteractionGroups,
+        mass: f32,
     ) {
         let rap_ty = match kind {
             BodyKind::Dynamic => RigidBodyType::Dynamic,
@@ -158,6 +160,7 @@ impl PhysicsState {
         self.colliders.insert_with_parent(
             ColliderBuilder::new(collider_shape)
                 .collision_groups(groups)
+                .mass(mass)
             ,
             body.clone(),
             &mut self.bodies,
@@ -305,6 +308,132 @@ impl PhysicsState {
         }
     }
 
+    pub fn apply_force(
+        &mut self,
+        info: &PhysicsInfo,
+        force: Vec2,
+    ) {
+        let force = Self::world_to_phys(force);
+        let body = self.bodies.get_mut(info.body).unwrap();
+        body.add_force(nalgebra::vector![force.x, force.y], true);
+    }
+
+    pub fn apply_impulse(
+        &mut self,
+        info: &PhysicsInfo,
+        impulse: Vec2,
+    ) {
+        let impulse = Self::world_to_phys(impulse);
+        let body = self.bodies.get_mut(info.body).unwrap();
+        body.apply_impulse(nalgebra::vector![impulse.x, impulse.y], true);
+    }
+
+    pub fn cast_shape(
+        &mut self,
+        tf: Transform,
+        groups: InteractionGroups,
+        dir: Vec2,
+        shape: ColliderTy,
+        ignore: Option<&PhysicsInfo>,
+    ) -> Option<(EntityId, f32)> {
+        let predicate = Some(
+            &|_, col: &Collider| -> bool {
+                col.is_enabled()
+            } as &dyn Fn(ColliderHandle, &Collider) -> bool
+        );
+        let shape = match shape {
+            ColliderTy::Box { width, height } => {
+                &Cuboid::new(rapier2d::na::Vector2::new(
+                    width / 2.0 / PIXEL_PER_METER,
+                    height / 2.0 / PIXEL_PER_METER,
+                )) as &dyn Shape
+            },
+            ColliderTy::Circle { radius } => {
+                &Ball::new(
+                    radius / PIXEL_PER_METER,
+                ) as &dyn Shape
+            },
+        };
+        let dir = Self::world_to_phys(dir.normalize_or_zero());
+        let shape_pos = Self::world_tf_to_phys(tf);
+        let Some((handle, hit)) = self.query_pipeline.cast_shape(
+            &self.bodies,
+            &self.colliders,
+            &shape_pos,
+            &vector![dir.x, dir.y],
+            shape,
+            ShapeCastOptions {
+                max_time_of_impact: Real::MAX,
+                target_distance: 0.0,
+                stop_at_penetration: true,
+                compute_impact_geometry_on_penetration: true,
+            },
+            QueryFilter {
+                groups: Some(groups),
+                exclude_rigid_body: ignore.map(|x| x.body),
+                predicate,
+                ..QueryFilter::default()
+            },
+        ) else { return None; };
+
+        let col = self.colliders.get(handle).unwrap();
+
+        Some((
+            self.mapping_inv[&col.parent().unwrap()],
+            hit.time_of_impact
+        ))
+    }
+
+    pub fn all_collisions(
+        &mut self,
+        tf: Transform,
+        groups: InteractionGroups,
+        shape: ColliderTy,
+        ignore: Option<&PhysicsInfo>,
+    ) -> Vec<EntityId> {
+        let predicate = Some(
+            &|_, col: &Collider| -> bool {
+                col.is_enabled()
+            } as &dyn Fn(ColliderHandle, &Collider) -> bool
+        );
+        let shape = match shape {
+            ColliderTy::Box { width, height } => {
+                &Cuboid::new(rapier2d::na::Vector2::new(
+                    width / 2.0 / PIXEL_PER_METER,
+                    height / 2.0 / PIXEL_PER_METER,
+                )) as &dyn Shape
+            },
+            ColliderTy::Circle { radius } => {
+                &Ball::new(
+                    radius / PIXEL_PER_METER,
+                ) as &dyn Shape
+            },
+        };
+        let shape_pos = Self::world_tf_to_phys(tf);
+        let mut res = Vec::new();
+        self.query_pipeline.intersections_with_shape(
+            &self.bodies,
+            &self.colliders,
+            &shape_pos,
+            shape,
+            QueryFilter {
+                groups: Some(groups),
+                exclude_rigid_body: ignore.map(|x| x.body),
+                predicate,
+                ..QueryFilter::default()
+            },
+            |handle| {
+                let col = self.colliders.get(handle).unwrap();
+
+                res.push(self.mapping_inv[&col.parent().unwrap()]);
+
+                true
+            }
+        );
+
+        res
+    }
+
     pub fn any_collisions(
         &mut self,
         tf: Transform,
@@ -443,18 +572,10 @@ impl PhysicsState {
     }
 
     #[method_system]
-    pub fn step(
+    pub fn cleanup(
         &mut self,
         rbs: View<PhysicsInfo>,
-        mut pos: ViewMut<Transform>,
-        dt: UniqueView<DeltaTime>,
     ) {
-        self.accumulated_time += dt.0;
-        if self.accumulated_time < self.integration_parameters.dt {
-            return;
-        }
-        self.accumulated_time = self.accumulated_time % self.integration_parameters.dt;
-
         // GC the dead handles
         for remd in rbs.removed_or_deleted() {
             let Some(rb) = self.mapping.remove(&remd)
@@ -472,6 +593,20 @@ impl PhysicsState {
                 true,
             );
         };
+    }
+
+    #[method_system]
+    pub fn step(
+        &mut self,
+        rbs: View<PhysicsInfo>,
+        mut pos: ViewMut<Transform>,
+        dt: UniqueView<DeltaTime>,
+    ) {
+        self.accumulated_time += dt.0;
+        if self.accumulated_time < self.integration_parameters.dt {
+            return;
+        }
+        self.accumulated_time = self.accumulated_time % self.integration_parameters.dt;
 
         // Enable-disable
         for rb in rbs.iter() {
@@ -527,6 +662,11 @@ impl PhysicsState {
             pos.pos = new_pos;
             pos.angle = new_angle;
         };
+
+        // Reset forces
+        for (_, body) in self.bodies.iter_mut() {
+            body.reset_forces(false);
+        }
     }
 }
 
@@ -539,6 +679,7 @@ wrap_method!(
         entity: EntityId,
         collision: ColliderTy,
         kind: BodyKind,
-        groups: InteractionGroups
+        groups: InteractionGroups,
+        mass: f32
     )
 );

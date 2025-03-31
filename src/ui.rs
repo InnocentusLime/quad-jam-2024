@@ -11,19 +11,22 @@ const VERTICAL_ORIENT_HORIZONTAL_PADDING: f32 = 16.0;
 static WIN_TEXT: &'static str = "Congratulations!";
 static GAMEOVER_TEXT: &'static str = "Game Over";
 static PAUSE_TEXT: &'static str = "Paused";
+static PAUSE_HINT: &'static str = "Move: WASD\nShoot: Mouse + Left Button\nYou get extra score for hitting multiple enemies at once\nPress escape to resume";
 static ORIENTATION_TEXT: &'static str = "Wrong Orientation";
 
 static RESTART_HINT_DESK: &'static str = "Press Space to restart";
 static RESTART_HINT_MOBILE: &'static str = "Tap the screen to restart";
 static ORIENTATION_HINT: &'static str = "Please re-orient your device\ninto landscape";
 
-static START_TEXT_DESK: &'static str = "Press Space to start";
+static START_TEXT_DESK: &'static str = "Controls";
+static START_HINT: &'static str = "Move: WASD\nShoot: Mouse + Left Button\nYou get extra score for hitting multiple enemies at once\nPRESS SPACE TO START\nGet ready to run!";
 static START_TEXT_MOBILE: &'static str = "Tap to start";
 
 #[derive(Clone, Copy, Debug)]
 #[derive(Unique)]
 pub struct UiModel {
     state: AppState,
+    reset_requested: bool,
     left_movement_down: bool,
     right_movement_down: bool,
     up_movement_down: bool,
@@ -66,6 +69,10 @@ impl UiModel {
     pub fn attack_down(&self) -> bool {
         self.attack_down
     }
+
+    pub fn reset_requested(&self) -> bool {
+        self.reset_requested
+    }
 }
 
 #[derive(Unique)]
@@ -107,10 +114,13 @@ impl Ui {
             is_key_pressed(KeyCode::F11);
         let attack_down =
             is_mouse_button_down(MouseButton::Left);
+        let reset_requested =
+            is_key_pressed(KeyCode::R);
 
         UiModel {
             attack_down,
             state,
+            reset_requested,
             left_movement_down,
             right_movement_down,
             confirmation_detected,
@@ -136,7 +146,7 @@ impl Ui {
             AppState::Start => self.draw_announcement_text(
                 true,
                 Self::start_text(),
-                None,
+                Some(START_HINT),
             ),
             AppState::GameOver => self.draw_announcement_text(
                 true,
@@ -148,7 +158,11 @@ impl Ui {
                 WIN_TEXT,
                 Some(Self::game_restart_hint()),
             ),
-            AppState::Paused => self.draw_announcement_text(true, PAUSE_TEXT, None),
+            AppState::Paused => self.draw_announcement_text(
+                true,
+                PAUSE_TEXT,
+                Some(PAUSE_HINT),
+            ),
             AppState::PleaseRotate => self.draw_announcement_text(
                 true,
                 ORIENTATION_TEXT,
