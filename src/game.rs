@@ -77,6 +77,7 @@ pub struct Game {
     player: EntityId,
     boxes: [EntityId; 4],
     tilemap: EntityId,
+    camera: Camera2D,
 }
 
 impl Game {
@@ -262,7 +263,34 @@ impl Game {
             weapon,
             boxes,
             tilemap,
+            camera: Camera2D::default(),
         }
+    }
+
+    pub fn mouse_pos(
+        &self,
+    ) -> Vec2 {
+        let (mx, my) = mouse_position();
+        self.camera.screen_to_world(vec2(mx, my))
+    }
+
+    #[method_system]
+    pub fn update_camera(
+        &mut self,
+    ) {
+        let view_height = 19.0 * 32.0;
+        let view_width = (screen_width() / screen_height()) * view_height;
+        self.camera = Camera2D::from_display_rect(Rect {
+            x: 0.0,
+            y: 0.0,
+            w: view_width,
+            h: view_height,
+        });
+        self.camera.zoom.y *= -1.0;
+    }
+
+    pub fn camera(&self) -> &Camera2D {
+        &self.camera
     }
 
     #[method_system]
@@ -346,8 +374,7 @@ impl Game {
         let player_tf = *(&pos).get(self.player)
             .unwrap();
         let player_pos = player_tf.pos;
-        let (mx, my) = mouse_position();
-        let mpos = vec2(mx, my);
+        let mpos = self.mouse_pos();
         let shootdir = mpos - player_pos;
         let mut amo = (&mut player_amo).get(self.player)
             .unwrap();

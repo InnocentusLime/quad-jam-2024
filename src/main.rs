@@ -318,6 +318,7 @@ async fn run() -> anyhow::Result<()> {
                 reset_game(&mut world);
             }
             AppState::Active if !ui_model.pause_requested() => {
+                world.run(Game::update_camera);
                 world.run(Game::player_controls);
                 world.run(Game::player_shooting);
                 world.run(Game::brute_ai);

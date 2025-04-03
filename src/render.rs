@@ -4,7 +4,7 @@ use jam_macro::method_system;
 use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, Unique, UniqueView, View};
 
-use crate::{game::{PLAYER_RAY_LINGER, PLAYER_RAY_WIDTH}, physics::{ColliderTy, PhysicsInfo}, BallState, BoxTag, BruteTag, BulletTag, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, TileStorage, TileType, Transform};
+use crate::{game::{Game, PLAYER_RAY_LINGER, PLAYER_RAY_WIDTH}, physics::{ColliderTy, PhysicsInfo}, BallState, BoxTag, BruteTag, BulletTag, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, TileStorage, TileType, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
@@ -121,8 +121,9 @@ impl Render {
     #[method_system]
     pub fn new_frame(
         &mut self,
+        game: UniqueView<Game>,
     ) {
-        self.setup_cam();
+        set_camera(game.camera());
 
         clear_background(Color {
             r: 0.0,
