@@ -4,7 +4,7 @@ use jam_macro::method_system;
 use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, Unique, UniqueView, View};
 
-use crate::{game::{Game, PLAYER_RAY_LINGER, PLAYER_RAY_WIDTH}, physics::{ColliderTy, PhysicsInfo}, BallState, BoxTag, BruteTag, BulletTag, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, TileStorage, TileType, Transform};
+use crate::{game::{Game, BRUTE_SPAWN_HEALTH, PLAYER_RAY_LINGER, PLAYER_RAY_WIDTH}, physics::{ColliderTy, PhysicsInfo}, BallState, BoxTag, BruteTag, BulletTag, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, TileStorage, TileType, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
@@ -204,16 +204,25 @@ impl Render {
         pos: View<Transform>,
         brute: View<BruteTag>,
         state: View<EnemyState>,
+        hp: View<Health>,
     ) {
-        for (_, pos, state) in (&brute, &pos, &state).iter() {
+        for (_, pos, state, hp) in (&brute, &pos, &state, &hp).iter() {
             if matches!(state, EnemyState::Dead) {
                 continue;
             }
 
+            let k = hp.0 as f32 / BRUTE_SPAWN_HEALTH as f32;
             let is_flickering = matches!(state, EnemyState::Stunned { .. });
             let color = if is_flickering && (get_time() * 1000.0) as u32 % 2 == 0 {
-               Color::new(0.0, 0.0, 0.0, 0.0)
-            } else { RED };
+                Color::new(0.0, 0.0, 0.0, 0.0)
+            } else {
+                let mut res = RED;
+                res.r *= k;
+                res.g *= k;
+                res.b *= k;
+
+                res
+            };
 
             draw_circle(
                 pos.pos.x,
