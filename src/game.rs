@@ -249,8 +249,8 @@ impl Game {
                 w, g, g, g, g, g, g, w, g, g, w, g, g, g, g, w,
                 w, g, g, w, g, g, g, g, g, g, w, g, g, g, g, w,
                 w, g, g, g, g, g, g, g, g, g, w, g, g, g, g, w,
-                w, g, g, g, g, g, g, g, g, g, w, g, g, g, g, w,
-                w, g, g, g, g, g, g, g, g, g, w, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
                 w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w
             ],
             world,
