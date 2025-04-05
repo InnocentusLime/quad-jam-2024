@@ -249,8 +249,8 @@ impl Game {
                 w, g, g, g, g, g, g, w, g, g, w, g, g, g, g, w,
                 w, g, g, w, g, g, g, g, g, g, w, g, g, g, g, w,
                 w, g, g, g, g, g, g, g, g, g, w, g, g, g, g, w,
-                w, g, g, g, g, g, g, g, g, g, w, g, g, g, g, w,
-                w, g, g, g, g, g, g, g, g, g, w, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
                 w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w
             ],
             world,
@@ -426,13 +426,14 @@ impl Game {
         );
 
         let mul_table = [
+            0,
+            1,
+            1,
             1,
             2,
             2,
-            5,
-            5,
-            7,
-            9,
+            2,
+            10,
             10,
             20,
         ];
