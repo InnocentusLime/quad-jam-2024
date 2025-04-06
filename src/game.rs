@@ -73,6 +73,7 @@ fn spawn_tiles(
 
 #[derive(Unique)]
 pub struct Game {
+    accumelated_time: f32,
     weapon: EntityId,
     player: EntityId,
     boxes: [EntityId; 4],
@@ -264,6 +265,7 @@ impl Game {
             boxes,
             tilemap,
             camera: Camera2D::default(),
+            accumelated_time: 0.0,
         }
     }
 
@@ -272,6 +274,18 @@ impl Game {
     ) -> Vec2 {
         let (mx, my) = mouse_position();
         self.camera.screen_to_world(vec2(mx, my))
+    }
+
+    pub fn update_tickers(
+        mut this: UniqueViewMut<Game>,
+        dt: UniqueView<DeltaTime>,
+    ) -> bool {
+        let fps = 1.0 / 60.0;
+        this.accumelated_time += dt.0;
+        let res = this.accumelated_time >= fps;
+        this.accumelated_time = this.accumelated_time % fps;
+
+        res
     }
 
     #[method_system]

@@ -318,20 +318,27 @@ async fn run() -> anyhow::Result<()> {
                 reset_game(&mut world);
             }
             AppState::Active if !ui_model.pause_requested() => {
-                world.run(Game::update_camera);
-                world.run(Game::player_controls);
-                world.run(Game::player_shooting);
-                world.run(Game::brute_ai);
+                let do_tick = world.run(Game::update_tickers);
+
+                if do_tick {
+                    world.run(Game::update_camera);
+                    world.run(Game::player_controls);
+                    world.run(Game::player_shooting);
+                    world.run(Game::brute_ai);
+                }
                 world.run(PhysicsState::step);
-                world.run(Game::player_ammo_pickup);
-                world.run(Game::reset_amo_pickup);
-                world.run(Game::enemy_states);
-                world.run(Game::enemy_state_data);
-                world.run(Game::brute_damage);
-                world.run(Game::player_damage_state);
-                world.run(Game::reward_enemies);
-                world.run(Game::count_rewards);
-                world.run(Game::ray_tick);
+
+                if do_tick {
+                    world.run(Game::player_ammo_pickup);
+                    world.run(Game::reset_amo_pickup);
+                    world.run(Game::enemy_states);
+                    world.run(Game::enemy_state_data);
+                    world.run(Game::brute_damage);
+                    world.run(Game::player_damage_state);
+                    world.run(Game::reward_enemies);
+                    world.run(Game::count_rewards);
+                    world.run(Game::ray_tick);
+                }
 
                 if let Some(new_state) = world.run(decide_next_state) {
                     state = new_state;
