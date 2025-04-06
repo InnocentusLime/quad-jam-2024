@@ -765,9 +765,12 @@ impl Game {
         }
 
         let mut rb = (&mut rbs).get(self.player).unwrap();
+        // FIXME: the game now ticks at the fixed rate. Here (and in many other instances)
+        // dt.0 is no longer appropiate.
         phys.move_kinematic(
             &mut rb,
-            dir.normalize_or_zero() * dt.0 * PLAYER_SPEED,
+            // dir.normalize_or_zero() * dt.0 * PLAYER_SPEED,
+            dir.normalize_or_zero() * (1.0 / 60.0) * PLAYER_SPEED,
             true,
         );
     }
