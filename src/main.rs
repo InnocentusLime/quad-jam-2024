@@ -261,6 +261,7 @@ async fn run() -> anyhow::Result<()> {
 
     let mut fullscreen = window_conf().fullscreen;
     let mut paused_state = state;
+    let mut accumelated_time = 0.0f32;
 
     // Save old size as leaving fullscreen will give window a different size
     // This value is our best bet as macroquad doesn't allow us to get window size
@@ -278,11 +279,11 @@ async fn run() -> anyhow::Result<()> {
             state = AppState::PleaseRotate;
         }
 
-        let ui_model = world.run(|ui: UniqueViewMut<Ui>, mut ui_model: UniqueViewMut<UiModel>, mut dt: UniqueViewMut<DeltaTime>| {
+        let (ui_model, dt) = world.run(|ui: UniqueViewMut<Ui>, mut ui_model: UniqueViewMut<UiModel>, mut dt: UniqueViewMut<DeltaTime>| {
             *ui_model = ui.update(state);
             dt.0 = get_frame_time();
 
-            *ui_model
+            (*ui_model, dt.0)
         });
 
         if ui_model.fullscreen_toggle_requested() {
@@ -318,17 +319,19 @@ async fn run() -> anyhow::Result<()> {
                 reset_game(&mut world);
             }
             AppState::Active if !ui_model.pause_requested() => {
-                let do_tick = world.run(Game::update_tickers);
+                let fps = 1.0 / 60.0;
+                accumelated_time += dt;
+                let do_tick = accumelated_time >= fps;
+                accumelated_time = accumelated_time % fps;
 
                 if do_tick {
                     world.run(Game::update_camera);
                     world.run(Game::player_controls);
                     world.run(Game::player_shooting);
                     world.run(Game::brute_ai);
-                }
-                world.run(PhysicsState::step);
 
-                if do_tick {
+                    world.run(PhysicsState::step);
+
                     world.run(Game::player_ammo_pickup);
                     world.run(Game::reset_amo_pickup);
                     world.run(Game::enemy_states);
