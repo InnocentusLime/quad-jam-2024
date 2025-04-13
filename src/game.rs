@@ -717,10 +717,10 @@ impl Game {
         let (mut player_dmg, mut player_health) = (&mut player_dmg, &mut health).get(self.player)
             .unwrap();
 
-        if matches!(&*player_dmg, PlayerDamageState::Cooldown(_)) { return; }
-        if player_health.0 <= 0 { return; }
-
         for (_, brute_rb, brute_pos, brute_state) in (&brute, &rbs, &pos, &state).iter() {
+            if matches!(&*player_dmg, PlayerDamageState::Cooldown(_)) { return; }
+            if player_health.0 <= 0 { return; }
+
             if !matches!(brute_state, EnemyState::Free) { continue; }
             let Some(collision) = phys.any_collisions(
                 *brute_pos,
