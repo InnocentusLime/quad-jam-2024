@@ -288,7 +288,7 @@ async fn run() -> anyhow::Result<()> {
         perf_time += real_dt;
 
         if accumelated_time >= 2.0*fixed_dt {
-            info!("LAG");
+            warn!("LAG");
             accumelated_time = 0.0;
             perf_time = 0.0;
             perf_ticks = 0;
