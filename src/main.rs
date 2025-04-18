@@ -262,6 +262,8 @@ async fn run() -> anyhow::Result<()> {
     let mut fullscreen = window_conf().fullscreen;
     let mut paused_state = state;
     let mut accumelated_time = 0.0f32;
+    let mut perf_time = 0.0f32;
+    let mut perf_ticks = 0;
 
     // Save old size as leaving fullscreen will give window a different size
     // This value is our best bet as macroquad doesn't allow us to get window size
@@ -281,6 +283,21 @@ async fn run() -> anyhow::Result<()> {
 
         let real_dt = get_frame_time();
         let fixed_dt = 1.0 / 60.0;
+        let mut do_tick = false;
+        accumelated_time += real_dt;
+        perf_time += real_dt;
+
+        if accumelated_time >= 2.0*fixed_dt {
+            info!("LAG");
+            accumelated_time = 0.0;
+            perf_time = 0.0;
+            perf_ticks = 0;
+        } else if accumelated_time >= fixed_dt {
+            do_tick = true;
+            accumelated_time -= fixed_dt;
+            perf_ticks += 1;
+        }
+
         let ui_model = world.run(|ui: UniqueViewMut<Ui>, mut ui_model: UniqueViewMut<UiModel>| {
             *ui_model = ui.update(state);
 
@@ -320,10 +337,6 @@ async fn run() -> anyhow::Result<()> {
                 reset_game(&mut world);
             }
             AppState::Active if !ui_model.pause_requested() => {
-                accumelated_time += real_dt;
-                let do_tick = accumelated_time >= fixed_dt;
-                accumelated_time = accumelated_time % fixed_dt;
-
                 if do_tick {
                     world.run(|mut dt: UniqueViewMut<DeltaTime>| {
                         dt.0 = fixed_dt
@@ -383,6 +396,8 @@ async fn run() -> anyhow::Result<()> {
         debug.put_debug_text(&format!("FPS: {:?}", get_fps()), YELLOW);
         debug.new_dbg_line();
         debug.put_debug_text(&format!("Entities: {ent_count}"), YELLOW);
+        debug.new_dbg_line();
+        debug.put_debug_text(&format!("Perf timing: {} & {perf_ticks}", (perf_time / fixed_dt) as i32), YELLOW);
         debug.new_dbg_line();
         debug.draw_events();
 
