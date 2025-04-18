@@ -279,11 +279,12 @@ async fn run() -> anyhow::Result<()> {
             state = AppState::PleaseRotate;
         }
 
-        let (ui_model, dt) = world.run(|ui: UniqueViewMut<Ui>, mut ui_model: UniqueViewMut<UiModel>, mut dt: UniqueViewMut<DeltaTime>| {
+        let real_dt = get_frame_time();
+        let fixed_dt = 1.0 / 60.0;
+        let ui_model = world.run(|ui: UniqueViewMut<Ui>, mut ui_model: UniqueViewMut<UiModel>| {
             *ui_model = ui.update(state);
-            dt.0 = get_frame_time();
 
-            (*ui_model, dt.0)
+            *ui_model
         });
 
         if ui_model.fullscreen_toggle_requested() {
@@ -319,12 +320,14 @@ async fn run() -> anyhow::Result<()> {
                 reset_game(&mut world);
             }
             AppState::Active if !ui_model.pause_requested() => {
-                let fps = 1.0 / 60.0;
-                accumelated_time += dt;
-                let do_tick = accumelated_time >= fps;
-                accumelated_time = accumelated_time % fps;
+                accumelated_time += real_dt;
+                let do_tick = accumelated_time >= fixed_dt;
+                accumelated_time = accumelated_time % fixed_dt;
 
                 if do_tick {
+                    world.run(|mut dt: UniqueViewMut<DeltaTime>| {
+                        dt.0 = fixed_dt
+                    });
                     world.run(Game::update_camera);
                     world.run(Game::player_controls);
                     world.run(Game::player_shooting);
@@ -353,6 +356,9 @@ async fn run() -> anyhow::Result<()> {
             _ => (),
         };
 
+        world.run(|mut dt: UniqueViewMut<DeltaTime>| {
+            dt.0 = real_dt
+        });
         world.run(Render::new_frame);
         world.run(Render::draw_tiles);
         world.run(Render::draw_ballohurt);
