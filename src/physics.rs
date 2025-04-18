@@ -88,7 +88,6 @@ pub struct PhysicsState {
     mapping_inv: HashMap<RigidBodyHandle, EntityId>,
     kinematic_cols: Vec<(Vector2<f32>, Isometry2<f32>, ShapeCastHit)>,
     manifolds: Vec<ContactManifold>,
-    accumulated_time: f32,
 }
 
 impl PhysicsState {
@@ -111,7 +110,6 @@ impl PhysicsState {
             mapping_inv: HashMap::new(),
             kinematic_cols: Vec::new(),
             manifolds: Vec::new(),
-            accumulated_time: 0.0,
         }
     }
 
@@ -602,12 +600,6 @@ impl PhysicsState {
         mut pos: ViewMut<Transform>,
         dt: UniqueView<DeltaTime>,
     ) {
-        self.accumulated_time += dt.0;
-        if self.accumulated_time < self.integration_parameters.dt {
-            return;
-        }
-        self.accumulated_time = self.accumulated_time % self.integration_parameters.dt;
-
         // Enable-disable
         for rb in rbs.iter() {
             let body = self.bodies.get_mut(rb.body).unwrap();

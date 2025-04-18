@@ -261,6 +261,9 @@ async fn run() -> anyhow::Result<()> {
 
     let mut fullscreen = window_conf().fullscreen;
     let mut paused_state = state;
+    let mut accumelated_time = 0.0f32;
+    let mut perf_time = 0.0f32;
+    let mut perf_ticks = 0;
 
     // Save old size as leaving fullscreen will give window a different size
     // This value is our best bet as macroquad doesn't allow us to get window size
@@ -278,9 +281,25 @@ async fn run() -> anyhow::Result<()> {
             state = AppState::PleaseRotate;
         }
 
-        let ui_model = world.run(|ui: UniqueViewMut<Ui>, mut ui_model: UniqueViewMut<UiModel>, mut dt: UniqueViewMut<DeltaTime>| {
+        let real_dt = get_frame_time();
+        let fixed_dt = 1.0 / 60.0;
+        let mut do_tick = false;
+        accumelated_time += real_dt;
+        perf_time += real_dt;
+
+        if accumelated_time >= 2.0*fixed_dt {
+            warn!("LAG");
+            accumelated_time = 0.0;
+            perf_time = 0.0;
+            perf_ticks = 0;
+        } else if accumelated_time >= fixed_dt {
+            do_tick = true;
+            accumelated_time -= fixed_dt;
+            perf_ticks += 1;
+        }
+
+        let ui_model = world.run(|ui: UniqueViewMut<Ui>, mut ui_model: UniqueViewMut<UiModel>| {
             *ui_model = ui.update(state);
-            dt.0 = get_frame_time();
 
             *ui_model
         });
@@ -318,17 +337,17 @@ async fn run() -> anyhow::Result<()> {
                 reset_game(&mut world);
             }
             AppState::Active if !ui_model.pause_requested() => {
-                let do_tick = world.run(Game::update_tickers);
-
                 if do_tick {
+                    world.run(|mut dt: UniqueViewMut<DeltaTime>| {
+                        dt.0 = fixed_dt
+                    });
                     world.run(Game::update_camera);
                     world.run(Game::player_controls);
                     world.run(Game::player_shooting);
                     world.run(Game::brute_ai);
-                }
-                world.run(PhysicsState::step);
 
-                if do_tick {
+                    world.run(PhysicsState::step);
+
                     world.run(Game::player_ammo_pickup);
                     world.run(Game::reset_amo_pickup);
                     world.run(Game::enemy_states);
@@ -350,6 +369,9 @@ async fn run() -> anyhow::Result<()> {
             _ => (),
         };
 
+        world.run(|mut dt: UniqueViewMut<DeltaTime>| {
+            dt.0 = real_dt
+        });
         world.run(Render::new_frame);
         world.run(Render::draw_tiles);
         world.run(Render::draw_ballohurt);
@@ -374,6 +396,8 @@ async fn run() -> anyhow::Result<()> {
         debug.put_debug_text(&format!("FPS: {:?}", get_fps()), YELLOW);
         debug.new_dbg_line();
         debug.put_debug_text(&format!("Entities: {ent_count}"), YELLOW);
+        debug.new_dbg_line();
+        debug.put_debug_text(&format!("Perf timing: {} & {perf_ticks}", (perf_time / fixed_dt) as i32), YELLOW);
         debug.new_dbg_line();
         debug.draw_events();
 
