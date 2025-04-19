@@ -249,7 +249,7 @@ async fn run() -> anyhow::Result<()> {
     let ui = Ui::new().await?;
 
     let mut world = World::new();
-    world.add_unique(Render::new().await?);
+    let mut render = Render::new().await?;
     world.add_unique(PhysicsState::new());
     world.add_unique(SoundDirector::new().await?);
     world.add_unique(ui.update(state));
@@ -372,16 +372,7 @@ async fn run() -> anyhow::Result<()> {
         world.run(|mut dt: UniqueViewMut<DeltaTime>| {
             dt.0 = real_dt
         });
-        world.run(Render::new_frame);
-        world.run(Render::draw_tiles);
-        world.run(Render::draw_ballohurt);
-        world.run(Render::draw_brute);
-        world.run(Render::draw_player);
-        world.run(Render::draw_box);
-        world.run(Render::draw_colliders);
-        world.run(Render::draw_bullets);
-        world.run(Render::draw_rays);
-        world.run(Render::draw_stats);
+        render.render(&world);
         world.run(Ui::draw);
         world.run(SoundDirector::direct_sounds);
 

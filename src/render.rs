@@ -1,8 +1,5 @@
-use std::iter::Enumerate;
-
-use jam_macro::method_system;
 use macroquad::prelude::*;
-use shipyard::{Get, IntoIter, Unique, UniqueView, View};
+use shipyard::{Get, IntoIter, UniqueView, View, World};
 
 use crate::{game::{Game, BRUTE_SPAWN_HEALTH, PLAYER_RAY_LINGER, PLAYER_RAY_WIDTH}, physics::{ColliderTy, PhysicsInfo}, BallState, BoxTag, BruteTag, BulletTag, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, TileStorage, TileType, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
@@ -83,7 +80,6 @@ pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
 //     }
 // }
 
-#[derive(Unique)]
 pub struct Render {
     // ball_emit: particles::Emitter,
     // pl_emit: particles::Emitter,
@@ -118,8 +114,21 @@ impl Render {
         })
     }
 
-    #[method_system]
-    pub fn new_frame(
+    pub fn render(&mut self, world: &World) {
+        world.run_with_data(Self::new_frame, self);
+        world.run_with_data(Self::draw_tiles, self);
+        world.run_with_data(Self::draw_ballohurt, self);
+        world.run_with_data(Self::draw_brute, self);
+        world.run_with_data(Self::draw_player, self);
+        world.run_with_data(Self::draw_box, self);
+        world.run_with_data(Self::draw_colliders, self);
+        world.run_with_data(Self::draw_box, self);
+        world.run_with_data(Self::draw_bullets, self);
+        world.run_with_data(Self::draw_rays, self);
+        world.run_with_data(Self::draw_stats, self);
+    }
+
+    fn new_frame(
         &mut self,
         game: UniqueView<Game>,
     ) {
@@ -133,8 +142,7 @@ impl Render {
         });
     }
 
-    #[method_system]
-    pub fn draw_tiles(
+    fn draw_tiles(
         &mut self,
         tile_storage: View<TileStorage>,
         tiles: View<TileType>,
@@ -167,8 +175,7 @@ impl Render {
         }
     }
 
-    #[method_system]
-    pub fn draw_player(
+    fn draw_player(
         &mut self,
         pos: View<Transform>,
         player: View<PlayerTag>,
@@ -198,8 +205,7 @@ impl Render {
         }
     }
 
-    #[method_system]
-    pub fn draw_brute(
+    fn draw_brute(
         &mut self,
         pos: View<Transform>,
         brute: View<BruteTag>,
@@ -233,8 +239,7 @@ impl Render {
         }
     }
 
-    #[method_system]
-    pub fn draw_box(
+    fn draw_box(
         &mut self,
         pos: View<Transform>,
         boxt: View<BoxTag>,
@@ -255,8 +260,7 @@ impl Render {
         }
     }
 
-    #[method_system]
-    pub fn draw_ballohurt(
+    fn draw_ballohurt(
         &mut self,
         pos: View<Transform>,
         ball_state: View<BallState>,
@@ -274,8 +278,7 @@ impl Render {
         }
     }
 
-    #[method_system]
-    pub fn draw_bullets(
+    fn draw_bullets(
         &mut self,
         pos: View<Transform>,
         bullet: View<BulletTag>,
@@ -318,8 +321,7 @@ impl Render {
         }
     }
 
-    #[method_system]
-    pub fn draw_rays(
+    fn draw_rays(
         &mut self,
         pos: View<Transform>,
         ray: View<RayTag>,
@@ -343,8 +345,7 @@ impl Render {
         }
     }
 
-    #[method_system]
-    pub fn draw_colliders(
+    fn draw_colliders(
         &mut self,
         phys: View<PhysicsInfo>,
         pos: View<Transform>,
@@ -377,8 +378,7 @@ impl Render {
         }
     }
 
-    #[method_system]
-    pub fn draw_stats(
+    fn draw_stats(
         &mut self,
         score: UniqueView<PlayerScore>,
         health: View<Health>,
