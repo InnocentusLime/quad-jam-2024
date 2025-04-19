@@ -251,7 +251,7 @@ async fn run() -> anyhow::Result<()> {
     let mut world = World::new();
     let mut render = Render::new().await?;
     world.add_unique(PhysicsState::new());
-    world.add_unique(SoundDirector::new().await?);
+    let mut sound = SoundDirector::new().await?;
     world.add_unique(ui.update(state));
     world.add_unique(DeltaTime(0.0));
     world.add_unique(ui); // TODO: remove
@@ -374,7 +374,7 @@ async fn run() -> anyhow::Result<()> {
         });
         render.render(&world);
         world.run(Ui::draw);
-        world.run(SoundDirector::direct_sounds);
+        sound.run(&world);
 
         world.run(PhysicsState::cleanup);
         world.clear_all_removed_and_deleted();
