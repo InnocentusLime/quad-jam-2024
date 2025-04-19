@@ -246,15 +246,16 @@ async fn run() -> anyhow::Result<()> {
 
     let mut state = AppState::Start;
     let mut debug = Debug::new();
-    let ui = Ui::new().await?;
 
     let mut world = World::new();
+
+    let mut ui = Ui::new().await?;
     let mut render = Render::new().await?;
     world.add_unique(PhysicsState::new());
     let mut sound = SoundDirector::new().await?;
+
     world.add_unique(ui.update(state));
     world.add_unique(DeltaTime(0.0));
-    world.add_unique(ui); // TODO: remove
 
     let game = Game::new(&mut world);
     world.add_unique(game);
@@ -281,6 +282,7 @@ async fn run() -> anyhow::Result<()> {
             state = AppState::PleaseRotate;
         }
 
+        let ui_model = ui.update(state);
         let real_dt = get_frame_time();
         let fixed_dt = 1.0 / 60.0;
         let mut do_tick = false;
@@ -298,11 +300,7 @@ async fn run() -> anyhow::Result<()> {
             perf_ticks += 1;
         }
 
-        let ui_model = world.run(|ui: UniqueViewMut<Ui>, mut ui_model: UniqueViewMut<UiModel>| {
-            *ui_model = ui.update(state);
-
-            *ui_model
-        });
+        world.run(|mut ui_model_res: UniqueViewMut<UiModel>| *ui_model_res = ui_model);
 
         if ui_model.fullscreen_toggle_requested() {
             // NOTE: macroquad does not update window config when it goes fullscreen
@@ -373,7 +371,7 @@ async fn run() -> anyhow::Result<()> {
             dt.0 = real_dt
         });
         render.render(&world);
-        world.run(Ui::draw);
+        world.run_with_data(Ui::draw, &mut ui);
         sound.run(&world);
 
         world.run(PhysicsState::cleanup);
