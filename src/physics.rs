@@ -826,6 +826,7 @@ impl PhysicsState {
             };
 
             info.shape = beam_shape;
+            beam.overlaps.clear();
             self.all_collisions(
                 beam_tf,
                 beam.overlap_filter,
