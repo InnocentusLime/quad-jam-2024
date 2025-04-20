@@ -810,11 +810,12 @@ impl PhysicsState {
                 else { panic!("Beam support only box colliders"); };
 
             let dir = Vec2::from_angle(tf.angle);
+            // FIXME: a dirty hack!
             let beamlen = self.cast_shape(
                 *tf,
                 info.groups,
                 dir,
-                info.shape
+                ColliderTy::Box { width: 1.0, height },
             ).unwrap_or(1000.0);
             let beam_shape = ColliderTy::Box {
                 height,
