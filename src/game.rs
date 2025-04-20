@@ -175,6 +175,7 @@ impl Game {
             PlayerDamageState::Hittable,
             PlayerGunState::Empty,
             BodyTag::Kinematic,
+            KinematicControl::new(),
             PhysicsInfo::new(
                 InteractionGroups {
                     memberships: groups::PLAYER,

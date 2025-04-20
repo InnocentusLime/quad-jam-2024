@@ -82,6 +82,15 @@ pub struct KinematicControl {
     pub slide: bool,
 }
 
+impl KinematicControl {
+    pub fn new() -> Self {
+        Self {
+            dr: Vec2::ZERO,
+            slide: false,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Component)]
 pub struct ForceApplier {
     pub force: Vec2,
