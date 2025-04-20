@@ -803,6 +803,8 @@ impl PhysicsState {
         }
     }
 
+    // NOTE: beams are expensive and slightly laggy
+    // as they are right now at least. Need a faster impl
     pub fn export_beam_queries(
         &mut self,
         tf: View<Transform>,
