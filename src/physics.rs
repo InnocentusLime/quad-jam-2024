@@ -414,7 +414,7 @@ impl PhysicsState {
     ) {
         let predicate = Some(
             &|_, col: &Collider| -> bool {
-                col.is_enabled()
+                col.is_enabled() && !col.is_sensor()
             } as &dyn Fn(ColliderHandle, &Collider) -> bool
         );
         let shape = match shape {
