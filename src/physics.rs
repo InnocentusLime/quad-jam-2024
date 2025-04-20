@@ -60,6 +60,14 @@ pub struct OneSensorTag {
     pub col: Option<EntityId>,
 }
 
+impl OneSensorTag {
+    pub fn new() -> Self {
+        Self {
+            col: None,
+        }
+    }
+}
+
 #[derive(Clone, Copy, Debug, Component)]
 #[derive(PartialEq, Eq, Hash)]
 pub enum BodyTag {
@@ -70,13 +78,13 @@ pub enum BodyTag {
 
 #[derive(Clone, Copy, Debug, Component)]
 pub struct KinematicControl {
-    dr: Vec2,
-    slide: bool,
+    pub dr: Vec2,
+    pub slide: bool,
 }
 
 #[derive(Clone, Copy, Debug, Component)]
 pub struct ForceApplier {
-    force: Vec2,
+    pub force: Vec2,
 }
 
 #[derive(Clone, Copy, Debug, Component)]
@@ -89,6 +97,15 @@ pub struct PhysicsInfo {
 }
 
 impl PhysicsInfo {
+    pub fn new(groups: InteractionGroups, shape: ColliderTy, mass: f32) -> Self {
+        Self {
+            enabled: true,
+            groups,
+            mass,
+            shape,
+        }
+    }
+
     pub fn shape(&self) -> &ColliderTy { &self.shape }
 }
 
@@ -688,6 +705,22 @@ impl PhysicsState {
         // Reset forces
         for (_, body) in self.bodies.iter_mut() {
             body.reset_forces(false);
+        }
+    }
+
+    pub fn apply_kinematic_moves(
+        &mut self,
+        mut kin: ViewMut<KinematicControl>,
+    ) {
+        for (ent, kin) in (&mut kin).iter().with_id() {
+            let rbh = self.mapping[&ent];
+            self.move_kinematic(
+                rbh,
+                kin.dr,
+                kin.slide,
+            );
+
+            kin.dr = Vec2::ZERO;
         }
     }
 

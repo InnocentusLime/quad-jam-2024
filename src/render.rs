@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, UniqueView, View, World};
 
-use crate::{game::{Game, BRUTE_SPAWN_HEALTH, PLAYER_RAY_LINGER, PLAYER_RAY_WIDTH}, physics::{ColliderTy, PhysicsInfo}, BallState, BoxTag, BruteTag, BulletTag, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, TileStorage, TileType, Transform};
+use crate::{game::{Game, BRUTE_SPAWN_HEALTH, PLAYER_RAY_LINGER, PLAYER_RAY_WIDTH}, physics::{BeamTag, BodyTag, ColliderTy, OneSensorTag, PhysicsInfo}, BallState, BoxTag, BruteTag, BulletTag, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, TileStorage, TileType, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
@@ -121,11 +121,14 @@ impl Render {
         world.run_with_data(Self::draw_brute, self);
         world.run_with_data(Self::draw_player, self);
         world.run_with_data(Self::draw_box, self);
-        world.run_with_data(Self::draw_colliders, self);
         world.run_with_data(Self::draw_box, self);
         world.run_with_data(Self::draw_bullets, self);
         world.run_with_data(Self::draw_rays, self);
         world.run_with_data(Self::draw_stats, self);
+        // Debug rendering
+        world.run_with_data(Self::draw_bodies, self);
+        world.run_with_data(Self::draw_one_sensors, self);
+        world.run_with_data(Self::draw_beams, self);
     }
 
     fn new_frame(
@@ -345,35 +348,116 @@ impl Render {
         }
     }
 
-    fn draw_colliders(
+    fn draw_one_sensors(
         &mut self,
         phys: View<PhysicsInfo>,
         pos: View<Transform>,
+        sens_tag: View<OneSensorTag>,
     ) {
-        if self.render_colliders {
-            for (col, tf) in (&phys, &pos).iter() {
-                match col.col() {
-                    ColliderTy::Box { width, height } => draw_rectangle_lines_ex(
-                        tf.pos.x,
-                        tf.pos.y,
-                        *width,
-                        *height,
-                        1.0,
-                        DrawRectangleParams {
-                            // offset: Vec2::ZERO,
-                            offset: vec2(0.5, 0.5),
-                            rotation: tf.angle,
-                            color: RED,
-                        },
-                    ),
-                    ColliderTy::Circle { radius } => draw_circle_lines(
-                        tf.pos.x,
-                        tf.pos.y,
-                        *radius,
-                        1.0,
-                        RED
-                    ),
-                }
+        if !self.render_colliders {
+            return
+        }
+
+        for (col, tf, tag) in (&phys, &pos, &sens_tag).iter() {
+            let color = if tag.col.is_some() {
+                Color::new(0.00, 0.93, 0.30, 1.00)
+            } else {
+                GREEN
+            };
+
+            match col.shape() {
+                ColliderTy::Box { width, height } => draw_rectangle_lines_ex(
+                    tf.pos.x,
+                    tf.pos.y,
+                    *width,
+                    *height,
+                    1.0,
+                    DrawRectangleParams {
+                        offset: vec2(0.0, 0.5),
+                        rotation: tf.angle,
+                        color,
+                    },
+                ),
+                ColliderTy::Circle { .. } => (),
+            }
+        }
+    }
+
+    fn draw_beams(
+        &mut self,
+        phys: View<PhysicsInfo>,
+        pos: View<Transform>,
+        beam_tag: View<BeamTag>,
+    ) {
+        if !self.render_colliders {
+            return
+        }
+
+        // TODO: draw collision count
+        for (col, tf, _tag) in (&phys, &pos, &beam_tag).iter() {
+            let color = GREEN;
+
+            match col.shape() {
+                ColliderTy::Box { width, height } => draw_rectangle_lines_ex(
+                    tf.pos.x,
+                    tf.pos.y,
+                    *width,
+                    *height,
+                    1.0,
+                    DrawRectangleParams {
+                        offset: vec2(0.0, 0.5),
+                        rotation: tf.angle,
+                        color,
+                    },
+                ),
+                // Circle beams are not allowed
+                ColliderTy::Circle { radius } => draw_circle_lines(
+                    tf.pos.x,
+                    tf.pos.y,
+                    *radius,
+                    1.0,
+                    color,
+                ),
+            }
+        }
+    }
+
+    fn draw_bodies(
+        &mut self,
+        phys: View<PhysicsInfo>,
+        pos: View<Transform>,
+        body_tag: View<BodyTag>,
+    ) {
+        if !self.render_colliders {
+            return
+        }
+
+        for (col, tf, tag) in (&phys, &pos, &body_tag).iter() {
+            let color = match tag {
+                BodyTag::Static => DARKBLUE,
+                BodyTag::Dynamic => RED,
+                BodyTag::Kinematic => YELLOW,
+            };
+
+            match col.shape() {
+                ColliderTy::Box { width, height } => draw_rectangle_ex(
+                    tf.pos.x,
+                    tf.pos.y,
+                    *width,
+                    *height,
+                    DrawRectangleParams {
+                        // offset: Vec2::ZERO,
+                        offset: vec2(0.5, 0.5),
+                        rotation: tf.angle,
+                        color,
+                    },
+                ),
+                ColliderTy::Circle { radius } => draw_circle(
+                    tf.pos.x,
+                    tf.pos.y,
+                    *radius,
+                    color,
+                ),
             }
         }
     }

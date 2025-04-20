@@ -125,6 +125,14 @@ pub struct PlayerTag;
 
 #[derive(Debug, Clone, Copy)]
 #[derive(Component)]
+pub struct DamageTag;
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub struct PlayerDamageSensorTag;
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
 pub struct BruteTag;
 
 #[derive(Debug, Clone, Copy)]
@@ -251,7 +259,7 @@ async fn run() -> anyhow::Result<()> {
 
     let mut ui = Ui::new().await?;
     let mut render = Render::new().await?;
-    world.add_unique(PhysicsState::new());
+    let mut physics = PhysicsState::new();
     let mut sound = SoundDirector::new().await?;
 
     world.add_unique(ui.update(state));
@@ -313,6 +321,9 @@ async fn run() -> anyhow::Result<()> {
             fullscreen = !fullscreen;
         }
 
+        world.run_with_data(PhysicsState::allocate_bodies, &mut physics);
+        world.run_with_data(PhysicsState::allocate_one_sensors, &mut physics);
+
         match state {
             AppState::Start if ui_model.confirmation_detected() => {
                 info!("Starting the game");
@@ -339,18 +350,29 @@ async fn run() -> anyhow::Result<()> {
                     world.run(|mut dt: UniqueViewMut<DeltaTime>| {
                         dt.0 = fixed_dt
                     });
-                    world.run(Game::update_camera);
-                    world.run(Game::player_controls);
-                    world.run(Game::player_shooting);
+
                     world.run(Game::brute_ai);
+                    world.run(Game::player_controls);
 
-                    world.run(PhysicsState::step);
+                    world.run_with_data(PhysicsState::import_positions_and_info, &mut physics);
+                    world.run_with_data(PhysicsState::import_forces, &mut physics);
+                    world.run_with_data(PhysicsState::apply_kinematic_moves, &mut physics);
+                    world.run_with_data(PhysicsState::step, &mut physics);
 
+                    world.run(Game::player_sensor_pose);
+                    world.run(Game::player_ray_align);
+
+                    world.run_with_data(PhysicsState::export_body_poses, &mut physics);
+                    world.run_with_data(PhysicsState::export_beam_queries, &mut physics);
+                    world.run_with_data(PhysicsState::export_sensor_queries, &mut physics);
+
+                    world.run(Game::update_camera);
                     world.run(Game::player_ammo_pickup);
                     world.run(Game::reset_amo_pickup);
                     world.run(Game::enemy_states);
                     world.run(Game::enemy_state_data);
-                    world.run(Game::brute_damage);
+                    world.run(Game::player_damage);
+                    world.run(Game::player_shooting);
                     world.run(Game::player_damage_state);
                     world.run(Game::reward_enemies);
                     world.run(Game::count_rewards);
@@ -374,7 +396,7 @@ async fn run() -> anyhow::Result<()> {
         world.run_with_data(Ui::draw, &mut ui);
         sound.run(&world);
 
-        world.run(PhysicsState::cleanup);
+        world.run_with_data(PhysicsState::remove_dead_handles, &mut physics);
         world.clear_all_removed_and_deleted();
 
         let ent_count = world.borrow::<EntitiesView>()

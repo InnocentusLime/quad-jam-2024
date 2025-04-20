@@ -2,7 +2,7 @@ use jam_macro::method_system;
 use macroquad::prelude::*;
 use rapier2d::prelude::InteractionGroups;
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, physics::{groups, physics_spawn, BodyKind, ColliderTy, PhysicsInfo, PhysicsState}, ui::UiModel, AppState, BallState, BoxTag, BruteTag, BulletTag, DeltaTime, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, RewardInfo, RewardState, TileStorage, TileType, Transform};
+use crate::{inline_tilemap, physics::{groups, BeamTag, BodyTag, ColliderTy, ForceApplier, KinematicControl, OneSensorTag, PhysicsInfo, PhysicsState}, ui::UiModel, AppState, BallState, BoxTag, BruteTag, BulletTag, DamageTag, DeltaTime, EnemyState, Health, PlayerDamageSensorTag, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, RewardInfo, RewardState, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
 pub const BALL_THROW_TIME: f32 = 0.2;
@@ -50,19 +50,22 @@ fn spawn_tiles(
             }
         );
 
-        let ty = world.get::<&TileType>(tile).unwrap();
+        let ty = **world.get::<&TileType>(tile).unwrap();
 
-        match ty.as_ref() {
-            TileType::Wall => physics_spawn(
-                world,
+        match ty {
+            TileType::Wall => world.add_component(
                 tile,
-                ColliderTy::Box { width: 32.0, height: 32.0, },
-                BodyKind::Static,
-                InteractionGroups {
-                    memberships: groups::LEVEL,
-                    filter: groups::LEVEL_INTERACT,
-                },
-                1.0,
+                (
+                    PhysicsInfo::new(
+                        InteractionGroups {
+                            memberships: groups::LEVEL,
+                            filter: groups::LEVEL_INTERACT,
+                        },
+                        ColliderTy::Box { width: 32.0, height: 32.0, },
+                        1.0,
+                    ),
+                    BodyTag::Static,
+                )
             ),
             TileType::Ground => (),
         }
@@ -94,18 +97,18 @@ impl Game {
             BruteTag,
             EnemyState::Free,
             Health(BRUTE_SPAWN_HEALTH),
+            PhysicsInfo::new(
+                InteractionGroups {
+                    memberships: groups::NPCS,
+                    filter: groups::NPCS_INTERACT,
+                },
+                ColliderTy::Circle { radius: 8.0 },
+                5.0,
+            ),
+            BodyTag::Dynamic,
+            ForceApplier { force: Vec2::ZERO },
+            DamageTag,
         ));
-        physics_spawn(
-            world,
-            brute,
-            ColliderTy::Circle { radius: 8.0 },
-            BodyKind::Dynamic,
-            InteractionGroups {
-                memberships: groups::NPCS,
-                filter: groups::NPCS_INTERACT,
-            },
-            5.0,
-        );
     }
 
     fn spawn_bullet(pos: Vec2, world: &mut World) {
@@ -117,6 +120,15 @@ impl Game {
             BulletTag {
                 is_picked: false,
             },
+            OneSensorTag::new(),
+            PhysicsInfo::new(
+                InteractionGroups {
+                    memberships: groups::LEVEL,
+                    filter: groups::PLAYER,
+                },
+                ColliderTy::Box { width: 16.0, height: 16.0 },
+                1.0,
+            ),
         ));
     }
 
@@ -136,21 +148,19 @@ impl Game {
                     angle,
                 },
                 BoxTag,
+                BodyTag::Dynamic,
+                PhysicsInfo::new(
+                    InteractionGroups {
+                        memberships: groups::LEVEL,
+                        filter: groups::LEVEL_INTERACT,
+                    },
+                    ColliderTy::Box {
+                        width: 32.0,
+                        height: 32.0,
+                    },
+                    1.0,
+                ),
             ));
-            physics_spawn(
-                world,
-                the_box,
-                ColliderTy::Box {
-                    width: 32.0,
-                    height: 32.0,
-                },
-                BodyKind::Dynamic,
-                InteractionGroups {
-                    memberships: groups::LEVEL,
-                    filter: groups::LEVEL_INTERACT,
-                },
-                1.0,
-            );
 
             the_box
         });
@@ -164,21 +174,40 @@ impl Game {
             Health(PLAYER_SPAWN_HEALTH),
             PlayerDamageState::Hittable,
             PlayerGunState::Empty,
+            BodyTag::Kinematic,
+            PhysicsInfo::new(
+                InteractionGroups {
+                    memberships: groups::PLAYER,
+                    filter: groups::PLAYER_INTERACT,
+                },
+                ColliderTy::Box {
+                    width: 16.0,
+                    height: 16.0,
+                },
+                1.0,
+            ),
         ));
-        physics_spawn(
-            world,
-            player,
-            ColliderTy::Box {
-                width: 16.0,
-                height: 16.0,
+
+        // TODO: use a sensor with many collisions
+        let player_damage_sensor = world.add_entity((
+            Transform {
+                pos: vec2(300.0, 300.0),
+                angle: 0.0,
             },
-            BodyKind::Kinematic,
-            InteractionGroups {
-                memberships: groups::PLAYER,
-                filter: groups::PLAYER_INTERACT,
-            },
-            1.0,
-        );
+            PhysicsInfo::new(
+                InteractionGroups {
+                    memberships: groups::LEVEL,
+                    filter: groups::NPCS,
+                },
+                ColliderTy::Box {
+                    width: 16.0,
+                    height: 16.0,
+                },
+                1.0,
+            ),
+            OneSensorTag::new(),
+            PlayerDamageSensorTag,
+        ));
 
         world.add_entity((
             Transform {
@@ -197,20 +226,18 @@ impl Game {
                 angle: 0.0,
             },
             BallState::InPocket,
+            BodyTag::Kinematic,
+            PhysicsInfo::new(
+                InteractionGroups {
+                    memberships: groups::PROJECTILES,
+                    filter: groups::PROJECTILES_INTERACT,
+                },
+                ColliderTy::Circle {
+                    radius: 4.0
+                },
+                1.0,
+            ),
         ));
-        physics_spawn(
-            world,
-            weapon,
-            ColliderTy::Circle {
-                radius: 4.0
-            },
-            BodyKind::Kinematic,
-            InteractionGroups {
-                memberships: groups::PROJECTILES,
-                filter: groups::PROJECTILES_INTERACT,
-            },
-            1.0,
-        );
 
         let brute_pos = [
             vec2(280.0, 240.0),
@@ -312,29 +339,35 @@ impl Game {
     }
 
     #[method_system]
+    pub fn player_sensor_pose(
+        &mut self,
+        mut tf: ViewMut<Transform>,
+        sense_tag: View<PlayerDamageSensorTag>,
+        player_tag: View<PlayerTag>,
+    ) {
+        let (&player_tf, _) = (&tf, &player_tag)
+            .iter()
+            .next()
+            .unwrap();
+
+        for (tf, _) in (&mut tf, &sense_tag).iter() {
+            tf.pos = player_tf.pos;
+        }
+    }
+
+    #[method_system]
     pub fn player_ammo_pickup(
         &mut self,
-        mut phys: UniqueViewMut<PhysicsState>,
         mut player_amo: ViewMut<PlayerGunState>,
-        pos: View<Transform>,
         mut bullet: ViewMut<BulletTag>,
+        bul_sensor: View<OneSensorTag>,
     ) {
-        for (bul, tf) in (&mut bullet, &pos).iter() {
+        for (bul, sens) in (&mut bullet, &bul_sensor).iter() {
             if bul.is_picked { continue; }
 
             let mut pl = (&mut player_amo).get(self.player)
                 .unwrap();
-            let Some(col) = phys.any_collisions(
-                *tf,
-                // FIXME: dirty hack
-                InteractionGroups {
-                    memberships: groups::LEVEL,
-                    filter: groups::PLAYER,
-                },
-                ColliderTy::Box { width: 16.0, height: 16.0 },
-                None,
-            )
-            else { continue; };
+            let Some(col) = sens.col else { continue; };
 
             if col != self.player { continue; }
 
@@ -358,73 +391,40 @@ impl Game {
     }
 
     #[method_system]
+    pub fn player_ray_align(
+        &mut self,
+        mut tf: ViewMut<Transform>,
+        mut ray_tag: ViewMut<RayTag>,
+        ui_model: UniqueView<UiModel>,
+    ) {
+        let player_tf = *(&tf).get(self.player)
+            .unwrap();
+        let player_pos = player_tf.pos;
+        let mpos = self.mouse_pos();
+        let shootdir = mpos - player_pos;
+
+        if shootdir.length() <= DISTANCE_EPS { return; }
+
+        let rayang = shootdir.to_angle();
+        for (tf, _) in (&mut tf, &ray_tag).iter() {
+            tf.pos = player_pos;
+            tf.angle = rayang;
+        }
+    }
+
+    #[method_system]
     pub fn player_shooting(
         &mut self,
-        mut phys: UniqueViewMut<PhysicsState>,
-        mut pos: ViewMut<Transform>,
+        beam_tag: View<BeamTag>,
+        mut tf: ViewMut<Transform>,
         mut player_amo: ViewMut<PlayerGunState>,
         mut ray_tag: ViewMut<RayTag>,
         mut enemy_state: ViewMut<EnemyState>,
         ui_model: UniqueView<UiModel>,
         mut score: UniqueViewMut<PlayerScore>,
         mut bullet: ViewMut<BulletTag>,
+        pinfo: View<PhysicsInfo>,
     ) {
-        if !ui_model.attack_down() { return; }
-
-        let player_tf = *(&pos).get(self.player)
-            .unwrap();
-        let player_pos = player_tf.pos;
-        let mpos = self.mouse_pos();
-        let shootdir = mpos - player_pos;
-        let mut amo = (&mut player_amo).get(self.player)
-            .unwrap();
-
-        if *amo != PlayerGunState::Full { return; }
-        if shootdir.length() <= DISTANCE_EPS { return; }
-
-        *amo = PlayerGunState::Empty;
-
-        let cast = phys.cast_shape(
-            player_tf,
-            InteractionGroups {
-                memberships: groups::PROJECTILES,
-                filter: groups::PROJECTILES_INTERACT,
-            },
-            shootdir,
-            ColliderTy::Box { width: PLAYER_RAY_WIDTH, height: PLAYER_RAY_WIDTH },
-            None
-        );
-        let raylen = match cast {
-            Some((_, len)) => len + PLAYER_RAY_LEN_NUDGE,
-            None => PLAYER_MAX_RAY_LEN,
-        };
-        let rayang = shootdir.to_angle();
-
-        for (ray_tag, pos) in (&mut ray_tag, &mut pos).iter() {
-            ray_tag.len = raylen;
-            ray_tag.life_left = PLAYER_RAY_LINGER;
-            pos.pos = player_pos;
-            pos.angle = rayang;
-        }
-
-        let shootdir = shootdir.normalize_or_zero();
-        let cols = phys.all_collisions(
-            Transform {
-                pos: player_pos + shootdir * (raylen / 2.0),
-                angle: rayang,
-            },
-            // FIXME: dirty hack to interact with NPCS
-            InteractionGroups {
-                memberships: groups::PROJECTILES,
-                filter: groups::NPCS,
-            },
-            ColliderTy::Box {
-                width: raylen,
-                height: PLAYER_RAY_WIDTH,
-            },
-            None,
-        );
-
         let mul_table = [
             0,
             1,
@@ -437,17 +437,40 @@ impl Game {
             10,
             20,
         ];
+        let player_tf = *(&tf).get(self.player).unwrap();
+        let mut raylen = 0.0;
+        let player_pos = player_tf.pos;
+        let mut shootdir = Vec2::ZERO;
+        let mut amo = (&mut player_amo).get(self.player)
+            .unwrap();
 
-        // info!("cols: {}", cols.len());
-        score.0 += (cols.len() as u32) * mul_table[cols.len().clamp(0, mul_table.len() - 1)];
+        if !ui_model.attack_down() { return; }
 
-        for col in cols {
-            *(&mut enemy_state).get(col).unwrap() = EnemyState::Stunned {
-                left: PLAYER_HIT_COOLDOWN,
-            };
+        if *amo != PlayerGunState::Full { return; }
+
+        *amo = PlayerGunState::Empty;
+
+        for (tf, ray_tag, beam_tag, pinfo) in (&tf, &mut ray_tag, &beam_tag, &pinfo).iter() {
+            let ColliderTy::Box { width, .. } = pinfo.shape()
+                else { continue; };
+
+            shootdir = Vec2::from_angle(tf.angle);
+            raylen = *width;
+            ray_tag.len = raylen;
+            ray_tag.life_left = PLAYER_RAY_LINGER;
+
+            let cols = beam_tag.overlaps.as_slice();
+
+            score.0 += (cols.len() as u32) * mul_table[cols.len().clamp(0, mul_table.len() - 1)];
+
+            for col in cols {
+                *(&mut enemy_state).get(*col).unwrap() = EnemyState::Stunned {
+                    left: PLAYER_HIT_COOLDOWN,
+                };
+            }
         }
 
-        for (pos, _) in (&mut pos, &mut bullet).iter() {
+        for (pos, _) in (&mut tf, &mut bullet).iter() {
             pos.pos = player_pos + shootdir * (raylen - 2.0 * PLAYER_RAY_LEN_NUDGE);
         }
     }
@@ -574,7 +597,6 @@ impl Game {
         rbs: View<PhysicsInfo>,
         mut enemy: ViewMut<EnemyState>,
         pos: View<Transform>,
-        mut phys: UniqueViewMut<PhysicsState>,
         mut hp: ViewMut<Health>,
         dt: UniqueView<DeltaTime>,
     ) {
@@ -601,7 +623,6 @@ impl Game {
         mut rbs: ViewMut<PhysicsInfo>,
         mut enemy: ViewMut<EnemyState>,
         mut pos: ViewMut<Transform>,
-        mut phys: UniqueViewMut<PhysicsState>,
         dt: UniqueView<DeltaTime>,
     ) {
         let ball_pos = pos.get(self.weapon)
@@ -647,15 +668,14 @@ impl Game {
     pub fn brute_ai(
         &mut self,
         brute_tag: View<BruteTag>,
-        mut phys: UniqueViewMut<PhysicsState>,
-        rbs: View<PhysicsInfo>,
         pos: View<Transform>,
         state: View<EnemyState>,
         dt: UniqueView<DeltaTime>,
+        mut force: ViewMut<ForceApplier>,
     ) {
         let player_pos = pos.get(self.player).unwrap().pos;
 
-        for (enemy_tf, _, enemy_info, enemy_state) in (&pos, &brute_tag, &rbs, &state).iter() {
+        for (enemy_tf, _, enemy_state, force) in (&pos, &brute_tag, &state, &mut force).iter() {
             if !matches!(enemy_state, EnemyState::Free) {
                 continue;
             }
@@ -667,74 +687,45 @@ impl Game {
 
                 let dr = fella_tf.pos - enemy_tf.pos;
 
-                phys.apply_force(enemy_info, dr * BRUTE_GROUP_FORCE);
+                force.force += dr * BRUTE_GROUP_FORCE;
             }
 
             let dr = player_pos - enemy_tf.pos;
 
-            phys.apply_force(enemy_info, dr.normalize_or_zero() * BRUTE_CHASE_FORCE);
+            force.force += dr.normalize_or_zero() * BRUTE_CHASE_FORCE;
         }
-
-        // for (enemy_tf, _, info, state) in (&pos, &brute_tag, &rbs, &state).iter() {
-        //     if !matches!(state, EnemyState::Free) {
-        //         continue;
-        //     }
-
-        //     let dr = (player_pos - enemy_tf.pos).normalize_or_zero() * 32.0 * dt.0;
-        //     phys.move_kinematic(
-        //         info,
-        //         dr,
-        //         true,
-        //     );
-        // }
     }
 
     #[method_system]
-    pub fn brute_damage(
+    pub fn player_damage(
         &mut self,
-        mut phys: UniqueViewMut<PhysicsState>,
-        mut rbs: ViewMut<PhysicsInfo>,
-        brute: View<BruteTag>,
+        pl_sense_tag: View<PlayerDamageSensorTag>,
+        sense_tag: View<OneSensorTag>,
         mut player_dmg: ViewMut<PlayerDamageState>,
         mut health: ViewMut<Health>,
-        state: View<EnemyState>,
-        pos: View<Transform>,
+        enemy_state: View<EnemyState>,
     ) {
         let (mut player_dmg, mut player_health) = (&mut player_dmg, &mut health).get(self.player)
             .unwrap();
+        let (sens, _) = (&sense_tag, &pl_sense_tag)
+            .iter().next().unwrap();
 
-        for (_, brute_rb, brute_pos, brute_state) in (&brute, &rbs, &pos, &state).iter() {
-            if matches!(&*player_dmg, PlayerDamageState::Cooldown(_)) { return; }
-            if player_health.0 <= 0 { return; }
-
-            if !matches!(brute_state, EnemyState::Free) { continue; }
-            let Some(collision) = phys.any_collisions(
-                *brute_pos,
-                InteractionGroups {
-                    // FIXME: a very dirty hack to have our cast collide with the player
-                    memberships: groups::LEVEL,
-                    filter: groups::PLAYER
-                },
-                *brute_rb.col(),
-                Some(brute_rb),
-            )
-            else { continue; };
-
-            if collision != self.player { continue; }
-
-            info!("You got kicked");
-            player_health.0 -= 1;
-            *player_dmg = PlayerDamageState::Cooldown(PLAYER_HIT_COOLDOWN);
+        if sens.col.is_none() {
+            return;
         }
+
+        info!("You got kicked");
+        player_health.0 -= 1;
+        *player_dmg = PlayerDamageState::Cooldown(PLAYER_HIT_COOLDOWN);
     }
 
     #[method_system]
     pub fn player_controls(
         &mut self,
-        mut phys: UniqueViewMut<PhysicsState>,
-        mut rbs: ViewMut<PhysicsInfo>,
         dt: UniqueView<DeltaTime>,
         ui_model: UniqueView<UiModel>,
+        player: View<PlayerTag>,
+        mut control: ViewMut<KinematicControl>,
     ) {
         let mut dir = Vec2::ZERO;
         if ui_model.move_left() {
@@ -750,14 +741,10 @@ impl Game {
             dir += vec2(0.0, 1.0);
         }
 
-        let mut rb = (&mut rbs).get(self.player).unwrap();
-        // FIXME: the game now ticks at the fixed rate. Here (and in many other instances)
-        // dt.0 is no longer appropiate.
-        phys.move_kinematic(
-            &mut rb,
-            dir.normalize_or_zero() * dt.0 * PLAYER_SPEED,
-            true,
-        );
+        for (control, _) in (&mut control, &player).iter() {
+            control.slide = true;
+            control.dr = dir.normalize_or_zero() * dt.0 * PLAYER_SPEED;
+        }
     }
 
     #[method_system]
