@@ -63,6 +63,7 @@ fn spawn_tiles(
                         },
                         ColliderTy::Box { width: 32.0, height: 32.0, },
                         1.0,
+                        true,
                     ),
                     BodyTag::Static,
                 )
@@ -103,6 +104,7 @@ impl Game {
                 },
                 ColliderTy::Circle { radius: 8.0 },
                 5.0,
+                true,
             ),
             BodyTag::Dynamic,
             ForceApplier { force: Vec2::ZERO },
@@ -127,6 +129,7 @@ impl Game {
                 },
                 ColliderTy::Box { width: 16.0, height: 16.0 },
                 1.0,
+                true,
             ),
         ));
     }
@@ -158,6 +161,7 @@ impl Game {
                         height: 32.0,
                     },
                     1.0,
+                    true,
                 ),
             ));
 
@@ -185,6 +189,7 @@ impl Game {
                     height: 16.0,
                 },
                 1.0,
+                true,
             ),
         ));
 
@@ -204,6 +209,7 @@ impl Game {
                     height: 16.0,
                 },
                 1.0,
+                true,
             ),
             OneSensorTag::new(),
             PlayerDamageSensorTag,
@@ -228,16 +234,17 @@ impl Game {
                     filter: groups::PROJECTILES_INTERACT,
                 },
                 ColliderTy::Box { width: 0.0, height: PLAYER_RAY_WIDTH },
-                0.0
+                0.0,
+                true,
             ),
         ));
 
-        let brute_pos = [
-            vec2(280.0, 240.0),
-        ];
-        for pos in brute_pos {
-            Self::spawn_brute(pos, world);
-        }
+        // let brute_pos = [
+        //     vec2(280.0, 240.0); 25
+        // ];
+        // for pos in brute_pos {
+        //     Self::spawn_brute(pos, world);
+        // }
 
         for x in 0..5 {
             for y in 0..5 {
@@ -249,6 +256,19 @@ impl Game {
                 Self::spawn_brute(pos, world);
             }
         }
+
+        // for x in 0..5 {
+        //     for y in 0..5 {
+        //         let a = x as f32 + y as f32 * 2.0;
+        //         let (dx, dy) = a.sin_cos();
+        //         let pos = vec2(
+        //             x as f32 * 8.0 * 4.0 + 100.0 + dx * 13.0,
+        //             y as f32 * 3.0 + 200.0 + dy * 7.0,
+        //         );
+
+        //         Self::spawn_brute(pos, world);
+        //     }
+        // }
 
         Self::spawn_bullet(vec2(100.0, 100.0), world);
 

@@ -728,7 +728,7 @@ impl PhysicsState {
 
     pub fn step(&mut self) {
         // Step simulation
-        // self.query_pipeline.update(&self.colliders);
+        self.query_pipeline.update(&self.colliders);
         self.pipeline.step(
             &self.gravity,
             &self.integration_parameters,
