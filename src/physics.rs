@@ -667,7 +667,7 @@ impl PhysicsState {
                 continue;
             }
 
-            let force = force.force;
+            let force = Self::world_to_phys(force.force);
             let rbh = self.mapping[&ent];
             let body = self.bodies.get_mut(rbh).unwrap();
             body.add_force(nalgebra::vector![force.x, force.y], true);
