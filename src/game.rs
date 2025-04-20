@@ -715,6 +715,10 @@ impl Game {
             return;
         }
 
+        if matches!(&*player_dmg, PlayerDamageState::Cooldown(_)) {
+            return;
+        }
+
         info!("You got kicked");
         player_health.0 -= 1;
         *player_dmg = PlayerDamageState::Cooldown(PLAYER_HIT_COOLDOWN);
