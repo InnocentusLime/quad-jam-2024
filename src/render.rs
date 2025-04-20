@@ -86,6 +86,7 @@ pub struct Render {
     // brick_emit: particles::Emitter,
     // ball_exp: particles::Emitter,
     tiles: Texture2D,
+    render_world: bool,
     render_colliders: bool,
 }
 
@@ -94,6 +95,7 @@ impl Render {
         let tiles = load_texture("assets/tiles.png").await?;
         Ok(Self {
             tiles,
+            render_world: true,
             render_colliders: false,
             // ball_emit: particles::Emitter::new(EmitterConfig {
             //     texture: None,
@@ -116,19 +118,25 @@ impl Render {
 
     pub fn render(&mut self, world: &World) {
         world.run_with_data(Self::new_frame, self);
-        world.run_with_data(Self::draw_tiles, self);
-        world.run_with_data(Self::draw_ballohurt, self);
-        world.run_with_data(Self::draw_brute, self);
-        world.run_with_data(Self::draw_player, self);
-        world.run_with_data(Self::draw_box, self);
-        world.run_with_data(Self::draw_box, self);
-        world.run_with_data(Self::draw_bullets, self);
-        world.run_with_data(Self::draw_rays, self);
-        world.run_with_data(Self::draw_stats, self);
+
+        if self.render_world {
+            world.run_with_data(Self::draw_tiles, self);
+            world.run_with_data(Self::draw_ballohurt, self);
+            world.run_with_data(Self::draw_brute, self);
+            world.run_with_data(Self::draw_player, self);
+            world.run_with_data(Self::draw_box, self);
+            world.run_with_data(Self::draw_box, self);
+            world.run_with_data(Self::draw_bullets, self);
+            world.run_with_data(Self::draw_rays, self);
+        }
         // Debug rendering
-        world.run_with_data(Self::draw_bodies, self);
-        world.run_with_data(Self::draw_one_sensors, self);
-        world.run_with_data(Self::draw_beams, self);
+        if self.render_colliders {
+            world.run_with_data(Self::draw_bodies, self);
+            world.run_with_data(Self::draw_one_sensors, self);
+            world.run_with_data(Self::draw_beams, self);
+        }
+        // UI
+        world.run_with_data(Self::draw_stats, self);
     }
 
     fn new_frame(
@@ -354,10 +362,6 @@ impl Render {
         pos: View<Transform>,
         sens_tag: View<OneSensorTag>,
     ) {
-        if !self.render_colliders {
-            return
-        }
-
         for (col, tf, tag) in (&phys, &pos, &sens_tag).iter() {
             let color = if tag.col.is_some() {
                 Color::new(0.00, 0.93, 0.30, 1.00)
@@ -389,10 +393,6 @@ impl Render {
         pos: View<Transform>,
         beam_tag: View<BeamTag>,
     ) {
-        if !self.render_colliders {
-            return
-        }
-
         // TODO: draw collision count
         for (col, tf, _tag) in (&phys, &pos, &beam_tag).iter() {
             let color = GREEN;
@@ -428,10 +428,6 @@ impl Render {
         pos: View<Transform>,
         body_tag: View<BodyTag>,
     ) {
-        if !self.render_colliders {
-            return
-        }
-
         for (col, tf, tag) in (&phys, &pos, &body_tag).iter() {
             let color = match tag {
                 BodyTag::Static => DARKBLUE,
