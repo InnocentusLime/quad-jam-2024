@@ -115,9 +115,9 @@ pub struct PhysicsInfo {
 }
 
 impl PhysicsInfo {
-    pub fn new(groups: InteractionGroups, shape: ColliderTy, mass: f32) -> Self {
+    pub fn new(groups: InteractionGroups, shape: ColliderTy, mass: f32, enabled: bool) -> Self {
         Self {
-            enabled: true,
+            enabled,
             groups,
             mass,
             shape,
