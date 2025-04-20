@@ -59,7 +59,7 @@ impl BeamTag {
     pub fn new(overlap_filter: InteractionGroups) -> Self {
         Self {
             overlap_filter,
-            overlaps: Vec::new(),
+            overlaps: Vec::with_capacity(32),
         }
     }
 }
