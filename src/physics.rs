@@ -55,6 +55,15 @@ pub struct BeamTag {
     pub overlaps: Vec<EntityId>,
 }
 
+impl BeamTag {
+    pub fn new(overlap_filter: InteractionGroups) -> Self {
+        Self {
+            overlap_filter,
+            overlaps: Vec::new(),
+        }
+    }
+}
+
 #[derive(Clone, Debug, Component)]
 pub struct OneSensorTag {
     pub col: Option<EntityId>,

@@ -217,7 +217,19 @@ impl Game {
             RayTag {
                 len: 10.0,
                 life_left: 0.0,
-             },
+            },
+            BeamTag::new(InteractionGroups {
+                memberships: groups::PROJECTILES,
+                filter: groups::NPCS,
+            }),
+            PhysicsInfo::new(
+                InteractionGroups {
+                    memberships: groups::PROJECTILES,
+                    filter: groups::PROJECTILES_INTERACT,
+                },
+                ColliderTy::Box { width: 0.0, height: PLAYER_RAY_WIDTH },
+                0.0
+            ),
         ));
 
         let brute_pos = [
