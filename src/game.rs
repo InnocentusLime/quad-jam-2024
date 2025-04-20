@@ -76,7 +76,6 @@ fn spawn_tiles(
 
 #[derive(Unique)]
 pub struct Game {
-    weapon: EntityId,
     player: EntityId,
     boxes: [EntityId; 4],
     tilemap: EntityId,
@@ -221,25 +220,6 @@ impl Game {
              },
         ));
 
-        let weapon = world.add_entity((
-            Transform {
-                pos: vec2(300.0, 300.0),
-                angle: 0.0,
-            },
-            BallState::InPocket,
-            BodyTag::Kinematic,
-            PhysicsInfo::new(
-                InteractionGroups {
-                    memberships: groups::PROJECTILES,
-                    filter: groups::PROJECTILES_INTERACT,
-                },
-                ColliderTy::Circle {
-                    radius: 4.0
-                },
-                1.0,
-            ),
-        ));
-
         let brute_pos = [
             vec2(280.0, 240.0),
         ];
@@ -288,7 +268,6 @@ impl Game {
 
         Self {
             player,
-            weapon,
             boxes,
             tilemap,
             camera: Camera2D::default(),
@@ -626,10 +605,6 @@ impl Game {
         mut pos: ViewMut<Transform>,
         dt: UniqueView<DeltaTime>,
     ) {
-        let ball_pos = pos.get(self.weapon)
-            .unwrap()
-            .pos;
-
         for (rb, enemy, pos) in (&mut rbs, &mut enemy, &mut pos).iter() {
             match enemy {
                 EnemyState::Free => {
@@ -645,7 +620,6 @@ impl Game {
                         memberships: groups::NPCS,
                         filter: groups::NPCS_INTERACT,
                     };
-                    pos.pos = ball_pos;
                 },
                 EnemyState::Stunned { .. } => {
                     rb.enabled = false;
