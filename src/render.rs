@@ -364,7 +364,7 @@ impl Render {
     ) {
         for (col, tf, tag) in (&phys, &pos, &sens_tag).iter() {
             let color = if tag.col.is_some() {
-                Color::new(0.00, 0.93, 0.30, 1.00)
+                Color::new(0.00, 0.93, 0.80, 1.00)
             } else {
                 GREEN
             };
