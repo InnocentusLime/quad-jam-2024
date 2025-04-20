@@ -574,11 +574,11 @@ impl PhysicsState {
         body_tag: View<BodyTag>,
     ) {
         for (entity, info) in info.inserted().iter().with_id() {
-            info!("Allocate physics body for {entity:?}");
-
             let Ok(kind) = body_tag.get(entity)
                 else { continue; };
             let trans = tf.get(entity).unwrap();
+
+            info!("Allocate physics body for {entity:?}");
 
             self.spawn_body(
                 trans,
@@ -598,11 +598,11 @@ impl PhysicsState {
         sens_tag: View<OneSensorTag>,
     ) {
         for (entity, info) in info.inserted().iter().with_id() {
-            info!("Allocate one sensor for {entity:?}");
-
             let Ok(_) = sens_tag.get(entity)
                 else { continue; };
             let trans = tf.get(entity).unwrap();
+
+            info!("Allocate one sensor for {entity:?}");
 
             self.spawn_body(
                 trans,
