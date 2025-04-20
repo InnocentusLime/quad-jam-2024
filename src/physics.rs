@@ -690,7 +690,11 @@ impl PhysicsState {
     ) {
         // Enable-disable
         for (ent, info) in rbs.iter().with_id() {
-            let rbh = self.mapping[&ent];
+            // TODO: this being None is okay for beams only. Probably
+            // should note that somewhere
+            // Alternatively, can tag beams differently
+            let Some(&rbh) = self.mapping.get(&ent)
+                else { continue; };
             let body = self.bodies.get_mut(rbh).unwrap();
 
             body.set_enabled(info.enabled);
@@ -703,7 +707,11 @@ impl PhysicsState {
 
         // Import the new positions to world
         for (ent, (_, pos)) in (&rbs, &pos).iter().with_id() {
-            let rbh = self.mapping[&ent];
+            // TODO: this being None is okay for beams only. Probably
+            // should note that somewhere
+            // Alternatively, can tag beams differently
+            let Some(&rbh) = self.mapping.get(&ent)
+                else { continue; };
             let body = self.bodies.get_mut(rbh).unwrap();
             let new_pos= Self::world_tf_to_phys(*pos);
 
