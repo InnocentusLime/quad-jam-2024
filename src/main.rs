@@ -362,11 +362,11 @@ async fn run() -> anyhow::Result<()> {
                     world.run_with_data(PhysicsState::import_forces, &mut physics);
                     world.run_with_data(PhysicsState::apply_kinematic_moves, &mut physics);
                     world.run_with_data(PhysicsState::step, &mut physics);
+                    world.run_with_data(PhysicsState::export_body_poses, &mut physics);
 
                     world.run(Game::player_sensor_pose);
                     world.run(Game::player_ray_align);
 
-                    world.run_with_data(PhysicsState::export_body_poses, &mut physics);
                     world.run_with_data(PhysicsState::export_beam_queries, &mut physics);
                     world.run_with_data(PhysicsState::export_sensor_queries, &mut physics);
 
