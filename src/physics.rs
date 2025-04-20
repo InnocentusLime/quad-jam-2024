@@ -634,18 +634,27 @@ impl PhysicsState {
         };
     }
 
+    pub fn reset_forces(
+        &mut self,
+        mut force: ViewMut<ForceApplier>,
+    ) {
+        for force in (&mut force).iter() {
+            force.force = Vec2::ZERO;
+        }
+    }
+
     pub fn import_forces(
         &mut self,
         body_tag: View<BodyTag>,
-        mut force: ViewMut<ForceApplier>,
+        force: View<ForceApplier>,
     ) {
-        for (ent, (body_tag, force)) in (&body_tag, &mut force).iter().with_id() {
+        for (ent, (body_tag, force)) in (&body_tag, &force).iter().with_id() {
             if *body_tag != BodyTag::Dynamic {
                 warn!("Force applier attached to a non-dynamic body: {ent:?}");
                 continue;
             }
 
-            let force = std::mem::replace(&mut force.force, Vec2::ZERO);
+            let force = force.force;
             let rbh = self.mapping[&ent];
             let body = self.bodies.get_mut(rbh).unwrap();
             body.add_force(nalgebra::vector![force.x, force.y], true);

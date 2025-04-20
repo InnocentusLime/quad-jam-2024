@@ -351,6 +351,8 @@ async fn run() -> anyhow::Result<()> {
                         dt.0 = fixed_dt
                     });
 
+                    world.run_with_data(PhysicsState::reset_forces, &mut physics);
+
                     world.run(Game::brute_ai);
                     world.run(Game::player_controls);
 
