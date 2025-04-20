@@ -398,7 +398,9 @@ impl Game {
         if shootdir.length() <= DISTANCE_EPS { return; }
 
         let rayang = shootdir.to_angle();
-        for (tf, _) in (&mut tf, &ray_tag).iter() {
+        for (tf, tag) in (&mut tf, &ray_tag).iter() {
+            if tag.life_left > 0.0 { continue; }
+
             tf.pos = player_pos;
             tf.angle = rayang;
         }
