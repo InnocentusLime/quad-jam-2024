@@ -177,6 +177,7 @@ impl PhysicsState {
 
     fn spawn_body(
         &mut self,
+        is_enabled: bool,
         trans: &Transform,
         entity: EntityId,
         collision: ColliderTy,
@@ -220,6 +221,7 @@ impl PhysicsState {
                 .collision_groups(groups)
                 .mass(mass)
                 .sensor(matches!(kind, CompleteBodyKind::Sensor))
+                .enabled(is_enabled)
             ,
             body.clone(),
             &mut self.bodies,
@@ -599,6 +601,7 @@ impl PhysicsState {
             info!("Allocate physics body for {entity:?}");
 
             self.spawn_body(
+                info.enabled,
                 trans,
                 entity,
                 info.shape,
@@ -623,6 +626,7 @@ impl PhysicsState {
             info!("Allocate one sensor for {entity:?}");
 
             self.spawn_body(
+                info.enabled,
                 trans,
                 entity,
                 info.shape,
