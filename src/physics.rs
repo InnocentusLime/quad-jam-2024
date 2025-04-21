@@ -2,10 +2,10 @@ use std::collections::HashMap;
 
 use macroquad::prelude::*;
 use nalgebra::Translation2;
-use rapier2d::{na::{Isometry, Isometry2, UnitComplex, Vector2}, parry::{query::{DefaultQueryDispatcher, PersistentQueryDispatcher, ShapeCastOptions}, shape::{Ball, Cuboid}}, prelude::*};
-use shipyard::{Component, EntitiesView, EntityId, Get, IntoIter, IntoWithId, Unique, UniqueView, View, ViewMut};
+use rapier2d::{na::{Isometry2, UnitComplex, Vector2}, parry::{query::{DefaultQueryDispatcher, PersistentQueryDispatcher, ShapeCastOptions}, shape::{Ball, Cuboid}}, prelude::*};
+use shipyard::{EntityId, Get, IntoIter, IntoWithId, View, ViewMut, Component};
 
-use crate::{DeltaTime, Transform};
+use crate::Transform;
 
 pub const PIXEL_PER_METER : f32 = 32.0;
 pub const MAX_KINEMATICS_ITERS: i32 = 20;

@@ -4,7 +4,7 @@ use macroquad::prelude::*;
 use miniquad::window::set_window_size;
 use physics::{PhysicsInfo, PhysicsState};
 use render::Render;
-use shipyard::{Component, EntitiesView, EntitiesViewMut, EntityId, IntoIter, Storage, Unique, UniqueViewMut, View, ViewMut, World};
+use shipyard::{EntitiesView, EntityId, UniqueViewMut, ViewMut, World, Component, Unique};
 use sound_director::SoundDirector;
 use sys::*;
 use ui::{Ui, UiModel};
@@ -95,7 +95,6 @@ pub struct Health(i32);
 #[derive(Component)]
 pub enum EnemyState {
     Free,
-    Captured,
     Stunned { left: f32 },
     Dead,
 }

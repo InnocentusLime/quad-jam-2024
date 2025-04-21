@@ -524,17 +524,4 @@ impl Render {
             );
         }
     }
-
-    fn setup_cam(&mut self) {
-        // let view_width = (screen_width() / screen_height()) * physics::MAX_Y;
-        // let mut cam = Camera2D::from_display_rect(Rect {
-        //     x: -(view_width - physics::MAX_X) / 2.0,
-        //     y: 0.0,
-        //     w: view_width,
-        //     h: physics::MAX_Y,
-        // });
-        // cam.zoom.y *= -1.0;
-
-        // set_camera(&cam);
-    }
 }

@@ -1,18 +1,12 @@
 use macroquad::prelude::*;
 use rapier2d::prelude::InteractionGroups;
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, physics::{groups, BeamTag, BodyTag, ColliderTy, ForceApplier, KinematicControl, OneSensorTag, PhysicsInfo, PhysicsState}, ui::UiModel, AppState, BallState, BoxTag, BruteTag, BulletTag, DamageTag, DeltaTime, EnemyState, Health, PlayerDamageSensorTag, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, RewardInfo, RewardState, TileStorage, TileType, Transform};
+use crate::{inline_tilemap, physics::{groups, BeamTag, BodyTag, ColliderTy, ForceApplier, KinematicControl, OneSensorTag, PhysicsInfo}, ui::UiModel, AppState, BoxTag, BruteTag, BulletTag, DamageTag, DeltaTime, EnemyState, Health, PlayerDamageSensorTag, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, RewardInfo, RewardState, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
-pub const BALL_THROW_TIME: f32 = 0.2;
-pub const BALL_PICK_TIME: f32 = 0.5;
-pub const MAX_BALL_DIST: f32 = 256.0;
-pub const BALL_THROW_SPEED: f32 = 512.0;
-pub const BALL_RETRACT_SPEED: f32 = 1024.0;
 pub const DISTANCE_EPS: f32 = 0.01;
 
 pub const PLAYER_RAY_LINGER: f32 = 2.0;
-pub const PLAYER_MAX_RAY_LEN: f32 = 360.0;
 pub const PLAYER_RAY_LEN_NUDGE: f32 = 8.0;
 pub const PLAYER_RAY_WIDTH: f32 = 3.0;
 pub const PLAYER_SPAWN_HEALTH: i32 = 4;
@@ -77,14 +71,14 @@ fn spawn_tiles(
 #[derive(Unique)]
 pub struct Game {
     player: EntityId,
-    boxes: [EntityId; 4],
-    tilemap: EntityId,
+    _boxes: [EntityId; 4],
+    _tilemap: EntityId,
     camera: Camera2D,
 }
 
 impl Game {
     fn spawn_brute(pos: Vec2, world: &mut World) {
-        let brute = world.add_entity((
+        let _brute = world.add_entity((
             Transform {
                 pos,
                 angle: 0.0,
@@ -192,8 +186,7 @@ impl Game {
             ),
         ));
 
-        // TODO: use a sensor with many collisions
-        let player_damage_sensor = world.add_entity((
+        let _player_damage_sensor = world.add_entity((
             Transform {
                 pos: vec2(300.0, 300.0),
                 angle: 0.0,
@@ -238,13 +231,6 @@ impl Game {
             ),
         ));
 
-        // let brute_pos = [
-        //     vec2(280.0, 240.0); 25
-        // ];
-        // for pos in brute_pos {
-        //     Self::spawn_brute(pos, world);
-        // }
-
         for x in 0..5 {
             for y in 0..5 {
                 let pos = vec2(
@@ -256,6 +242,7 @@ impl Game {
             }
         }
 
+        /* Uncomment for a tough topology */
         // for x in 0..5 {
         //     for y in 0..5 {
         //         let a = x as f32 + y as f32 * 2.0;
@@ -299,8 +286,8 @@ impl Game {
 
         Self {
             player,
-            boxes,
-            tilemap,
+            _boxes: boxes,
+            _tilemap: tilemap,
             camera: Camera2D::default(),
         }
     }
@@ -331,11 +318,11 @@ impl Game {
     }
 
     pub fn reset_amo_pickup(
-        mut this: UniqueViewMut<Game>,
+        this: UniqueView<Game>,
         mut bullet: ViewMut<BulletTag>,
-        mut player_amo: ViewMut<PlayerGunState>,
+        player_amo: View<PlayerGunState>,
     ) {
-        let mut pl = (&mut player_amo).get(this.player)
+        let pl = (&player_amo).get(this.player)
             .unwrap();
 
         if *pl != PlayerGunState::Empty {
@@ -363,7 +350,7 @@ impl Game {
     }
 
     pub fn player_ammo_pickup(
-        mut this: UniqueViewMut<Game>,
+        this: UniqueView<Game>,
         mut player_amo: ViewMut<PlayerGunState>,
         mut bullet: ViewMut<BulletTag>,
         bul_sensor: View<OneSensorTag>,
@@ -395,10 +382,9 @@ impl Game {
     }
 
     pub fn player_ray_align(
-        mut this: UniqueViewMut<Game>,
+        this: UniqueView<Game>,
         mut tf: ViewMut<Transform>,
-        mut ray_tag: ViewMut<RayTag>,
-        ui_model: UniqueView<UiModel>,
+        ray_tag: View<RayTag>,
     ) {
         let player_tf = *(&tf).get(this.player)
             .unwrap();
@@ -418,7 +404,7 @@ impl Game {
     }
 
     pub fn player_shooting(
-        mut this: UniqueViewMut<Game>,
+        this: UniqueView<Game>,
         beam_tag: View<BeamTag>,
         mut tf: ViewMut<Transform>,
         mut player_amo: ViewMut<PlayerGunState>,
@@ -479,130 +465,12 @@ impl Game {
         }
     }
 
-    // #[method_system]
-    // pub fn ball_logic(
-    //     &mut self,
-    //     mut pos: ViewMut<Transform>,
-    //     mut state: ViewMut<BallState>,
-    //     mut rbs: ViewMut<PhysicsInfo>,
-    //     mut enemy_state: ViewMut<EnemyState>,
-    //     ui_model: UniqueView<UiModel>,
-    //     mut phys: UniqueViewMut<PhysicsState>,
-    //     dt: UniqueView<DeltaTime>,
-    // ) {
-    //     let player_pos = pos.get(self.player).unwrap().pos;
-    //     let mut upd_ent = None;
-
-    //     for (state, pos, bod) in (&mut state, &mut pos, &mut rbs).iter() {
-    //         bod.enabled = matches!(state, BallState::Throwing { .. });
-
-    //         match state {
-    //             BallState::InPocket => if ui_model.attack_down() {
-    //                 let (mx, my) = mouse_position();
-    //                 let mpos = vec2(mx, my);
-    //                 let off = (mpos - player_pos).clamp_length(0.0, MAX_BALL_DIST);
-
-    //                 *state = BallState::Throwing { to: player_pos + off };
-    //             } else {
-    //                 pos.pos = player_pos;
-    //             },
-    //             BallState::Throwing { to } => {
-    //                 let this_pos = pos.pos;
-    //                 let target_pos = *to;
-    //                 let diff = target_pos - this_pos;
-    //                 let step = (diff.normalize_or_zero() * BALL_THROW_SPEED * dt.0)
-    //                     .clamp_length_max(diff.length());
-
-    //                 if to.distance(pos.pos) < DISTANCE_EPS {
-    //                     *state = BallState::Retracting;
-    //                 }
-
-    //                 if phys.move_kinematic(bod, step, false) {
-    //                     *state = BallState::Retracting;
-    //                 }
-
-    //                 if let Some(enemy) = phys.any_collisions(
-    //                     *pos,
-    //                     InteractionGroups {
-    //                         memberships: groups::PROJECTILES,
-    //                         filter: groups::NPCS,
-    //                     },
-    //                     ColliderTy::Circle { radius: 16.0 },
-    //                     None,
-    //                 ) {
-    //                     upd_ent = Some((
-    //                         enemy,
-    //                         EnemyState::Captured
-    //                     ));
-    //                     *state = BallState::Capturing { enemy };
-    //                 };
-    //             },
-    //             BallState::Retracting => {
-    //                 let this_pos = pos.pos;
-    //                 let target_pos = player_pos;
-    //                 let diff = target_pos - this_pos;
-    //                 let step = (diff.normalize_or_zero() * BALL_THROW_SPEED * dt.0)
-    //                     .clamp_length_max(diff.length());
-
-    //                 pos.pos += step;
-
-    //                 if player_pos.distance(pos.pos) < DISTANCE_EPS {
-    //                     *state = BallState::InPocket;
-    //                 }
-    //             },
-    //             BallState::Capturing { enemy} => {
-    //                 let this_pos = pos.pos;
-    //                 let target_pos = player_pos;
-    //                 let diff = target_pos - this_pos;
-    //                 let step = (diff.normalize_or_zero() * BALL_THROW_SPEED * dt.0)
-    //                     .clamp_length_max(diff.length());
-
-    //                 pos.pos += step;
-
-    //                 if player_pos.distance(pos.pos) < DISTANCE_EPS {
-    //                     *state = BallState::Spinning { enemy: *enemy };
-    //                 }
-    //             },
-    //             BallState::Spinning { enemy } => if ui_model.attack_down() {
-    //                 pos.pos = player_pos +
-    //                     Vec2::from_angle(get_time() as f32 * 5.0 * std::f32::consts::PI) * 32.0;
-    //             } else {
-    //                 let (mx, my) = mouse_position();
-    //                 let mpos = vec2(mx, my);
-    //                 let dir = (mpos - player_pos)
-    //                     .normalize_or(vec2(0.0, 1.0));
-
-    //                 upd_ent = Some((
-    //                     *enemy,
-    //                     EnemyState::Launched { dir, by_player: true },
-    //                 ));
-    //                 *state = BallState::InPocket;
-    //             },
-    //         }
-    //     }
-
-    //     match upd_ent {
-    //         Some((enemy, EnemyState::Captured)) => {
-    //             let (mut enemy_state, _) = (&mut enemy_state, &mut pos).get(enemy).unwrap();
-    //             *enemy_state = EnemyState::Captured;
-    //         },
-    //         Some((enemy, EnemyState::Launched { dir, by_player })) => {
-    //             let (mut enemy_state, mut pos) = (&mut enemy_state, &mut pos).get(enemy).unwrap();
-    //             *enemy_state = EnemyState::Launched { dir, by_player };
-    //             pos.pos = player_pos + dir * 16.0;
-    //         },
-    //         _ => (),
-    //     }
-    // }
-
     pub fn enemy_states(
-        rbs: View<PhysicsInfo>,
         mut enemy: ViewMut<EnemyState>,
-        pos: View<Transform>,
         mut hp: ViewMut<Health>,
         dt: UniqueView<DeltaTime>,
     ) {
-        for (rb, enemy, pos, hp) in (&rbs, &mut enemy, &pos, &mut hp).iter() {
+        for (enemy, hp) in (&mut enemy, &mut hp).iter() {
             match enemy {
                 EnemyState::Stunned { left } => {
                     *left -= dt.0;
@@ -622,20 +490,11 @@ impl Game {
     pub fn enemy_state_data(
         mut rbs: ViewMut<PhysicsInfo>,
         mut enemy: ViewMut<EnemyState>,
-        mut pos: ViewMut<Transform>,
-        dt: UniqueView<DeltaTime>,
     ) {
-        for (rb, enemy, pos) in (&mut rbs, &mut enemy, &mut pos).iter() {
+        for (rb, enemy) in (&mut rbs, &mut enemy).iter() {
             match enemy {
                 EnemyState::Free => {
                     rb.enabled = true;
-                    rb.groups = InteractionGroups {
-                        memberships: groups::NPCS,
-                        filter: groups::NPCS_INTERACT,
-                    };
-                },
-                EnemyState::Captured => {
-                    rb.enabled = false;
                     rb.groups = InteractionGroups {
                         memberships: groups::NPCS,
                         filter: groups::NPCS_INTERACT,
@@ -660,11 +519,10 @@ impl Game {
     }
 
     pub fn brute_ai(
-        mut this: UniqueViewMut<Game>,
+        this: UniqueView<Game>,
         brute_tag: View<BruteTag>,
         pos: View<Transform>,
         state: View<EnemyState>,
-        dt: UniqueView<DeltaTime>,
         mut force: ViewMut<ForceApplier>,
     ) {
         let player_pos = pos.get(this.player).unwrap().pos;
@@ -691,12 +549,11 @@ impl Game {
     }
 
     pub fn player_damage(
-        mut this: UniqueViewMut<Game>,
+        this: UniqueView<Game>,
         pl_sense_tag: View<PlayerDamageSensorTag>,
         sense_tag: View<OneSensorTag>,
         mut player_dmg: ViewMut<PlayerDamageState>,
         mut health: ViewMut<Health>,
-        enemy_state: View<EnemyState>,
     ) {
         let (mut player_dmg, mut player_health) = (&mut player_dmg, &mut health).get(this.player)
             .unwrap();
