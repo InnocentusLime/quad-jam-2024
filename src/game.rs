@@ -405,7 +405,6 @@ impl Game {
         ui_model: UniqueView<UiModel>,
         mut score: UniqueViewMut<PlayerScore>,
         mut bullet: ViewMut<BulletTag>,
-        pinfo: View<PhysicsInfo>,
     ) {
         let mul_table = [
             0,
@@ -432,12 +431,9 @@ impl Game {
 
         *amo = PlayerGunState::Empty;
 
-        for (tf, ray_tag, beam_tag, pinfo) in (&tf, &mut ray_tag, &beam_tag, &pinfo).iter() {
-            let ColliderTy::Box { width, .. } = pinfo.shape()
-                else { continue; };
-
+        for (tf, ray_tag, beam_tag) in (&tf, &mut ray_tag, &beam_tag).iter() {
             shootdir = Vec2::from_angle(tf.angle);
-            raylen = *width;
+            raylen = beam_tag.length;
             ray_tag.len = raylen;
             ray_tag.life_left = PLAYER_RAY_LINGER;
 
