@@ -321,7 +321,6 @@ async fn run() -> anyhow::Result<()> {
         }
 
         world.run_with_data(PhysicsState::allocate_bodies, &mut physics);
-        world.run_with_data(PhysicsState::allocate_one_sensors, &mut physics);
         // No way to clear all insertion tracking :(
         world.run(|info: ViewMut<PhysicsInfo>| info.clear_all_inserted());
 

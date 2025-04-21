@@ -114,15 +114,12 @@ impl Game {
             BulletTag {
                 is_picked: false,
             },
-            OneSensorTag::new(),
-            PhysicsInfo::new(
+            OneSensorTag::new(
+                ColliderTy::Box { width: 16.0, height: 16.0 },
                 InteractionGroups {
                     memberships: groups::LEVEL,
                     filter: groups::PLAYER,
                 },
-                ColliderTy::Box { width: 16.0, height: 16.0 },
-                1.0,
-                true,
             ),
         ));
     }
@@ -191,19 +188,16 @@ impl Game {
                 pos: vec2(300.0, 300.0),
                 angle: 0.0,
             },
-            PhysicsInfo::new(
-                InteractionGroups {
-                    memberships: groups::LEVEL,
-                    filter: groups::NPCS,
-                },
+            OneSensorTag::new(
                 ColliderTy::Box {
                     width: 16.0,
                     height: 16.0,
                 },
-                1.0,
-                true,
+                InteractionGroups {
+                    memberships: groups::LEVEL,
+                    filter: groups::NPCS,
+                },
             ),
-            OneSensorTag::new(),
             PlayerDamageSensorTag,
         ));
 

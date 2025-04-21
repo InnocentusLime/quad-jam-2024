@@ -65,12 +65,16 @@ impl BeamTag {
 
 #[derive(Clone, Debug, Component)]
 pub struct OneSensorTag {
+    pub shape: ColliderTy,
+    pub groups: InteractionGroups,
     pub col: Option<EntityId>,
 }
 
 impl OneSensorTag {
-    pub fn new() -> Self {
+    pub fn new(shape: ColliderTy, groups: InteractionGroups) -> Self {
         Self {
+            shape,
+            groups,
             col: None,
         }
     }
@@ -126,11 +130,6 @@ impl PhysicsInfo {
     pub fn shape(&self) -> &ColliderTy { &self.shape }
 }
 
-enum CompleteBodyKind {
-    Interractable(BodyTag),
-    Sensor,
-}
-
 pub struct PhysicsState {
     islands: IslandManager,
     broad_phase: DefaultBroadPhase,
@@ -180,15 +179,14 @@ impl PhysicsState {
         trans: &Transform,
         entity: EntityId,
         collision: ColliderTy,
-        kind: CompleteBodyKind,
+        kind: BodyTag,
         groups: InteractionGroups,
         mass: f32,
     ) {
         let rap_ty = match kind {
-            CompleteBodyKind::Interractable(BodyTag::Dynamic) => RigidBodyType::Dynamic,
-            CompleteBodyKind::Interractable(BodyTag::Static) => RigidBodyType::Fixed,
-            CompleteBodyKind::Interractable(BodyTag::Kinematic) => RigidBodyType::KinematicPositionBased,
-            CompleteBodyKind::Sensor => RigidBodyType::Fixed,
+            BodyTag::Dynamic => RigidBodyType::Dynamic,
+            BodyTag::Static => RigidBodyType::Fixed,
+            BodyTag::Kinematic => RigidBodyType::KinematicPositionBased,
         };
 
         let start_pos = Self::world_to_phys(trans.pos);
@@ -219,7 +217,6 @@ impl PhysicsState {
             ColliderBuilder::new(collider_shape)
                 .collision_groups(groups)
                 .mass(mass)
-                .sensor(matches!(kind, CompleteBodyKind::Sensor))
                 .enabled(is_enabled)
             ,
             body.clone(),
@@ -604,32 +601,7 @@ impl PhysicsState {
                 trans,
                 entity,
                 info.shape,
-                CompleteBodyKind::Interractable(*kind),
-                info.groups,
-                info.mass,
-            );
-        }
-    }
-
-    pub fn allocate_one_sensors(
-        &mut self,
-        info: View<PhysicsInfo>,
-        tf: View<Transform>,
-        sens_tag: View<OneSensorTag>,
-    ) {
-        for (entity, info) in info.inserted().iter().with_id() {
-            let Ok(_) = sens_tag.get(entity)
-                else { continue; };
-            let trans = tf.get(entity).unwrap();
-
-            info!("Allocate one sensor for {entity:?}");
-
-            self.spawn_body(
-                info.enabled,
-                trans,
-                entity,
-                info.shape,
-                CompleteBodyKind::Sensor,
+                *kind,
                 info.groups,
                 info.mass,
             );
@@ -788,14 +760,13 @@ impl PhysicsState {
     pub fn export_sensor_queries(
         &mut self,
         tf: View<Transform>,
-        info: View<PhysicsInfo>,
         mut sens: ViewMut<OneSensorTag>,
     ) {
-        for (tf, info, sens) in (&tf, &info, &mut sens).iter() {
+        for (tf, sens) in (&tf, &mut sens).iter() {
             let res = self.any_collisions(
                 *tf,
-                info.groups,
-                info.shape,
+                sens.groups,
+                sens.shape,
             );
 
             sens.col = res;
