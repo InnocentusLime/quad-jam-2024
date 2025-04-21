@@ -95,8 +95,8 @@ impl Render {
         let tiles = load_texture("assets/tiles.png").await?;
         Ok(Self {
             tiles,
-            render_world: true,
-            render_colliders: false,
+            render_world: false,
+            render_colliders: true,
             // ball_emit: particles::Emitter::new(EmitterConfig {
             //     texture: None,
             //     ..trail()
@@ -358,23 +358,22 @@ impl Render {
 
     fn draw_one_sensors(
         &mut self,
-        phys: View<PhysicsInfo>,
         pos: View<Transform>,
         sens_tag: View<OneSensorTag>,
     ) {
-        for (col, tf, tag) in (&phys, &pos, &sens_tag).iter() {
+        for (tf, tag) in (&pos, &sens_tag).iter() {
             let color = if tag.col.is_some() {
                 Color::new(0.00, 0.93, 0.80, 1.00)
             } else {
                 GREEN
             };
 
-            match col.shape() {
+            match tag.shape {
                 ColliderTy::Box { width, height } => draw_rectangle_lines_ex(
                     tf.pos.x,
                     tf.pos.y,
-                    *width,
-                    *height,
+                    width,
+                    height,
                     1.0,
                     DrawRectangleParams {
                         offset: vec2(0.5, 0.5),
@@ -382,43 +381,38 @@ impl Render {
                         color,
                     },
                 ),
-                ColliderTy::Circle { .. } => (),
+                ColliderTy::Circle { radius } => draw_circle_lines(
+                    tf.pos.x,
+                    tf.pos.y,
+                    radius,
+                    1.0,
+                    color,
+                ),
             }
         }
     }
 
     fn draw_beams(
         &mut self,
-        phys: View<PhysicsInfo>,
         pos: View<Transform>,
         beam_tag: View<BeamTag>,
     ) {
         // TODO: draw collision count
-        for (col, tf, _tag) in (&phys, &pos, &beam_tag).iter() {
+        for (tf, tag) in (&pos, &beam_tag).iter() {
             let color = GREEN;
 
-            match col.shape() {
-                ColliderTy::Box { width, height } => draw_rectangle_lines_ex(
-                    tf.pos.x,
-                    tf.pos.y,
-                    *width,
-                    *height,
-                    1.0,
-                    DrawRectangleParams {
-                        offset: vec2(0.0, 0.5),
-                        rotation: tf.angle,
-                        color,
-                    },
-                ),
-                // Circle beams are not allowed
-                ColliderTy::Circle { radius } => draw_circle_lines(
-                    tf.pos.x,
-                    tf.pos.y,
-                    *radius,
-                    1.0,
+            draw_rectangle_lines_ex(
+                tf.pos.x,
+                tf.pos.y,
+                tag.length,
+                tag.width,
+                1.0,
+                DrawRectangleParams {
+                    offset: vec2(0.0, 0.5),
+                    rotation: tf.angle,
                     color,
-                ),
-            }
+                },
+            );
         }
     }
 
