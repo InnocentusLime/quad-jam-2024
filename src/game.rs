@@ -313,32 +313,30 @@ impl Game {
         self.camera.screen_to_world(vec2(mx, my))
     }
 
-    #[method_system]
     pub fn update_camera(
-        &mut self,
+        mut this: UniqueViewMut<Game>,
     ) {
         let view_height = 19.0 * 32.0;
         let view_width = (screen_width() / screen_height()) * view_height;
-        self.camera = Camera2D::from_display_rect(Rect {
+        this.camera = Camera2D::from_display_rect(Rect {
             x: 0.0,
             y: 0.0,
             w: view_width,
             h: view_height,
         });
-        self.camera.zoom.y *= -1.0;
+        this.camera.zoom.y *= -1.0;
     }
 
     pub fn camera(&self) -> &Camera2D {
         &self.camera
     }
 
-    #[method_system]
     pub fn reset_amo_pickup(
-        &mut self,
+        mut this: UniqueViewMut<Game>,
         mut bullet: ViewMut<BulletTag>,
         mut player_amo: ViewMut<PlayerGunState>,
     ) {
-        let mut pl = (&mut player_amo).get(self.player)
+        let mut pl = (&mut player_amo).get(this.player)
             .unwrap();
 
         if *pl != PlayerGunState::Empty {
@@ -350,9 +348,7 @@ impl Game {
         }
     }
 
-    #[method_system]
     pub fn player_sensor_pose(
-        &mut self,
         mut tf: ViewMut<Transform>,
         sense_tag: View<PlayerDamageSensorTag>,
         player_tag: View<PlayerTag>,
@@ -367,9 +363,8 @@ impl Game {
         }
     }
 
-    #[method_system]
     pub fn player_ammo_pickup(
-        &mut self,
+        mut this: UniqueViewMut<Game>,
         mut player_amo: ViewMut<PlayerGunState>,
         mut bullet: ViewMut<BulletTag>,
         bul_sensor: View<OneSensorTag>,
@@ -377,11 +372,11 @@ impl Game {
         for (bul, sens) in (&mut bullet, &bul_sensor).iter() {
             if bul.is_picked { continue; }
 
-            let mut pl = (&mut player_amo).get(self.player)
+            let mut pl = (&mut player_amo).get(this.player)
                 .unwrap();
             let Some(col) = sens.col else { continue; };
 
-            if col != self.player { continue; }
+            if col != this.player { continue; }
 
             if *pl == PlayerGunState::Full { continue; }
 
@@ -390,9 +385,7 @@ impl Game {
         }
     }
 
-    #[method_system]
     pub fn ray_tick(
-        &mut self,
         mut ray_tag: ViewMut<RayTag>,
         dt: UniqueView<DeltaTime>,
     ) {
@@ -402,17 +395,16 @@ impl Game {
         }
     }
 
-    #[method_system]
     pub fn player_ray_align(
-        &mut self,
+        mut this: UniqueViewMut<Game>,
         mut tf: ViewMut<Transform>,
         mut ray_tag: ViewMut<RayTag>,
         ui_model: UniqueView<UiModel>,
     ) {
-        let player_tf = *(&tf).get(self.player)
+        let player_tf = *(&tf).get(this.player)
             .unwrap();
         let player_pos = player_tf.pos;
-        let mpos = self.mouse_pos();
+        let mpos = this.mouse_pos();
         let shootdir = mpos - player_pos;
 
         if shootdir.length() <= DISTANCE_EPS { return; }
@@ -426,9 +418,8 @@ impl Game {
         }
     }
 
-    #[method_system]
     pub fn player_shooting(
-        &mut self,
+        mut this: UniqueViewMut<Game>,
         beam_tag: View<BeamTag>,
         mut tf: ViewMut<Transform>,
         mut player_amo: ViewMut<PlayerGunState>,
@@ -451,11 +442,11 @@ impl Game {
             10,
             20,
         ];
-        let player_tf = *(&tf).get(self.player).unwrap();
+        let player_tf = *(&tf).get(this.player).unwrap();
         let mut raylen = 0.0;
         let player_pos = player_tf.pos;
         let mut shootdir = Vec2::ZERO;
-        let mut amo = (&mut player_amo).get(self.player)
+        let mut amo = (&mut player_amo).get(this.player)
             .unwrap();
 
         if !ui_model.attack_down() { return; }
@@ -605,9 +596,7 @@ impl Game {
     //     }
     // }
 
-    #[method_system]
     pub fn enemy_states(
-        &mut self,
         rbs: View<PhysicsInfo>,
         mut enemy: ViewMut<EnemyState>,
         pos: View<Transform>,
@@ -631,9 +620,7 @@ impl Game {
         }
     }
 
-    #[method_system]
     pub fn enemy_state_data(
-        &mut self,
         mut rbs: ViewMut<PhysicsInfo>,
         mut enemy: ViewMut<EnemyState>,
         mut pos: ViewMut<Transform>,
@@ -673,16 +660,15 @@ impl Game {
         }
     }
 
-    #[method_system]
     pub fn brute_ai(
-        &mut self,
+        mut this: UniqueViewMut<Game>,
         brute_tag: View<BruteTag>,
         pos: View<Transform>,
         state: View<EnemyState>,
         dt: UniqueView<DeltaTime>,
         mut force: ViewMut<ForceApplier>,
     ) {
-        let player_pos = pos.get(self.player).unwrap().pos;
+        let player_pos = pos.get(this.player).unwrap().pos;
 
         for (enemy_tf, _, enemy_state, force) in (&pos, &brute_tag, &state, &mut force).iter() {
             if !matches!(enemy_state, EnemyState::Free) {
@@ -705,16 +691,15 @@ impl Game {
         }
     }
 
-    #[method_system]
     pub fn player_damage(
-        &mut self,
+        mut this: UniqueViewMut<Game>,
         pl_sense_tag: View<PlayerDamageSensorTag>,
         sense_tag: View<OneSensorTag>,
         mut player_dmg: ViewMut<PlayerDamageState>,
         mut health: ViewMut<Health>,
         enemy_state: View<EnemyState>,
     ) {
-        let (mut player_dmg, mut player_health) = (&mut player_dmg, &mut health).get(self.player)
+        let (mut player_dmg, mut player_health) = (&mut player_dmg, &mut health).get(this.player)
             .unwrap();
         let (sens, _) = (&sense_tag, &pl_sense_tag)
             .iter().next().unwrap();
@@ -732,9 +717,7 @@ impl Game {
         *player_dmg = PlayerDamageState::Cooldown(PLAYER_HIT_COOLDOWN);
     }
 
-    #[method_system]
     pub fn player_controls(
-        &mut self,
         dt: UniqueView<DeltaTime>,
         ui_model: UniqueView<UiModel>,
         player: View<PlayerTag>,
@@ -760,9 +743,7 @@ impl Game {
         }
     }
 
-    #[method_system]
     pub fn reward_enemies(
-        &mut self,
         enemy: View<EnemyState>,
         mut reward: ViewMut<RewardInfo>,
     ) {
@@ -773,9 +754,7 @@ impl Game {
         }
     }
 
-    #[method_system]
     pub fn count_rewards(
-        &mut self,
         mut reward: ViewMut<RewardInfo>,
         mut score: UniqueViewMut<PlayerScore>,
     ) {
@@ -787,9 +766,7 @@ impl Game {
         }
     }
 
-    #[method_system]
     pub fn player_damage_state(
-        &mut self,
         mut player_dmg: ViewMut<PlayerDamageState>,
         dt: UniqueView<DeltaTime>,
     ) {
