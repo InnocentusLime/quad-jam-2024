@@ -1,10 +1,7 @@
-use std::iter::Enumerate;
-
-use jam_macro::method_system;
 use macroquad::prelude::*;
-use shipyard::{Get, IntoIter, Unique, UniqueView, View};
+use shipyard::{Get, IntoIter, UniqueView, View, World};
 
-use crate::{game::{Game, BRUTE_SPAWN_HEALTH, PLAYER_RAY_LINGER, PLAYER_RAY_WIDTH}, physics::{ColliderTy, PhysicsInfo}, BallState, BoxTag, BruteTag, BulletTag, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, TileStorage, TileType, Transform};
+use crate::{game::{Game, BRUTE_SPAWN_HEALTH, PLAYER_RAY_LINGER, PLAYER_RAY_WIDTH}, physics::{BeamTag, BodyTag, ColliderTy, OneSensorTag, PhysicsInfo}, BallState, BoxTag, BruteTag, BulletTag, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, TileStorage, TileType, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
@@ -83,13 +80,13 @@ pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
 //     }
 // }
 
-#[derive(Unique)]
 pub struct Render {
     // ball_emit: particles::Emitter,
     // pl_emit: particles::Emitter,
     // brick_emit: particles::Emitter,
     // ball_exp: particles::Emitter,
     tiles: Texture2D,
+    render_world: bool,
     render_colliders: bool,
 }
 
@@ -98,7 +95,8 @@ impl Render {
         let tiles = load_texture("assets/tiles.png").await?;
         Ok(Self {
             tiles,
-            render_colliders: false,
+            render_world: false,
+            render_colliders: true,
             // ball_emit: particles::Emitter::new(EmitterConfig {
             //     texture: None,
             //     ..trail()
@@ -118,8 +116,30 @@ impl Render {
         })
     }
 
-    #[method_system]
-    pub fn new_frame(
+    pub fn render(&mut self, world: &World) {
+        world.run_with_data(Self::new_frame, self);
+
+        if self.render_world {
+            world.run_with_data(Self::draw_tiles, self);
+            world.run_with_data(Self::draw_ballohurt, self);
+            world.run_with_data(Self::draw_brute, self);
+            world.run_with_data(Self::draw_player, self);
+            world.run_with_data(Self::draw_box, self);
+            world.run_with_data(Self::draw_box, self);
+            world.run_with_data(Self::draw_bullets, self);
+            world.run_with_data(Self::draw_rays, self);
+        }
+        // Debug rendering
+        if self.render_colliders {
+            world.run_with_data(Self::draw_bodies, self);
+            world.run_with_data(Self::draw_one_sensors, self);
+            world.run_with_data(Self::draw_beams, self);
+        }
+        // UI
+        world.run_with_data(Self::draw_stats, self);
+    }
+
+    fn new_frame(
         &mut self,
         game: UniqueView<Game>,
     ) {
@@ -133,8 +153,7 @@ impl Render {
         });
     }
 
-    #[method_system]
-    pub fn draw_tiles(
+    fn draw_tiles(
         &mut self,
         tile_storage: View<TileStorage>,
         tiles: View<TileType>,
@@ -167,8 +186,7 @@ impl Render {
         }
     }
 
-    #[method_system]
-    pub fn draw_player(
+    fn draw_player(
         &mut self,
         pos: View<Transform>,
         player: View<PlayerTag>,
@@ -198,8 +216,7 @@ impl Render {
         }
     }
 
-    #[method_system]
-    pub fn draw_brute(
+    fn draw_brute(
         &mut self,
         pos: View<Transform>,
         brute: View<BruteTag>,
@@ -233,8 +250,7 @@ impl Render {
         }
     }
 
-    #[method_system]
-    pub fn draw_box(
+    fn draw_box(
         &mut self,
         pos: View<Transform>,
         boxt: View<BoxTag>,
@@ -255,8 +271,7 @@ impl Render {
         }
     }
 
-    #[method_system]
-    pub fn draw_ballohurt(
+    fn draw_ballohurt(
         &mut self,
         pos: View<Transform>,
         ball_state: View<BallState>,
@@ -274,8 +289,7 @@ impl Render {
         }
     }
 
-    #[method_system]
-    pub fn draw_bullets(
+    fn draw_bullets(
         &mut self,
         pos: View<Transform>,
         bullet: View<BulletTag>,
@@ -318,8 +332,7 @@ impl Render {
         }
     }
 
-    #[method_system]
-    pub fn draw_rays(
+    fn draw_rays(
         &mut self,
         pos: View<Transform>,
         ray: View<RayTag>,
@@ -343,42 +356,103 @@ impl Render {
         }
     }
 
-    #[method_system]
-    pub fn draw_colliders(
+    fn draw_one_sensors(
         &mut self,
-        phys: View<PhysicsInfo>,
         pos: View<Transform>,
+        sens_tag: View<OneSensorTag>,
     ) {
-        if self.render_colliders {
-            for (col, tf) in (&phys, &pos).iter() {
-                match col.col() {
-                    ColliderTy::Box { width, height } => draw_rectangle_lines_ex(
-                        tf.pos.x,
-                        tf.pos.y,
-                        *width,
-                        *height,
-                        1.0,
-                        DrawRectangleParams {
-                            // offset: Vec2::ZERO,
-                            offset: vec2(0.5, 0.5),
-                            rotation: tf.angle,
-                            color: RED,
-                        },
-                    ),
-                    ColliderTy::Circle { radius } => draw_circle_lines(
-                        tf.pos.x,
-                        tf.pos.y,
-                        *radius,
-                        1.0,
-                        RED
-                    ),
-                }
+        for (tf, tag) in (&pos, &sens_tag).iter() {
+            let color = if tag.col.is_some() {
+                Color::new(0.00, 0.93, 0.80, 1.00)
+            } else {
+                GREEN
+            };
+
+            match tag.shape {
+                ColliderTy::Box { width, height } => draw_rectangle_lines_ex(
+                    tf.pos.x,
+                    tf.pos.y,
+                    width,
+                    height,
+                    1.0,
+                    DrawRectangleParams {
+                        offset: vec2(0.5, 0.5),
+                        rotation: tf.angle,
+                        color,
+                    },
+                ),
+                ColliderTy::Circle { radius } => draw_circle_lines(
+                    tf.pos.x,
+                    tf.pos.y,
+                    radius,
+                    1.0,
+                    color,
+                ),
             }
         }
     }
 
-    #[method_system]
-    pub fn draw_stats(
+    fn draw_beams(
+        &mut self,
+        pos: View<Transform>,
+        beam_tag: View<BeamTag>,
+    ) {
+        // TODO: draw collision count
+        for (tf, tag) in (&pos, &beam_tag).iter() {
+            let color = GREEN;
+
+            draw_rectangle_lines_ex(
+                tf.pos.x,
+                tf.pos.y,
+                tag.length,
+                tag.width,
+                1.0,
+                DrawRectangleParams {
+                    offset: vec2(0.0, 0.5),
+                    rotation: tf.angle,
+                    color,
+                },
+            );
+        }
+    }
+
+    fn draw_bodies(
+        &mut self,
+        phys: View<PhysicsInfo>,
+        pos: View<Transform>,
+        body_tag: View<BodyTag>,
+    ) {
+        for (col, tf, tag) in (&phys, &pos, &body_tag).iter() {
+            let color = match tag {
+                BodyTag::Static => DARKBLUE,
+                BodyTag::Dynamic => RED,
+                BodyTag::Kinematic => YELLOW,
+            };
+
+            match col.shape() {
+                ColliderTy::Box { width, height } => draw_rectangle_ex(
+                    tf.pos.x,
+                    tf.pos.y,
+                    *width,
+                    *height,
+                    DrawRectangleParams {
+                        // offset: Vec2::ZERO,
+                        offset: vec2(0.5, 0.5),
+                        rotation: tf.angle,
+                        color,
+                    },
+                ),
+                ColliderTy::Circle { radius } => draw_circle(
+                    tf.pos.x,
+                    tf.pos.y,
+                    *radius,
+                    color,
+                ),
+            }
+        }
+    }
+
+    fn draw_stats(
         &mut self,
         score: UniqueView<PlayerScore>,
         health: View<Health>,
@@ -443,18 +517,5 @@ impl Render {
                 RED,
             );
         }
-    }
-
-    fn setup_cam(&mut self) {
-        // let view_width = (screen_width() / screen_height()) * physics::MAX_Y;
-        // let mut cam = Camera2D::from_display_rect(Rect {
-        //     x: -(view_width - physics::MAX_X) / 2.0,
-        //     y: 0.0,
-        //     w: view_width,
-        //     h: physics::MAX_Y,
-        // });
-        // cam.zoom.y *= -1.0;
-
-        // set_camera(&cam);
     }
 }

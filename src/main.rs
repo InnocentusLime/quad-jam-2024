@@ -2,9 +2,9 @@ use debug::{init_on_screen_log, Debug};
 use game::{decide_next_state, Game};
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
-use physics::PhysicsState;
+use physics::{PhysicsInfo, PhysicsState};
 use render::Render;
-use shipyard::{Component, EntitiesView, EntitiesViewMut, EntityId, IntoIter, Storage, Unique, UniqueViewMut, View, World};
+use shipyard::{EntitiesView, EntityId, UniqueViewMut, ViewMut, World, Component, Unique};
 use sound_director::SoundDirector;
 use sys::*;
 use ui::{Ui, UiModel};
@@ -95,7 +95,6 @@ pub struct Health(i32);
 #[derive(Component)]
 pub enum EnemyState {
     Free,
-    Captured,
     Stunned { left: f32 },
     Dead,
 }
@@ -122,6 +121,14 @@ pub struct BoxTag;
 #[derive(Debug, Clone, Copy)]
 #[derive(Component)]
 pub struct PlayerTag;
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub struct DamageTag;
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub struct PlayerDamageSensorTag;
 
 #[derive(Debug, Clone, Copy)]
 #[derive(Component)]
@@ -246,15 +253,16 @@ async fn run() -> anyhow::Result<()> {
 
     let mut state = AppState::Start;
     let mut debug = Debug::new();
-    let ui = Ui::new().await?;
 
     let mut world = World::new();
-    world.add_unique(Render::new().await?);
-    world.add_unique(PhysicsState::new());
-    world.add_unique(SoundDirector::new().await?);
+
+    let mut ui = Ui::new().await?;
+    let mut render = Render::new().await?;
+    let mut physics = PhysicsState::new();
+    let mut sound = SoundDirector::new().await?;
+
     world.add_unique(ui.update(state));
     world.add_unique(DeltaTime(0.0));
-    world.add_unique(ui); // TODO: remove
 
     let game = Game::new(&mut world);
     world.add_unique(game);
@@ -281,6 +289,7 @@ async fn run() -> anyhow::Result<()> {
             state = AppState::PleaseRotate;
         }
 
+        let ui_model = ui.update(state);
         let real_dt = get_frame_time();
         let fixed_dt = 1.0 / 60.0;
         let mut do_tick = false;
@@ -298,11 +307,7 @@ async fn run() -> anyhow::Result<()> {
             perf_ticks += 1;
         }
 
-        let ui_model = world.run(|ui: UniqueViewMut<Ui>, mut ui_model: UniqueViewMut<UiModel>| {
-            *ui_model = ui.update(state);
-
-            *ui_model
-        });
+        world.run(|mut ui_model_res: UniqueViewMut<UiModel>| *ui_model_res = ui_model);
 
         if ui_model.fullscreen_toggle_requested() {
             // NOTE: macroquad does not update window config when it goes fullscreen
@@ -314,6 +319,10 @@ async fn run() -> anyhow::Result<()> {
 
             fullscreen = !fullscreen;
         }
+
+        world.run_with_data(PhysicsState::allocate_bodies, &mut physics);
+        // No way to clear all insertion tracking :(
+        world.run(|info: ViewMut<PhysicsInfo>| info.clear_all_inserted());
 
         match state {
             AppState::Start if ui_model.confirmation_detected() => {
@@ -341,18 +350,31 @@ async fn run() -> anyhow::Result<()> {
                     world.run(|mut dt: UniqueViewMut<DeltaTime>| {
                         dt.0 = fixed_dt
                     });
-                    world.run(Game::update_camera);
-                    world.run(Game::player_controls);
-                    world.run(Game::player_shooting);
+
+                    world.run_with_data(PhysicsState::reset_forces, &mut physics);
+
                     world.run(Game::brute_ai);
+                    world.run(Game::player_controls);
 
-                    world.run(PhysicsState::step);
+                    world.run_with_data(PhysicsState::import_positions_and_info, &mut physics);
+                    world.run_with_data(PhysicsState::import_forces, &mut physics);
+                    world.run_with_data(PhysicsState::apply_kinematic_moves, &mut physics);
+                    world.run_with_data(PhysicsState::step, &mut physics);
+                    world.run_with_data(PhysicsState::export_body_poses, &mut physics);
 
+                    world.run(Game::player_sensor_pose);
+                    world.run(Game::player_ray_align);
+
+                    world.run_with_data(PhysicsState::export_beam_queries, &mut physics);
+                    world.run_with_data(PhysicsState::export_sensor_queries, &mut physics);
+
+                    world.run(Game::update_camera);
                     world.run(Game::player_ammo_pickup);
                     world.run(Game::reset_amo_pickup);
                     world.run(Game::enemy_states);
                     world.run(Game::enemy_state_data);
-                    world.run(Game::brute_damage);
+                    world.run(Game::player_damage);
+                    world.run(Game::player_shooting);
                     world.run(Game::player_damage_state);
                     world.run(Game::reward_enemies);
                     world.run(Game::count_rewards);
@@ -372,20 +394,11 @@ async fn run() -> anyhow::Result<()> {
         world.run(|mut dt: UniqueViewMut<DeltaTime>| {
             dt.0 = real_dt
         });
-        world.run(Render::new_frame);
-        world.run(Render::draw_tiles);
-        world.run(Render::draw_ballohurt);
-        world.run(Render::draw_brute);
-        world.run(Render::draw_player);
-        world.run(Render::draw_box);
-        world.run(Render::draw_colliders);
-        world.run(Render::draw_bullets);
-        world.run(Render::draw_rays);
-        world.run(Render::draw_stats);
-        world.run(Ui::draw);
-        world.run(SoundDirector::direct_sounds);
+        render.render(&world);
+        world.run_with_data(Ui::draw, &mut ui);
+        sound.run(&world);
 
-        world.run(PhysicsState::cleanup);
+        world.run_with_data(PhysicsState::remove_dead_handles, &mut physics);
         world.clear_all_removed_and_deleted();
 
         let ent_count = world.borrow::<EntitiesView>()

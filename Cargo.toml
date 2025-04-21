@@ -5,12 +5,11 @@ edition = "2021"
 
 [dependencies]
 shipyard = "0.7.5"
-rapier2d = { version = "0.22.0" }
+rapier2d = { version = "0.24.0" }
 log = { version = "0.4.22", features = ["max_level_info", "release_max_level_warn"] }
 anyhow = "1"
 macroquad = { version = "0.4.13", features = ["audio", "log-rs"] }
 macroquad-particles = "0.2.1"
-jam-macro = { path = "./jam-macro" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.sapp-jsutils]
 version = "^0.1"

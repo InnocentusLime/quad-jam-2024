@@ -79,9 +79,9 @@ checksum = "0c4b4d0bd25bd0b74681c0ad21497610ce1b7c91b1022cd21c80c6fbdd9476b0"
 
 [[package]]
 name = "bit-vec"
-version = "0.7.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2c54ff287cfc0a34f38a6b832ea1bd8e448a330b3e40a50859e6488bee07f22"
+checksum = "5e764a1d40d510daf35e07be9eb06e75770908c27d411ee6c92109c9840eaaf7"
 
 [[package]]
 name = "bitflags"
@@ -201,9 +201,9 @@ checksum = "0c87e182de0887fd5361989c677c4e8f5000cd9491d6d563161a8f3a5519fc7f"
 
 [[package]]
 name = "downcast-rs"
-version = "1.2.1"
+version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "75b325c5dbd37f80359721ad39aca5a29fb04c89279657cffdda8736d0c0b9d2"
+checksum = "ea8a8b81cacc08888170eef4d13b775126db426d0b348bee9d18c2c1eaf123cf"
 
 [[package]]
 name = "either"
@@ -240,12 +240,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "foldhash"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2"
+
+[[package]]
 name = "fontdue"
 version = "0.9.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "efe23d02309319171d00d794c9ff48d4f903c0e481375b1b04b017470838af04"
 dependencies = [
- "hashbrown",
+ "hashbrown 0.14.5",
  "ttf-parser",
 ]
 
@@ -266,6 +272,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "hashbrown"
+version = "0.15.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf151400ff0baff5465007dd2f3e717f3fe502074ca563069ce3a6629d07b289"
+dependencies = [
+ "foldhash",
+]
+
+[[package]]
 name = "hound"
 version = "3.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -283,10 +298,6 @@ dependencies = [
  "num-traits",
  "png",
 ]
-
-[[package]]
-name = "jam-macro"
-version = "0.1.0"
 
 [[package]]
 name = "lewton"
@@ -530,18 +541,18 @@ checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
 
 [[package]]
 name = "ordered-float"
-version = "4.5.0"
+version = "5.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c65ee1f9701bf938026630b455d5315f490640234259037edb259798b3bcf85e"
+checksum = "e2c1f9f56e534ac6a9b8a4600bdf0f530fb393b5f393e7b4d03489c3cf0c3f01"
 dependencies = [
  "num-traits",
 ]
 
 [[package]]
 name = "parry2d"
-version = "0.17.4"
+version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "33b400b1955abdcf0a1de73d9379f8e73a2837970a4abc71194e4b2e56cccb0d"
+checksum = "e9ce92fd1b7aaf2d7eb1631c566d751e56104152bf6ea95a1f3a7e8daf923d5c"
 dependencies = [
  "approx",
  "arrayvec",
@@ -549,15 +560,14 @@ dependencies = [
  "downcast-rs",
  "either",
  "ena",
+ "hashbrown 0.15.2",
  "log",
  "nalgebra",
  "num-derive",
  "num-traits",
  "ordered-float",
- "rustc-hash",
  "simba",
  "slab",
- "smallvec 1.13.2",
  "spade",
  "thiserror",
 ]
@@ -583,11 +593,30 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.86"
+version = "1.0.95"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e719e8df665df0d1c8fbfd238015744736151d4445ec0836b8e628aae103b77"
+checksum = "02b3e5e68a3a1a02aad3ec490a98007cbc13c37cbe84a3cd7b8e406d76e7f778"
 dependencies = [
  "unicode-ident",
+]
+
+[[package]]
+name = "profiling"
+version = "1.0.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "afbdc74edc00b6f6a218ca6a5364d6226a259d4b8ea1af4a0ea063f27e179f4d"
+dependencies = [
+ "profiling-procmacros",
+]
+
+[[package]]
+name = "profiling-procmacros"
+version = "1.0.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a65f2e60fbf1063868558d69c6beacf412dc755f9fc020f514b7955fc914fe30"
+dependencies = [
+ "quote",
+ "syn",
 ]
 
 [[package]]
@@ -604,7 +633,6 @@ name = "quad-jam-2024"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "jam-macro",
  "log",
  "macroquad",
  "macroquad-particles",
@@ -643,9 +671,9 @@ dependencies = [
 
 [[package]]
 name = "rapier2d"
-version = "0.22.0"
+version = "0.24.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "643116992c25c96a07e1aae7d59fba207f01979dc9a107c42bcd4c4b83ef78b2"
+checksum = "0caf6613d797c5564c304b7579c78addd922fbfe3fd6a22a01130892546d3794"
 dependencies = [
  "approx",
  "arrayvec",
@@ -659,6 +687,7 @@ dependencies = [
  "num-traits",
  "ordered-float",
  "parry2d",
+ "profiling",
  "rustc-hash",
  "simba",
  "thiserror",
@@ -729,7 +758,7 @@ version = "0.7.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "729fa8b041caa7b1c394c668e56ef9e8dfc30d61a833546ad22f4c907fcdfa4b"
 dependencies = [
- "hashbrown",
+ "hashbrown 0.14.5",
  "lock_api",
  "rayon",
  "shipyard_proc",
@@ -802,7 +831,7 @@ version = "2.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93f5ef1f863aca7d1d7dda7ccfc36a0a4279bd6d3c375176e5e0712e25cb4889"
 dependencies = [
- "hashbrown",
+ "hashbrown 0.14.5",
  "num-traits",
  "robust",
  "smallvec 1.13.2",
@@ -810,9 +839,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.75"
+version = "2.0.100"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6af063034fc1935ede7be0122941bafa9bacb949334d090b77ca98b5817c7d9"
+checksum = "b09a44accad81e1ba1cd74a32461ba89dee89095ba17b32f5d03683b1b1fc2a0"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -821,18 +850,18 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.65"
+version = "2.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d11abd9594d9b38965ef50805c5e469ca9cc6f197f883f717e0269a3057b3d5"
+checksum = "567b8a2dae586314f7be2a752ec7474332959c6460e02bde30d702a66d488708"
 dependencies = [
  "thiserror-impl",
 ]
 
 [[package]]
 name = "thiserror-impl"
-version = "1.0.65"
+version = "2.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae71770322cbd277e69d762a16c444af02aa0575ac0d174f0b9562d3b37f8602"
+checksum = "7f7cf42b4507d8ea322120659672cf1b9dbb93f8f2d4ecfd6e51350ff5b17a1d"
 dependencies = [
  "proc-macro2",
  "quote",

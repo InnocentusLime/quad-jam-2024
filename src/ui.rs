@@ -1,4 +1,3 @@
-use jam_macro::method_system;
 use macroquad::prelude::*;
 use shipyard::{Unique, UniqueView};
 use crate::{sys::*, AppState};
@@ -87,7 +86,7 @@ impl Ui {
         })
     }
 
-    pub fn update(&self, state: AppState) -> UiModel {
+    pub fn update(&mut self, state: AppState) -> UiModel {
         // NOTE: for mobile
         // let (mx, my) = mouse_position();
         // let Vec2 { x: mx, y: my } = self.get_cam().screen_to_world(vec2(mx, my));
@@ -131,7 +130,6 @@ impl Ui {
         }
     }
 
-    #[method_system]
     pub fn draw(
         &mut self,
         model: UniqueView<UiModel>,
