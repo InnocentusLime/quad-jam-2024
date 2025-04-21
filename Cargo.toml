@@ -4,19 +4,16 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-shipyard = "0.8"
+shipyard = { workspace = true }
+log = { workspace = true }
+macroquad = { workspace = true }
+macroquad-particles = { workspace = true }
 rapier2d = { version = "0.24.0" }
-log = { version = "0.4.22", features = ["max_level_info", "release_max_level_warn"] }
 anyhow = "1"
-macroquad = { version = "0.4.13", features = ["audio", "log-rs"] }
-macroquad-particles = "0.2.1"
+quad-dbg = { path = "./quad-dbg" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.sapp-jsutils]
 version = "^0.1"
-
-[patch.crates-io]
-macroquad-particles = { git = "https://github.com/InnocentusLime/macroquad.git", rev = "71372fdd14a348592142a91444ad4c4b6c7210b6" }
-macroquad = { git = "https://github.com/InnocentusLime/macroquad.git", rev = "71372fdd14a348592142a91444ad4c4b6c7210b6" }
 
 [profile.release]
 opt-level = 3
@@ -31,3 +28,16 @@ inherits = "release" # Use release profile as default values.
 opt-level = "z"      # Optimize with size in mind (also try "s", sometimes it is better).
 strip = true  # Strip all debugging information from the binary to reduce file size.
 panic = "abort"
+
+[workspace]
+members = [ "quad-dbg" ]
+
+[workspace.dependencies]
+shipyard = "0.8"
+log = { version = "0.4.22", features = ["max_level_info", "release_max_level_warn"] }
+macroquad = { version = "0.4.13", features = ["audio", "log-rs"] }
+macroquad-particles = "0.2.1"
+
+[patch.crates-io]
+macroquad-particles = { git = "https://github.com/InnocentusLime/macroquad.git", rev = "71372fdd14a348592142a91444ad4c4b6c7210b6" }
+macroquad = { git = "https://github.com/InnocentusLime/macroquad.git", rev = "71372fdd14a348592142a91444ad4c4b6c7210b6" }

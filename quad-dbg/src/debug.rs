@@ -3,8 +3,6 @@ use std::fmt::Write;
 
 use macroquad::prelude::*;
 
-use crate::ui::UiModel;
-
 const DBG_FONT_SIZE: u16 = 16;
 const DBG_MSG_LIFE: f32 = 3.0;
 const DBG_MSG_CAP: usize = 30;
@@ -113,24 +111,6 @@ impl Debug {
         );
 
         self.text_cursor_x += measure_text(text, None, DBG_FONT_SIZE, 1.0).width;
-    }
-
-    pub fn draw_ui_debug(&mut self, ui: &UiModel) {
-        let input_pairs = [
-            ("U", ui.move_up()),
-            ("L", ui.move_left()),
-            ("D", ui.move_down()),
-            ("R", ui.move_right()),
-        ];
-
-        for (glyph, flag) in input_pairs.into_iter() {
-            self.put_debug_text(
-                glyph,
-                if flag { RED } else { WHITE }
-            );
-        }
-
-        self.new_dbg_line();
     }
 
     pub fn draw_events(&mut self) {

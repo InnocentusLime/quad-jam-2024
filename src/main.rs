@@ -1,4 +1,4 @@
-use debug::{init_on_screen_log, Debug};
+use quad_dbg::{init_on_screen_log, Debug};
 use game::{decide_next_state, Game};
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
@@ -10,7 +10,6 @@ use sys::*;
 use ui::{Ui, UiModel};
 
 mod util;
-mod debug;
 mod game;
 mod render;
 mod sys;
@@ -405,7 +404,6 @@ async fn run() -> anyhow::Result<()> {
             .unwrap().iter().count();
 
         debug.new_frame();
-        debug.draw_ui_debug(&ui_model);
         debug.put_debug_text(&format!("FPS: {:?}", get_fps()), YELLOW);
         debug.new_dbg_line();
         debug.put_debug_text(&format!("Entities: {ent_count}"), YELLOW);
