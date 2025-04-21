@@ -2,7 +2,7 @@ use debug::{init_on_screen_log, Debug};
 use game::{decide_next_state, Game};
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
-use physics::{PhysicsInfo, PhysicsState};
+use physics::{BodyTag, PhysicsState};
 use render::Render;
 use shipyard::{EntitiesView, EntityId, UniqueViewMut, ViewMut, World, Component, Unique};
 use sound_director::SoundDirector;
@@ -322,7 +322,7 @@ async fn run() -> anyhow::Result<()> {
 
         world.run_with_data(PhysicsState::allocate_bodies, &mut physics);
         // No way to clear all insertion tracking :(
-        world.run(|info: ViewMut<PhysicsInfo>| info.clear_all_inserted());
+        world.run(|info: ViewMut<BodyTag>| info.clear_all_inserted());
 
         match state {
             AppState::Start if ui_model.confirmation_detected() => {

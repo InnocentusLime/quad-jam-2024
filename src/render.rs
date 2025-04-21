@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, UniqueView, View, World};
 
-use crate::{game::{Game, BRUTE_SPAWN_HEALTH, PLAYER_RAY_LINGER, PLAYER_RAY_WIDTH}, physics::{BeamTag, BodyTag, ColliderTy, OneSensorTag, PhysicsInfo}, BallState, BoxTag, BruteTag, BulletTag, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, TileStorage, TileType, Transform};
+use crate::{game::{Game, BRUTE_SPAWN_HEALTH, PLAYER_RAY_LINGER, PLAYER_RAY_WIDTH}, physics::{BeamTag, BodyKind, ColliderTy, OneSensorTag, BodyTag}, BallState, BoxTag, BruteTag, BulletTag, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, TileStorage, TileType, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
@@ -418,18 +418,17 @@ impl Render {
 
     fn draw_bodies(
         &mut self,
-        phys: View<PhysicsInfo>,
         pos: View<Transform>,
         body_tag: View<BodyTag>,
     ) {
-        for (col, tf, tag) in (&phys, &pos, &body_tag).iter() {
-            let color = match tag {
-                BodyTag::Static => DARKBLUE,
-                BodyTag::Dynamic => RED,
-                BodyTag::Kinematic => YELLOW,
+        for (tf, tag) in (&pos, &body_tag).iter() {
+            let color = match tag.kind() {
+                BodyKind::Static => DARKBLUE,
+                BodyKind::Dynamic => RED,
+                BodyKind::Kinematic => YELLOW,
             };
 
-            match col.shape() {
+            match tag.shape() {
                 ColliderTy::Box { width, height } => draw_rectangle_ex(
                     tf.pos.x,
                     tf.pos.y,
@@ -463,7 +462,7 @@ impl Render {
         let ui_x = 600.0;
         let score = score.0;
         let player_health = (&player, &health).iter().next().unwrap().1.0;
-        let player_gun = *(&gun,).iter().next().unwrap().0;
+        let player_gun = *(&gun,).iter().next().unwrap();
 
         draw_text(
             &format!("Score:{score}"),

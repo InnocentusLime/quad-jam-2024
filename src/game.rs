@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use rapier2d::prelude::InteractionGroups;
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, physics::{groups, BeamTag, BodyTag, ColliderTy, ForceApplier, KinematicControl, OneSensorTag, PhysicsInfo}, ui::UiModel, AppState, BoxTag, BruteTag, BulletTag, DamageTag, DeltaTime, EnemyState, Health, PlayerDamageSensorTag, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, RewardInfo, RewardState, TileStorage, TileType, Transform};
+use crate::{inline_tilemap, physics::{groups, BeamTag, BodyKind, ColliderTy, ForceApplier, KinematicControl, OneSensorTag, BodyTag}, ui::UiModel, AppState, BoxTag, BruteTag, BulletTag, DamageTag, DeltaTime, EnemyState, Health, PlayerDamageSensorTag, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, RewardInfo, RewardState, TileStorage, TileType, Transform};
 
 pub const PLAYER_SPEED: f32 = 128.0;
 pub const DISTANCE_EPS: f32 = 0.01;
@@ -49,7 +49,7 @@ fn spawn_tiles(
             TileType::Wall => world.add_component(
                 tile,
                 (
-                    PhysicsInfo::new(
+                    BodyTag::new(
                         InteractionGroups {
                             memberships: groups::LEVEL,
                             filter: groups::LEVEL_INTERACT,
@@ -57,8 +57,8 @@ fn spawn_tiles(
                         ColliderTy::Box { width: 32.0, height: 32.0, },
                         1.0,
                         true,
+                        BodyKind::Static,
                     ),
-                    BodyTag::Static,
                 )
             ),
             TileType::Ground => (),
@@ -90,7 +90,7 @@ impl Game {
             BruteTag,
             EnemyState::Free,
             Health(BRUTE_SPAWN_HEALTH),
-            PhysicsInfo::new(
+            BodyTag::new(
                 InteractionGroups {
                     memberships: groups::NPCS,
                     filter: groups::NPCS_INTERACT,
@@ -98,8 +98,8 @@ impl Game {
                 ColliderTy::Circle { radius: 8.0 },
                 5.0,
                 true,
+                BodyKind::Dynamic,
             ),
-            BodyTag::Dynamic,
             ForceApplier { force: Vec2::ZERO },
             DamageTag,
         ));
@@ -140,8 +140,7 @@ impl Game {
                     angle,
                 },
                 BoxTag,
-                BodyTag::Dynamic,
-                PhysicsInfo::new(
+                BodyTag::new(
                     InteractionGroups {
                         memberships: groups::LEVEL,
                         filter: groups::LEVEL_INTERACT,
@@ -152,6 +151,7 @@ impl Game {
                     },
                     1.0,
                     true,
+                    BodyKind::Dynamic,
                 ),
             ));
 
@@ -167,9 +167,8 @@ impl Game {
             Health(PLAYER_SPAWN_HEALTH),
             PlayerDamageState::Hittable,
             PlayerGunState::Empty,
-            BodyTag::Kinematic,
             KinematicControl::new(),
-            PhysicsInfo::new(
+            BodyTag::new(
                 InteractionGroups {
                     memberships: groups::PLAYER,
                     filter: groups::PLAYER_INTERACT,
@@ -180,6 +179,7 @@ impl Game {
                 },
                 1.0,
                 true,
+                BodyKind::Kinematic,
             ),
         ));
 
@@ -476,7 +476,7 @@ impl Game {
     }
 
     pub fn enemy_state_data(
-        mut rbs: ViewMut<PhysicsInfo>,
+        mut rbs: ViewMut<BodyTag>,
         mut enemy: ViewMut<EnemyState>,
     ) {
         for (rb, enemy) in (&mut rbs, &mut enemy).iter() {
