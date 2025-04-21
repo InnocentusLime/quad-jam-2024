@@ -91,14 +91,6 @@ impl OneSensorTag {
 }
 
 #[derive(Clone, Copy, Debug, Component)]
-#[derive(PartialEq, Eq, Hash)]
-pub enum BodyTag {
-    Static,
-    Dynamic,
-    Kinematic,
-}
-
-#[derive(Clone, Copy, Debug, Component)]
 pub struct KinematicControl {
     pub dr: Vec2,
     pub slide: bool,
@@ -118,26 +110,39 @@ pub struct ForceApplier {
     pub force: Vec2,
 }
 
+
+#[derive(Clone, Copy, Debug)]
+#[derive(PartialEq, Eq, Hash)]
+pub enum BodyKind {
+    Static,
+    Dynamic,
+    Kinematic,
+}
+
 #[derive(Clone, Copy, Debug, Component)]
 #[track(Deletion, Removal, Insertion)]
-pub struct PhysicsInfo {
+pub struct BodyTag {
     pub enabled: bool,
     pub groups: InteractionGroups,
     shape: ColliderTy,
     mass: f32,
+    kind: BodyKind,
 }
 
-impl PhysicsInfo {
-    pub fn new(groups: InteractionGroups, shape: ColliderTy, mass: f32, enabled: bool) -> Self {
+impl BodyTag {
+    pub fn new(groups: InteractionGroups, shape: ColliderTy, mass: f32, enabled: bool, kind: BodyKind) -> Self {
         Self {
             enabled,
             groups,
             mass,
             shape,
+            kind,
         }
     }
 
     pub fn shape(&self) -> &ColliderTy { &self.shape }
+
+    pub fn kind(&self) -> BodyKind { self.kind }
 }
 
 pub struct PhysicsState {
@@ -189,14 +194,14 @@ impl PhysicsState {
         trans: &Transform,
         entity: EntityId,
         collision: ColliderTy,
-        kind: BodyTag,
+        kind: BodyKind,
         groups: InteractionGroups,
         mass: f32,
     ) {
         let rap_ty = match kind {
-            BodyTag::Dynamic => RigidBodyType::Dynamic,
-            BodyTag::Static => RigidBodyType::Fixed,
-            BodyTag::Kinematic => RigidBodyType::KinematicPositionBased,
+            BodyKind::Dynamic => RigidBodyType::Dynamic,
+            BodyKind::Static => RigidBodyType::Fixed,
+            BodyKind::Kinematic => RigidBodyType::KinematicPositionBased,
         };
 
         let start_pos = Self::world_to_phys(trans.pos);
@@ -595,13 +600,10 @@ impl PhysicsState {
 
     pub fn allocate_bodies(
         &mut self,
-        info: View<PhysicsInfo>,
+        info: View<BodyTag>,
         tf: View<Transform>,
-        body_tag: View<BodyTag>,
     ) {
         for (entity, info) in info.inserted().iter().with_id() {
-            let Ok(kind) = body_tag.get(entity)
-                else { continue; };
             let trans = tf.get(entity).unwrap();
 
             info!("Allocate physics body for {entity:?}");
@@ -611,7 +613,7 @@ impl PhysicsState {
                 trans,
                 entity,
                 info.shape,
-                *kind,
+                info.kind,
                 info.groups,
                 info.mass,
             );
@@ -620,7 +622,7 @@ impl PhysicsState {
 
     pub fn remove_dead_handles(
         &mut self,
-        rbs: View<PhysicsInfo>,
+        rbs: View<BodyTag>,
     ) {
         // GC the dead handles
         for remd in rbs.removed_or_deleted() {
@@ -656,7 +658,7 @@ impl PhysicsState {
         force: View<ForceApplier>,
     ) {
         for (ent, (body_tag, force)) in (&body_tag, &force).iter().with_id() {
-            if *body_tag != BodyTag::Dynamic {
+            if body_tag.kind != BodyKind::Dynamic {
                 warn!("Force applier attached to a non-dynamic body: {ent:?}");
                 continue;
             }
@@ -670,7 +672,7 @@ impl PhysicsState {
 
     pub fn import_positions_and_info(
         &mut self,
-        rbs: View<PhysicsInfo>,
+        rbs: View<BodyTag>,
         pos: ViewMut<Transform>,
     ) {
         // Enable-disable
@@ -740,11 +742,10 @@ impl PhysicsState {
 
     pub fn export_body_poses(
         &mut self,
-        rbs: View<PhysicsInfo>,
         body_tag: View<BodyTag>,
         mut pos: ViewMut<Transform>,
     ) {
-        for (ent, (_, _, pos)) in (&rbs, &body_tag, &mut pos).iter().with_id() {
+        for (ent, (_, pos)) in (&body_tag, &mut pos).iter().with_id() {
             let rb = &self.bodies[self.mapping[&ent]];
             let new_pos = rb.translation();
             let new_pos = vec2(new_pos.x, new_pos.y);
