@@ -95,8 +95,8 @@ impl Render {
         let tiles = load_texture("assets/tiles.png").await?;
         Ok(Self {
             tiles,
-            render_world: false,
-            render_colliders: true,
+            render_world: true,
+            render_colliders: false,
             // ball_emit: particles::Emitter::new(EmitterConfig {
             //     texture: None,
             //     ..trail()
