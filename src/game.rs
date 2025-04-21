@@ -210,18 +210,16 @@ impl Game {
                 len: 10.0,
                 life_left: 0.0,
             },
-            BeamTag::new(InteractionGroups {
-                memberships: groups::PROJECTILES,
-                filter: groups::NPCS,
-            }),
-            PhysicsInfo::new(
+            BeamTag::new(
+                InteractionGroups {
+                    memberships: groups::PROJECTILES,
+                    filter: groups::NPCS,
+                },
                 InteractionGroups {
                     memberships: groups::PROJECTILES,
                     filter: groups::PROJECTILES_INTERACT,
                 },
-                ColliderTy::Box { width: 0.0, height: PLAYER_RAY_WIDTH },
-                0.0,
-                true,
+                PLAYER_RAY_WIDTH,
             ),
         ));
 

@@ -50,13 +50,23 @@ pub enum ColliderTy {
 
 #[derive(Clone, Debug, Component)]
 pub struct BeamTag {
+    pub width: f32,
+    pub length: f32,
+    pub cast_filter: InteractionGroups,
     pub overlap_filter: InteractionGroups,
     pub overlaps: Vec<EntityId>,
 }
 
 impl BeamTag {
-    pub fn new(overlap_filter: InteractionGroups) -> Self {
+    pub fn new(
+        overlap_filter: InteractionGroups,
+        cast_filter: InteractionGroups,
+        width: f32,
+    ) -> Self {
         Self {
+            width,
+            length: 0.0f32,
+            cast_filter,
             overlap_filter,
             overlaps: Vec::with_capacity(32),
         }
@@ -665,12 +675,7 @@ impl PhysicsState {
     ) {
         // Enable-disable
         for (ent, info) in rbs.iter().with_id() {
-            // TODO: this being None is okay for beams only. Probably
-            // should note that somewhere
-            // Alternatively, can tag beams differently
-            let Some(&rbh) = self.mapping.get(&ent)
-                else { continue; };
-            let body = self.bodies.get_mut(rbh).unwrap();
+            let body = &mut self.bodies[self.mapping[&ent]];
 
             body.set_enabled(info.enabled);
 
@@ -682,12 +687,7 @@ impl PhysicsState {
 
         // Import the new positions to world
         for (ent, (_, pos)) in (&rbs, &pos).iter().with_id() {
-            // TODO: this being None is okay for beams only. Probably
-            // should note that somewhere
-            // Alternatively, can tag beams differently
-            let Some(&rbh) = self.mapping.get(&ent)
-                else { continue; };
-            let body = self.bodies.get_mut(rbh).unwrap();
+            let body = &mut self.bodies[self.mapping[&ent]];
             let new_pos= Self::world_tf_to_phys(*pos);
 
             // NOTE: perhaps we should do an epsilon compare here?
@@ -745,8 +745,7 @@ impl PhysicsState {
         mut pos: ViewMut<Transform>,
     ) {
         for (ent, (_, _, pos)) in (&rbs, &body_tag, &mut pos).iter().with_id() {
-            let rbh = self.mapping[&ent];
-            let rb  = self.bodies.get(rbh).unwrap();
+            let rb = &self.bodies[self.mapping[&ent]];
             let new_pos = rb.translation();
             let new_pos = vec2(new_pos.x, new_pos.y);
             let new_pos = Self::phys_to_world(new_pos);
@@ -778,36 +777,31 @@ impl PhysicsState {
     pub fn export_beam_queries(
         &mut self,
         tf: View<Transform>,
-        mut info: ViewMut<PhysicsInfo>,
         mut beam: ViewMut<BeamTag>,
     ) {
-        for (tf, info, beam) in (&tf, &mut info, &mut beam).iter() {
-            let ColliderTy::Box { height, .. } = info.shape
-                else { panic!("Beam support only box colliders"); };
-
+        for (tf, beam) in (&tf, &mut beam).iter() {
             let dir = Vec2::from_angle(tf.angle);
-            // FIXME: a dirty hack!
-            let beamlen = self.cast_shape(
-                *tf,
-                info.groups,
-                dir,
-                ColliderTy::Box { width: 1.0, height },
-            ).unwrap_or(1000.0);
-            let beam_shape = ColliderTy::Box {
-                height,
-                width: beamlen,
-            };
-            let beam_tf = Transform {
-                pos: tf.pos + dir * (beamlen / 2.0),
-                angle: tf.angle,
-            };
 
-            info.shape = beam_shape;
             beam.overlaps.clear();
+            beam.length = self.cast_shape(
+                *tf,
+                beam.cast_filter,
+                dir,
+                ColliderTy::Box {
+                    height: beam.width,
+                    width: 1.0,
+                },
+            ).unwrap_or(1000.0);
             self.all_collisions(
-                beam_tf,
+                Transform {
+                    pos: tf.pos + dir * (beam.length / 2.0),
+                    angle: tf.angle,
+                },
                 beam.overlap_filter,
-                beam_shape,
+                ColliderTy::Box {
+                    height: beam.width,
+                    width: beam.length,
+                },
                 &mut beam.overlaps,
             );
         }
