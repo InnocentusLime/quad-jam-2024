@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-shipyard = "0.7.5"
+shipyard = "0.8"
 rapier2d = { version = "0.24.0" }
 log = { version = "0.4.22", features = ["max_level_info", "release_max_level_warn"] }
 anyhow = "1"

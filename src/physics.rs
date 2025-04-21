@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use macroquad::prelude::*;
 use nalgebra::Translation2;
 use rapier2d::{na::{Isometry2, UnitComplex, Vector2}, parry::{query::{DefaultQueryDispatcher, PersistentQueryDispatcher, ShapeCastOptions}, shape::{Ball, Cuboid}}, prelude::*};
-use shipyard::{EntityId, Get, IntoIter, IntoWithId, View, ViewMut, Component};
+use shipyard::{EntityId, Get, IntoIter, View, ViewMut, Component};
 
 use crate::Transform;
 

@@ -463,7 +463,7 @@ impl Render {
         let ui_x = 600.0;
         let score = score.0;
         let player_health = (&player, &health).iter().next().unwrap().1.0;
-        let player_gun = *(&gun,).iter().next().unwrap().0;
+        let player_gun = *(&gun,).iter().next().unwrap();
 
         draw_text(
             &format!("Score:{score}"),
