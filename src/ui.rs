@@ -1,4 +1,3 @@
-use jam_macro::method_system;
 use macroquad::prelude::*;
 use shipyard::{Unique, UniqueView};
 use crate::{sys::*, AppState};

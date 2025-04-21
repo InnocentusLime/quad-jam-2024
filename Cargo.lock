@@ -300,10 +300,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "jam-macro"
-version = "0.1.0"
-
-[[package]]
 name = "lewton"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -637,7 +633,6 @@ name = "quad-jam-2024"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "jam-macro",
  "log",
  "macroquad",
  "macroquad-particles",
