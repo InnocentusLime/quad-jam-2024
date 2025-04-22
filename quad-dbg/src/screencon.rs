@@ -83,14 +83,9 @@ struct ScreenConWriter {
     curr_line: usize,
 }
 
-impl fmt::Write for ScreenConWriter {
-    // TODO: auto scroll
-    // FIXME: not all writes need to do a newline, move to new line only when you find '\n'
-    fn write_str(&mut self, mut s: &str) -> fmt::Result {
-        if !s.is_ascii() {
-            return Err(fmt::Error);
-        }
-
+impl ScreenConWriter {
+    // TODO test that the buffer never overfills
+    fn write_str_no_newline(&mut self, mut s: &str) {
         if s.len() > SCREENCON_CHARS_PER_LINE {
             s = &s[..SCREENCON_CHARS_PER_LINE];
         }
@@ -99,13 +94,45 @@ impl fmt::Write for ScreenConWriter {
             let mut lock = GLOBAL_CON.lock().unwrap();
             let line = &mut lock.lines[self.curr_line];
 
-            line.buf.clear();
             line.buf.push_str(s);
             line.background = self.pen_back_color;
             line.color = self.pen_text_color;
         };
+    }
 
+    // TODO: auto scroll
+    fn next_line(&mut self) {
         self.curr_line = (self.curr_line + 1) % SCREENCON_LINES;
+        let _lock_scope = {
+            let mut lock = GLOBAL_CON.lock().unwrap();
+            let line = &mut lock.lines[self.curr_line];
+
+            line.buf.clear();
+        };
+    }
+}
+
+impl fmt::Write for ScreenConWriter {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        if !s.is_ascii() {
+            return Err(fmt::Error);
+        }
+
+        let mut next = Some(s);
+        while let Some(mut curr) = next.take() {
+            if curr.len() == 0 { break; }
+
+            if let Some((line, rest)) = curr.split_once('\n') {
+                curr = line;
+                next = Some(rest);
+            }
+
+            self.write_str_no_newline(curr);
+
+            if next.is_some() {
+                self.next_line();
+            }
+        }
 
         Ok(())
     }
