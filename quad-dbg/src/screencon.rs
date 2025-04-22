@@ -83,39 +83,42 @@ struct ScreenConWriter {
     curr_line: usize,
 }
 
-impl ScreenConWriter {
+struct LockedConsole<'a>{
+    wr: &'a mut ScreenConWriter,
+    con: &'a mut ScreenCon,
+}
+
+impl<'a> LockedConsole<'a> {
     // TODO test that the buffer never overfills
-    fn write_str_no_newline(&self, con: &mut ScreenCon, mut s: &str) {
+    fn write_str_no_newline(&mut self, mut s: &str) {
         if s.len() > SCREENCON_CHARS_PER_LINE {
             s = &s[..SCREENCON_CHARS_PER_LINE];
         }
 
-        let line = &mut con.lines[self.curr_line];
+        let line = &mut self.con.lines[self.wr.curr_line];
 
         line.buf.push_str(s);
-        line.background = self.pen_back_color;
-        line.color = self.pen_text_color;
+        line.background = self.wr.pen_back_color;
+        line.color = self.wr.pen_text_color;
     }
 
-    fn clear_curr_line(&self, con: &mut ScreenCon) {
-        let line = &mut con.lines[self.curr_line];
+    fn clear_curr_line(&mut self) {
+        let line = &mut self.con.lines[self.wr.curr_line];
 
         line.buf.clear();
     }
 
     // TODO: auto scroll
-    fn next_line(&mut self, con: &mut ScreenCon) {
-        self.curr_line = (self.curr_line + 1) % SCREENCON_LINES;
-        self.clear_curr_line(con);
+    fn next_line(&mut self) {
+        self.wr.curr_line = (self.wr.curr_line + 1) % SCREENCON_LINES;
+        self.clear_curr_line();
     }
 
-    fn set_line(&self, con: &mut ScreenCon, s: &str) {
-        self.clear_curr_line(con);
-        self.write_str_no_newline(con, s);
+    fn set_line(&mut self, s: &str) {
+        self.clear_curr_line();
+        self.write_str_no_newline(s);
     }
 }
-
-struct LockedConsole<'a>(&'a mut ScreenConWriter, &'a mut ScreenCon);
 
 impl<'a> fmt::Write for LockedConsole<'a> {
     fn write_str(&mut self, s: &str) -> fmt::Result {
@@ -132,10 +135,10 @@ impl<'a> fmt::Write for LockedConsole<'a> {
                 next = Some(rest);
             }
 
-            self.0.write_str_no_newline(self.1, curr);
+            self.write_str_no_newline(curr);
 
             if next.is_some() {
-                self.0.next_line(self.1);
+                self.next_line();
             }
         }
 
@@ -160,15 +163,17 @@ impl ScreenCons {
     }
 
     pub fn set_color(text: Color, back: Color) {
-        let mut lock = GLOBAL_WRITER.lock().unwrap();
-        lock.pen_text_color = text;
-        lock.pen_back_color = back;
+        let mut wr = GLOBAL_WRITER.lock().unwrap();
+        wr.pen_text_color = text;
+        wr.pen_back_color = back;
     }
 
     // TODO: add color override
     pub fn set_line(s: &str) {
-        let mut lock = GLOBAL_CON.lock().unwrap();
-        GLOBAL_WRITER.lock().unwrap().set_line(&mut lock, s);
+        let mut con = GLOBAL_CON.lock().unwrap();
+        let mut wr = GLOBAL_WRITER.lock().unwrap();
+
+        LockedConsole{ con: &mut con, wr: &mut wr }.set_line(s);
     }
 }
 
@@ -177,6 +182,6 @@ impl fmt::Write for ScreenCons {
         let mut con = GLOBAL_CON.lock().unwrap();
         let mut wr = GLOBAL_WRITER.lock().unwrap();
 
-        LockedConsole(&mut wr, &mut con).write_str(s)
+        LockedConsole{ con: &mut con, wr: &mut wr }.write_str(s)
     }
 }
