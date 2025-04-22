@@ -2,7 +2,7 @@ use macroquad::prelude::*;
 use std::{fmt, sync::{LazyLock, Mutex}};
 
 // TODO: increase
-const SCREENCON_LINES: usize = 32;
+const SCREENCON_LINES: usize = 64;
 const SCREENCON_CHARS_PER_LINE: usize = 255;
 const SCREENCON_LINES_ONSCREEN: usize = 32;
 
