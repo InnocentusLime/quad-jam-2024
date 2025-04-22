@@ -121,11 +121,6 @@ impl ScreenConsoleImpl {
         self.pen.curr_line = (self.pen.curr_line + 1) % SCREENCON_LINES;
         self.clear_curr_line();
     }
-
-    fn set_line(&mut self, s: &str) {
-        self.clear_curr_line();
-        self.write_str_no_newline(s);
-    }
 }
 
 impl<'a> fmt::Write for ScreenConsoleImpl {
@@ -170,12 +165,6 @@ impl ScreenCons {
         let mut lock = GLOBAL_CON.lock().unwrap();
         lock.pen.pen_text_color = text;
         lock.pen.pen_back_color = back;
-    }
-
-    // TODO: add color override
-    pub fn set_line(s: &str) {
-        let mut lock = GLOBAL_CON.lock().unwrap();
-        lock.set_line(s);
     }
 }
 
