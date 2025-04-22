@@ -85,7 +85,7 @@ struct ScreenConWriter {
 
 impl ScreenConWriter {
     // TODO test that the buffer never overfills
-    fn write_str_no_newline(&mut self, mut s: &str) {
+    fn write_str_no_newline(&self, mut s: &str) {
         if s.len() > SCREENCON_CHARS_PER_LINE {
             s = &s[..SCREENCON_CHARS_PER_LINE];
         }
@@ -109,6 +109,17 @@ impl ScreenConWriter {
 
             line.buf.clear();
         };
+    }
+
+    fn set_line(&self, s: &str) {
+        // TODO: make "clear line" call
+        let _lock_scope = {
+            let mut lock = GLOBAL_CON.lock().unwrap();
+            let line = &mut lock.lines[self.curr_line];
+            line.buf.clear();
+        };
+
+        self.write_str_no_newline(s);
     }
 }
 
@@ -157,6 +168,11 @@ impl ScreenCons {
         let mut lock = GLOBAL_WRITER.lock().unwrap();
         lock.pen_text_color = text;
         lock.pen_back_color = back;
+    }
+
+    // TODO: add color override
+    pub fn set_line(s: &str) {
+        GLOBAL_WRITER.lock().unwrap().set_line(s);
     }
 }
 
