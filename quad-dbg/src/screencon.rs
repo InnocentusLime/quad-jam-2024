@@ -1,5 +1,5 @@
 use macroquad::prelude::*;
-use std::{fmt, sync::{LazyLock, Mutex}};
+use std::{fmt::{self, Write}, sync::{LazyLock, Mutex}};
 
 // TODO: increase
 const SCREENCON_LINES: usize = 64;
@@ -85,45 +85,39 @@ struct ScreenConWriter {
 
 impl ScreenConWriter {
     // TODO test that the buffer never overfills
-    fn write_str_no_newline(&self, mut s: &str) {
+    fn write_str_no_newline(&self, con: &mut ScreenCon, mut s: &str) {
         if s.len() > SCREENCON_CHARS_PER_LINE {
             s = &s[..SCREENCON_CHARS_PER_LINE];
         }
 
-        let _lock_scope = {
-            let mut lock = GLOBAL_CON.lock().unwrap();
-            let line = &mut lock.lines[self.curr_line];
+        let line = &mut con.lines[self.curr_line];
 
-            line.buf.push_str(s);
-            line.background = self.pen_back_color;
-            line.color = self.pen_text_color;
-        };
+        line.buf.push_str(s);
+        line.background = self.pen_back_color;
+        line.color = self.pen_text_color;
+    }
+
+    fn clear_curr_line(&self, con: &mut ScreenCon) {
+        let line = &mut con.lines[self.curr_line];
+
+        line.buf.clear();
     }
 
     // TODO: auto scroll
-    fn next_line(&mut self) {
+    fn next_line(&mut self, con: &mut ScreenCon) {
         self.curr_line = (self.curr_line + 1) % SCREENCON_LINES;
-        let _lock_scope = {
-            let mut lock = GLOBAL_CON.lock().unwrap();
-            let line = &mut lock.lines[self.curr_line];
-
-            line.buf.clear();
-        };
+        self.clear_curr_line(con);
     }
 
-    fn set_line(&self, s: &str) {
-        // TODO: make "clear line" call
-        let _lock_scope = {
-            let mut lock = GLOBAL_CON.lock().unwrap();
-            let line = &mut lock.lines[self.curr_line];
-            line.buf.clear();
-        };
-
-        self.write_str_no_newline(s);
+    fn set_line(&self, con: &mut ScreenCon, s: &str) {
+        self.clear_curr_line(con);
+        self.write_str_no_newline(con, s);
     }
 }
 
-impl fmt::Write for ScreenConWriter {
+struct LockedConsole<'a>(&'a mut ScreenConWriter, &'a mut ScreenCon);
+
+impl<'a> fmt::Write for LockedConsole<'a> {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         if !s.is_ascii() {
             return Err(fmt::Error);
@@ -138,10 +132,10 @@ impl fmt::Write for ScreenConWriter {
                 next = Some(rest);
             }
 
-            self.write_str_no_newline(curr);
+            self.0.write_str_no_newline(self.1, curr);
 
             if next.is_some() {
-                self.next_line();
+                self.0.next_line(self.1);
             }
         }
 
@@ -159,6 +153,7 @@ static GLOBAL_WRITER: Mutex<ScreenConWriter> = Mutex::new(
 
 pub struct ScreenCons;
 
+// TODO: scroll
 impl ScreenCons {
     pub fn draw() {
         GLOBAL_CON.lock().unwrap().draw();
@@ -172,12 +167,16 @@ impl ScreenCons {
 
     // TODO: add color override
     pub fn set_line(s: &str) {
-        GLOBAL_WRITER.lock().unwrap().set_line(s);
+        let mut lock = GLOBAL_CON.lock().unwrap();
+        GLOBAL_WRITER.lock().unwrap().set_line(&mut lock, s);
     }
 }
 
 impl fmt::Write for ScreenCons {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        GLOBAL_WRITER.lock().unwrap().write_str(s)
+        let mut con = GLOBAL_CON.lock().unwrap();
+        let mut wr = GLOBAL_WRITER.lock().unwrap();
+
+        LockedConsole(&mut wr, &mut con).write_str(s)
     }
 }
