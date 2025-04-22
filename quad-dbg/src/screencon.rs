@@ -1,5 +1,5 @@
 use macroquad::prelude::*;
-use std::{fmt::{self, Write}, sync::{LazyLock, Mutex}};
+use std::{fmt, sync::{LazyLock, Mutex}};
 
 // TODO: increase
 const SCREENCON_LINES: usize = 64;
@@ -13,12 +13,12 @@ struct Line {
     background: Color,
 }
 
-struct ScreenCon {
+struct ScreenText {
     scroll_offset: usize,
     lines: Vec<Line>,
 }
 
-impl ScreenCon {
+impl ScreenText {
     fn new() -> Self {
         Self {
             scroll_offset: 0,
@@ -72,45 +72,53 @@ impl ScreenCon {
     }
 }
 
-static GLOBAL_CON: LazyLock<Mutex<ScreenCon>> = LazyLock::new(|| {
-    Mutex::new(ScreenCon::new())
-});
-
 // TODO: write that do not move the cursor
-struct ScreenConWriter {
+struct ScreenPen {
     pen_text_color: Color,
     pen_back_color: Color,
     curr_line: usize,
 }
 
-struct LockedConsole<'a>{
-    wr: &'a mut ScreenConWriter,
-    con: &'a mut ScreenCon,
+struct ScreenConsoleImpl {
+    pen: ScreenPen,
+    text: ScreenText,
 }
 
-impl<'a> LockedConsole<'a> {
+impl ScreenConsoleImpl {
+    fn new() -> Self {
+        ScreenConsoleImpl {
+            pen: ScreenPen {
+                pen_back_color: BLANK,
+                pen_text_color: WHITE,
+                curr_line: 0,
+            },
+            text: ScreenText::new(),
+        }
+    }
+
     // TODO test that the buffer never overfills
     fn write_str_no_newline(&mut self, mut s: &str) {
+        // TODO move into Line API and handle all corner cases
         if s.len() > SCREENCON_CHARS_PER_LINE {
             s = &s[..SCREENCON_CHARS_PER_LINE];
         }
 
-        let line = &mut self.con.lines[self.wr.curr_line];
+        let line = &mut self.text.lines[self.pen.curr_line];
 
         line.buf.push_str(s);
-        line.background = self.wr.pen_back_color;
-        line.color = self.wr.pen_text_color;
+        line.background = self.pen.pen_back_color;
+        line.color = self.pen.pen_text_color;
     }
 
     fn clear_curr_line(&mut self) {
-        let line = &mut self.con.lines[self.wr.curr_line];
+        let line = &mut self.text.lines[self.pen.curr_line];
 
         line.buf.clear();
     }
 
     // TODO: auto scroll
     fn next_line(&mut self) {
-        self.wr.curr_line = (self.wr.curr_line + 1) % SCREENCON_LINES;
+        self.pen.curr_line = (self.pen.curr_line + 1) % SCREENCON_LINES;
         self.clear_curr_line();
     }
 
@@ -120,7 +128,7 @@ impl<'a> LockedConsole<'a> {
     }
 }
 
-impl<'a> fmt::Write for LockedConsole<'a> {
+impl<'a> fmt::Write for ScreenConsoleImpl {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         if !s.is_ascii() {
             return Err(fmt::Error);
@@ -146,42 +154,34 @@ impl<'a> fmt::Write for LockedConsole<'a> {
     }
 }
 
-static GLOBAL_WRITER: Mutex<ScreenConWriter> = Mutex::new(
-    ScreenConWriter {
-        pen_back_color: BLANK,
-        pen_text_color: WHITE,
-        curr_line: 0,
-    }
-);
+static GLOBAL_CON: LazyLock<Mutex<ScreenConsoleImpl>> = LazyLock::new(|| {
+    Mutex::new(ScreenConsoleImpl::new())
+});
 
 pub struct ScreenCons;
 
 // TODO: scroll
 impl ScreenCons {
     pub fn draw() {
-        GLOBAL_CON.lock().unwrap().draw();
+        GLOBAL_CON.lock().unwrap().text.draw();
     }
 
     pub fn set_color(text: Color, back: Color) {
-        let mut wr = GLOBAL_WRITER.lock().unwrap();
-        wr.pen_text_color = text;
-        wr.pen_back_color = back;
+        let mut lock = GLOBAL_CON.lock().unwrap();
+        lock.pen.pen_text_color = text;
+        lock.pen.pen_back_color = back;
     }
 
     // TODO: add color override
     pub fn set_line(s: &str) {
-        let mut con = GLOBAL_CON.lock().unwrap();
-        let mut wr = GLOBAL_WRITER.lock().unwrap();
-
-        LockedConsole{ con: &mut con, wr: &mut wr }.set_line(s);
+        let mut lock = GLOBAL_CON.lock().unwrap();
+        lock.set_line(s);
     }
 }
 
 impl fmt::Write for ScreenCons {
     fn write_str(&mut self, s: &str) -> fmt::Result {
-        let mut con = GLOBAL_CON.lock().unwrap();
-        let mut wr = GLOBAL_WRITER.lock().unwrap();
-
-        LockedConsole{ con: &mut con, wr: &mut wr }.write_str(s)
+        let mut lock = GLOBAL_CON.lock().unwrap();
+        lock.write_str(s)
     }
 }
