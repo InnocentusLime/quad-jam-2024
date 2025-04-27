@@ -303,6 +303,11 @@ async fn run() -> anyhow::Result<()> {
             perf_ticks += 1;
         }
 
+        if perf_ticks >= 2000 {
+            perf_ticks = 0;
+            perf_time = 0.0;
+        }
+
         world.run(|mut ui_model_res: UniqueViewMut<UiModel>| *ui_model_res = ui_model);
 
         if ui_model.fullscreen_toggle_requested() {
