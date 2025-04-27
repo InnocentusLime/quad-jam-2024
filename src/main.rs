@@ -229,12 +229,7 @@ pub enum PlayerDamageState {
 }
 
 fn reset_game(world: &mut World) {
-    let ents = world.borrow::<EntitiesView>().unwrap()
-        .iter().collect::<Vec<_>>();
-
-    for ent in ents {
-        world.delete_entity(ent);
-    }
+    world.clear();
 
     let game = Game::new(world);
 
@@ -306,6 +301,11 @@ async fn run() -> anyhow::Result<()> {
             do_tick = true;
             accumelated_time -= fixed_dt;
             perf_ticks += 1;
+        }
+
+        if perf_ticks >= 2000 {
+            perf_ticks = 0;
+            perf_time = 0.0;
         }
 
         world.run(|mut ui_model_res: UniqueViewMut<UiModel>| *ui_model_res = ui_model);
