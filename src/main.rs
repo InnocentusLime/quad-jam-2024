@@ -1,4 +1,4 @@
-use debug::{init_on_screen_log, Debug};
+use quad_dbg::{dump, ScreenCons, ScreenDump};
 use game::{decide_next_state, Game};
 use macroquad::prelude::*;
 use miniquad::window::set_window_size;
@@ -10,7 +10,6 @@ use sys::*;
 use ui::{Ui, UiModel};
 
 mod util;
-mod debug;
 mod game;
 mod render;
 mod sys;
@@ -244,7 +243,7 @@ fn reset_game(world: &mut World) {
 
 async fn run() -> anyhow::Result<()> {
     set_max_level(STATIC_MAX_LEVEL);
-    init_on_screen_log();
+    ScreenCons::init_log();
 
     info!("Rapier version: {}", rapier2d::VERSION);
     info!("Project version: {}", env!("CARGO_PKG_VERSION"));
@@ -252,7 +251,6 @@ async fn run() -> anyhow::Result<()> {
     set_default_filter_mode(FilterMode::Nearest);
 
     let mut state = AppState::Start;
-    let mut debug = Debug::new();
 
     let mut world = World::new();
 
@@ -272,6 +270,7 @@ async fn run() -> anyhow::Result<()> {
     let mut accumelated_time = 0.0f32;
     let mut perf_time = 0.0f32;
     let mut perf_ticks = 0;
+    let mut console_mode = 0;
 
     // Save old size as leaving fullscreen will give window a different size
     // This value is our best bet as macroquad doesn't allow us to get window size
@@ -284,6 +283,8 @@ async fn run() -> anyhow::Result<()> {
     info!("Done loading");
 
     loop {
+        ScreenDump::new_frame();
+
         if get_orientation() != 0.0 && state != AppState::PleaseRotate {
             paused_state = state;
             state = AppState::PleaseRotate;
@@ -404,15 +405,20 @@ async fn run() -> anyhow::Result<()> {
         let ent_count = world.borrow::<EntitiesView>()
             .unwrap().iter().count();
 
-        debug.new_frame();
-        debug.draw_ui_debug(&ui_model);
-        debug.put_debug_text(&format!("FPS: {:?}", get_fps()), YELLOW);
-        debug.new_dbg_line();
-        debug.put_debug_text(&format!("Entities: {ent_count}"), YELLOW);
-        debug.new_dbg_line();
-        debug.put_debug_text(&format!("Perf timing: {} & {perf_ticks}", (perf_time / fixed_dt) as i32), YELLOW);
-        debug.new_dbg_line();
-        debug.draw_events();
+        if is_key_pressed(KeyCode::GraveAccent) {
+            console_mode = (console_mode + 1) % 3;
+        }
+
+        dump!("FPS: {:?}", get_fps());
+        dump!("Entities: {ent_count}");
+        dump!("Perf timing: {} & {perf_ticks}", (perf_time / fixed_dt) as i32);
+
+        match console_mode {
+            0 => (),
+            1 => ScreenDump::draw(),
+            2 => ScreenCons::draw(),
+            _ => unreachable!("Illegal console mode"),
+        }
 
         next_frame().await
     }

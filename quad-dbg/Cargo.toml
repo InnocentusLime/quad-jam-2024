@@ -1,0 +1,10 @@
+[package]
+name = "quad-dbg"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+shipyard = { workspace = true }
+log = { workspace = true }
+macroquad = { workspace = true }
+macroquad-particles = { workspace = true }

@@ -629,6 +629,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "quad-dbg"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "macroquad",
+ "macroquad-particles",
+ "shipyard",
+]
+
+[[package]]
 name = "quad-jam-2024"
 version = "0.1.0"
 dependencies = [
@@ -636,6 +646,7 @@ dependencies = [
  "log",
  "macroquad",
  "macroquad-particles",
+ "quad-dbg",
  "rapier2d",
  "sapp-jsutils",
  "shipyard",
