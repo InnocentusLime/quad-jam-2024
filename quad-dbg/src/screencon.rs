@@ -12,6 +12,22 @@ struct Line {
     background: Color,
 }
 
+impl Line {
+    fn put(&mut self, mut s: &str) {
+        let used = self.buf.len();
+        if used >= SCREENCON_CHARS_PER_LINE {
+            return;
+        }
+        let remaining = SCREENCON_CHARS_PER_LINE - used;
+
+        if s.len() > remaining {
+            s = &s[..remaining];
+        }
+
+        self.buf.push_str(s);
+    }
+}
+
 struct ScreenText {
     scroll_offset: usize,
     lines: Vec<Line>,
@@ -103,17 +119,12 @@ impl ScreenConsoleImpl {
     }
 
     // TODO test that the buffer never overfills
-    fn write_str_no_newline(&mut self, mut s: &str) {
-        // TODO move into Line API and handle all corner cases
-        if s.len() > SCREENCON_CHARS_PER_LINE {
-            s = &s[..SCREENCON_CHARS_PER_LINE];
-        }
-
+    fn write_str_no_newline(&mut self, s: &str) {
         let line = &mut self.text.lines[self.pen.curr_line];
 
-        line.buf.push_str(s);
         line.background = self.pen.pen_back_color;
         line.color = self.pen.pen_text_color;
+        line.put(s);
     }
 
     fn clear_curr_line(&mut self) {
