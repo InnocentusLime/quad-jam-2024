@@ -1,8 +1,7 @@
-use macroquad::{prelude::*, text};
+use macroquad::prelude::*;
 use std::{fmt, sync::{LazyLock, Mutex}};
 
-// TODO: increase
-const SCREENCON_LINES: usize = 64;
+const SCREENCON_LINES: usize = 256;
 const SCREENCON_CHARS_PER_LINE: usize = 255;
 const SCREENCON_LINES_ONSCREEN: usize = 32;
 
@@ -233,7 +232,7 @@ impl fmt::Write for ScreenCons {
 }
 
 impl Log for ScreenCons {
-    fn enabled(&self, metadata: &Metadata) -> bool {
+    fn enabled(&self, _metadata: &Metadata) -> bool {
         // TODO: impl
         true
     }
@@ -252,5 +251,3 @@ impl Log for ScreenCons {
 
     fn flush(&self) { /* NOOP */ }
 }
-
-// TODO: hook up to log.rs
