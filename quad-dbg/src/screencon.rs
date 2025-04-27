@@ -219,24 +219,19 @@ impl ScreenCons {
     }
 
     pub fn get_color() -> (Color, Color) {
-        let lock = GLOBAL_CON.lock().unwrap();
-
-        lock.get_color()
+        Self::scope(|con| con.get_color())
     }
 
     pub fn set_color(text: Color, back: Color) {
-        let mut lock = GLOBAL_CON.lock().unwrap();
-        lock.set_color(text, back);
+        Self::scope(|con| con.set_color(text, back))
     }
 
     pub fn scroll() -> usize {
-        let lock = GLOBAL_CON.lock().unwrap();
-        lock.text.scroll_offset
+        Self::scope(|con| con.scroll())
     }
 
     pub fn set_scroll(scroll: usize) {
-        let mut lock = GLOBAL_CON.lock().unwrap();
-        lock.text.scroll_offset = scroll;
+        Self::scope(|con| con.set_scroll(scroll))
     }
 
     pub fn is_scroll_recent() -> bool {
@@ -262,20 +257,6 @@ impl ScreenCons {
         })
     }
 
-    fn log_level_cols(level: Level) -> (Color, Color) {
-        let text_col = match level {
-            Level::Error => RED,
-            Level::Warn => YELLOW,
-            Level::Info => GREEN,
-            Level::Debug => WHITE,
-            Level::Trace => GRAY,
-        };
-
-        let back_col = Color::new(0.0, 0.0, 0.0, 0.8);
-
-        (text_col, back_col)
-    }
-
     pub fn init_log() {
         static THIS: ScreenCons = ScreenCons;
         set_logger(&THIS).unwrap();
@@ -293,6 +274,20 @@ impl ScreenCons {
             let scroll = con.scroll();
             con.set_scroll(scroll.saturating_sub(1));
         })
+    }
+
+    fn log_level_cols(level: Level) -> (Color, Color) {
+        let text_col = match level {
+            Level::Error => RED,
+            Level::Warn => YELLOW,
+            Level::Info => GREEN,
+            Level::Debug => WHITE,
+            Level::Trace => GRAY,
+        };
+
+        let back_col = Color::new(0.0, 0.0, 0.0, 0.8);
+
+        (text_col, back_col)
     }
 }
 
