@@ -30,8 +30,14 @@ impl ScreenText {
         }
     }
 
-    // TODO: draw only visible
-    // TODO: configurable visibility for disappearing logs and CMD-only mode
+    fn iter_visible_lines(&'_ self) -> impl Iterator<Item = (usize, &'_ Line)> + '_ {
+        self.lines.iter()
+            .cycle()
+            .skip(self.scroll_offset)
+            .take(SCREENCON_LINES_ONSCREEN)
+            .enumerate()
+    }
+
     fn draw(&self) {
         set_default_camera();
         let line_box = screen_height() / (SCREENCON_LINES_ONSCREEN as f32);
@@ -40,8 +46,7 @@ impl ScreenText {
         let line_height = dims.height;
         let spacing = (line_box - line_height) / 2.0;
 
-        for (idx, line) in self.lines.iter().enumerate() {
-            let idx = (idx + SCREENCON_LINES - self.scroll_offset) % SCREENCON_LINES;
+        for (idx, line) in self.iter_visible_lines() {
             let y = idx as f32 * line_box;
             draw_rectangle(
                 0.0,
@@ -52,8 +57,7 @@ impl ScreenText {
             );
         }
 
-        for (idx, line) in self.lines.iter().enumerate() {
-            let idx = (idx + SCREENCON_LINES - self.scroll_offset) % SCREENCON_LINES;
+        for (idx, line) in self.iter_visible_lines() {
             let y = idx as f32 * line_box + line_box - spacing;
             draw_text_ex(
                 &line.buf,
@@ -166,6 +170,16 @@ impl ScreenCons {
         lock.pen.pen_text_color = text;
         lock.pen.pen_back_color = back;
     }
+
+    pub fn scroll() -> usize {
+        let lock = GLOBAL_CON.lock().unwrap();
+        lock.text.scroll_offset
+    }
+
+    pub fn set_scroll(scroll: usize) {
+        let mut lock = GLOBAL_CON.lock().unwrap();
+        lock.text.scroll_offset = scroll;
+    }
 }
 
 impl fmt::Write for ScreenCons {
@@ -174,3 +188,5 @@ impl fmt::Write for ScreenCons {
         lock.write_str(s)
     }
 }
+
+// TODO: hook up to log.rs
