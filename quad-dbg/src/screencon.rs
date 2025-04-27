@@ -13,6 +13,14 @@ struct Line {
 }
 
 impl Line {
+    fn new() -> Self {
+        Self {
+            buf: String::with_capacity(SCREENCON_CHARS_PER_LINE),
+            color: BLANK,
+            background: BLANK,
+        }
+    }
+
     fn put(&mut self, mut s: &str) {
         let used = self.buf.len();
         if used >= SCREENCON_CHARS_PER_LINE {
@@ -26,6 +34,10 @@ impl Line {
 
         self.buf.push_str(s);
     }
+
+    fn clear(&mut self) {
+        self.buf.clear();
+    }
 }
 
 struct ScreenText {
@@ -37,11 +49,7 @@ impl ScreenText {
     fn new() -> Self {
         Self {
             scroll_offset: 0,
-            lines: vec![Line {
-                buf: String::with_capacity(SCREENCON_CHARS_PER_LINE),
-                color: BLANK,
-                background: BLANK,
-            }; SCREENCON_LINES],
+            lines: vec![Line::new(); SCREENCON_LINES],
         }
     }
 
@@ -119,7 +127,6 @@ impl ScreenConsoleImpl {
         }
     }
 
-    // TODO test that the buffer never overfills
     fn write_str_no_newline(&mut self, s: &str) {
         let line = &mut self.text.lines[self.pen.curr_line];
 
@@ -131,7 +138,7 @@ impl ScreenConsoleImpl {
     fn clear_curr_line(&mut self) {
         let line = &mut self.text.lines[self.pen.curr_line];
 
-        line.buf.clear();
+        line.clear();
     }
 
     fn next_line(&mut self) {
@@ -315,4 +322,31 @@ impl Log for ScreenCons {
     }
 
     fn flush(&self) { /* NOOP */ }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::screencon::SCREENCON_CHARS_PER_LINE;
+
+    use super::Line;
+
+    #[test]
+    fn test_line_overfill() {
+        let mut line = Line::new();
+
+        let samples = [
+            "1"; 3000
+        ];
+
+        for (idx, s) in samples.into_iter().enumerate() {
+            if idx % 500 == 0 {
+                line.clear();
+            }
+
+            line.put(s);
+
+            assert!(line.buf.len() <= SCREENCON_CHARS_PER_LINE);
+            assert!(line.buf.capacity() <= SCREENCON_CHARS_PER_LINE);
+        }
+    }
 }
