@@ -1,4 +1,4 @@
-use macroquad::prelude::*;
+use macroquad::{prelude::*, text};
 use std::{fmt, sync::{LazyLock, Mutex}};
 
 // TODO: increase
@@ -169,10 +169,15 @@ static GLOBAL_CON: LazyLock<Mutex<ScreenConsoleImpl>> = LazyLock::new(|| {
 
 pub struct ScreenCons;
 
-// TODO: scroll
 impl ScreenCons {
     pub fn draw() {
         GLOBAL_CON.lock().unwrap().text.draw();
+    }
+
+    pub fn get_color() -> (Color, Color) {
+        let lock = GLOBAL_CON.lock().unwrap();
+
+        (lock.pen.pen_back_color, lock.pen.pen_text_color)
     }
 
     pub fn set_color(text: Color, back: Color) {
@@ -190,6 +195,34 @@ impl ScreenCons {
         let mut lock = GLOBAL_CON.lock().unwrap();
         lock.text.scroll_offset = scroll;
     }
+
+    pub fn put_event(msg: fmt::Arguments, level: Level) {
+        let (back, text) = Self::log_level_cols(level);
+        let (back_old, text_old) = Self::get_color();
+
+        Self::set_color(text, back);
+        fmt::write(&mut Self, msg).unwrap();
+        Self::set_color(text_old, back_old);
+    }
+
+    fn log_level_cols(level: Level) -> (Color, Color) {
+        let text_col = match level {
+            Level::Error => RED,
+            Level::Warn => YELLOW,
+            Level::Info => GREEN,
+            Level::Debug => WHITE,
+            Level::Trace => GRAY,
+        };
+
+        let back_col = Color::new(0.0, 0.0, 0.0, 0.8);
+
+        (back_col, text_col)
+    }
+
+    pub fn init_log() {
+        static THIS: ScreenCons = ScreenCons;
+        set_logger(&THIS).unwrap();
+    }
 }
 
 impl fmt::Write for ScreenCons {
@@ -197,6 +230,27 @@ impl fmt::Write for ScreenCons {
         let mut lock = GLOBAL_CON.lock().unwrap();
         lock.write_str(s)
     }
+}
+
+impl Log for ScreenCons {
+    fn enabled(&self, metadata: &Metadata) -> bool {
+        // TODO: impl
+        true
+    }
+
+    fn log(&self, record: &Record) {
+        let msg = *record.args();
+        let level = record.level();
+        let file = record.file().unwrap_or("???");
+        let line = record.line().unwrap_or(0);
+
+        Self::put_event(
+            format_args!("{}:{} {}\n", file, line, &msg),
+            level
+        );
+    }
+
+    fn flush(&self) { /* NOOP */ }
 }
 
 // TODO: hook up to log.rs
