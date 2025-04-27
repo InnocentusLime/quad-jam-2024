@@ -106,6 +106,7 @@ struct ScreenConsoleImpl {
     text: ScreenText,
 }
 
+// TODO: don't let scroll too far?
 impl ScreenConsoleImpl {
     fn new() -> Self {
         ScreenConsoleImpl {
@@ -144,6 +145,27 @@ impl ScreenConsoleImpl {
         }
 
         self.clear_curr_line();
+    }
+
+    fn last_line(&self) -> usize {
+        (self.pen.curr_line + SCREENCON_LINES - SCREENCON_LINES_ONSCREEN + 1) % SCREENCON_LINES
+    }
+
+    fn scroll(&self) -> usize {
+        self.text.scroll_offset
+    }
+
+    fn set_scroll(&mut self, x: usize) {
+        self.text.scroll_offset = x % SCREENCON_LINES;
+    }
+
+    fn set_color(&mut self, text: Color, back: Color) {
+        self.pen.pen_text_color = text;
+        self.pen.pen_back_color = back;
+    }
+
+    fn get_color(&self) -> (Color, Color) {
+        (self.pen.pen_text_color, self.pen.pen_back_color)
     }
 }
 
@@ -184,16 +206,20 @@ impl ScreenCons {
         GLOBAL_CON.lock().unwrap().text.draw();
     }
 
+    fn scope<R>(scope: impl FnOnce(&mut ScreenConsoleImpl) -> R) -> R {
+        let mut lock = GLOBAL_CON.lock().unwrap();
+        scope(&mut lock)
+    }
+
     pub fn get_color() -> (Color, Color) {
         let lock = GLOBAL_CON.lock().unwrap();
 
-        (lock.pen.pen_back_color, lock.pen.pen_text_color)
+        lock.get_color()
     }
 
     pub fn set_color(text: Color, back: Color) {
         let mut lock = GLOBAL_CON.lock().unwrap();
-        lock.pen.pen_text_color = text;
-        lock.pen.pen_back_color = back;
+        lock.set_color(text, back);
     }
 
     pub fn scroll() -> usize {
@@ -207,20 +233,26 @@ impl ScreenCons {
     }
 
     pub fn is_scroll_recent() -> bool {
-        Self::last_line() == Self::scroll()
+        Self::scope(|con| {
+            con.last_line() == con.scroll()
+        })
     }
 
     pub fn snap_to_last_message() {
-        Self::set_scroll(Self::last_line());
+        Self::scope(|con| {
+            con.set_scroll(con.last_line());
+        })
     }
 
     pub fn put_event(msg: fmt::Arguments, level: Level) {
-        let (back, text) = Self::log_level_cols(level);
-        let (back_old, text_old) = Self::get_color();
+        Self::scope(|con| {
+            let (text, back) = Self::log_level_cols(level);
+            let (text_old, back_old) = con.get_color();
 
-        Self::set_color(text, back);
-        fmt::write(&mut Self, msg).unwrap();
-        Self::set_color(text_old, back_old);
+            con.set_color(text, back);
+            fmt::write(con, msg).unwrap();
+            con.set_color(text_old, back_old);
+        })
     }
 
     fn log_level_cols(level: Level) -> (Color, Color) {
@@ -234,17 +266,26 @@ impl ScreenCons {
 
         let back_col = Color::new(0.0, 0.0, 0.0, 0.8);
 
-        (back_col, text_col)
-    }
-
-    fn last_line() -> usize {
-        let lock = GLOBAL_CON.lock().unwrap();
-        (lock.pen.curr_line + SCREENCON_LINES - SCREENCON_LINES_ONSCREEN + 1) % SCREENCON_LINES
+        (text_col, back_col)
     }
 
     pub fn init_log() {
         static THIS: ScreenCons = ScreenCons;
         set_logger(&THIS).unwrap();
+    }
+
+    pub fn scroll_forward() {
+        Self::scope(|con| {
+            let scroll = con.scroll();
+            con.set_scroll(scroll.saturating_add(1));
+        })
+    }
+
+    pub fn scroll_back() {
+        Self::scope(|con| {
+            let scroll = con.scroll();
+            con.set_scroll(scroll.saturating_sub(1));
+        })
     }
 }
 
