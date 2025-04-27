@@ -38,6 +38,10 @@ impl ScreenText {
             .enumerate()
     }
 
+    fn last_visible_line(&self) -> usize {
+        (self.scroll_offset + (SCREENCON_LINES_ONSCREEN - 1)) % SCREENCON_LINES
+    }
+
     fn draw(&self) {
         set_default_camera();
         let line_box = screen_height() / (SCREENCON_LINES_ONSCREEN as f32);
@@ -76,7 +80,6 @@ impl ScreenText {
     }
 }
 
-// TODO: write that do not move the cursor
 struct ScreenPen {
     pen_text_color: Color,
     pen_back_color: Color,
@@ -120,9 +123,16 @@ impl ScreenConsoleImpl {
         line.buf.clear();
     }
 
-    // TODO: auto scroll
     fn next_line(&mut self) {
         self.pen.curr_line = (self.pen.curr_line + 1) % SCREENCON_LINES;
+        let should_scroll =
+            self.pen.curr_line > self.text.last_visible_line() ||
+            self.text.last_visible_line() == SCREENCON_LINES - 1;
+
+        if should_scroll {
+            self.text.scroll_offset = (self.text.scroll_offset + 1) % SCREENCON_LINES;
+        }
+
         self.clear_curr_line();
     }
 }
