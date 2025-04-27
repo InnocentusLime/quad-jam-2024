@@ -19,7 +19,7 @@ impl ScreenConsoleImpl {
     fn new() -> Self {
         ScreenConsoleImpl {
             pen: ScreenPen {
-                pen_back_color: BLANK,
+                pen_back_color: SCREENCON_DEFAULT_BACKGROUND,
                 pen_text_color: WHITE,
                 curr_line: 0,
             },
@@ -185,7 +185,7 @@ impl ScreenCons {
             Level::Trace => GRAY,
         };
 
-        let back_col = Color::new(0.0, 0.0, 0.0, 0.8);
+        let back_col = SCREENCON_DEFAULT_BACKGROUND;
 
         (text_col, back_col)
     }

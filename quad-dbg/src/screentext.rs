@@ -3,6 +3,7 @@ use macroquad::prelude::*;
 pub(crate) const SCREENCON_LINES: usize = 1024;
 pub(crate) const SCREENCON_CHARS_PER_LINE: usize = 255;
 pub(crate) const SCREENCON_LINES_ONSCREEN: usize = 32;
+pub(crate) const SCREENCON_DEFAULT_BACKGROUND: Color = Color::new(0.0, 0.0, 0.0, 0.8);
 
 #[derive(Clone)]
 pub(crate) struct Line {
