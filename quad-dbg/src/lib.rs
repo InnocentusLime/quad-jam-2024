@@ -1,5 +1,4 @@
 mod screencon;
-pub mod debug;
+mod screentext;
 
-pub use debug::*;
 pub use screencon::*;
