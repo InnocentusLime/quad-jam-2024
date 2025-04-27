@@ -229,12 +229,7 @@ pub enum PlayerDamageState {
 }
 
 fn reset_game(world: &mut World) {
-    let ents = world.borrow::<EntitiesView>().unwrap()
-        .iter().collect::<Vec<_>>();
-
-    for ent in ents {
-        world.delete_entity(ent);
-    }
+    world.clear();
 
     let game = Game::new(world);
 
