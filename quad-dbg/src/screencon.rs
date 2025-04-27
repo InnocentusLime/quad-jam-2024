@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use std::{fmt, sync::{LazyLock, Mutex}};
 
-const SCREENCON_LINES: usize = 256;
+const SCREENCON_LINES: usize = 1024;
 const SCREENCON_CHARS_PER_LINE: usize = 255;
 const SCREENCON_LINES_ONSCREEN: usize = 32;
 
@@ -195,6 +195,14 @@ impl ScreenCons {
         lock.text.scroll_offset = scroll;
     }
 
+    pub fn is_scroll_recent() -> bool {
+        Self::last_line() == Self::scroll()
+    }
+
+    pub fn snap_to_last_message() {
+        Self::set_scroll(Self::last_line());
+    }
+
     pub fn put_event(msg: fmt::Arguments, level: Level) {
         let (back, text) = Self::log_level_cols(level);
         let (back_old, text_old) = Self::get_color();
@@ -216,6 +224,11 @@ impl ScreenCons {
         let back_col = Color::new(0.0, 0.0, 0.0, 0.8);
 
         (back_col, text_col)
+    }
+
+    fn last_line() -> usize {
+        let lock = GLOBAL_CON.lock().unwrap();
+        (lock.pen.curr_line + SCREENCON_LINES - SCREENCON_LINES_ONSCREEN + 1) % SCREENCON_LINES
     }
 
     pub fn init_log() {
