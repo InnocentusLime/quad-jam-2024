@@ -116,6 +116,7 @@ async fn run() -> anyhow::Result<()> {
             accumelated_time = 0.0;
         } else if accumelated_time >= fixed_dt {
             do_tick = true;
+            accumelated_time -= fixed_dt;
         }
 
         world.run(|mut ui_model_res: UniqueViewMut<UiModel>| *ui_model_res = ui_model);
@@ -202,6 +203,7 @@ async fn run() -> anyhow::Result<()> {
         world.run_with_data(PhysicsState::remove_dead_handles, &mut physics);
         world.clear_all_removed_and_deleted();
 
+        dump!("{}", accumelated_time);
         debug_info(&mut world, &mut console_mode);
 
         next_frame().await
