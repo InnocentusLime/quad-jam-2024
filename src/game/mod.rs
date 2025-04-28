@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use rapier2d::prelude::InteractionGroups;
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, ui::UiModel, AppState, DeltaTime};
+use crate::{inline_tilemap, ui::UiModel, AppState};
 use crate::physics::*;
 
 pub use components::*;
@@ -369,11 +369,11 @@ impl Game {
     }
 
     pub fn ray_tick(
+        dt: f32,
         mut ray_tag: ViewMut<RayTag>,
-        dt: UniqueView<DeltaTime>,
     ) {
         for ray in (&mut ray_tag).iter() {
-            ray.life_left -= dt.0;
+            ray.life_left -= dt;
             ray.life_left = ray.life_left.max(0.0);
         }
     }
@@ -459,14 +459,14 @@ impl Game {
     }
 
     pub fn enemy_states(
+        dt: f32,
         mut enemy: ViewMut<EnemyState>,
         mut hp: ViewMut<Health>,
-        dt: UniqueView<DeltaTime>,
     ) {
         for (enemy, hp) in (&mut enemy, &mut hp).iter() {
             match enemy {
                 EnemyState::Stunned { left } => {
-                    *left -= dt.0;
+                    *left -= dt;
                     if *left < 0.0 {
                         hp.0 -= 1;
                         *enemy = EnemyState::Free;
@@ -567,7 +567,7 @@ impl Game {
     }
 
     pub fn player_controls(
-        dt: UniqueView<DeltaTime>,
+        dt: f32,
         ui_model: UniqueView<UiModel>,
         player: View<PlayerTag>,
         mut control: ViewMut<KinematicControl>,
@@ -588,7 +588,7 @@ impl Game {
 
         for (control, _) in (&mut control, &player).iter() {
             control.slide = true;
-            control.dr = dir.normalize_or_zero() * dt.0 * PLAYER_SPEED;
+            control.dr = dir.normalize_or_zero() * dt * PLAYER_SPEED;
         }
     }
 
@@ -616,14 +616,14 @@ impl Game {
     }
 
     pub fn player_damage_state(
+        dt: f32,
         mut player_dmg: ViewMut<PlayerDamageState>,
-        dt: UniqueView<DeltaTime>,
     ) {
         for player_dmg in (&mut player_dmg).iter() {
             let PlayerDamageState::Cooldown(time) = player_dmg
                 else { continue; };
 
-            *time -= dt.0;
+            *time -= dt;
             if *time > 0.0 { continue; }
 
             *player_dmg = PlayerDamageState::Hittable;

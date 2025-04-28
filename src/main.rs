@@ -59,10 +59,6 @@ fn reset_game(world: &mut World) {
     world.add_unique(game);
 }
 
-#[derive(Debug, Clone, Copy)]
-#[derive(Unique)]
-pub struct DeltaTime(pub f32);
-
 async fn run() -> anyhow::Result<()> {
     set_max_level(STATIC_MAX_LEVEL);
     ScreenCons::init_log();
@@ -82,7 +78,6 @@ async fn run() -> anyhow::Result<()> {
     let mut sound = SoundDirector::new().await?;
 
     world.add_unique(ui.update(state));
-    world.add_unique(DeltaTime(0.0));
 
     let game = Game::new(&mut world);
     world.add_unique(game);
@@ -163,14 +158,10 @@ async fn run() -> anyhow::Result<()> {
             }
             AppState::Active if !ui_model.pause_requested() => {
                 if do_tick {
-                    world.run(|mut dt: UniqueViewMut<DeltaTime>| {
-                        dt.0 = fixed_dt
-                    });
-
                     world.run_with_data(PhysicsState::reset_forces, &mut physics);
 
                     world.run(Game::brute_ai);
-                    world.run(Game::player_controls);
+                    world.run_with_data(Game::player_controls, fixed_dt);
 
                     world.run_with_data(PhysicsState::import_positions_and_info, &mut physics);
                     world.run_with_data(PhysicsState::import_forces, &mut physics);
@@ -187,14 +178,14 @@ async fn run() -> anyhow::Result<()> {
                     world.run(Game::update_camera);
                     world.run(Game::player_ammo_pickup);
                     world.run(Game::reset_amo_pickup);
-                    world.run(Game::enemy_states);
+                    world.run_with_data(Game::enemy_states, fixed_dt);
                     world.run(Game::enemy_state_data);
                     world.run(Game::player_damage);
                     world.run(Game::player_shooting);
-                    world.run(Game::player_damage_state);
+                    world.run_with_data(Game::player_damage_state, fixed_dt);
                     world.run(Game::reward_enemies);
                     world.run(Game::count_rewards);
-                    world.run(Game::ray_tick);
+                    world.run_with_data(Game::ray_tick, fixed_dt);
                 }
 
                 if let Some(new_state) = world.run(decide_next_state) {
@@ -207,9 +198,6 @@ async fn run() -> anyhow::Result<()> {
             _ => (),
         };
 
-        world.run(|mut dt: UniqueViewMut<DeltaTime>| {
-            dt.0 = real_dt
-        });
         render.render(&world);
         world.run_with_data(Ui::draw, &mut ui);
         sound.run(&world);
