@@ -600,7 +600,7 @@ impl PhysicsState {
 
     pub fn allocate_bodies(
         &mut self,
-        info: View<BodyTag>,
+        info: ViewMut<BodyTag>,
         tf: View<Transform>,
     ) {
         for (entity, info) in info.inserted().iter().with_id() {
@@ -618,6 +618,8 @@ impl PhysicsState {
                 info.mass,
             );
         }
+
+        info.clear_all_inserted()
     }
 
     pub fn remove_dead_handles(

@@ -132,8 +132,6 @@ async fn run() -> anyhow::Result<()> {
         }
 
         world.run_with_data(PhysicsState::allocate_bodies, &mut physics);
-        // No way to clear all insertion tracking :(
-        world.run(|info: ViewMut<BodyTag>| info.clear_all_inserted());
 
         match state {
             AppState::Start if ui_model.confirmation_detected() => {
