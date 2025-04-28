@@ -1,7 +1,10 @@
 use macroquad::prelude::*;
 use rapier2d::prelude::InteractionGroups;
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, physics::{groups, BeamTag, BodyKind, ColliderTy, ForceApplier, KinematicControl, OneSensorTag, BodyTag}, ui::UiModel, AppState, BoxTag, BruteTag, BulletTag, DamageTag, DeltaTime, EnemyState, Health, PlayerDamageSensorTag, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, RewardInfo, RewardState, TileStorage, TileType, Transform};
+use crate::{inline_tilemap, ui::UiModel, AppState, DeltaTime};
+use crate::physics::*;
+
+pub use components::*;
 
 pub const PLAYER_SPEED: f32 = 128.0;
 pub const DISTANCE_EPS: f32 = 0.01;
@@ -17,6 +20,8 @@ pub const BRUTE_GROUP_FORCE: f32 = 0.01 * 22.0;
 pub const BRUTE_CHASE_FORCE: f32 = 40.0 * 24.0;
 
 pub const REWARD_PER_ENEMY: u32 = 10;
+
+mod components;
 
 fn spawn_tiles(
     width: usize,

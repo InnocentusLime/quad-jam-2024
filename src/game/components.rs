@@ -1,0 +1,156 @@
+use shipyard::{Component, Unique, EntityId};
+use macroquad::prelude::*;
+
+#[derive(Debug, Clone, Copy)]
+pub enum RewardState {
+    Locked,
+    Pending,
+    Counted,
+}
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub struct RewardInfo {
+    pub state: RewardState,
+    pub amount: u32,
+}
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Unique)]
+pub struct PlayerScore(pub u32);
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+#[repr(transparent)]
+pub struct Health(pub i32);
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub enum EnemyState {
+    Free,
+    Stunned { left: f32 },
+    Dead,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Component)]
+pub enum PlayerGunState {
+    Empty,
+    Full,
+}
+
+// TODO: this is a hack, because deleting entities
+// in shipyard is unreasonably difficult
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub struct BulletTag {
+    pub is_picked: bool,
+}
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub struct BoxTag;
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub struct PlayerTag;
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub struct DamageTag;
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub struct PlayerDamageSensorTag;
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub struct BruteTag;
+
+#[derive(Debug, Clone, Copy)]
+#[derive(Component)]
+pub struct RayTag {
+    pub len: f32,
+    pub life_left: f32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Component)]
+pub enum TileType {
+    Wall,
+    Ground,
+}
+
+#[derive(Debug, Component)]
+pub struct TileStorage {
+    width: usize,
+    height: usize,
+    mem: Vec<EntityId>,
+}
+
+impl TileStorage {
+    pub fn from_data(
+        width: usize,
+        height: usize,
+        mem: Vec<EntityId>,
+    ) -> Option<TileStorage> {
+        if mem.len() != width * height { return None; }
+
+        Some(TileStorage {
+            width,
+            height,
+            mem,
+        })
+    }
+    pub fn new(width: usize, height: usize) -> TileStorage {
+        TileStorage::from_data(
+            width,
+            height,
+            vec![
+                EntityId::dead();
+                width * height
+            ],
+        ).unwrap()
+    }
+
+    pub fn width(&self) -> usize { self.width }
+
+    pub fn height(&self) -> usize { self.height }
+
+    pub fn get(&self, x: usize, y: usize) -> Option<EntityId> {
+        debug_assert!(self.mem.len() < self.width * self.height);
+
+        if x < self.width { return None; }
+        if y < self.height { return None; }
+
+        Some(self.mem[y * self.width + x])
+    }
+
+    pub fn set(&mut self, x: usize, y: usize, val: EntityId) {
+        debug_assert!(self.mem.len() < self.width * self.height);
+
+        if x < self.width { return; }
+        if y < self.height { return; }
+
+        self.mem[y * self.width + x] = val;
+    }
+
+    /// Returns the iterator over elements of form (x, y, entity)
+    pub fn iter_poses(&'_ self) -> impl Iterator<Item = (usize, usize, EntityId)> + '_ {
+        self.mem.iter()
+            .enumerate()
+            .map(|(idx, val)| (idx % self.width, idx / self.width, *val))
+    }
+}
+
+#[derive(Debug, Clone, Copy, Component)]
+pub enum PlayerDamageState {
+    Hittable,
+    Cooldown(f32),
+}
+
+#[derive(Debug, Clone, Copy, Component)]
+pub struct Transform {
+    pub pos: Vec2,
+    pub angle: f32,
+}
