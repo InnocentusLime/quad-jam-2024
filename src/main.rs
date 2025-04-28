@@ -156,37 +156,35 @@ async fn run() -> anyhow::Result<()> {
                 info!("Resetting");
                 reset_game(&mut world);
             }
-            AppState::Active if !ui_model.pause_requested() => {
-                if do_tick {
-                    world.run_with_data(PhysicsState::reset_forces, &mut physics);
+            AppState::Active if !ui_model.pause_requested() && do_tick => {
+                world.run_with_data(PhysicsState::reset_forces, &mut physics);
 
-                    world.run(Game::brute_ai);
-                    world.run_with_data(Game::player_controls, fixed_dt);
+                world.run(Game::brute_ai);
+                world.run_with_data(Game::player_controls, fixed_dt);
 
-                    world.run_with_data(PhysicsState::import_positions_and_info, &mut physics);
-                    world.run_with_data(PhysicsState::import_forces, &mut physics);
-                    world.run_with_data(PhysicsState::apply_kinematic_moves, &mut physics);
-                    world.run_with_data(PhysicsState::step, &mut physics);
-                    world.run_with_data(PhysicsState::export_body_poses, &mut physics);
+                world.run_with_data(PhysicsState::import_positions_and_info, &mut physics);
+                world.run_with_data(PhysicsState::import_forces, &mut physics);
+                world.run_with_data(PhysicsState::apply_kinematic_moves, &mut physics);
+                world.run_with_data(PhysicsState::step, &mut physics);
+                world.run_with_data(PhysicsState::export_body_poses, &mut physics);
 
-                    world.run(Game::player_sensor_pose);
-                    world.run(Game::player_ray_align);
+                world.run(Game::player_sensor_pose);
+                world.run(Game::player_ray_align);
 
-                    world.run_with_data(PhysicsState::export_beam_queries, &mut physics);
-                    world.run_with_data(PhysicsState::export_sensor_queries, &mut physics);
+                world.run_with_data(PhysicsState::export_beam_queries, &mut physics);
+                world.run_with_data(PhysicsState::export_sensor_queries, &mut physics);
 
-                    world.run(Game::update_camera);
-                    world.run(Game::player_ammo_pickup);
-                    world.run(Game::reset_amo_pickup);
-                    world.run_with_data(Game::enemy_states, fixed_dt);
-                    world.run(Game::enemy_state_data);
-                    world.run(Game::player_damage);
-                    world.run(Game::player_shooting);
-                    world.run_with_data(Game::player_damage_state, fixed_dt);
-                    world.run(Game::reward_enemies);
-                    world.run(Game::count_rewards);
-                    world.run_with_data(Game::ray_tick, fixed_dt);
-                }
+                world.run(Game::update_camera);
+                world.run(Game::player_ammo_pickup);
+                world.run(Game::reset_amo_pickup);
+                world.run_with_data(Game::enemy_states, fixed_dt);
+                world.run(Game::enemy_state_data);
+                world.run(Game::player_damage);
+                world.run(Game::player_shooting);
+                world.run_with_data(Game::player_damage_state, fixed_dt);
+                world.run(Game::reward_enemies);
+                world.run(Game::count_rewards);
+                world.run_with_data(Game::ray_tick, fixed_dt);
 
                 if let Some(new_state) = world.run(decide_next_state) {
                     state = new_state;
