@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, UniqueView, View, World};
 
-use crate::{game::{Game, BRUTE_SPAWN_HEALTH, PLAYER_RAY_LINGER, PLAYER_RAY_WIDTH}, physics::{BeamTag, BodyKind, ColliderTy, OneSensorTag, BodyTag}, BallState, BoxTag, BruteTag, BulletTag, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, TileStorage, TileType, Transform};
+use crate::{game::{Game, BRUTE_SPAWN_HEALTH, PLAYER_RAY_LINGER, PLAYER_RAY_WIDTH}, physics::{BeamTag, BodyKind, ColliderTy, OneSensorTag, BodyTag}, BoxTag, BruteTag, BulletTag, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, TileStorage, TileType, Transform};
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
@@ -121,7 +121,6 @@ impl Render {
 
         if self.render_world {
             world.run_with_data(Self::draw_tiles, self);
-            world.run_with_data(Self::draw_ballohurt, self);
             world.run_with_data(Self::draw_brute, self);
             world.run_with_data(Self::draw_player, self);
             world.run_with_data(Self::draw_box, self);
@@ -268,24 +267,6 @@ impl Render {
                     color: WALL_COLOR,
                 },
             );
-        }
-    }
-
-    fn draw_ballohurt(
-        &mut self,
-        pos: View<Transform>,
-        ball_state: View<BallState>,
-    ) {
-        for (pos, ball) in (&pos, &ball_state).iter() {
-            match ball {
-                BallState::InPocket => (),
-                _ => draw_circle(
-                    pos.pos.x,
-                    pos.pos.y,
-                    16.0,
-                    GREEN,
-                ),
-            }
         }
     }
 

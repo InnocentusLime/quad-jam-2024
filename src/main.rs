@@ -71,22 +71,6 @@ pub struct PlayerScore(pub u32);
 
 #[derive(Debug, Clone, Copy)]
 #[derive(Component)]
-pub enum BallState {
-    InPocket,
-    Throwing {
-        to: Vec2,
-    },
-    Retracting,
-    Capturing {
-        enemy: EntityId,
-    },
-    Spinning {
-        enemy: EntityId,
-    },
-}
-
-#[derive(Debug, Clone, Copy)]
-#[derive(Component)]
 #[repr(transparent)]
 pub struct Health(i32);
 
