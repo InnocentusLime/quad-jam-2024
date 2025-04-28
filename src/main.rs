@@ -90,8 +90,6 @@ async fn run() -> anyhow::Result<()> {
     let mut fullscreen = window_conf().fullscreen;
     let mut paused_state = state;
     let mut accumelated_time = 0.0f32;
-    let mut perf_time = 0.0f32;
-    let mut perf_ticks = 0;
     let mut console_mode = 0;
 
     // Save old size as leaving fullscreen will give window a different size
