@@ -117,22 +117,12 @@ async fn run() -> anyhow::Result<()> {
         let fixed_dt = 1.0 / 60.0;
         let mut do_tick = false;
         accumelated_time += real_dt;
-        perf_time += real_dt;
 
         if accumelated_time >= 2.0*fixed_dt {
             warn!("LAG");
             accumelated_time = 0.0;
-            perf_time = 0.0;
-            perf_ticks = 0;
         } else if accumelated_time >= fixed_dt {
             do_tick = true;
-            accumelated_time -= fixed_dt;
-            perf_ticks += 1;
-        }
-
-        if perf_ticks >= 2000 {
-            perf_ticks = 0;
-            perf_time = 0.0;
         }
 
         world.run(|mut ui_model_res: UniqueViewMut<UiModel>| *ui_model_res = ui_model);
@@ -238,7 +228,6 @@ async fn run() -> anyhow::Result<()> {
 
         dump!("FPS: {:?}", get_fps());
         dump!("Entities: {ent_count}");
-        dump!("Perf timing: {} & {perf_ticks}", (perf_time / fixed_dt) as i32);
 
         match console_mode {
             0 => (),
