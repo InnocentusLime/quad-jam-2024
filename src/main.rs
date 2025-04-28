@@ -154,45 +154,46 @@ async fn run() -> anyhow::Result<()> {
                 info!("Resetting");
                 reset_game(&mut world);
             }
-            AppState::Active if !ui_model.pause_requested() && do_tick => {
-                world.run_with_data(PhysicsState::reset_forces, &mut physics);
-
-                world.run(Game::brute_ai);
-                world.run_with_data(Game::player_controls, fixed_dt);
-                world.run(Game::player_ray_align);
-
-                world.run_with_data(PhysicsState::import_positions_and_info, &mut physics);
-                world.run_with_data(PhysicsState::import_forces, &mut physics);
-                world.run_with_data(PhysicsState::apply_kinematic_moves, &mut physics);
-                world.run_with_data(PhysicsState::step, &mut physics);
-                world.run_with_data(PhysicsState::export_body_poses, &mut physics);
-
-                world.run(Game::player_sensor_pose);
-
-                world.run_with_data(PhysicsState::export_beam_queries, &mut physics);
-                world.run_with_data(PhysicsState::export_sensor_queries, &mut physics);
-
-                world.run(Game::update_camera);
-                world.run(Game::player_ammo_pickup);
-                world.run(Game::reset_amo_pickup);
-                world.run_with_data(Game::enemy_states, fixed_dt);
-                world.run(Game::enemy_state_data);
-                world.run(Game::player_damage);
-                world.run(Game::player_shooting);
-                world.run_with_data(Game::player_damage_state, fixed_dt);
-                world.run(Game::reward_enemies);
-                world.run(Game::count_rewards);
-                world.run_with_data(Game::ray_tick, fixed_dt);
-
-                if let Some(new_state) = world.run(decide_next_state) {
-                    state = new_state;
-                }
-            },
             AppState::PleaseRotate if get_orientation() == 0.0 => {
                 state = paused_state;
             },
             _ => (),
         };
+
+        if matches!(state, AppState::Active) && do_tick {
+            world.run_with_data(PhysicsState::reset_forces, &mut physics);
+
+            world.run(Game::brute_ai);
+            world.run_with_data(Game::player_controls, fixed_dt);
+            world.run(Game::player_ray_align);
+
+            world.run_with_data(PhysicsState::import_positions_and_info, &mut physics);
+            world.run_with_data(PhysicsState::import_forces, &mut physics);
+            world.run_with_data(PhysicsState::apply_kinematic_moves, &mut physics);
+            world.run_with_data(PhysicsState::step, &mut physics);
+            world.run_with_data(PhysicsState::export_body_poses, &mut physics);
+
+            world.run(Game::player_sensor_pose);
+
+            world.run_with_data(PhysicsState::export_beam_queries, &mut physics);
+            world.run_with_data(PhysicsState::export_sensor_queries, &mut physics);
+
+            world.run(Game::update_camera);
+            world.run(Game::player_ammo_pickup);
+            world.run(Game::reset_amo_pickup);
+            world.run_with_data(Game::enemy_states, fixed_dt);
+            world.run(Game::enemy_state_data);
+            world.run(Game::player_damage);
+            world.run(Game::player_shooting);
+            world.run_with_data(Game::player_damage_state, fixed_dt);
+            world.run(Game::reward_enemies);
+            world.run(Game::count_rewards);
+            world.run_with_data(Game::ray_tick, fixed_dt);
+
+            if let Some(new_state) = world.run(decide_next_state) {
+                state = new_state;
+            }
+        }
 
         render.render(&world);
         world.run_with_data(Ui::draw, &mut ui);
@@ -201,23 +202,27 @@ async fn run() -> anyhow::Result<()> {
         world.run_with_data(PhysicsState::remove_dead_handles, &mut physics);
         world.clear_all_removed_and_deleted();
 
-        let ent_count = world.borrow::<EntitiesView>()
-            .unwrap().iter().count();
-
-        if is_key_pressed(KeyCode::GraveAccent) {
-            console_mode = (console_mode + 1) % 3;
-        }
-
-        dump!("FPS: {:?}", get_fps());
-        dump!("Entities: {ent_count}");
-
-        match console_mode {
-            0 => (),
-            1 => ScreenDump::draw(),
-            2 => ScreenCons::draw(),
-            _ => unreachable!("Illegal console mode"),
-        }
+        debug_info(&mut world, &mut console_mode);
 
         next_frame().await
+    }
+}
+
+fn debug_info(world: &mut World, console_mode: &mut u8) {
+    let ent_count = world.borrow::<EntitiesView>()
+        .unwrap().iter().count();
+
+    if is_key_pressed(KeyCode::GraveAccent) {
+        *console_mode = (*console_mode + 1) % 3;
+    }
+
+    dump!("FPS: {:?}", get_fps());
+    dump!("Entities: {ent_count}");
+
+    match console_mode {
+        0 => (),
+        1 => ScreenDump::draw(),
+        2 => ScreenCons::draw(),
+        _ => unreachable!("Illegal console mode"),
     }
 }
