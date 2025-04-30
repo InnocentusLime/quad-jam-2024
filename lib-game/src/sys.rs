@@ -1,4 +1,4 @@
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C" fn mquad_arcanoid_crate_version() -> u32 {
     1
 }

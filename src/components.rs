@@ -148,9 +148,3 @@ pub enum PlayerDamageState {
     Hittable,
     Cooldown(f32),
 }
-
-#[derive(Debug, Clone, Copy, Component)]
-pub struct Transform {
-    pub pos: Vec2,
-    pub angle: f32,
-}

@@ -1,0 +1,12 @@
+[package]
+name = "lib-game"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+log = { workspace = true }
+anyhow = { workspace = true }
+shipyard = { workspace = true }
+macroquad = { workspace = true }
+quad-dbg = { path = "../quad-dbg" }
+rapier2d = { version = "0.24.0" }

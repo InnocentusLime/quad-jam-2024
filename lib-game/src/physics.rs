@@ -5,7 +5,9 @@ use nalgebra::Translation2;
 use rapier2d::{na::{Isometry2, UnitComplex, Vector2}, parry::{query::{DefaultQueryDispatcher, PersistentQueryDispatcher, ShapeCastOptions}, shape::{Ball, Cuboid}}, prelude::*};
 use shipyard::{EntityId, Get, IntoIter, View, ViewMut, Component};
 
-use crate::game::Transform;
+use crate::components::Transform;
+
+pub use rapier2d::prelude::InteractionGroups;
 
 pub const PIXEL_PER_METER : f32 = 32.0;
 pub const MAX_KINEMATICS_ITERS: i32 = 20;
@@ -167,6 +169,8 @@ pub struct PhysicsState {
 
 impl PhysicsState {
     pub fn new() -> Self {
+        info!("lib-game physics backend: rapier version {}", rapier2d::VERSION);
+
         Self {
             islands: IslandManager::new(),
             broad_phase: DefaultBroadPhase::new(),

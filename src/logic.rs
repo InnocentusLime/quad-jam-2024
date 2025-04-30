@@ -1,10 +1,10 @@
 use macroquad::prelude::*;
-use rapier2d::prelude::InteractionGroups;
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, ui::UiModel, AppState};
-use crate::physics::*;
+use lib_game::*;
 
-pub use components::*;
+use crate::inline_tilemap;
+
+use crate::components::*;
 
 pub const PLAYER_SPEED: f32 = 128.0;
 pub const DISTANCE_EPS: f32 = 0.01;
@@ -20,8 +20,6 @@ pub const BRUTE_GROUP_FORCE: f32 = 0.01 * 22.0;
 pub const BRUTE_CHASE_FORCE: f32 = 40.0 * 24.0;
 
 pub const REWARD_PER_ENEMY: u32 = 10;
-
-mod components;
 
 fn spawn_tiles(
     width: usize,
@@ -401,13 +399,13 @@ impl Game {
     }
 
     pub fn player_shooting(
+        input: &InputModel,
         this: UniqueView<Game>,
         beam_tag: View<BeamTag>,
         mut tf: ViewMut<Transform>,
         mut player_amo: ViewMut<PlayerGunState>,
         mut ray_tag: ViewMut<RayTag>,
         mut enemy_state: ViewMut<EnemyState>,
-        ui_model: UniqueView<UiModel>,
         mut score: UniqueViewMut<PlayerScore>,
         mut bullet: ViewMut<BulletTag>,
     ) {
@@ -430,7 +428,7 @@ impl Game {
         let mut amo = (&mut player_amo).get(this.player)
             .unwrap();
 
-        if !ui_model.attack_down() { return; }
+        if !input.attack_down { return; }
 
         if *amo != PlayerGunState::Full { return; }
 
@@ -567,22 +565,21 @@ impl Game {
     }
 
     pub fn player_controls(
-        dt: f32,
-        ui_model: UniqueView<UiModel>,
+        (input, dt): (&InputModel, f32),
         player: View<PlayerTag>,
         mut control: ViewMut<KinematicControl>,
     ) {
         let mut dir = Vec2::ZERO;
-        if ui_model.move_left() {
+        if input.left_movement_down {
             dir += vec2(-1.0, 0.0);
         }
-        if ui_model.move_up() {
+        if input.up_movement_down {
             dir += vec2(0.0, -1.0);
         }
-        if ui_model.move_right() {
+        if input.right_movement_down {
             dir += vec2(1.0, 0.0);
         }
-        if ui_model.move_down() {
+        if input.down_movement_down {
             dir += vec2(0.0, 1.0);
         }
 
