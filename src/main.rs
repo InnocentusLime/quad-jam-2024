@@ -43,10 +43,8 @@ async fn main() {
         },
         |input, dt, world| {
             world.run_with_data(Game::player_controls, (input, dt));
-            world.run(Game::player_ray_align);
+            world.run_with_data(Game::player_ray_controls, input);
             world.run(Game::brute_ai);
-            // FIXME: refactor this system into two smaller pieces
-            world.run_with_data(Game::player_shooting, input);
         },
         |_dt, world| {
             world.run(Game::player_sensor_pose);
@@ -54,6 +52,7 @@ async fn main() {
         |dt, world| {
             world.run(Game::update_camera);
             world.run(Game::player_ammo_pickup);
+            world.run(Game::player_ray_effect);
             world.run(Game::reset_amo_pickup);
             world.run_with_data(Game::enemy_states, dt);
             world.run(Game::enemy_state_data);

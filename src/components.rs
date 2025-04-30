@@ -70,6 +70,7 @@ pub struct BruteTag;
 #[derive(Debug, Clone, Copy)]
 #[derive(Component)]
 pub struct RayTag {
+    pub active: bool,
     pub len: f32,
     pub life_left: f32,
 }
