@@ -27,6 +27,15 @@ pub enum AppState {
     PleaseRotate,
 }
 
+/// The app run all the boilerplate code to make the game tick.
+/// The following features are provided:
+/// * State transitions and handling
+/// * Debugging
+/// * Physics handling
+/// * Consistent tickrate timing
+/// * Sound playing
+/// * Integration with log-rs
+/// * Drawing of the `dump!` macro
 pub struct App {
     fullscreen: bool,
     old_size: (u32, u32),
@@ -60,6 +69,17 @@ impl App {
         })
     }
 
+    /// Just runs the game. This is what you call after loading
+    /// all the resources. The app takes a few callbacks to know
+    /// what to do:
+    /// * init_game -- what to do to set up a game
+    /// * input_phase -- various input processing
+    /// * pre_physics_query_phase -- last chance to properly plan all
+    /// physics engine queries
+    /// * update -- the crux of the logic
+    /// * render -- render your game to the screen
+    ///
+    /// This method will run forever as it provides the application loop.
     pub async fn run(
         mut self,
         mut init_game: impl FnMut(&mut World),
