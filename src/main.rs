@@ -1,6 +1,8 @@
+use components::RayTag;
+use lib_game::{CameraDef, FontKey, Render, TextureKey};
 use logic::{decide_next_state, Game};
 use macroquad::prelude::*;
-use render::Render;
+use shipyard::{IntoIter, UniqueView, ViewMut};
 
 mod util;
 mod components;
@@ -18,6 +20,31 @@ fn window_conf() -> Conf {
     }
 }
 
+async fn load_graphics(render: &mut Render) -> anyhow::Result<()> {
+    set_default_filter_mode(FilterMode::Nearest);
+
+    let tiles = load_texture("assets/tiles.png").await?;
+    render.add_texture(
+        TextureKey("wall"),
+        &tiles,
+        Some(Rect {
+            x: 232.0,
+            y: 304.0,
+            w: 16.0,
+            h: 16.0,
+        }),
+    );
+
+    render.add_font(
+        FontKey("oegnek"),
+        &load_ttf_font("assets/oegnek.ttf").await?,
+    );
+
+    build_textures_atlas();
+
+    Ok(())
+}
+
 #[macroquad::main(window_conf)]
 async fn main() {
     let hook = std::panic::take_hook();
@@ -28,13 +55,9 @@ async fn main() {
 
     set_max_level(STATIC_MAX_LEVEL);
 
-    set_default_filter_mode(FilterMode::Nearest);
+    let mut app = lib_game::App::new(&window_conf()).await.unwrap();
 
-    let mut render = Render::new().await.unwrap();
-
-    build_textures_atlas();
-
-    let app = lib_game::App::new(&window_conf()).await.unwrap();
+    load_graphics(&mut app.render).await.unwrap();
 
     app.run(
         |world| {
@@ -64,9 +87,31 @@ async fn main() {
 
             world.run(decide_next_state)
         },
-        |app_state, _dt, world| {
-            render.render(world);
-            render.render_ui(app_state);
+        |app_state, world, render_world| {
+            world.run(|game: UniqueView<Game>| render_world.add_unique(CameraDef {
+                rotation: game.camera().rotation,
+                zoom: game.camera().zoom,
+                target: game.camera().target,
+                offset: game.camera().offset,
+            }));
+
+            world.run_with_data(render::render_tiles, render_world);
+            world.run_with_data(render::render_player, render_world);
+            world.run_with_data(render::render_brute, render_world);
+            world.run_with_data(render::render_boxes, render_world);
+            world.run_with_data(render::render_rays, render_world);
+            world.run_with_data(render::render_ammo, render_world);
+            world.run_with_data(render::render_game_ui, render_world);
+
+            // FIXME: this is a very dirty hack.
+            // a better thing would be to temporarily spawn a ray, that gets deletted next frame.
+            // We want:
+            // 1. gc dead handles at the start of the frame
+            // 2. before that, gc all deleted entities
+            // 3. add ToDelete tag
+            world.run(|mut ray_tag: ViewMut<RayTag>| for tag in (&mut ray_tag).iter() {
+                tag.active = false;
+            })
         },
     ).await
 }

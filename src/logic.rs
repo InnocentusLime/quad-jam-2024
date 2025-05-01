@@ -433,7 +433,7 @@ impl Game {
         for (tf, ray_tag, beam_tag) in (&tf, &mut ray_tag, &beam_tag).iter() {
             if !ray_tag.active { return; }
 
-            ray_tag.active = false;
+            // ray_tag.active = false;
             ray_tag.len = beam_tag.length;
 
             let shootdir = Vec2::from_angle(tf.angle);

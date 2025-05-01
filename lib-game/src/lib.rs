@@ -1,5 +1,6 @@
 mod input;
 mod physics;
+mod render;
 mod sound_director;
 mod components;
 
@@ -9,6 +10,7 @@ pub use physics::*;
 pub use input::*;
 pub use sound_director::*;
 pub use components::*;
+pub use render::*;
 
 use shipyard::{World, EntitiesView};
 use macroquad::prelude::*;
@@ -46,6 +48,7 @@ pub struct App {
     console_mode: u8,
     accumelated_time: f32,
 
+    pub render: Render,
     sound: SoundDirector,
     physics: PhysicsState,
     world: World,
@@ -63,6 +66,7 @@ impl App {
             console_mode: 0,
             accumelated_time: 0.0,
 
+            render: Render::new(),
             sound: SoundDirector::new().await?,
             physics: PhysicsState::new(),
             world: World::new(),
@@ -77,7 +81,7 @@ impl App {
     /// * pre_physics_query_phase -- last chance to properly plan all
     /// physics engine queries
     /// * update -- the crux of the logic
-    /// * render -- render your game to the screen
+    /// * render -- export the world into render
     ///
     /// This method will run forever as it provides the application loop.
     pub async fn run(
@@ -86,7 +90,7 @@ impl App {
         mut input_phase: impl FnMut(&InputModel, f32, &mut World),
         mut pre_physics_query_phase: impl FnMut(f32, &mut World),
         mut update: impl FnMut(f32, &mut World) -> Option<AppState>,
-        mut render: impl FnMut(AppState, f32, &mut World),
+        mut render: impl FnMut(AppState, &World, &mut World),
     ) {
         ScreenCons::init_log();
 
@@ -145,7 +149,9 @@ impl App {
             }
 
             self.sound.run(&self.world);
-            render(self.state, real_dt, &mut self.world);
+            self.render.new_frame();
+            render(self.state, &self.world, &mut self.render.world);
+            self.render.render(real_dt);
 
             dump!("{}", self.accumelated_time);
             self.debug_info();
