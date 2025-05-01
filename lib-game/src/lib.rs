@@ -47,6 +47,7 @@ pub struct App {
 
     console_mode: u8,
     accumelated_time: f32,
+    draw_world: bool,
 
     pub render: Render,
     sound: SoundDirector,
@@ -65,6 +66,7 @@ impl App {
 
             console_mode: 0,
             accumelated_time: 0.0,
+            draw_world: true,
 
             render: Render::new(),
             sound: SoundDirector::new().await?,
@@ -82,6 +84,7 @@ impl App {
     /// physics engine queries
     /// * update -- the crux of the logic
     /// * render -- export the world into render
+    /// * debug_render -- draw some debug assist stuff on top of the world
     ///
     /// This method will run forever as it provides the application loop.
     pub async fn run(
@@ -91,6 +94,7 @@ impl App {
         mut pre_physics_query_phase: impl FnMut(f32, &mut World),
         mut update: impl FnMut(f32, &mut World) -> Option<AppState>,
         mut render: impl FnMut(AppState, &World, &mut World),
+        mut debug_render: impl FnMut(&mut World),
     ) {
         ScreenCons::init_log();
 
@@ -151,10 +155,10 @@ impl App {
             self.sound.run(&self.world);
             self.render.new_frame();
             render(self.state, &self.world, &mut self.render.world);
-            self.render.render(real_dt);
+            self.render.render(!self.draw_world, real_dt);
 
             dump!("{}", self.accumelated_time);
-            self.debug_info();
+            self.debug_info(&mut debug_render);
 
             self.world.run_with_data(PhysicsState::remove_dead_handles, &mut self.physics);
             self.world.clear_all_removed_and_deleted();
@@ -192,7 +196,9 @@ impl App {
         }
     }
 
-    fn debug_info(&self) {
+    fn debug_info(&mut self, client_debug: impl FnOnce(&mut World)) {
+        self.render.debug_render(|| client_debug(&mut self.world));
+
         let ent_count = self.world.borrow::<EntitiesView>()
             .unwrap().iter().count();
 

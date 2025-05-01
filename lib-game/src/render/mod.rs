@@ -14,6 +14,11 @@ struct TextureVal {
     texture_rect: Rect,
 }
 
+/// Render does rendering stuff. When it comes to the world
+/// drawing, all the data is taken from its own world -- "export world".
+///
+/// It also provides a simple asset storage for quick access
+/// for the rendering code callers.
 pub struct Render {
     pub world: World,
 
@@ -90,7 +95,7 @@ impl Render {
         }
     }
 
-    pub fn render(&mut self, dt: f32) {
+    pub fn render(&mut self, dry_run: bool, dt: f32) {
         clear_background(Color {
             r: 0.0,
             g: 0.0,
@@ -99,9 +104,23 @@ impl Render {
         });
 
         self.setup_world_camera();
+        self.draw_world(dt, dry_run);
+    }
+
+    pub fn debug_render<F>(&mut self, code: F)
+    where
+        F: FnOnce(),
+    {
+        self.setup_world_camera();
+        code();
+    }
+
+    fn draw_world(&mut self, dt: f32, dry_run: bool) {
         self.update_time(dt);
         self.update_flickers();
         self.anim_vert_shrink_fadeout();
+
+        if dry_run { return; }
 
         // FIXME: draw order is broken
         self.draw_sprites();

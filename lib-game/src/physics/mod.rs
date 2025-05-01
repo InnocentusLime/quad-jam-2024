@@ -6,9 +6,11 @@ use rapier2d::{na::{Isometry2, UnitComplex, Vector2}, parry::{query::{DefaultQue
 use shipyard::{EntityId, Get, IntoIter, View, ViewMut};
 
 mod components;
+mod debug;
 
 use crate::components::Transform;
 pub use components::*;
+pub use debug::*;
 
 pub use rapier2d::prelude::InteractionGroups;
 

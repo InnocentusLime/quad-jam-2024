@@ -113,6 +113,9 @@ async fn main() {
                 tag.active = false;
             })
         },
+        |world| {
+            // draw_physics_debug(world);
+        },
     ).await
 }
 
