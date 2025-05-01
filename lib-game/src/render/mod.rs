@@ -21,6 +21,7 @@ pub struct Render {
     to_delete: Vec<EntityId>,
     time: f32,
 
+    // FIXME: put a faster hash here
     textures: HashMap<TextureKey, TextureVal>,
     fonts: HashMap<FontKey, Font>,
 }
