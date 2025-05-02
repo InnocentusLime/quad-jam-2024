@@ -80,6 +80,13 @@ impl Render {
         );
     }
 
+    pub fn get_font(
+        &self,
+        key: FontKey
+    ) -> Option<&Font> {
+        self.fonts.get(&key)
+    }
+
     pub fn new_frame(&mut self) {
         let _borrow_scope = {
             let ents = self.world.borrow::<EntitiesView>().unwrap();
@@ -105,7 +112,6 @@ impl Render {
             b: 0.02,
             a: 1.0,
         });
-
         self.setup_world_camera();
         self.draw_world(dt, dry_run);
     }

@@ -85,21 +85,21 @@ async fn main() {
 
             world.run(decide_next_state)
         },
-        |app_state, world, render_world| {
-            world.run(|game: UniqueView<Game>| render_world.add_unique(CameraDef {
+        |app_state, world, render| {
+            world.run(|game: UniqueView<Game>| render.world.add_unique(CameraDef {
                 rotation: game.camera().rotation,
                 zoom: game.camera().zoom,
                 target: game.camera().target,
                 offset: game.camera().offset,
             }));
 
-            world.run_with_data(render::render_tiles, render_world);
-            world.run_with_data(render::render_player, render_world);
-            world.run_with_data(render::render_brute, render_world);
-            world.run_with_data(render::render_boxes, render_world);
-            world.run_with_data(render::render_rays, render_world);
-            world.run_with_data(render::render_ammo, render_world);
-            world.run_with_data(render::render_game_ui, render_world);
+            world.run_with_data(render::render_tiles, render);
+            world.run_with_data(render::render_player, render);
+            world.run_with_data(render::render_brute, render);
+            world.run_with_data(render::render_boxes, render);
+            world.run_with_data(render::render_rays, render);
+            world.run_with_data(render::render_ammo, render);
+            world.run_with_data(render::render_game_ui, render);
         },
         |world| {
             // draw_physics_debug(world);

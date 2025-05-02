@@ -93,7 +93,7 @@ impl App {
         mut input_phase: impl FnMut(&InputModel, f32, &mut World),
         mut pre_physics_query_phase: impl FnMut(f32, &mut World),
         mut update: impl FnMut(f32, &mut World) -> Option<AppState>,
-        mut render: impl FnMut(AppState, &World, &mut World),
+        mut render: impl FnMut(AppState, &World, &mut Render),
         mut debug_render: impl FnMut(&mut World),
     ) {
         ScreenCons::init_log();
@@ -154,7 +154,7 @@ impl App {
 
             self.sound.run(&self.world);
             self.render.new_frame();
-            render(self.state, &self.world, &mut self.render.world);
+            render(self.state, &self.world, &mut self.render);
             self.render.render(!self.draw_world, real_dt);
 
             dump!("{}", self.accumelated_time);

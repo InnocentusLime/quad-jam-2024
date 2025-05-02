@@ -31,7 +31,7 @@ static START_TEXT_MOBILE: &'static str = "Tap to start";
 pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
 
 pub fn render_tiles(
-    export_world: &mut World,
+    render: &mut Render,
     tile_storage: View<TileStorage>,
     tiles: View<TileType>,
 ) {
@@ -42,7 +42,7 @@ pub fn render_tiles(
 
     for (x, y, tile) in iter {
         match tile {
-            TileType::Wall => { export_world.add_entity((
+            TileType::Wall => { render.world.add_entity((
                 Tint(WALL_COLOR),
                 Scale(vec2(2.0, 2.0)),
                 Sprite {
@@ -60,7 +60,7 @@ pub fn render_tiles(
 }
 
 pub fn render_player(
-    export_world: &mut World,
+    render: &mut Render,
     pos: View<Transform>,
     player: View<PlayerTag>,
     dmg: View<PlayerDamageState>,
@@ -68,7 +68,7 @@ pub fn render_player(
     for (_, pos, dmg) in (&player, &pos, &dmg).iter() {
         let is_flickering = matches!(dmg, PlayerDamageState::Cooldown(_));
 
-        let r_player = export_world.add_entity((
+        let r_player = render.world.add_entity((
             *pos,
             RectShape {
                 origin: vec2(0.5, 0.5),
@@ -79,13 +79,13 @@ pub fn render_player(
         ));
 
         if is_flickering {
-            export_world.add_component(r_player, Flicker);
+            render.world.add_component(r_player, Flicker);
         }
     }
 }
 
 pub fn render_brute(
-    export_world: &mut World,
+    render: &mut Render,
     pos: View<Transform>,
     brute: View<BruteTag>,
     state: View<EnemyState>,
@@ -100,25 +100,25 @@ pub fn render_brute(
         let is_flickering = matches!(state, EnemyState::Stunned { .. });
         let color = Color::new(RED.r * k, RED.g * k, RED.b * k, 1.0);
 
-        let r_enemy = export_world.add_entity((
+        let r_enemy = render.world.add_entity((
             *pos,
             CircleShape { radius: 8.0 },
             Tint(color),
         ));
 
         if is_flickering {
-            export_world.add_component(r_enemy, Flicker);
+            render.world.add_component(r_enemy, Flicker);
         }
     }
 }
 
 pub fn render_boxes(
-    export_world: &mut World,
+    render: &mut Render,
     pos: View<Transform>,
     boxt: View<BoxTag>,
 ) {
     for (_, pos) in (&boxt, &pos).iter() {
-        export_world.add_entity((
+        render.world.add_entity((
             *pos,
             RectShape {
                 origin: vec2(0.5, 0.5),
@@ -131,7 +131,7 @@ pub fn render_boxes(
 }
 
 pub fn render_rays(
-    export_world: &mut World,
+    render: &mut Render,
     pos: View<Transform>,
     ray: View<RayTag>,
     beam: View<BeamTag>,
@@ -139,7 +139,7 @@ pub fn render_rays(
     for (pos, ray, beam) in (&pos, &ray, &beam).iter() {
         if !ray.shooting { continue; }
 
-        export_world.add_entity((
+        render.world.add_entity((
             Tint(GREEN),
             *pos,
             RectShape {
@@ -155,14 +155,23 @@ pub fn render_rays(
 }
 
 pub fn render_ammo(
-    export_world: &mut World,
+    render: &mut Render,
     pos: View<Transform>,
     bullet: View<BulletTag>,
+    score: UniqueView<PlayerScore>,
 ) {
+    let ammo_hint = "AMMO";
+    let mes = measure_text(
+        &ammo_hint,
+        render.get_font(FontKey("oegnek")),
+        16,
+        1.0
+    );
+
     for (pos, bul) in (&pos, &bullet).iter() {
         if bul.is_picked { continue; }
 
-        export_world.add_entity((
+        render.world.add_entity((
             *pos,
             Tint(YELLOW),
             RectShape {
@@ -171,11 +180,31 @@ pub fn render_ammo(
                 height: 16.0,
             },
         ));
+
+        if score.0 > 0 { continue; }
+
+        render.world.add_entity((
+            Transform {
+                pos: vec2(
+                    pos.pos.x - mes.width / 2.0,
+                    pos.pos.y - 20.0
+                ),
+                ..*pos
+            },
+            Tint(YELLOW),
+            GlyphText {
+                font: FontKey("oegnek"),
+                string: Cow::Borrowed(ammo_hint),
+                font_size: 16,
+                font_scale: 1.0,
+                font_scale_aspect: 1.0,
+            },
+        ));
     }
 }
 
 pub fn render_game_ui(
-    export_world: &mut World,
+    render: &mut Render,
     score: UniqueView<PlayerScore>,
     health: View<Health>,
     player: View<PlayerTag>,
@@ -204,7 +233,7 @@ pub fn render_game_ui(
         ("", BLANK)
     };
 
-    export_world.add_entity((
+    render.world.add_entity((
         GlyphText {
             font: FontKey("oegnek"),
             string: Cow::Owned(format!("Score:{score}")),
@@ -215,7 +244,7 @@ pub fn render_game_ui(
         Tint(YELLOW),
         Transform::from_xy(ui_x, off_y * 1.0),
     ));
-    export_world.add_entity((
+    render.world.add_entity((
         GlyphText {
             font: FontKey("oegnek"),
             string: Cow::Owned(format!("Health:{player_health}")),
@@ -226,7 +255,7 @@ pub fn render_game_ui(
         Tint(YELLOW),
         Transform::from_xy(ui_x, off_y * 2.0),
     ));
-    export_world.add_entity((
+    render.world.add_entity((
         GlyphText {
             font: FontKey("oegnek"),
             string: Cow::Borrowed(gun_state),
@@ -237,7 +266,7 @@ pub fn render_game_ui(
         Tint(YELLOW),
         Transform::from_xy(ui_x, off_y * 3.0),
     ));
-    export_world.add_entity((
+    render.world.add_entity((
         GlyphText {
             font: FontKey("oegnek"),
             string: Cow::Borrowed(game_state),
@@ -324,7 +353,7 @@ pub fn render_game_ui(
 //     }
 // }
 
-pub struct Render {
+pub struct Render3 {
     // ball_emit: particles::Emitter,
     // pl_emit: particles::Emitter,
     // brick_emit: particles::Emitter,
@@ -335,7 +364,7 @@ pub struct Render {
     render_colliders: bool,
 }
 
-impl Render {
+impl Render3 {
     pub async fn new() -> anyhow::Result<Self> {
         let tiles = load_texture("assets/tiles.png").await?;
         Ok(Self {
