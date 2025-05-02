@@ -10,3 +10,6 @@ shipyard = { workspace = true }
 macroquad = { workspace = true }
 quad-dbg = { path = "../quad-dbg" }
 rapier2d = { version = "0.24.0" }
+# NOTE: keep the version matching the one macroquad is using
+hashbrown = "0.14.5"
+ahash = "0.8.11"

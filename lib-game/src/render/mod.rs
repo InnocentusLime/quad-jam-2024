@@ -1,7 +1,10 @@
 mod components;
 
+use std::hash::BuildHasherDefault;
+
+use ahash::AHasher;
+use hashbrown::HashMap;
 use quad_dbg::dump;
-use std::collections::HashMap;
 
 pub use components::*;
 use macroquad::prelude::*;
@@ -27,8 +30,8 @@ pub struct Render {
     time: f32,
 
     // FIXME: put a faster hash here
-    textures: HashMap<TextureKey, TextureVal>,
-    fonts: HashMap<FontKey, Font>,
+    textures: HashMap<TextureKey, TextureVal, BuildHasherDefault<AHasher>>,
+    fonts: HashMap<FontKey, Font, BuildHasherDefault<AHasher>>,
 }
 
 impl Render {
