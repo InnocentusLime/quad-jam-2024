@@ -210,9 +210,7 @@ impl Game {
                 angle: 0.0,
             },
             RayTag {
-                len: 10.0,
-                life_left: 0.0,
-                active: false,
+                shooting: false,
             },
             BeamTag::new(
                 InteractionGroups {
@@ -367,16 +365,6 @@ impl Game {
         }
     }
 
-    pub fn ray_tick(
-        dt: f32,
-        mut ray_tag: ViewMut<RayTag>,
-    ) {
-        for ray in (&mut ray_tag).iter() {
-            ray.life_left -= dt;
-            ray.life_left = ray.life_left.max(0.0);
-        }
-    }
-
     pub fn player_ray_controls(
         input: &InputModel,
         this: UniqueView<Game>,
@@ -394,13 +382,12 @@ impl Game {
         if shootdir.length() <= DISTANCE_EPS { return; }
 
         for (tf, tag) in (&mut tf, &mut ray_tag).iter() {
-            if tag.life_left > 0.0 { continue; }
-
+            tag.shooting = false;
             tf.pos = player_pos;
             tf.angle = shootdir.to_angle();
+
             if input.attack_down && *amo == PlayerGunState::Full {
-                tag.active = true;
-                tag.life_left = PLAYER_RAY_LINGER;
+                tag.shooting = true;
                 *amo = PlayerGunState::Empty;
             }
         }
@@ -431,10 +418,7 @@ impl Game {
         let mut off = Vec2::ZERO;
 
         for (tf, ray_tag, beam_tag) in (&tf, &mut ray_tag, &beam_tag).iter() {
-            if !ray_tag.active { return; }
-
-            // ray_tag.active = false;
-            ray_tag.len = beam_tag.length;
+            if !ray_tag.shooting { return; }
 
             let shootdir = Vec2::from_angle(tf.angle);
             let hitcount = beam_tag.overlaps.len();

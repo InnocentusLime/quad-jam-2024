@@ -1,8 +1,7 @@
-use components::RayTag;
 use lib_game::{CameraDef, FontKey, Render, TextureKey};
 use logic::{decide_next_state, Game};
 use macroquad::prelude::*;
-use shipyard::{IntoIter, UniqueView, ViewMut};
+use shipyard::UniqueView;
 
 mod util;
 mod components;
@@ -83,7 +82,6 @@ async fn main() {
             world.run_with_data(Game::player_damage_state, dt);
             world.run(Game::reward_enemies);
             world.run(Game::count_rewards);
-            world.run_with_data(Game::ray_tick, dt);
 
             world.run(decide_next_state)
         },
@@ -102,16 +100,6 @@ async fn main() {
             world.run_with_data(render::render_rays, render_world);
             world.run_with_data(render::render_ammo, render_world);
             world.run_with_data(render::render_game_ui, render_world);
-
-            // FIXME: this is a very dirty hack.
-            // a better thing would be to temporarily spawn a ray, that gets deletted next frame.
-            // We want:
-            // 1. gc dead handles at the start of the frame
-            // 2. before that, gc all deleted entities
-            // 3. add ToDelete tag
-            world.run(|mut ray_tag: ViewMut<RayTag>| for tag in (&mut ray_tag).iter() {
-                tag.active = false;
-            })
         },
         |world| {
             // draw_physics_debug(world);

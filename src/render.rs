@@ -134,9 +134,10 @@ pub fn render_rays(
     export_world: &mut World,
     pos: View<Transform>,
     ray: View<RayTag>,
+    beam: View<BeamTag>,
 ) {
-    for (pos, ray) in (&pos, &ray).iter() {
-        if !ray.active { continue; }
+    for (pos, ray, beam) in (&pos, &ray, &beam).iter() {
+        if !ray.shooting { continue; }
 
         export_world.add_entity((
             Tint(GREEN),
@@ -144,7 +145,7 @@ pub fn render_rays(
             RectShape {
                 origin: vec2(0.0, 0.5),
                 height: PLAYER_RAY_WIDTH,
-                width: ray.len,
+                width: beam.length,
             },
             Scale(vec2(1.0, 1.0)),
             Timed::new(PLAYER_RAY_LINGER),
