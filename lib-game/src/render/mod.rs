@@ -1,8 +1,5 @@
 mod components;
 
-use std::hash::BuildHasherDefault;
-
-use ahash::AHasher;
 use hashbrown::HashMap;
 use quad_dbg::dump;
 
@@ -37,8 +34,8 @@ pub struct Render {
     to_delete: Vec<EntityId>,
     time: f32,
 
-    textures: HashMap<TextureKey, TextureVal, BuildHasherDefault<AHasher>>,
-    fonts: HashMap<FontKey, Font, BuildHasherDefault<AHasher>>,
+    textures: HashMap<TextureKey, TextureVal>,
+    fonts: HashMap<FontKey, Font>,
 }
 
 impl Render {
