@@ -41,4 +41,4 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: List FIXME
-        run: grep -Iirn "FIXME" . --exclude-dir ./target --exclude-dir ./assets --exclude "*.lock" --exclude-dir ./static
+        run: grep -Iirn "FIXME" . --exclude-dir ./target --exclude-dir ./assets --exclude "*.lock" --exclude-dir ./static --exclude-dir ./github
