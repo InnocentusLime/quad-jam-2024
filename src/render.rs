@@ -206,7 +206,7 @@ pub fn render_game_ui(
 ) {
     let font_size = 32;
     let off_y = 32.0;
-    let ui_x = 600.0;
+    let ui_x = 536.0;
     let score = score.0;
     let player_health = (&player, &health).iter().next().unwrap().1.0;
     let player_gun = *(&gun,).iter().next().unwrap();

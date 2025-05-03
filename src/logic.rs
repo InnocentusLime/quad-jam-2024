@@ -295,6 +295,7 @@ impl Game {
 
     pub fn update_camera(
         mut this: UniqueViewMut<Game>,
+        tile_storage: View<TileStorage>,
     ) {
         let view_height = 19.0 * 32.0;
         let view_width = (screen_width() / screen_height()) * view_height;
@@ -305,6 +306,14 @@ impl Game {
             h: view_height,
         });
         this.camera.zoom.y *= -1.0;
+
+        // FIXME: macroquad's camera is super confusing. Just like this math
+        for storage in tile_storage.iter() {
+            this.camera.target = vec2(
+                (0.5 * 32.0) * (storage.width() as f32),
+                (0.5 * 32.0) * (storage.height() as f32),
+            );
+        }
     }
 
     pub fn camera(&self) -> &Camera2D {
