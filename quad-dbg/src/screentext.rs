@@ -54,7 +54,8 @@ impl ScreenText {
     }
 
     pub(crate) fn iter_visible_lines(&'_ self) -> impl Iterator<Item = (usize, &'_ Line)> + '_ {
-        self.lines.iter()
+        self.lines
+            .iter()
             .cycle()
             .skip(self.scroll_offset)
             .take(SCREENCON_LINES_ONSCREEN)
@@ -75,13 +76,7 @@ impl ScreenText {
 
         for (idx, line) in self.iter_visible_lines() {
             let y = idx as f32 * line_box;
-            draw_rectangle(
-                0.0,
-                y,
-                screen_width(),
-                line_box,
-                line.background,
-            );
+            draw_rectangle(0.0, y, screen_width(), line_box, line.background);
         }
 
         for (idx, line) in self.iter_visible_lines() {
@@ -105,15 +100,13 @@ impl ScreenText {
 
 #[cfg(test)]
 mod tests {
-    use super::{SCREENCON_CHARS_PER_LINE,Line};
+    use super::{Line, SCREENCON_CHARS_PER_LINE};
 
     #[test]
     fn test_line_overfill() {
         let mut line = Line::new();
 
-        let samples = [
-            "1"; 3000
-        ];
+        let samples = ["1"; 3000];
 
         for (idx, s) in samples.into_iter().enumerate() {
             if idx % 500 == 0 {

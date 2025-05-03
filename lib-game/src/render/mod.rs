@@ -57,13 +57,12 @@ impl Render {
         texture: &Texture2D,
         texture_rect: Option<Rect>,
     ) {
-        let texture_rect = texture_rect
-            .unwrap_or(Rect {
-                x: 0.0,
-                y: 0.0,
-                w: texture.width(),
-                h: texture.height(),
-            });
+        let texture_rect = texture_rect.unwrap_or(Rect {
+            x: 0.0,
+            y: 0.0,
+            w: texture.width(),
+            h: texture.height(),
+        });
 
         self.textures.insert(
             key,
@@ -74,21 +73,11 @@ impl Render {
         );
     }
 
-    pub fn add_font(
-        &mut self,
-        key: FontKey,
-        font: &Font
-    ) {
-        self.fonts.insert(
-            key,
-            font.clone(),
-        );
+    pub fn add_font(&mut self, key: FontKey, font: &Font) {
+        self.fonts.insert(key, font.clone());
     }
 
-    pub fn get_font(
-        &self,
-        key: FontKey
-    ) -> Option<&Font> {
+    pub fn get_font(&self, key: FontKey) -> Option<&Font> {
         self.fonts.get(&key)
     }
 
@@ -101,7 +90,7 @@ impl Render {
 
             self.to_delete.extend(
                 ents.iter()
-                    .filter(|e| Self::should_delete_timed(&timed, *e))
+                    .filter(|e| Self::should_delete_timed(&timed, *e)),
             );
         };
 
@@ -138,7 +127,9 @@ impl Render {
         self.update_flickers();
         self.anim_vert_shrink_fadeout();
 
-        if dry_run { return; }
+        if dry_run {
+            return;
+        }
 
         // FIXME: draw order is broken
         self.draw_sprites();
@@ -160,249 +151,244 @@ impl Render {
 
     fn setup_ui_camera(&mut self) {
         match self.get_font(self.ui_font) {
-            None => { warn!("No such font: {:?}", self.ui_font); set_default_camera(); },
+            None => {
+                warn!("No such font: {:?}", self.ui_font);
+                set_default_camera();
+            }
             Some(font) => set_camera(&Self::get_ui_cam(font)),
         }
     }
 
     fn draw_announcement_text(&mut self) {
-        self.world.run(|announce: View<AnnouncementText>| for announce in announce.iter() {
-            let Some(font) = self.get_font(self.ui_font)
-            else { warn!("No such font: {:?}", self.ui_font); continue; };
+        self.world.run(|announce: View<AnnouncementText>| {
+            for announce in announce.iter() {
+                let Some(font) = self.get_font(self.ui_font) else {
+                    warn!("No such font: {:?}", self.ui_font);
+                    continue;
+                };
 
-            let view_rect = Self::ui_view_rect(font);
+                let view_rect = Self::ui_view_rect(font);
 
-            draw_rectangle(
-                view_rect.x,
-                view_rect.y,
-                view_rect.w,
-                view_rect.h,
-                Color {
-                    r: 0.0,
-                    g: 0.0,
-                    b: 0.12,
-                    a: 0.5,
-                }
-            );
+                draw_rectangle(
+                    view_rect.x,
+                    view_rect.y,
+                    view_rect.w,
+                    view_rect.h,
+                    Color {
+                        r: 0.0,
+                        g: 0.0,
+                        b: 0.12,
+                        a: 0.5,
+                    },
+                );
 
-            let center = get_text_center(
-                announce.heading,
-                Some(font),
-                MAIN_FONT_SIZE,
-                FONT_SCALE,
-                0.0
-            );
-            draw_text_ex(
-                announce.heading,
-                view_rect.left() + view_rect.w / 2.0 - center.x,
-                view_rect.top() + view_rect.h / 2.0 - center.y,
-                TextParams {
-                    font: Some(font),
-                    font_size: MAIN_FONT_SIZE,
-                    color: Color::from_hex(0xDDFBFF),
-                    font_scale: FONT_SCALE,
-                    ..Default::default()
-                }
-            );
+                let center = get_text_center(
+                    announce.heading,
+                    Some(font),
+                    MAIN_FONT_SIZE,
+                    FONT_SCALE,
+                    0.0,
+                );
+                draw_text_ex(
+                    announce.heading,
+                    view_rect.left() + view_rect.w / 2.0 - center.x,
+                    view_rect.top() + view_rect.h / 2.0 - center.y,
+                    TextParams {
+                        font: Some(font),
+                        font_size: MAIN_FONT_SIZE,
+                        color: Color::from_hex(0xDDFBFF),
+                        font_scale: FONT_SCALE,
+                        ..Default::default()
+                    },
+                );
 
-            let Some(hint) = announce.body else { continue; };
-            let center = get_text_center(
-                Self::find_longest_line(hint),
-                Some(font),
-                HINT_FONT_SIZE,
-                FONT_SCALE,
-                0.0
-            );
-            draw_multiline_text_ex(
-                hint,
-                view_rect.left() + view_rect.w / 2.0 - center.x,
-                view_rect.top() + view_rect.h / 2.0 - center.y + (MAIN_FONT_SIZE as f32) * 1.5,
-                None,
-                TextParams {
-                    font: Some(font),
-                    font_size: HINT_FONT_SIZE,
-                    color: Color::from_hex(0xDDFBFF),
-                    font_scale: FONT_SCALE,
-                    ..Default::default()
-                }
-            );
+                let Some(hint) = announce.body else {
+                    continue;
+                };
+                let center = get_text_center(
+                    Self::find_longest_line(hint),
+                    Some(font),
+                    HINT_FONT_SIZE,
+                    FONT_SCALE,
+                    0.0,
+                );
+                draw_multiline_text_ex(
+                    hint,
+                    view_rect.left() + view_rect.w / 2.0 - center.x,
+                    view_rect.top() + view_rect.h / 2.0 - center.y + (MAIN_FONT_SIZE as f32) * 1.5,
+                    None,
+                    TextParams {
+                        font: Some(font),
+                        font_size: HINT_FONT_SIZE,
+                        color: Color::from_hex(0xDDFBFF),
+                        font_scale: FONT_SCALE,
+                        ..Default::default()
+                    },
+                );
+            }
         })
     }
 
     fn draw_rects(&mut self) {
-        self.world.run(|
-            rect: View<RectShape>,
-            tint: View<Tint>,
-            tf: View<Transform>,
-            scale: View<Scale>,
-        | for (entity, (rect, tf)) in (&rect, &tf).iter().with_id() {
-            let scale = scale.get(entity)
-                .map(|x|x.0)
-                .unwrap_or(vec2(1.0, 1.0));
-            let tint = tint.get(entity)
-                .map(|x| x.0)
-                .unwrap_or(WHITE);
-            draw_rectangle_ex(
-                tf.pos.x,
-                tf.pos.y,
-                rect.width * scale.x,
-                rect.height * scale.y,
-                DrawRectangleParams {
-                    offset: rect.origin,
-                    rotation: tf.angle,
-                    color: tint,
-                },
-            );
-        })
+        self.world.run(
+            |rect: View<RectShape>, tint: View<Tint>, tf: View<Transform>, scale: View<Scale>| {
+                for (entity, (rect, tf)) in (&rect, &tf).iter().with_id() {
+                    let scale = scale.get(entity).map(|x| x.0).unwrap_or(vec2(1.0, 1.0));
+                    let tint = tint.get(entity).map(|x| x.0).unwrap_or(WHITE);
+                    draw_rectangle_ex(
+                        tf.pos.x,
+                        tf.pos.y,
+                        rect.width * scale.x,
+                        rect.height * scale.y,
+                        DrawRectangleParams {
+                            offset: rect.origin,
+                            rotation: tf.angle,
+                            color: tint,
+                        },
+                    );
+                }
+            },
+        )
     }
 
     fn draw_circles(&mut self) {
-        self.world.run(|
-            circle: View<CircleShape>,
-            tint: View<Tint>,
-            tf: View<Transform>,
-        | for (entity, (circle, tf)) in (&circle, &tf).iter().with_id() {
-            let tint = tint.get(entity)
-                .map(|x| x.0)
-                .unwrap_or(WHITE);
+        self.world.run(
+            |circle: View<CircleShape>, tint: View<Tint>, tf: View<Transform>| {
+                for (entity, (circle, tf)) in (&circle, &tf).iter().with_id() {
+                    let tint = tint.get(entity).map(|x| x.0).unwrap_or(WHITE);
 
-            draw_circle(
-                tf.pos.x,
-                tf.pos.y,
-                circle.radius,
-                tint,
-            );
-        })
+                    draw_circle(tf.pos.x, tf.pos.y, circle.radius, tint);
+                }
+            },
+        )
     }
 
     fn draw_sprites(&mut self) {
-        self.world.run(|
-            sprite: View<Sprite>,
-            tint: View<Tint>,
-            tf: View<Transform>,
-            scale: View<Scale>,
-        | for (entity, (sprite, tf)) in (&sprite, &tf).iter().with_id() {
-            let scale = scale.get(entity)
-                .map(|x|x.0)
-                .unwrap_or(vec2(1.0, 1.0));
-            let tint = tint.get(entity)
-                .map(|x| x.0)
-                .unwrap_or(WHITE);
-            let Some(TextureVal { texture, texture_rect: rect }) = self.textures.get(&sprite.texture)
-            else {
-                warn!("No texture {:?}", sprite.texture.0);
-                continue;
-            };
+        self.world.run(
+            |sprite: View<Sprite>, tint: View<Tint>, tf: View<Transform>, scale: View<Scale>| {
+                for (entity, (sprite, tf)) in (&sprite, &tf).iter().with_id() {
+                    let scale = scale.get(entity).map(|x| x.0).unwrap_or(vec2(1.0, 1.0));
+                    let tint = tint.get(entity).map(|x| x.0).unwrap_or(WHITE);
+                    let Some(TextureVal {
+                        texture,
+                        texture_rect: rect,
+                    }) = self.textures.get(&sprite.texture)
+                    else {
+                        warn!("No texture {:?}", sprite.texture.0);
+                        continue;
+                    };
 
-            draw_texture_ex(
-                texture,
-                tf.pos.x,
-                tf.pos.y,
-                tint,
-                DrawTextureParams {
-                    dest_size: Some(rect.size() * scale),
-                    source: Some(*rect),
-                    rotation: tf.angle,
-                    flip_x: false,
-                    flip_y: false,
-                    pivot: Some(sprite.origin),
-                },
-            );
-        })
+                    draw_texture_ex(
+                        texture,
+                        tf.pos.x,
+                        tf.pos.y,
+                        tint,
+                        DrawTextureParams {
+                            dest_size: Some(rect.size() * scale),
+                            source: Some(*rect),
+                            rotation: tf.angle,
+                            flip_x: false,
+                            flip_y: false,
+                            pivot: Some(sprite.origin),
+                        },
+                    );
+                }
+            },
+        )
     }
 
     fn draw_texts(&mut self) {
-        self.world.run(|
-            text: View<GlyphText>,
-            tf: View<Transform>,
-            tint: View<Tint>,
-        | for (entity, (text, tf)) in (&text, &tf).iter().with_id() {
-            let tint = tint.get(entity)
-                .map(|x| x.0)
-                .unwrap_or(WHITE);
-            let Some(font) = self.fonts.get(&text.font)
-            else {
-                warn!("No font {:?}", text.font.0);
-                continue;
-            };
+        self.world.run(
+            |text: View<GlyphText>, tf: View<Transform>, tint: View<Tint>| {
+                for (entity, (text, tf)) in (&text, &tf).iter().with_id() {
+                    let tint = tint.get(entity).map(|x| x.0).unwrap_or(WHITE);
+                    let Some(font) = self.fonts.get(&text.font) else {
+                        warn!("No font {:?}", text.font.0);
+                        continue;
+                    };
 
-            draw_text_ex(
-                &text.string,
-                tf.pos.x,
-                tf.pos.y,
-                TextParams {
-                    font: Some(font),
-                    font_size: text.font_size,
-                    font_scale: text.font_scale,
-                    font_scale_aspect: text.font_scale_aspect,
-                    rotation: tf.angle,
-                    color: tint,
-                },
-            );
-        })
+                    draw_text_ex(
+                        &text.string,
+                        tf.pos.x,
+                        tf.pos.y,
+                        TextParams {
+                            font: Some(font),
+                            font_size: text.font_size,
+                            font_scale: text.font_scale,
+                            font_scale_aspect: text.font_scale_aspect,
+                            rotation: tf.angle,
+                            color: tint,
+                        },
+                    );
+                }
+            },
+        )
     }
 
     fn anim_vert_shrink_fadeout(&mut self) {
-        self.world.run(|
-            timed: View<Timed>,
-            mut tint: ViewMut<Tint>,
-            mut scale: ViewMut<Scale>,
-            tag: View<VertShrinkFadeoutAnim>,
-        | for (timed, tint, scale, _) in (&timed, &mut tint, &mut scale, &tag).iter() {
-            let k = timed.time / timed.start;
+        self.world.run(
+            |timed: View<Timed>,
+             mut tint: ViewMut<Tint>,
+             mut scale: ViewMut<Scale>,
+             tag: View<VertShrinkFadeoutAnim>| {
+                for (timed, tint, scale, _) in (&timed, &mut tint, &mut scale, &tag).iter() {
+                    let k = timed.time / timed.start;
 
-            tint.0.a = (2.0 * k).clamp(0.0, 1.0);
-            scale.0.y = k.powf(4.0);
-        });
+                    tint.0.a = (2.0 * k).clamp(0.0, 1.0);
+                    scale.0.y = k.powf(4.0);
+                }
+            },
+        );
     }
 
     fn update_time(&mut self, dt: f32) {
         self.time += dt;
 
-        self.world.run(|mut timed: ViewMut<Timed>| for timed in (&mut timed).iter() {
-            timed.time -= dt;
+        self.world.run(|mut timed: ViewMut<Timed>| {
+            for timed in (&mut timed).iter() {
+                timed.time -= dt;
+            }
         })
     }
 
     fn update_flickers(&mut self) {
         let flicker_vis = (self.time * 1000.0) as u32 % 2 == 0;
-        if flicker_vis { return; }
+        if flicker_vis {
+            return;
+        }
 
-        self.world.run(|flicker: View<Flicker>, mut tint: ViewMut<Tint>| for (_, tint) in (&flicker, &mut tint).iter() {
-            tint.0.a = 0.0;
-        });
+        self.world
+            .run(|flicker: View<Flicker>, mut tint: ViewMut<Tint>| {
+                for (_, tint) in (&flicker, &mut tint).iter() {
+                    tint.0.a = 0.0;
+                }
+            });
     }
 
     fn should_delete_timed(timed: &View<Timed>, entity: EntityId) -> bool {
-        let Ok(timed) = timed.get(entity)
-            else { return true };
+        let Ok(timed) = timed.get(entity) else {
+            return true;
+        };
 
         timed.time <= 0.0
     }
 
     fn find_longest_line(text: &str) -> &str {
-        text.split('\n').max_by_key(|x| x.len())
-            .unwrap_or("")
+        text.split('\n').max_by_key(|x| x.len()).unwrap_or("")
     }
 
     fn ui_view_rect(font: &Font) -> Rect {
         // Special case for misoriented mobile devices
         if screen_height() > screen_width() {
-            let measure = measure_text(
-                ORIENTATION_TEXT,
-                Some(font),
-                MAIN_FONT_SIZE,
-                FONT_SCALE
-            );
-            let view_width = measure.width +
-                2.0 * VERTICAL_ORIENT_HORIZONTAL_PADDING;
+            let measure = measure_text(ORIENTATION_TEXT, Some(font), MAIN_FONT_SIZE, FONT_SCALE);
+            let view_width = measure.width + 2.0 * VERTICAL_ORIENT_HORIZONTAL_PADDING;
 
             return Rect {
                 x: -VERTICAL_ORIENT_HORIZONTAL_PADDING,
                 y: 0.0,
                 w: view_width,
-                h: view_width * (screen_height() / screen_width())
-            }
+                h: view_width * (screen_height() / screen_width()),
+            };
         }
 
         let view_height = (MAIN_FONT_SIZE as f32) * 12.0;

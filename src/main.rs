@@ -4,10 +4,10 @@ use macroquad::prelude::*;
 use render::render_toplevel_ui;
 use shipyard::UniqueView;
 
-mod util;
 mod components;
 mod logic;
 mod render;
+mod util;
 
 fn window_conf() -> Conf {
     Conf {
@@ -88,12 +88,14 @@ async fn main() {
             world.run(decide_next_state)
         },
         |app_state, world, render| {
-            world.run(|game: UniqueView<Game>| render.world.add_unique(CameraDef {
-                rotation: game.camera().rotation,
-                zoom: game.camera().zoom,
-                target: game.camera().target,
-                offset: game.camera().offset,
-            }));
+            world.run(|game: UniqueView<Game>| {
+                render.world.add_unique(CameraDef {
+                    rotation: game.camera().rotation,
+                    zoom: game.camera().zoom,
+                    target: game.camera().target,
+                    offset: game.camera().offset,
+                })
+            });
 
             world.run_with_data(render::render_tiles, render);
             world.run_with_data(render::render_player, render);
@@ -108,7 +110,6 @@ async fn main() {
         |_world| {
             // draw_physics_debug(world);
         },
-    ).await
+    )
+    .await
 }
-
-

@@ -1,6 +1,6 @@
+use lib_game::*;
 use macroquad::prelude::*;
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use lib_game::*;
 
 use crate::inline_tilemap;
 
@@ -21,21 +21,15 @@ pub const BRUTE_CHASE_FORCE: f32 = 40.0 * 24.0;
 
 pub const REWARD_PER_ENEMY: u32 = 10;
 
-fn spawn_tiles(
-    width: usize,
-    height: usize,
-    data: Vec<TileType>,
-    world: &mut World,
-) -> EntityId {
+fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut World) -> EntityId {
     assert_eq!(data.len(), width * height);
 
     let storage = TileStorage::from_data(
         width,
         height,
-        data.into_iter()
-            .map(|ty| world.add_entity(ty))
-            .collect()
-    ).unwrap();
+        data.into_iter().map(|ty| world.add_entity(ty)).collect(),
+    )
+    .unwrap();
 
     for (x, y, tile) in storage.iter_poses() {
         world.add_component(
@@ -43,7 +37,7 @@ fn spawn_tiles(
             Transform {
                 pos: vec2(x as f32 * 32.0 + 16.0, y as f32 * 32.0 + 16.0),
                 angle: 0.0,
-            }
+            },
         );
 
         let ty = **world.get::<&TileType>(tile).unwrap();
@@ -51,18 +45,19 @@ fn spawn_tiles(
         match ty {
             TileType::Wall => world.add_component(
                 tile,
-                (
-                    BodyTag::new(
-                        InteractionGroups {
-                            memberships: groups::LEVEL,
-                            filter: groups::LEVEL_INTERACT,
-                        },
-                        ColliderTy::Box { width: 32.0, height: 32.0, },
-                        1.0,
-                        true,
-                        BodyKind::Static,
-                    ),
-                )
+                (BodyTag::new(
+                    InteractionGroups {
+                        memberships: groups::LEVEL,
+                        filter: groups::LEVEL_INTERACT,
+                    },
+                    ColliderTy::Box {
+                        width: 32.0,
+                        height: 32.0,
+                    },
+                    1.0,
+                    true,
+                    BodyKind::Static,
+                ),),
             ),
             TileType::Ground => (),
         }
@@ -82,10 +77,7 @@ pub struct Game {
 impl Game {
     fn spawn_brute(pos: Vec2, world: &mut World) {
         let _brute = world.add_entity((
-            Transform {
-                pos,
-                angle: 0.0,
-            },
+            Transform { pos, angle: 0.0 },
             RewardInfo {
                 state: RewardState::Locked,
                 amount: REWARD_PER_ENEMY,
@@ -110,15 +102,13 @@ impl Game {
 
     fn spawn_bullet(pos: Vec2, world: &mut World) {
         world.add_entity((
-            Transform {
-                pos,
-                angle: 0.0,
-            },
-            BulletTag {
-                is_picked: false,
-            },
+            Transform { pos, angle: 0.0 },
+            BulletTag { is_picked: false },
             OneSensorTag::new(
-                ColliderTy::Box { width: 16.0, height: 16.0 },
+                ColliderTy::Box {
+                    width: 16.0,
+                    height: 16.0,
+                },
                 InteractionGroups {
                     memberships: groups::LEVEL,
                     filter: groups::PLAYER,
@@ -138,10 +128,7 @@ impl Game {
         let boxes = poses.map(|pos| {
             angle += 0.2;
             let the_box = world.add_entity((
-                Transform {
-                    pos,
-                    angle,
-                },
+                Transform { pos, angle },
                 BoxTag,
                 BodyTag::new(
                     InteractionGroups {
@@ -209,9 +196,7 @@ impl Game {
                 pos: vec2(300.0, 300.0),
                 angle: 0.0,
             },
-            RayTag {
-                shooting: false,
-            },
+            RayTag { shooting: false },
             BeamTag::new(
                 InteractionGroups {
                     memberships: groups::PROJECTILES,
@@ -227,10 +212,7 @@ impl Game {
 
         for x in 0..5 {
             for y in 0..5 {
-                let pos = vec2(
-                    x as f32 * 16.0 + 100.0,
-                    y as f32 * 16.0 + 200.0,
-                );
+                let pos = vec2(x as f32 * 16.0 + 100.0, y as f32 * 16.0 + 200.0);
 
                 Self::spawn_brute(pos, world);
             }
@@ -256,22 +238,16 @@ impl Game {
             16,
             16,
             inline_tilemap![
-                w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w,
-                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
-                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
-                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
-                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
-                w, g, g, g, g, g, w, w, w, g, g, g, g, g, g, w,
-                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
-                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
-                w, g, g, g, g, g, g, g, g, g, g, g, g, w, g, w,
-                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
-                w, g, g, g, g, g, g, w, g, g, w, g, g, g, g, w,
-                w, g, g, w, g, g, g, g, g, g, w, g, g, g, g, w,
-                w, g, g, g, g, g, g, g, g, g, w, g, g, g, g, w,
-                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
-                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
-                w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w
+                w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, g, g, g, g, g, g, g, g, g, g, g,
+                g, g, g, w, w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w, w, g, g, g, g, g, g, g,
+                g, g, g, g, g, g, g, w, w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w, w, g, g, g,
+                g, g, w, w, w, g, g, g, g, g, g, w, w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w, w, g, g, g, g, g, g, g, g, g, g, g,
+                g, w, g, w, w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w, w, g, g, g, g, g, g, w,
+                g, g, w, g, g, g, g, w, w, g, g, w, g, g, g, g, g, g, w, g, g, g, g, w, w, g, g, g,
+                g, g, g, g, g, g, w, g, g, g, g, w, w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
+                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w, w, w, w, w, w, w, w, w, w, w, w, w,
+                w, w, w, w
             ],
             world,
         );
@@ -286,17 +262,12 @@ impl Game {
         }
     }
 
-    pub fn mouse_pos(
-        &self,
-    ) -> Vec2 {
+    pub fn mouse_pos(&self) -> Vec2 {
         let (mx, my) = mouse_position();
         self.camera.screen_to_world(vec2(mx, my))
     }
 
-    pub fn update_camera(
-        mut this: UniqueViewMut<Game>,
-        tile_storage: View<TileStorage>,
-    ) {
+    pub fn update_camera(mut this: UniqueViewMut<Game>, tile_storage: View<TileStorage>) {
         let view_height = 19.0 * 32.0;
         let view_width = (screen_width() / screen_height()) * view_height;
         this.camera = Camera2D::from_display_rect(Rect {
@@ -325,8 +296,7 @@ impl Game {
         mut bullet: ViewMut<BulletTag>,
         player_amo: View<PlayerGunState>,
     ) {
-        let pl = (&player_amo).get(this.player)
-            .unwrap();
+        let pl = (&player_amo).get(this.player).unwrap();
 
         if *pl != PlayerGunState::Empty {
             return;
@@ -342,10 +312,7 @@ impl Game {
         sense_tag: View<PlayerDamageSensorTag>,
         player_tag: View<PlayerTag>,
     ) {
-        let (&player_tf, _) = (&tf, &player_tag)
-            .iter()
-            .next()
-            .unwrap();
+        let (&player_tf, _) = (&tf, &player_tag).iter().next().unwrap();
 
         for (tf, _) in (&mut tf, &sense_tag).iter() {
             tf.pos = player_tf.pos;
@@ -359,15 +326,22 @@ impl Game {
         bul_sensor: View<OneSensorTag>,
     ) {
         for (bul, sens) in (&mut bullet, &bul_sensor).iter() {
-            if bul.is_picked { continue; }
+            if bul.is_picked {
+                continue;
+            }
 
-            let mut pl = (&mut player_amo).get(this.player)
-                .unwrap();
-            let Some(col) = sens.col else { continue; };
+            let mut pl = (&mut player_amo).get(this.player).unwrap();
+            let Some(col) = sens.col else {
+                continue;
+            };
 
-            if col != this.player { continue; }
+            if col != this.player {
+                continue;
+            }
 
-            if *pl == PlayerGunState::Full { continue; }
+            if *pl == PlayerGunState::Full {
+                continue;
+            }
 
             *pl = PlayerGunState::Full;
             bul.is_picked = true;
@@ -383,12 +357,13 @@ impl Game {
     ) {
         let player_tf = *(&tf).get(this.player).unwrap();
         let player_pos = player_tf.pos;
-        let mut amo = (&mut player_amo).get(this.player)
-            .unwrap();
+        let mut amo = (&mut player_amo).get(this.player).unwrap();
         let mpos = this.mouse_pos();
         let shootdir = mpos - player_pos;
 
-        if shootdir.length() <= DISTANCE_EPS { return; }
+        if shootdir.length() <= DISTANCE_EPS {
+            return;
+        }
 
         for (tf, tag) in (&mut tf, &mut ray_tag).iter() {
             tag.shooting = false;
@@ -412,22 +387,13 @@ impl Game {
         mut bullet: ViewMut<BulletTag>,
     ) {
         let player_tf = *(&tf).get(this.player).unwrap();
-        let mul_table = [
-            0,
-            1,
-            1,
-            1,
-            2,
-            2,
-            2,
-            10,
-            10,
-            20,
-        ];
+        let mul_table = [0, 1, 1, 1, 2, 2, 2, 10, 10, 20];
         let mut off = Vec2::ZERO;
 
         for (tf, ray_tag, beam_tag) in (&tf, &mut ray_tag, &beam_tag).iter() {
-            if !ray_tag.shooting { return; }
+            if !ray_tag.shooting {
+                return;
+            }
 
             let shootdir = Vec2::from_angle(tf.angle);
             let hitcount = beam_tag.overlaps.len();
@@ -447,11 +413,7 @@ impl Game {
         }
     }
 
-    pub fn enemy_states(
-        dt: f32,
-        mut enemy: ViewMut<EnemyState>,
-        mut hp: ViewMut<Health>,
-    ) {
+    pub fn enemy_states(dt: f32, mut enemy: ViewMut<EnemyState>, mut hp: ViewMut<Health>) {
         for (enemy, hp) in (&mut enemy, &mut hp).iter() {
             match enemy {
                 EnemyState::Stunned { left } => {
@@ -460,19 +422,18 @@ impl Game {
                         hp.0 -= 1;
                         *enemy = EnemyState::Free;
                     }
-                },
+                }
                 EnemyState::Free => {
-                    if hp.0 <= 0 { *enemy = EnemyState::Dead; }
-                },
+                    if hp.0 <= 0 {
+                        *enemy = EnemyState::Dead;
+                    }
+                }
                 _ => (),
             }
         }
     }
 
-    pub fn enemy_state_data(
-        mut rbs: ViewMut<BodyTag>,
-        mut enemy: ViewMut<EnemyState>,
-    ) {
+    pub fn enemy_state_data(mut rbs: ViewMut<BodyTag>, mut enemy: ViewMut<EnemyState>) {
         for (rb, enemy) in (&mut rbs, &mut enemy).iter() {
             match enemy {
                 EnemyState::Free => {
@@ -481,21 +442,21 @@ impl Game {
                         memberships: groups::NPCS,
                         filter: groups::NPCS_INTERACT,
                     };
-                },
+                }
                 EnemyState::Stunned { .. } => {
                     rb.enabled = false;
                     rb.groups = InteractionGroups {
                         memberships: groups::NPCS,
                         filter: groups::NPCS_INTERACT,
                     };
-                },
+                }
                 EnemyState::Dead => {
                     rb.enabled = false;
                     rb.groups = InteractionGroups {
                         memberships: groups::NPCS,
                         filter: groups::NPCS_INTERACT,
                     };
-                },
+                }
             }
         }
     }
@@ -537,10 +498,9 @@ impl Game {
         mut player_dmg: ViewMut<PlayerDamageState>,
         mut health: ViewMut<Health>,
     ) {
-        let (mut player_dmg, mut player_health) = (&mut player_dmg, &mut health).get(this.player)
-            .unwrap();
-        let (sens, _) = (&sense_tag, &pl_sense_tag)
-            .iter().next().unwrap();
+        let (mut player_dmg, mut player_health) =
+            (&mut player_dmg, &mut health).get(this.player).unwrap();
+        let (sens, _) = (&sense_tag, &pl_sense_tag).iter().next().unwrap();
 
         if sens.col.is_none() {
             return;
@@ -580,39 +540,40 @@ impl Game {
         }
     }
 
-    pub fn reward_enemies(
-        enemy: View<EnemyState>,
-        mut reward: ViewMut<RewardInfo>,
-    ) {
+    pub fn reward_enemies(enemy: View<EnemyState>, mut reward: ViewMut<RewardInfo>) {
         for (state, reward) in (&enemy, &mut reward).iter() {
-            if !matches!((state, reward.state), (EnemyState::Dead, RewardState::Locked)) { continue; }
+            if !matches!(
+                (state, reward.state),
+                (EnemyState::Dead, RewardState::Locked)
+            ) {
+                continue;
+            }
 
             reward.state = RewardState::Pending;
         }
     }
 
-    pub fn count_rewards(
-        mut reward: ViewMut<RewardInfo>,
-        mut score: UniqueViewMut<PlayerScore>,
-    ) {
+    pub fn count_rewards(mut reward: ViewMut<RewardInfo>, mut score: UniqueViewMut<PlayerScore>) {
         for reward in (&mut reward).iter() {
-            if !matches!(reward.state, RewardState::Pending) { continue; }
+            if !matches!(reward.state, RewardState::Pending) {
+                continue;
+            }
 
             reward.state = RewardState::Counted;
             score.0 += reward.amount;
         }
     }
 
-    pub fn player_damage_state(
-        dt: f32,
-        mut player_dmg: ViewMut<PlayerDamageState>,
-    ) {
+    pub fn player_damage_state(dt: f32, mut player_dmg: ViewMut<PlayerDamageState>) {
         for player_dmg in (&mut player_dmg).iter() {
-            let PlayerDamageState::Cooldown(time) = player_dmg
-                else { continue; };
+            let PlayerDamageState::Cooldown(time) = player_dmg else {
+                continue;
+            };
 
             *time -= dt;
-            if *time > 0.0 { continue; }
+            if *time > 0.0 {
+                continue;
+            }
 
             *player_dmg = PlayerDamageState::Hittable;
         }
@@ -650,14 +611,18 @@ pub fn decide_next_state(
     health: View<Health>,
     enemy_state: View<EnemyState>,
 ) -> Option<AppState> {
-    let player_dead = (&player, &health).iter()
-        .all(|(_, hp)| hp.0 <= 0);
-    let enemies_dead = enemy_state.iter()
+    let player_dead = (&player, &health).iter().all(|(_, hp)| hp.0 <= 0);
+    let enemies_dead = enemy_state
+        .iter()
         .all(|state| matches!(state, EnemyState::Dead));
 
-    if player_dead { return Some(AppState::GameOver); }
+    if player_dead {
+        return Some(AppState::GameOver);
+    }
 
-    if enemies_dead { return Some(AppState::Win); }
+    if enemies_dead {
+        return Some(AppState::Win);
+    }
 
     None
 }

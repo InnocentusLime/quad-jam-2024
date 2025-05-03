@@ -1,5 +1,5 @@
-use shipyard::Component;
 use macroquad::prelude::*;
+use shipyard::Component;
 
 #[derive(Debug, Clone, Copy, Component)]
 pub struct Transform {
@@ -9,10 +9,7 @@ pub struct Transform {
 
 impl Transform {
     pub fn from_pos(pos: Vec2) -> Self {
-        Self {
-            pos,
-            angle: 0.0,
-        }
+        Self { pos, angle: 0.0 }
     }
 
     pub fn from_xy(x: f32, y: f32) -> Self {

@@ -2,22 +2,22 @@ name: CI
 
 on: [push, pull_request]
 
+env:
+  RUSTFLAGS: "-D warnings"
+
 jobs:
   ci-check:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: ${{ vars.RUST_VERSION }}
           override: true
           target: wasm32-unknown-unknown
           components: rustfmt
-      - name: Set up cargo cache
-        uses: actions/cache@v3
+      - uses: actions/cache@v3
         continue-on-error: false
         with:
           path: |
@@ -32,3 +32,20 @@ jobs:
         run: cargo check
       - name: CI for wasm
         run: cargo check --target wasm32-unknown-unknown
+  code-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: List FIXME
+        run: grep -Iirn "FIXME" . --exclude-dir .github --exclude-dir target --exclude-dir assets --exclude "*.lock" --exclude-dir static --exclude-dir .git
+  cargo-fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ vars.RUST_VERSION }}
+          override: true
+          components: rustfmt
+      - run: cargo fmt --all -- --check

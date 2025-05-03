@@ -1,7 +1,10 @@
-use macroquad::prelude::*;
 use crate::screentext::*;
+use macroquad::prelude::*;
 
-use std::{fmt, sync::{LazyLock, Mutex}};
+use std::{
+    fmt,
+    sync::{LazyLock, Mutex},
+};
 
 struct ScreenPen {
     pen_text_color: Color,
@@ -75,7 +78,9 @@ impl<'a> fmt::Write for ScreenDumpImpl {
 
         let mut next = Some(s);
         while let Some(mut curr) = next.take() {
-            if curr.len() == 0 { break; }
+            if curr.len() == 0 {
+                break;
+            }
 
             if let Some((line, rest)) = curr.split_once('\n') {
                 curr = line;
@@ -93,9 +98,8 @@ impl<'a> fmt::Write for ScreenDumpImpl {
     }
 }
 
-static GLOBAL_DUMP: LazyLock<Mutex<ScreenDumpImpl>> = LazyLock::new(|| {
-    Mutex::new(ScreenDumpImpl::new())
-});
+static GLOBAL_DUMP: LazyLock<Mutex<ScreenDumpImpl>> =
+    LazyLock::new(|| Mutex::new(ScreenDumpImpl::new()));
 
 pub struct ScreenDump;
 

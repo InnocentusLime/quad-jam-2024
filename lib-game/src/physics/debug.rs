@@ -1,12 +1,9 @@
-use crate::physics::*;
 use crate::components::*;
+use crate::physics::*;
 
-use shipyard::{World, IntoIter, View};
+use shipyard::{IntoIter, View, World};
 
-fn draw_one_sensors(
-    pos: View<Transform>,
-    sens_tag: View<OneSensorTag>,
-) {
+fn draw_one_sensors(pos: View<Transform>, sens_tag: View<OneSensorTag>) {
     for (tf, tag) in (&pos, &sens_tag).iter() {
         let color = if tag.col.is_some() {
             Color::new(0.00, 0.93, 0.80, 1.00)
@@ -27,21 +24,14 @@ fn draw_one_sensors(
                     color,
                 },
             ),
-            ColliderTy::Circle { radius } => draw_circle_lines(
-                tf.pos.x,
-                tf.pos.y,
-                radius,
-                1.0,
-                color,
-            ),
+            ColliderTy::Circle { radius } => {
+                draw_circle_lines(tf.pos.x, tf.pos.y, radius, 1.0, color)
+            }
         }
     }
 }
 
-fn draw_beams(
-    pos: View<Transform>,
-    beam_tag: View<BeamTag>,
-) {
+fn draw_beams(pos: View<Transform>, beam_tag: View<BeamTag>) {
     for (tf, tag) in (&pos, &beam_tag).iter() {
         let color = GREEN;
 
@@ -69,10 +59,7 @@ fn draw_beams(
     }
 }
 
-fn draw_bodies(
-    pos: View<Transform>,
-    body_tag: View<BodyTag>,
-) {
+fn draw_bodies(pos: View<Transform>, body_tag: View<BodyTag>) {
     for (tf, tag) in (&pos, &body_tag).iter() {
         let mut color = match tag.kind() {
             BodyKind::Static => DARKBLUE,
@@ -98,12 +85,7 @@ fn draw_bodies(
                     color,
                 },
             ),
-            ColliderTy::Circle { radius } => draw_circle(
-                tf.pos.x,
-                tf.pos.y,
-                *radius,
-                color,
-            ),
+            ColliderTy::Circle { radius } => draw_circle(tf.pos.x, tf.pos.y, *radius, color),
         }
     }
 }

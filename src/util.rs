@@ -1,4 +1,3 @@
-
 #[macro_export]
 macro_rules! inline_tilemap {
     (@tile w) => { crate::components::TileType::Wall };

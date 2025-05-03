@@ -10,30 +10,16 @@ pub mod groups {
     pub const PLAYER: Group = Group::GROUP_3;
     pub const PROJECTILES: Group = Group::GROUP_4;
 
-    pub const LEVEL_INTERACT: Group =
-        LEVEL
-            .union(NPCS)
-            .union(PLAYER)
-            .union(PROJECTILES);
-    pub const PLAYER_INTERACT: Group =
-        LEVEL;
-    pub const NPCS_INTERACT: Group =
-        LEVEL
-            .union(PROJECTILES)
-            .union(NPCS);
-    pub const PROJECTILES_INTERACT: Group =
-        LEVEL;
+    pub const LEVEL_INTERACT: Group = LEVEL.union(NPCS).union(PLAYER).union(PROJECTILES);
+    pub const PLAYER_INTERACT: Group = LEVEL;
+    pub const NPCS_INTERACT: Group = LEVEL.union(PROJECTILES).union(NPCS);
+    pub const PROJECTILES_INTERACT: Group = LEVEL;
 }
 
 #[derive(Clone, Copy, Debug)]
 pub enum ColliderTy {
-    Box {
-        width: f32,
-        height: f32,
-    },
-    Circle {
-        radius: f32,
-    }
+    Box { width: f32, height: f32 },
+    Circle { radius: f32 },
 }
 
 #[derive(Clone, Debug, Component)]
@@ -98,9 +84,7 @@ pub struct ForceApplier {
     pub force: Vec2,
 }
 
-
-#[derive(Clone, Copy, Debug)]
-#[derive(PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum BodyKind {
     Static,
     Dynamic,
@@ -118,7 +102,13 @@ pub struct BodyTag {
 }
 
 impl BodyTag {
-    pub fn new(groups: InteractionGroups, shape: ColliderTy, mass: f32, enabled: bool, kind: BodyKind) -> Self {
+    pub fn new(
+        groups: InteractionGroups,
+        shape: ColliderTy,
+        mass: f32,
+        enabled: bool,
+        kind: BodyKind,
+    ) -> Self {
         Self {
             enabled,
             groups,
@@ -128,7 +118,11 @@ impl BodyTag {
         }
     }
 
-    pub fn shape(&self) -> &ColliderTy { &self.shape }
+    pub fn shape(&self) -> &ColliderTy {
+        &self.shape
+    }
 
-    pub fn kind(&self) -> BodyKind { self.kind }
+    pub fn kind(&self) -> BodyKind {
+        self.kind
+    }
 }
