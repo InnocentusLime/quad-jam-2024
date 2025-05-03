@@ -1,16 +1,14 @@
 ## What is this
 
-This is just a simple arcanoid implementation with small QoL features and a lil bit of polish (to not make it completely like the examples on the web).
-
-I made it purely to:
-1. Practice simple collision detection
-2. Get a grip of macroquad
-3. Implement something small and finished
+This is a work-in-progress project of mine, inspired by some level from Little Big Planet.
+I have no idea where it will take me, but it's fun to explore.
 
 ## Controls
 
 * Space -- start / reset on GameOver
-* WASD/arrow keys -- control your paddle
+* WASD/arrow keys -- Move around
+* Mouse -- aim
+* Left Mouse Button -- shoot
 * F11 -- toggle fullscreen
 * Escape -- pause
 
@@ -22,6 +20,5 @@ I made it purely to:
 
 ## Credits
 
-* All sounds have been generated with sfxr
-* All graphics are drawn by me
 * Font is "oegnek". It can be downloaded from [this itch.io page](https://sonyplaytation.itch.io/oegnec-font)
+* Tilset by piixl. Can be found on [the itch.io page](https://piiixl.itch.io/1-bit-patterns-and-tiles)
