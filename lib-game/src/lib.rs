@@ -111,7 +111,7 @@ impl App {
 
             let input = InputModel::capture();
 
-            if is_key_pressed(KeyCode::GraveAccent) {
+            if is_key_pressed(KeyCode::GraveAccent) || is_key_pressed(KeyCode::Apostrophe) {
                 self.console_mode = (self.console_mode + 1) % 3;
             }
 
