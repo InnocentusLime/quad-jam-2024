@@ -20,6 +20,5 @@ impl SoundDirector {
         world.run_with_data(Self::direct_sounds, self);
     }
 
-    fn direct_sounds(&mut self) {
-    }
+    fn direct_sounds(&mut self) {}
 }

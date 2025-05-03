@@ -1,6 +1,6 @@
 mod screencon;
-mod screentext;
 mod screendump;
+mod screentext;
 
 pub use screencon::*;
 pub use screendump::*;

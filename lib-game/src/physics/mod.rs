@@ -2,7 +2,14 @@ use std::collections::HashMap;
 
 use macroquad::prelude::*;
 use nalgebra::Translation2;
-use rapier2d::{na::{Isometry2, UnitComplex, Vector2}, parry::{query::{DefaultQueryDispatcher, PersistentQueryDispatcher, ShapeCastOptions}, shape::{Ball, Cuboid}}, prelude::*};
+use rapier2d::{
+    na::{Isometry2, UnitComplex, Vector2},
+    parry::{
+        query::{DefaultQueryDispatcher, PersistentQueryDispatcher, ShapeCastOptions},
+        shape::{Ball, Cuboid},
+    },
+    prelude::*,
+};
 use shipyard::{EntityId, Get, IntoIter, View, ViewMut};
 
 mod components;
@@ -14,7 +21,7 @@ pub use debug::*;
 
 pub use rapier2d::prelude::InteractionGroups;
 
-pub const PIXEL_PER_METER : f32 = 32.0;
+pub const PIXEL_PER_METER: f32 = 32.0;
 pub const MAX_KINEMATICS_ITERS: i32 = 20;
 pub const KINEMATIC_SKIN: f32 = 0.001;
 pub const PUSH_SKIN: f32 = KINEMATIC_SKIN + 0.05;
@@ -43,7 +50,10 @@ pub struct PhysicsState {
 
 impl PhysicsState {
     pub fn new() -> Self {
-        info!("lib-game physics backend: rapier version {}", rapier2d::VERSION);
+        info!(
+            "lib-game physics backend: rapier version {}",
+            rapier2d::VERSION
+        );
 
         Self {
             islands: IslandManager::new(),
@@ -85,33 +95,28 @@ impl PhysicsState {
         let start_pos = Self::world_to_phys(trans.pos);
         let iso = Isometry2 {
             translation: Translation2::new(start_pos.x, start_pos.y),
-            rotation: rapier2d::na::Unit::from_angle(
-                Self::world_ang_to_phys(trans.angle)
-            ),
+            rotation: rapier2d::na::Unit::from_angle(Self::world_ang_to_phys(trans.angle)),
         };
         let body = self.bodies.insert(
             RigidBodyBuilder::new(rap_ty)
                 .position(iso)
                 .soft_ccd_prediction(2.0)
                 .linear_damping(1.0)
-                .angular_damping(1.0)
+                .angular_damping(1.0),
         );
         let collider_shape = match collision {
             ColliderTy::Box { width, height } => SharedShape::cuboid(
                 width / 2.0 / PIXEL_PER_METER,
                 height / 2.0 / PIXEL_PER_METER,
             ),
-            ColliderTy::Circle { radius } => SharedShape::ball(
-                radius / PIXEL_PER_METER,
-            ),
+            ColliderTy::Circle { radius } => SharedShape::ball(radius / PIXEL_PER_METER),
         };
 
         self.colliders.insert_with_parent(
             ColliderBuilder::new(collider_shape)
                 .collision_groups(groups)
                 .mass(mass)
-                .enabled(is_enabled)
-            ,
+                .enabled(is_enabled),
             body.clone(),
             &mut self.bodies,
         );
@@ -163,35 +168,31 @@ impl PhysicsState {
             (dist_to_surface * *hit.normal1, Vector2::zeros())
         };
 
-        trans - normal_part - penetration_part +
-            *hit.normal1 * KINEMATIC_NORMAL_NUDGE
+        trans - normal_part - penetration_part + *hit.normal1 * KINEMATIC_NORMAL_NUDGE
     }
 
-    fn move_kinematic_pushes(
-        &mut self,
-        kin_shape: &dyn Shape,
-        kin_groups: InteractionGroups,
-    ) {
+    fn move_kinematic_pushes(&mut self, kin_shape: &dyn Shape, kin_groups: InteractionGroups) {
         let dispatcher = DefaultQueryDispatcher;
 
         for (rem, pos, hit) in &self.kinematic_cols {
-            let push = *hit.normal1 * rem.dot(
-                &hit.normal1
-            );
-            let char_box = kin_shape.compute_aabb(pos)
-                .loosened(PUSH_SKIN);
+            let push = *hit.normal1 * rem.dot(&hit.normal1);
+            let char_box = kin_shape.compute_aabb(pos).loosened(PUSH_SKIN);
 
             self.manifolds.clear();
-            self.query_pipeline.colliders_with_aabb_intersecting_aabb(
-                &char_box,
-                |handle| {
-                    let Some(col) = self.colliders.get(*handle)
-                        else { return true; };
-                    let Some(bodh) = col.parent()
-                        else { return true; };
-                    let Some(bod) = self.bodies.get(bodh)
-                        else { return true; };
-                    if !bod.is_dynamic() { return true; }
+            self.query_pipeline
+                .colliders_with_aabb_intersecting_aabb(&char_box, |handle| {
+                    let Some(col) = self.colliders.get(*handle) else {
+                        return true;
+                    };
+                    let Some(bodh) = col.parent() else {
+                        return true;
+                    };
+                    let Some(bod) = self.bodies.get(bodh) else {
+                        return true;
+                    };
+                    if !bod.is_dynamic() {
+                        return true;
+                    }
                     if !col.collision_groups().test(kin_groups) {
                         return true;
                     }
@@ -254,23 +255,14 @@ impl PhysicsState {
         dir: Vec2,
         shape: ColliderTy,
     ) -> Option<f32> {
-        let predicate = Some(
-            &|_, col: &Collider| -> bool {
-                col.is_enabled()
-            } as &dyn Fn(ColliderHandle, &Collider) -> bool
-        );
+        let predicate = Some(&|_, col: &Collider| -> bool { col.is_enabled() }
+            as &dyn Fn(ColliderHandle, &Collider) -> bool);
         let shape = match shape {
-            ColliderTy::Box { width, height } => {
-                &Cuboid::new(rapier2d::na::Vector2::new(
-                    width / 2.0 / PIXEL_PER_METER,
-                    height / 2.0 / PIXEL_PER_METER,
-                )) as &dyn Shape
-            },
-            ColliderTy::Circle { radius } => {
-                &Ball::new(
-                    radius / PIXEL_PER_METER,
-                ) as &dyn Shape
-            },
+            ColliderTy::Box { width, height } => &Cuboid::new(rapier2d::na::Vector2::new(
+                width / 2.0 / PIXEL_PER_METER,
+                height / 2.0 / PIXEL_PER_METER,
+            )) as &dyn Shape,
+            ColliderTy::Circle { radius } => &Ball::new(radius / PIXEL_PER_METER) as &dyn Shape,
         };
         let dir = Self::world_to_phys(dir.normalize_or_zero());
         let shape_pos = Self::world_tf_to_phys(tf);
@@ -291,7 +283,9 @@ impl PhysicsState {
                 predicate,
                 ..QueryFilter::default()
             },
-        ) else { return None; };
+        ) else {
+            return None;
+        };
 
         Some(hit.time_of_impact)
     }
@@ -301,25 +295,18 @@ impl PhysicsState {
         tf: Transform,
         groups: InteractionGroups,
         shape: ColliderTy,
-        writeback: &mut Vec<EntityId>
+        writeback: &mut Vec<EntityId>,
     ) {
         let predicate = Some(
-            &|_, col: &Collider| -> bool {
-                col.is_enabled() && !col.is_sensor()
-            } as &dyn Fn(ColliderHandle, &Collider) -> bool
+            &|_, col: &Collider| -> bool { col.is_enabled() && !col.is_sensor() }
+                as &dyn Fn(ColliderHandle, &Collider) -> bool,
         );
         let shape = match shape {
-            ColliderTy::Box { width, height } => {
-                &Cuboid::new(rapier2d::na::Vector2::new(
-                    width / 2.0 / PIXEL_PER_METER,
-                    height / 2.0 / PIXEL_PER_METER,
-                )) as &dyn Shape
-            },
-            ColliderTy::Circle { radius } => {
-                &Ball::new(
-                    radius / PIXEL_PER_METER,
-                ) as &dyn Shape
-            },
+            ColliderTy::Box { width, height } => &Cuboid::new(rapier2d::na::Vector2::new(
+                width / 2.0 / PIXEL_PER_METER,
+                height / 2.0 / PIXEL_PER_METER,
+            )) as &dyn Shape,
+            ColliderTy::Circle { radius } => &Ball::new(radius / PIXEL_PER_METER) as &dyn Shape,
         };
         let shape_pos = Self::world_tf_to_phys(tf);
         self.query_pipeline.intersections_with_shape(
@@ -338,7 +325,7 @@ impl PhysicsState {
                 writeback.push(self.mapping_inv[&col.parent().unwrap()]);
 
                 true
-            }
+            },
         );
     }
 
@@ -348,23 +335,14 @@ impl PhysicsState {
         groups: InteractionGroups,
         shape: ColliderTy,
     ) -> Option<EntityId> {
-        let predicate = Some(
-            &|_, col: &Collider| -> bool {
-                col.is_enabled()
-            } as &dyn Fn(ColliderHandle, &Collider) -> bool
-        );
+        let predicate = Some(&|_, col: &Collider| -> bool { col.is_enabled() }
+            as &dyn Fn(ColliderHandle, &Collider) -> bool);
         let shape = match shape {
-            ColliderTy::Box { width, height } => {
-                &Cuboid::new(rapier2d::na::Vector2::new(
-                    width / 2.0 / PIXEL_PER_METER,
-                    height / 2.0 / PIXEL_PER_METER,
-                )) as &dyn Shape
-            },
-            ColliderTy::Circle { radius } => {
-                &Ball::new(
-                    radius / PIXEL_PER_METER,
-                ) as &dyn Shape
-            },
+            ColliderTy::Box { width, height } => &Cuboid::new(rapier2d::na::Vector2::new(
+                width / 2.0 / PIXEL_PER_METER,
+                height / 2.0 / PIXEL_PER_METER,
+            )) as &dyn Shape,
+            ColliderTy::Circle { radius } => &Ball::new(radius / PIXEL_PER_METER) as &dyn Shape,
         };
         let shape_pos = Self::world_tf_to_phys(tf);
         let Some(handle) = self.query_pipeline.intersection_with_shape(
@@ -377,23 +355,19 @@ impl PhysicsState {
                 predicate,
                 ..QueryFilter::default()
             },
-        ) else { return None; };
+        ) else {
+            return None;
+        };
 
         let col = self.colliders.get(handle).unwrap();
 
         Some(self.mapping_inv[&col.parent().unwrap()])
     }
 
-    fn move_kinematic(
-        &mut self,
-        rbh: RigidBodyHandle,
-        dr: Vec2,
-        slide: bool,
-    ) -> bool {
+    fn move_kinematic(&mut self, rbh: RigidBodyHandle, dr: Vec2, slide: bool) -> bool {
         let predicate = Some(
-            &|_, col: &Collider| -> bool {
-                col.is_enabled() && !col.is_sensor()
-            } as &dyn Fn(ColliderHandle, &Collider) -> bool
+            &|_, col: &Collider| -> bool { col.is_enabled() && !col.is_sensor() }
+                as &dyn Fn(ColliderHandle, &Collider) -> bool,
         );
         self.kinematic_cols.clear();
 
@@ -401,25 +375,27 @@ impl PhysicsState {
         let rb = self.bodies.get(rbh).unwrap();
         let (kin_pos, kin_shape) = (
             rb.position(),
-            self.colliders.get(rb.colliders()[0])
+            self.colliders
+                .get(rb.colliders()[0])
                 .unwrap()
                 .shared_shape()
-                .clone()
+                .clone(),
         );
-        let groups = self.colliders.get(rb.colliders()[0]).unwrap().collision_groups();
+        let groups = self
+            .colliders
+            .get(rb.colliders()[0])
+            .unwrap()
+            .collision_groups();
 
         let mut final_trans = rapier2d::na::Vector2::zeros();
-        let mut trans_rem = rapier2d::na::Vector2::new(
-            dr.x,
-            dr.y,
-        );
+        let mut trans_rem = rapier2d::na::Vector2::new(dr.x, dr.y);
 
         let mut max_iters = MAX_KINEMATICS_ITERS;
-        while let Some((off_dir, off_len)) = UnitVector::try_new_and_get(
-            trans_rem,
-            LENGTH_EPSILON,
-        ) {
-            if max_iters <= 0 { break; }
+        while let Some((off_dir, off_len)) = UnitVector::try_new_and_get(trans_rem, LENGTH_EPSILON)
+        {
+            if max_iters <= 0 {
+                break;
+            }
             max_iters -= 1;
 
             let shape_pos = Translation::from(final_trans) * kin_pos;
@@ -441,8 +417,7 @@ impl PhysicsState {
                     predicate,
                     ..QueryFilter::default()
                 },
-            )
-            else {
+            ) else {
                 final_trans += trans_rem;
                 trans_rem.fill(0.0);
                 break;
@@ -454,11 +429,7 @@ impl PhysicsState {
             final_trans += allowed_trans;
             trans_rem -= allowed_trans;
 
-            self.kinematic_cols.push((
-                trans_rem,
-                shape_pos,
-                hit,
-            ));
+            self.kinematic_cols.push((trans_rem, shape_pos, hit));
 
             if slide {
                 trans_rem = Self::get_slide_part(&hit, trans_rem);
@@ -469,18 +440,15 @@ impl PhysicsState {
         let old_trans = kin_pos.translation.vector;
         self.move_kinematic_pushes(&*kin_shape, groups);
 
-        self.bodies.get_mut(rbh).unwrap().set_next_kinematic_translation(
-            (old_trans + final_trans).into()
-        );
+        self.bodies
+            .get_mut(rbh)
+            .unwrap()
+            .set_next_kinematic_translation((old_trans + final_trans).into());
 
         has_collided
     }
 
-    pub fn allocate_bodies(
-        &mut self,
-        info: ViewMut<BodyTag>,
-        tf: View<Transform>,
-    ) {
+    pub fn allocate_bodies(&mut self, info: ViewMut<BodyTag>, tf: View<Transform>) {
         for (entity, info) in info.inserted().iter().with_id() {
             let trans = tf.get(entity).unwrap();
 
@@ -500,14 +468,12 @@ impl PhysicsState {
         info.clear_all_inserted()
     }
 
-    pub fn remove_dead_handles(
-        &mut self,
-        rbs: View<BodyTag>,
-    ) {
+    pub fn remove_dead_handles(&mut self, rbs: View<BodyTag>) {
         // GC the dead handles
         for remd in rbs.removed_or_deleted() {
-            let Some(rb) = self.mapping.remove(&remd)
-                else { continue; };
+            let Some(rb) = self.mapping.remove(&remd) else {
+                continue;
+            };
             self.mapping_inv.remove(&rb);
 
             info!("ent:{remd:?} body:{rb:?} deletted");
@@ -520,23 +486,16 @@ impl PhysicsState {
                 &mut self.multibody_joints,
                 true,
             );
-        };
+        }
     }
 
-    pub fn reset_forces(
-        &mut self,
-        mut force: ViewMut<ForceApplier>,
-    ) {
+    pub fn reset_forces(&mut self, mut force: ViewMut<ForceApplier>) {
         for force in (&mut force).iter() {
             force.force = Vec2::ZERO;
         }
     }
 
-    pub fn import_forces(
-        &mut self,
-        body_tag: View<BodyTag>,
-        force: View<ForceApplier>,
-    ) {
+    pub fn import_forces(&mut self, body_tag: View<BodyTag>, force: View<ForceApplier>) {
         for (ent, (body_tag, force)) in (&body_tag, &force).iter().with_id() {
             if body_tag.kind != BodyKind::Dynamic {
                 warn!("Force applier attached to a non-dynamic body: {ent:?}");
@@ -550,11 +509,7 @@ impl PhysicsState {
         }
     }
 
-    pub fn import_positions_and_info(
-        &mut self,
-        rbs: View<BodyTag>,
-        pos: ViewMut<Transform>,
-    ) {
+    pub fn import_positions_and_info(&mut self, rbs: View<BodyTag>, pos: ViewMut<Transform>) {
         // Enable-disable
         for (ent, info) in rbs.iter().with_id() {
             let body = &mut self.bodies[self.mapping[&ent]];
@@ -570,13 +525,13 @@ impl PhysicsState {
         // Import the new positions to world
         for (ent, (_, pos)) in (&rbs, &pos).iter().with_id() {
             let body = &mut self.bodies[self.mapping[&ent]];
-            let new_pos= Self::world_tf_to_phys(*pos);
+            let new_pos = Self::world_tf_to_phys(*pos);
 
             // NOTE: perhaps we should do an epsilon compare here?
             if new_pos != *body.position() {
                 body.set_position(Self::world_tf_to_phys(*pos), true);
             }
-        };
+        }
     }
 
     pub fn step(&mut self) {
@@ -595,7 +550,7 @@ impl PhysicsState {
             &mut self.ccd_solver,
             Some(&mut self.query_pipeline),
             &*self.hooks,
-            &()
+            &(),
         );
 
         // Reset forces
@@ -604,27 +559,16 @@ impl PhysicsState {
         }
     }
 
-    pub fn apply_kinematic_moves(
-        &mut self,
-        mut kin: ViewMut<KinematicControl>,
-    ) {
+    pub fn apply_kinematic_moves(&mut self, mut kin: ViewMut<KinematicControl>) {
         for (ent, kin) in (&mut kin).iter().with_id() {
             let rbh = self.mapping[&ent];
-            self.move_kinematic(
-                rbh,
-                kin.dr,
-                kin.slide,
-            );
+            self.move_kinematic(rbh, kin.dr, kin.slide);
 
             kin.dr = Vec2::ZERO;
         }
     }
 
-    pub fn export_body_poses(
-        &mut self,
-        body_tag: View<BodyTag>,
-        mut pos: ViewMut<Transform>,
-    ) {
+    pub fn export_body_poses(&mut self, body_tag: View<BodyTag>, mut pos: ViewMut<Transform>) {
         for (ent, (_, pos)) in (&body_tag, &mut pos).iter().with_id() {
             let rb = &self.bodies[self.mapping[&ent]];
             let new_pos = rb.translation();
@@ -637,17 +581,9 @@ impl PhysicsState {
         }
     }
 
-    pub fn export_sensor_queries(
-        &mut self,
-        tf: View<Transform>,
-        mut sens: ViewMut<OneSensorTag>,
-    ) {
+    pub fn export_sensor_queries(&mut self, tf: View<Transform>, mut sens: ViewMut<OneSensorTag>) {
         for (tf, sens) in (&tf, &mut sens).iter() {
-            let res = self.any_collisions(
-                *tf,
-                sens.groups,
-                sens.shape,
-            );
+            let res = self.any_collisions(*tf, sens.groups, sens.shape);
 
             sens.col = res;
         }
@@ -655,24 +591,22 @@ impl PhysicsState {
 
     // NOTE: beams are expensive and slightly laggy
     // as they are right now at least. Need a faster impl
-    pub fn export_beam_queries(
-        &mut self,
-        tf: View<Transform>,
-        mut beam: ViewMut<BeamTag>,
-    ) {
+    pub fn export_beam_queries(&mut self, tf: View<Transform>, mut beam: ViewMut<BeamTag>) {
         for (tf, beam) in (&tf, &mut beam).iter() {
             let dir = Vec2::from_angle(tf.angle);
 
             beam.overlaps.clear();
-            beam.length = self.cast_shape(
-                *tf,
-                beam.cast_filter,
-                dir,
-                ColliderTy::Box {
-                    height: beam.width,
-                    width: 1.0,
-                },
-            ).unwrap_or(1000.0);
+            beam.length = self
+                .cast_shape(
+                    *tf,
+                    beam.cast_filter,
+                    dir,
+                    ColliderTy::Box {
+                        height: beam.width,
+                        width: 1.0,
+                    },
+                )
+                .unwrap_or(1000.0);
             self.all_collisions(
                 Transform {
                     pos: tf.pos + dir * (beam.length / 2.0),

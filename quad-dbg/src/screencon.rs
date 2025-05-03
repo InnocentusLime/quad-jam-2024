@@ -1,7 +1,10 @@
-use macroquad::prelude::*;
 use crate::screentext::*;
+use macroquad::prelude::*;
 
-use std::{fmt, sync::{LazyLock, Mutex}};
+use std::{
+    fmt,
+    sync::{LazyLock, Mutex},
+};
 
 struct ScreenPen {
     pen_text_color: Color,
@@ -43,9 +46,8 @@ impl ScreenConsoleImpl {
 
     fn next_line(&mut self) {
         self.pen.curr_line = (self.pen.curr_line + 1) % SCREENCON_LINES;
-        let should_scroll =
-            self.pen.curr_line > self.text.last_visible_line() ||
-            self.text.last_visible_line() == SCREENCON_LINES - 1;
+        let should_scroll = self.pen.curr_line > self.text.last_visible_line()
+            || self.text.last_visible_line() == SCREENCON_LINES - 1;
 
         if should_scroll {
             self.text.scroll_offset = (self.text.scroll_offset + 1) % SCREENCON_LINES;
@@ -84,7 +86,9 @@ impl<'a> fmt::Write for ScreenConsoleImpl {
 
         let mut next = Some(s);
         while let Some(mut curr) = next.take() {
-            if curr.len() == 0 { break; }
+            if curr.len() == 0 {
+                break;
+            }
 
             if let Some((line, rest)) = curr.split_once('\n') {
                 curr = line;
@@ -102,9 +106,8 @@ impl<'a> fmt::Write for ScreenConsoleImpl {
     }
 }
 
-static GLOBAL_CON: LazyLock<Mutex<ScreenConsoleImpl>> = LazyLock::new(|| {
-    Mutex::new(ScreenConsoleImpl::new())
-});
+static GLOBAL_CON: LazyLock<Mutex<ScreenConsoleImpl>> =
+    LazyLock::new(|| Mutex::new(ScreenConsoleImpl::new()));
 
 pub struct ScreenCons;
 
@@ -135,9 +138,7 @@ impl ScreenCons {
     }
 
     pub fn is_scroll_recent() -> bool {
-        Self::scope(|con| {
-            con.last_line() == con.scroll()
-        })
+        Self::scope(|con| con.last_line() == con.scroll())
     }
 
     pub fn snap_to_last_message() {
@@ -210,11 +211,9 @@ impl Log for ScreenCons {
         let file = record.file().unwrap_or("???");
         let line = record.line().unwrap_or(0);
 
-        Self::put_event(
-            format_args!("{}:{} {}\n", file, line, &msg),
-            level
-        );
+        Self::put_event(format_args!("{}:{} {}\n", file, line, &msg), level);
     }
 
-    fn flush(&self) { /* NOOP */ }
+    fn flush(&self) { /* NOOP */
+    }
 }

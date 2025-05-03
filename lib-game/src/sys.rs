@@ -31,21 +31,26 @@ mod platform {
     }
 
     pub fn panic_screen(msg: &str) {
-        unsafe { imports::panic_screen(JsObject::string(msg)); }
+        unsafe {
+            imports::panic_screen(JsObject::string(msg));
+        }
     }
 }
 
 #[cfg(not(target_family = "wasm"))]
 mod platform {
-    pub fn done_loading() { /* Nothing */ }
+    pub fn done_loading() { /* Nothing */
+    }
 
-    pub fn on_mobile() -> bool { false }
+    pub fn on_mobile() -> bool {
+        false
+    }
 
     pub fn get_orientation() -> f32 {
         0.0
     }
 
-    pub fn panic_screen(_msg: &str) { }
+    pub fn panic_screen(_msg: &str) {}
 }
 
 pub use platform::*;

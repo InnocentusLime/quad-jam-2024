@@ -3,9 +3,9 @@ use std::borrow::Cow;
 use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, UniqueView, View};
 
+use crate::components::*;
 use crate::logic::*;
 use lib_game::*;
-use crate::components::*;
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 static WIN_TEXT: &'static str = "Congratulations!";
@@ -20,33 +20,32 @@ static START_TEXT_DESK: &'static str = "Controls";
 static START_HINT: &'static str = "Move: WASD\nShoot: Mouse + Left Button\nYou get extra score for hitting multiple enemies at once\nPRESS SPACE TO START\nGet ready to run!";
 static START_TEXT_MOBILE: &'static str = "Tap to start";
 
-
 pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
 
-pub fn render_tiles(
-    render: &mut Render,
-    tile_storage: View<TileStorage>,
-    tiles: View<TileType>,
-) {
-    let Some(storage) = tile_storage.iter().next()
-        else { return; };
-    let iter = storage.iter_poses()
-            .map(|(x, y, id)| (x, y, tiles.get(id).unwrap()));
+pub fn render_tiles(render: &mut Render, tile_storage: View<TileStorage>, tiles: View<TileType>) {
+    let Some(storage) = tile_storage.iter().next() else {
+        return;
+    };
+    let iter = storage
+        .iter_poses()
+        .map(|(x, y, id)| (x, y, tiles.get(id).unwrap()));
 
     for (x, y, tile) in iter {
         match tile {
-            TileType::Wall => { render.world.add_entity((
-                Tint(WALL_COLOR),
-                Scale(vec2(2.0, 2.0)),
-                Sprite {
-                    origin: vec2(0.5, 0.5),
-                    texture: TextureKey("wall"),
-                },
-                Transform {
-                    pos: vec2(32.0 * x as f32, 32.0 * y as f32),
-                    angle: 0.0,
-                },
-            )); },
+            TileType::Wall => {
+                render.world.add_entity((
+                    Tint(WALL_COLOR),
+                    Scale(vec2(2.0, 2.0)),
+                    Sprite {
+                        origin: vec2(0.5, 0.5),
+                        texture: TextureKey("wall"),
+                    },
+                    Transform {
+                        pos: vec2(32.0 * x as f32, 32.0 * y as f32),
+                        angle: 0.0,
+                    },
+                ));
+            }
             TileType::Ground => (),
         }
     }
@@ -93,11 +92,9 @@ pub fn render_brute(
         let is_flickering = matches!(state, EnemyState::Stunned { .. });
         let color = Color::new(RED.r * k, RED.g * k, RED.b * k, 1.0);
 
-        let r_enemy = render.world.add_entity((
-            *pos,
-            CircleShape { radius: 8.0 },
-            Tint(color),
-        ));
+        let r_enemy = render
+            .world
+            .add_entity((*pos, CircleShape { radius: 8.0 }, Tint(color)));
 
         if is_flickering {
             render.world.add_component(r_enemy, Flicker);
@@ -105,11 +102,7 @@ pub fn render_brute(
     }
 }
 
-pub fn render_boxes(
-    render: &mut Render,
-    pos: View<Transform>,
-    boxt: View<BoxTag>,
-) {
+pub fn render_boxes(render: &mut Render, pos: View<Transform>, boxt: View<BoxTag>) {
     for (_, pos) in (&boxt, &pos).iter() {
         render.world.add_entity((
             *pos,
@@ -130,7 +123,9 @@ pub fn render_rays(
     beam: View<BeamTag>,
 ) {
     for (pos, ray, beam) in (&pos, &ray, &beam).iter() {
-        if !ray.shooting { continue; }
+        if !ray.shooting {
+            continue;
+        }
 
         render.world.add_entity((
             Tint(GREEN),
@@ -154,15 +149,12 @@ pub fn render_ammo(
     score: UniqueView<PlayerScore>,
 ) {
     let ammo_hint = "AMMO";
-    let mes = measure_text(
-        &ammo_hint,
-        render.get_font(FontKey("oegnek")),
-        16,
-        1.0
-    );
+    let mes = measure_text(&ammo_hint, render.get_font(FontKey("oegnek")), 16, 1.0);
 
     for (pos, bul) in (&pos, &bullet).iter() {
-        if bul.is_picked { continue; }
+        if bul.is_picked {
+            continue;
+        }
 
         render.world.add_entity((
             *pos,
@@ -174,14 +166,13 @@ pub fn render_ammo(
             },
         ));
 
-        if score.0 > 0 { continue; }
+        if score.0 > 0 {
+            continue;
+        }
 
         render.world.add_entity((
             Transform {
-                pos: vec2(
-                    pos.pos.x - mes.width / 2.0,
-                    pos.pos.y - 20.0
-                ),
+                pos: vec2(pos.pos.x - mes.width / 2.0, pos.pos.y - 20.0),
                 ..*pos
             },
             Tint(YELLOW),
@@ -208,9 +199,10 @@ pub fn render_game_ui(
     let off_y = 32.0;
     let ui_x = 536.0;
     let score = score.0;
-    let player_health = (&player, &health).iter().next().unwrap().1.0;
+    let player_health = (&player, &health).iter().next().unwrap().1 .0;
     let player_gun = *(&gun,).iter().next().unwrap();
-    let alive_enemy_count = state.iter()
+    let alive_enemy_count = state
+        .iter()
         .filter(|x| !matches!(x, EnemyState::Dead))
         .count();
 
@@ -274,26 +266,36 @@ pub fn render_game_ui(
 
 pub fn render_toplevel_ui(app_state: AppState, render: &mut Render) {
     match app_state {
-        AppState::Start => { render.world.add_entity(AnnouncementText {
-            heading: start_text(),
-            body: Some(START_HINT),
-        }); },
-        AppState::GameOver => { render.world.add_entity(AnnouncementText {
-            heading: GAMEOVER_TEXT,
-            body: Some(game_restart_hint()),
-        }); },
-        AppState::Win => { render.world.add_entity(AnnouncementText {
-            heading: WIN_TEXT,
-            body: Some(game_restart_hint()),
-        }); },
-        AppState::Paused => { render.world.add_entity(AnnouncementText {
-            heading: PAUSE_TEXT,
-            body: Some(PAUSE_HINT),
-        }); },
-        AppState::PleaseRotate => { render.world.add_entity(AnnouncementText {
-            heading: ORIENTATION_TEXT,
-            body: Some(ORIENTATION_HINT),
-        }); },
+        AppState::Start => {
+            render.world.add_entity(AnnouncementText {
+                heading: start_text(),
+                body: Some(START_HINT),
+            });
+        }
+        AppState::GameOver => {
+            render.world.add_entity(AnnouncementText {
+                heading: GAMEOVER_TEXT,
+                body: Some(game_restart_hint()),
+            });
+        }
+        AppState::Win => {
+            render.world.add_entity(AnnouncementText {
+                heading: WIN_TEXT,
+                body: Some(game_restart_hint()),
+            });
+        }
+        AppState::Paused => {
+            render.world.add_entity(AnnouncementText {
+                heading: PAUSE_TEXT,
+                body: Some(PAUSE_HINT),
+            });
+        }
+        AppState::PleaseRotate => {
+            render.world.add_entity(AnnouncementText {
+                heading: ORIENTATION_TEXT,
+                body: Some(ORIENTATION_HINT),
+            });
+        }
         _ => (),
     }
 }

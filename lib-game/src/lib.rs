@@ -1,19 +1,19 @@
+mod components;
 mod input;
 mod physics;
 mod render;
 mod sound_director;
-mod components;
 
 pub mod sys;
 
-pub use physics::*;
-pub use input::*;
-pub use sound_director::*;
 pub use components::*;
+pub use input::*;
+pub use physics::*;
 pub use render::*;
+pub use sound_director::*;
 
-use shipyard::{World, EntitiesView};
 use macroquad::prelude::*;
+use shipyard::{EntitiesView, World};
 
 use quad_dbg::*;
 
@@ -127,23 +127,32 @@ impl App {
                 init_game(&mut self.world);
             }
 
-            self.world.run_with_data(PhysicsState::allocate_bodies, &mut self.physics);
+            self.world
+                .run_with_data(PhysicsState::allocate_bodies, &mut self.physics);
 
             if matches!(self.state, AppState::Active) && do_tick {
-                self.world.run_with_data(PhysicsState::reset_forces, &mut self.physics);
+                self.world
+                    .run_with_data(PhysicsState::reset_forces, &mut self.physics);
 
                 input_phase(&input, GAME_TICKRATE, &mut self.world);
 
-                self.world.run_with_data(PhysicsState::import_positions_and_info, &mut self.physics);
-                self.world.run_with_data(PhysicsState::import_forces, &mut self.physics);
-                self.world.run_with_data(PhysicsState::apply_kinematic_moves, &mut self.physics);
-                self.world.run_with_data(PhysicsState::step, &mut self.physics);
-                self.world.run_with_data(PhysicsState::export_body_poses, &mut self.physics);
+                self.world
+                    .run_with_data(PhysicsState::import_positions_and_info, &mut self.physics);
+                self.world
+                    .run_with_data(PhysicsState::import_forces, &mut self.physics);
+                self.world
+                    .run_with_data(PhysicsState::apply_kinematic_moves, &mut self.physics);
+                self.world
+                    .run_with_data(PhysicsState::step, &mut self.physics);
+                self.world
+                    .run_with_data(PhysicsState::export_body_poses, &mut self.physics);
 
                 pre_physics_query_phase(GAME_TICKRATE, &mut self.world);
 
-                self.world.run_with_data(PhysicsState::export_beam_queries, &mut self.physics);
-                self.world.run_with_data(PhysicsState::export_sensor_queries, &mut self.physics);
+                self.world
+                    .run_with_data(PhysicsState::export_beam_queries, &mut self.physics);
+                self.world
+                    .run_with_data(PhysicsState::export_sensor_queries, &mut self.physics);
 
                 let new_state = update(GAME_TICKRATE, &mut self.world);
 
@@ -160,7 +169,8 @@ impl App {
             dump!("{}", self.accumelated_time);
             self.debug_info(&mut debug_render);
 
-            self.world.run_with_data(PhysicsState::remove_dead_handles, &mut self.physics);
+            self.world
+                .run_with_data(PhysicsState::remove_dead_handles, &mut self.physics);
             self.world.clear_all_removed_and_deleted();
 
             next_frame().await
@@ -184,7 +194,7 @@ impl App {
 
     fn update_ticking(&mut self, real_dt: f32) -> bool {
         self.accumelated_time += real_dt;
-        if self.accumelated_time >= 2.0*GAME_TICKRATE {
+        if self.accumelated_time >= 2.0 * GAME_TICKRATE {
             warn!("LAG");
             self.accumelated_time = 0.0;
             false
@@ -199,8 +209,7 @@ impl App {
     fn debug_info(&mut self, client_debug: impl FnOnce(&mut World)) {
         self.render.debug_render(|| client_debug(&mut self.world));
 
-        let ent_count = self.world.borrow::<EntitiesView>()
-            .unwrap().iter().count();
+        let ent_count = self.world.borrow::<EntitiesView>().unwrap().iter().count();
 
         dump!("FPS: {:?}", get_fps());
         dump!("Entities: {ent_count}");
@@ -223,11 +232,7 @@ impl App {
         }
     }
 
-    fn next_state(
-        &mut self,
-        input: &InputModel,
-        mut init_game: impl FnMut(&mut World),
-    ) {
+    fn next_state(&mut self, input: &InputModel, mut init_game: impl FnMut(&mut World)) {
         let new_state = match self.state {
             AppState::Start if input.confirmation_detected => AppState::Active,
             AppState::Win | AppState::GameOver if input.confirmation_detected => AppState::Active,
@@ -237,7 +242,8 @@ impl App {
             _ => return,
         };
 
-        if new_state == AppState::Active && matches!(self.state, AppState::GameOver | AppState::Win) {
+        if new_state == AppState::Active && matches!(self.state, AppState::GameOver | AppState::Win)
+        {
             self.world.clear();
             init_game(&mut self.world);
         }
