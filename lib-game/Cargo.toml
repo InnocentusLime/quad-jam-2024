@@ -1,0 +1,17 @@
+[package]
+name = "lib-game"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+log = { workspace = true }
+anyhow = { workspace = true }
+shipyard = { workspace = true }
+macroquad = { workspace = true }
+quad-dbg = { path = "../quad-dbg" }
+rapier2d = { version = "0.24.0" }
+# NOTE: keep the version matching the one macroquad is using
+hashbrown = "0.14.5"
+
+[target.'cfg(target_arch = "wasm32")'.dependencies.sapp-jsutils]
+version = "^0.1"

@@ -1,7 +1,10 @@
 use macroquad::prelude::*;
-use rapier2d::prelude::InteractionGroups;
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
-use crate::{inline_tilemap, physics::{groups, BeamTag, BodyKind, ColliderTy, ForceApplier, KinematicControl, OneSensorTag, BodyTag}, ui::UiModel, AppState, BoxTag, BruteTag, BulletTag, DamageTag, DeltaTime, EnemyState, Health, PlayerDamageSensorTag, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, RewardInfo, RewardState, TileStorage, TileType, Transform};
+use lib_game::*;
+
+use crate::inline_tilemap;
+
+use crate::components::*;
 
 pub const PLAYER_SPEED: f32 = 128.0;
 pub const DISTANCE_EPS: f32 = 0.01;
@@ -207,8 +210,7 @@ impl Game {
                 angle: 0.0,
             },
             RayTag {
-                len: 10.0,
-                life_left: 0.0,
+                shooting: false,
             },
             BeamTag::new(
                 InteractionGroups {
@@ -363,49 +365,44 @@ impl Game {
         }
     }
 
-    pub fn ray_tick(
-        mut ray_tag: ViewMut<RayTag>,
-        dt: UniqueView<DeltaTime>,
-    ) {
-        for ray in (&mut ray_tag).iter() {
-            ray.life_left -= dt.0;
-            ray.life_left = ray.life_left.max(0.0);
-        }
-    }
-
-    pub fn player_ray_align(
+    pub fn player_ray_controls(
+        input: &InputModel,
         this: UniqueView<Game>,
         mut tf: ViewMut<Transform>,
-        ray_tag: View<RayTag>,
+        mut ray_tag: ViewMut<RayTag>,
+        mut player_amo: ViewMut<PlayerGunState>,
     ) {
-        let player_tf = *(&tf).get(this.player)
-            .unwrap();
+        let player_tf = *(&tf).get(this.player).unwrap();
         let player_pos = player_tf.pos;
+        let mut amo = (&mut player_amo).get(this.player)
+            .unwrap();
         let mpos = this.mouse_pos();
         let shootdir = mpos - player_pos;
 
         if shootdir.length() <= DISTANCE_EPS { return; }
 
-        let rayang = shootdir.to_angle();
-        for (tf, tag) in (&mut tf, &ray_tag).iter() {
-            if tag.life_left > 0.0 { continue; }
-
+        for (tf, tag) in (&mut tf, &mut ray_tag).iter() {
+            tag.shooting = false;
             tf.pos = player_pos;
-            tf.angle = rayang;
+            tf.angle = shootdir.to_angle();
+
+            if input.attack_down && *amo == PlayerGunState::Full {
+                tag.shooting = true;
+                *amo = PlayerGunState::Empty;
+            }
         }
     }
 
-    pub fn player_shooting(
+    pub fn player_ray_effect(
         this: UniqueView<Game>,
         beam_tag: View<BeamTag>,
         mut tf: ViewMut<Transform>,
-        mut player_amo: ViewMut<PlayerGunState>,
         mut ray_tag: ViewMut<RayTag>,
         mut enemy_state: ViewMut<EnemyState>,
-        ui_model: UniqueView<UiModel>,
         mut score: UniqueViewMut<PlayerScore>,
         mut bullet: ViewMut<BulletTag>,
     ) {
+        let player_tf = *(&tf).get(this.player).unwrap();
         let mul_table = [
             0,
             1,
@@ -418,50 +415,38 @@ impl Game {
             10,
             20,
         ];
-        let player_tf = *(&tf).get(this.player).unwrap();
-        let mut raylen = 0.0;
-        let player_pos = player_tf.pos;
-        let mut shootdir = Vec2::ZERO;
-        let mut amo = (&mut player_amo).get(this.player)
-            .unwrap();
-
-        if !ui_model.attack_down() { return; }
-
-        if *amo != PlayerGunState::Full { return; }
-
-        *amo = PlayerGunState::Empty;
+        let mut off = Vec2::ZERO;
 
         for (tf, ray_tag, beam_tag) in (&tf, &mut ray_tag, &beam_tag).iter() {
-            shootdir = Vec2::from_angle(tf.angle);
-            raylen = beam_tag.length;
-            ray_tag.len = raylen;
-            ray_tag.life_left = PLAYER_RAY_LINGER;
+            if !ray_tag.shooting { return; }
 
-            let cols = beam_tag.overlaps.as_slice();
+            let shootdir = Vec2::from_angle(tf.angle);
+            let hitcount = beam_tag.overlaps.len();
+            score.0 += (hitcount as u32) * mul_table[hitcount.clamp(0, mul_table.len() - 1)];
 
-            score.0 += (cols.len() as u32) * mul_table[cols.len().clamp(0, mul_table.len() - 1)];
-
-            for col in cols {
+            for col in &beam_tag.overlaps {
                 *(&mut enemy_state).get(*col).unwrap() = EnemyState::Stunned {
                     left: PLAYER_HIT_COOLDOWN,
                 };
             }
+
+            off = shootdir * (beam_tag.length - 2.0 * PLAYER_RAY_LEN_NUDGE)
         }
 
         for (pos, _) in (&mut tf, &mut bullet).iter() {
-            pos.pos = player_pos + shootdir * (raylen - 2.0 * PLAYER_RAY_LEN_NUDGE);
+            pos.pos = player_tf.pos + off;
         }
     }
 
     pub fn enemy_states(
+        dt: f32,
         mut enemy: ViewMut<EnemyState>,
         mut hp: ViewMut<Health>,
-        dt: UniqueView<DeltaTime>,
     ) {
         for (enemy, hp) in (&mut enemy, &mut hp).iter() {
             match enemy {
                 EnemyState::Stunned { left } => {
-                    *left -= dt.0;
+                    *left -= dt;
                     if *left < 0.0 {
                         hp.0 -= 1;
                         *enemy = EnemyState::Free;
@@ -562,28 +547,27 @@ impl Game {
     }
 
     pub fn player_controls(
-        dt: UniqueView<DeltaTime>,
-        ui_model: UniqueView<UiModel>,
+        (input, dt): (&InputModel, f32),
         player: View<PlayerTag>,
         mut control: ViewMut<KinematicControl>,
     ) {
         let mut dir = Vec2::ZERO;
-        if ui_model.move_left() {
+        if input.left_movement_down {
             dir += vec2(-1.0, 0.0);
         }
-        if ui_model.move_up() {
+        if input.up_movement_down {
             dir += vec2(0.0, -1.0);
         }
-        if ui_model.move_right() {
+        if input.right_movement_down {
             dir += vec2(1.0, 0.0);
         }
-        if ui_model.move_down() {
+        if input.down_movement_down {
             dir += vec2(0.0, 1.0);
         }
 
         for (control, _) in (&mut control, &player).iter() {
             control.slide = true;
-            control.dr = dir.normalize_or_zero() * dt.0 * PLAYER_SPEED;
+            control.dr = dir.normalize_or_zero() * dt * PLAYER_SPEED;
         }
     }
 
@@ -611,14 +595,14 @@ impl Game {
     }
 
     pub fn player_damage_state(
+        dt: f32,
         mut player_dmg: ViewMut<PlayerDamageState>,
-        dt: UniqueView<DeltaTime>,
     ) {
         for player_dmg in (&mut player_dmg).iter() {
             let PlayerDamageState::Cooldown(time) = player_dmg
                 else { continue; };
 
-            *time -= dt.0;
+            *time -= dt;
             if *time > 0.0 { continue; }
 
             *player_dmg = PlayerDamageState::Hittable;

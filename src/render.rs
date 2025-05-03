@@ -1,10 +1,318 @@
-use macroquad::prelude::*;
-use shipyard::{Get, IntoIter, UniqueView, View, World};
+use std::borrow::Cow;
 
-use crate::{game::{Game, BRUTE_SPAWN_HEALTH, PLAYER_RAY_LINGER, PLAYER_RAY_WIDTH}, physics::{BeamTag, BodyKind, ColliderTy, OneSensorTag, BodyTag}, BallState, BoxTag, BruteTag, BulletTag, EnemyState, Health, PlayerDamageState, PlayerGunState, PlayerScore, PlayerTag, RayTag, TileStorage, TileType, Transform};
+use macroquad::prelude::*;
+use shipyard::{Get, IntoIter, UniqueView, View};
+
+use crate::logic::*;
+use lib_game::*;
+use crate::components::*;
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
+static WIN_TEXT: &'static str = "Congratulations!";
+static GAMEOVER_TEXT: &'static str = "Game Over";
+static PAUSE_TEXT: &'static str = "Paused";
+static PAUSE_HINT: &'static str = "Move: WASD\nShoot: Mouse + Left Button\nYou get extra score for hitting multiple enemies at once\nPress escape to resume";
+
+static RESTART_HINT_DESK: &'static str = "Press Space to restart";
+static RESTART_HINT_MOBILE: &'static str = "Tap the screen to restart";
+
+static START_TEXT_DESK: &'static str = "Controls";
+static START_HINT: &'static str = "Move: WASD\nShoot: Mouse + Left Button\nYou get extra score for hitting multiple enemies at once\nPRESS SPACE TO START\nGet ready to run!";
+static START_TEXT_MOBILE: &'static str = "Tap to start";
+
+
 pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
+
+pub fn render_tiles(
+    render: &mut Render,
+    tile_storage: View<TileStorage>,
+    tiles: View<TileType>,
+) {
+    let Some(storage) = tile_storage.iter().next()
+        else { return; };
+    let iter = storage.iter_poses()
+            .map(|(x, y, id)| (x, y, tiles.get(id).unwrap()));
+
+    for (x, y, tile) in iter {
+        match tile {
+            TileType::Wall => { render.world.add_entity((
+                Tint(WALL_COLOR),
+                Scale(vec2(2.0, 2.0)),
+                Sprite {
+                    origin: vec2(0.5, 0.5),
+                    texture: TextureKey("wall"),
+                },
+                Transform {
+                    pos: vec2(32.0 * x as f32, 32.0 * y as f32),
+                    angle: 0.0,
+                },
+            )); },
+            TileType::Ground => (),
+        }
+    }
+}
+
+pub fn render_player(
+    render: &mut Render,
+    pos: View<Transform>,
+    player: View<PlayerTag>,
+    dmg: View<PlayerDamageState>,
+) {
+    for (_, pos, dmg) in (&player, &pos, &dmg).iter() {
+        let is_flickering = matches!(dmg, PlayerDamageState::Cooldown(_));
+
+        let r_player = render.world.add_entity((
+            *pos,
+            RectShape {
+                origin: vec2(0.5, 0.5),
+                width: 16.0,
+                height: 16.0,
+            },
+            Tint(PURPLE),
+        ));
+
+        if is_flickering {
+            render.world.add_component(r_player, Flicker);
+        }
+    }
+}
+
+pub fn render_brute(
+    render: &mut Render,
+    pos: View<Transform>,
+    brute: View<BruteTag>,
+    state: View<EnemyState>,
+    hp: View<Health>,
+) {
+    for (_, pos, state, hp) in (&brute, &pos, &state, &hp).iter() {
+        if matches!(state, EnemyState::Dead) {
+            continue;
+        }
+
+        let k = hp.0 as f32 / BRUTE_SPAWN_HEALTH as f32;
+        let is_flickering = matches!(state, EnemyState::Stunned { .. });
+        let color = Color::new(RED.r * k, RED.g * k, RED.b * k, 1.0);
+
+        let r_enemy = render.world.add_entity((
+            *pos,
+            CircleShape { radius: 8.0 },
+            Tint(color),
+        ));
+
+        if is_flickering {
+            render.world.add_component(r_enemy, Flicker);
+        }
+    }
+}
+
+pub fn render_boxes(
+    render: &mut Render,
+    pos: View<Transform>,
+    boxt: View<BoxTag>,
+) {
+    for (_, pos) in (&boxt, &pos).iter() {
+        render.world.add_entity((
+            *pos,
+            RectShape {
+                origin: vec2(0.5, 0.5),
+                width: 32.0,
+                height: 32.0,
+            },
+            Tint(WALL_COLOR),
+        ));
+    }
+}
+
+pub fn render_rays(
+    render: &mut Render,
+    pos: View<Transform>,
+    ray: View<RayTag>,
+    beam: View<BeamTag>,
+) {
+    for (pos, ray, beam) in (&pos, &ray, &beam).iter() {
+        if !ray.shooting { continue; }
+
+        render.world.add_entity((
+            Tint(GREEN),
+            *pos,
+            RectShape {
+                origin: vec2(0.0, 0.5),
+                height: PLAYER_RAY_WIDTH,
+                width: beam.length,
+            },
+            Scale(vec2(1.0, 1.0)),
+            Timed::new(PLAYER_RAY_LINGER),
+            VertShrinkFadeoutAnim,
+        ));
+    }
+}
+
+pub fn render_ammo(
+    render: &mut Render,
+    pos: View<Transform>,
+    bullet: View<BulletTag>,
+    score: UniqueView<PlayerScore>,
+) {
+    let ammo_hint = "AMMO";
+    let mes = measure_text(
+        &ammo_hint,
+        render.get_font(FontKey("oegnek")),
+        16,
+        1.0
+    );
+
+    for (pos, bul) in (&pos, &bullet).iter() {
+        if bul.is_picked { continue; }
+
+        render.world.add_entity((
+            *pos,
+            Tint(YELLOW),
+            RectShape {
+                origin: vec2(0.5, 0.5),
+                width: 16.0,
+                height: 16.0,
+            },
+        ));
+
+        if score.0 > 0 { continue; }
+
+        render.world.add_entity((
+            Transform {
+                pos: vec2(
+                    pos.pos.x - mes.width / 2.0,
+                    pos.pos.y - 20.0
+                ),
+                ..*pos
+            },
+            Tint(YELLOW),
+            GlyphText {
+                font: FontKey("oegnek"),
+                string: Cow::Borrowed(ammo_hint),
+                font_size: 16,
+                font_scale: 1.0,
+                font_scale_aspect: 1.0,
+            },
+        ));
+    }
+}
+
+pub fn render_game_ui(
+    render: &mut Render,
+    score: UniqueView<PlayerScore>,
+    health: View<Health>,
+    player: View<PlayerTag>,
+    gun: View<PlayerGunState>,
+    state: View<EnemyState>,
+) {
+    let font_size = 32;
+    let off_y = 32.0;
+    let ui_x = 600.0;
+    let score = score.0;
+    let player_health = (&player, &health).iter().next().unwrap().1.0;
+    let player_gun = *(&gun,).iter().next().unwrap();
+    let alive_enemy_count = state.iter()
+        .filter(|x| !matches!(x, EnemyState::Dead))
+        .count();
+
+    let gun_state = match player_gun {
+        PlayerGunState::Empty => "Your gun is empty",
+        PlayerGunState::Full => "Gun loaded",
+    };
+    let (game_state, game_state_color) = if alive_enemy_count == 0 {
+        ("You win", GREEN)
+    } else if player_health <= 0 {
+        ("You are dead", RED)
+    } else {
+        ("", BLANK)
+    };
+
+    render.world.add_entity((
+        GlyphText {
+            font: FontKey("oegnek"),
+            string: Cow::Owned(format!("Score:{score}")),
+            font_size,
+            font_scale: 1.0,
+            font_scale_aspect: 1.0,
+        },
+        Tint(YELLOW),
+        Transform::from_xy(ui_x, off_y * 1.0),
+    ));
+    render.world.add_entity((
+        GlyphText {
+            font: FontKey("oegnek"),
+            string: Cow::Owned(format!("Health:{player_health}")),
+            font_size,
+            font_scale: 1.0,
+            font_scale_aspect: 1.0,
+        },
+        Tint(YELLOW),
+        Transform::from_xy(ui_x, off_y * 2.0),
+    ));
+    render.world.add_entity((
+        GlyphText {
+            font: FontKey("oegnek"),
+            string: Cow::Borrowed(gun_state),
+            font_size,
+            font_scale: 1.0,
+            font_scale_aspect: 1.0,
+        },
+        Tint(YELLOW),
+        Transform::from_xy(ui_x, off_y * 3.0),
+    ));
+    render.world.add_entity((
+        GlyphText {
+            font: FontKey("oegnek"),
+            string: Cow::Borrowed(game_state),
+            font_size: 64,
+            font_scale: 1.0,
+            font_scale_aspect: 1.0,
+        },
+        Tint(game_state_color),
+        Transform::from_xy(ui_x, off_y * 5.0),
+    ));
+}
+
+pub fn render_toplevel_ui(app_state: AppState, render: &mut Render) {
+    match app_state {
+        AppState::Start => { render.world.add_entity(AnnouncementText {
+            heading: start_text(),
+            body: Some(START_HINT),
+        }); },
+        AppState::GameOver => { render.world.add_entity(AnnouncementText {
+            heading: GAMEOVER_TEXT,
+            body: Some(game_restart_hint()),
+        }); },
+        AppState::Win => { render.world.add_entity(AnnouncementText {
+            heading: WIN_TEXT,
+            body: Some(game_restart_hint()),
+        }); },
+        AppState::Paused => { render.world.add_entity(AnnouncementText {
+            heading: PAUSE_TEXT,
+            body: Some(PAUSE_HINT),
+        }); },
+        AppState::PleaseRotate => { render.world.add_entity(AnnouncementText {
+            heading: ORIENTATION_TEXT,
+            body: Some(ORIENTATION_HINT),
+        }); },
+        _ => (),
+    }
+}
+
+fn start_text() -> &'static str {
+    if lib_game::sys::on_mobile() {
+        START_TEXT_MOBILE
+    } else {
+        START_TEXT_DESK
+    }
+}
+
+fn game_restart_hint() -> &'static str {
+    if lib_game::sys::on_mobile() {
+        RESTART_HINT_MOBILE
+    } else {
+        RESTART_HINT_DESK
+    }
+}
 
 // fn trail() -> particles::EmitterConfig {
 //     particles::EmitterConfig {
@@ -79,442 +387,3 @@ pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
 //         ..Default::default()
 //     }
 // }
-
-pub struct Render {
-    // ball_emit: particles::Emitter,
-    // pl_emit: particles::Emitter,
-    // brick_emit: particles::Emitter,
-    // ball_exp: particles::Emitter,
-    tiles: Texture2D,
-    render_world: bool,
-    render_colliders: bool,
-}
-
-impl Render {
-    pub async fn new() -> anyhow::Result<Self> {
-        let tiles = load_texture("assets/tiles.png").await?;
-        Ok(Self {
-            tiles,
-            render_world: true,
-            render_colliders: false,
-            // ball_emit: particles::Emitter::new(EmitterConfig {
-            //     texture: None,
-            //     ..trail()
-            // }),
-            // pl_emit: particles::Emitter::new(EmitterConfig {
-            //     texture: None,
-            //     ..trail()
-            // }),
-            // brick_emit:  particles::Emitter::new(EmitterConfig {
-            //     texture: None,
-            //     ..explosion()
-            // }),
-            // ball_exp:  particles::Emitter::new(EmitterConfig {
-            //     texture: Some(sad),
-            //     ..ball_explosion()
-            // }),
-        })
-    }
-
-    pub fn render(&mut self, world: &World) {
-        world.run_with_data(Self::new_frame, self);
-
-        if self.render_world {
-            world.run_with_data(Self::draw_tiles, self);
-            world.run_with_data(Self::draw_ballohurt, self);
-            world.run_with_data(Self::draw_brute, self);
-            world.run_with_data(Self::draw_player, self);
-            world.run_with_data(Self::draw_box, self);
-            world.run_with_data(Self::draw_box, self);
-            world.run_with_data(Self::draw_bullets, self);
-            world.run_with_data(Self::draw_rays, self);
-        }
-        // Debug rendering
-        if self.render_colliders {
-            world.run_with_data(Self::draw_bodies, self);
-            world.run_with_data(Self::draw_one_sensors, self);
-            world.run_with_data(Self::draw_beams, self);
-        }
-        // UI
-        world.run_with_data(Self::draw_stats, self);
-    }
-
-    fn new_frame(
-        &mut self,
-        game: UniqueView<Game>,
-    ) {
-        set_camera(game.camera());
-
-        clear_background(Color {
-            r: 0.0,
-            g: 0.0,
-            b: 0.02,
-            a: 1.0,
-        });
-    }
-
-    fn draw_tiles(
-        &mut self,
-        tile_storage: View<TileStorage>,
-        tiles: View<TileType>,
-    ) {
-        for storage in tile_storage.iter() {
-            storage.iter_poses()
-                .map(|(x, y, id)| (x, y, tiles.get(id).unwrap()))
-                .for_each(|(x, y, id)| match id {
-                    TileType::Wall => draw_texture_ex(
-                        &self.tiles,
-                        32.0 * x as f32,
-                        32.0 * y as f32,
-                        WALL_COLOR,
-                        DrawTextureParams {
-                            dest_size: Some(vec2(32.0, 32.0)),
-                            source: Some(Rect {
-                                x: 232.0,
-                                y: 304.0,
-                                w: 16.0,
-                                h: 16.0,
-                            }),
-                            rotation: 0.0,
-                            flip_x: false,
-                            flip_y: false,
-                            pivot: Some(vec2(0.5, 0.5)),
-                        },
-                    ),
-                    TileType::Ground => (),
-                });
-        }
-    }
-
-    fn draw_player(
-        &mut self,
-        pos: View<Transform>,
-        player: View<PlayerTag>,
-        health: View<Health>,
-        dmg: View<PlayerDamageState>,
-    ) {
-        for (_, pos, health, dmg) in (&player, &pos, &health, &dmg).iter() {
-            let is_flickering = matches!(dmg, PlayerDamageState::Cooldown(_));
-            let color = if is_flickering && (get_time() * 1000.0) as u32 % 2 == 0 {
-               Color::new(0.0, 0.0, 0.0, 0.0)
-            }
-            else if health.0 <= 0 { Color::new(0.0, 0.0, 0.0, 0.0) }
-            else { PURPLE };
-
-            draw_rectangle_ex(
-                pos.pos.x,
-                pos.pos.y,
-                16.0,
-                16.0,
-                DrawRectangleParams {
-                    // offset: Vec2::ZERO,
-                    offset: vec2(0.5, 0.5),
-                    rotation: pos.angle,
-                    color,
-                },
-            );
-        }
-    }
-
-    fn draw_brute(
-        &mut self,
-        pos: View<Transform>,
-        brute: View<BruteTag>,
-        state: View<EnemyState>,
-        hp: View<Health>,
-    ) {
-        for (_, pos, state, hp) in (&brute, &pos, &state, &hp).iter() {
-            if matches!(state, EnemyState::Dead) {
-                continue;
-            }
-
-            let k = hp.0 as f32 / BRUTE_SPAWN_HEALTH as f32;
-            let is_flickering = matches!(state, EnemyState::Stunned { .. });
-            let color = if is_flickering && (get_time() * 1000.0) as u32 % 2 == 0 {
-                Color::new(0.0, 0.0, 0.0, 0.0)
-            } else {
-                let mut res = RED;
-                res.r *= k;
-                res.g *= k;
-                res.b *= k;
-
-                res
-            };
-
-            draw_circle(
-                pos.pos.x,
-                pos.pos.y,
-                8.0,
-                color,
-            );
-        }
-    }
-
-    fn draw_box(
-        &mut self,
-        pos: View<Transform>,
-        boxt: View<BoxTag>,
-    ) {
-        for (_, pos) in (&boxt, &pos).iter() {
-            draw_rectangle_ex(
-                pos.pos.x,
-                pos.pos.y,
-                32.0,
-                32.0,
-                DrawRectangleParams {
-                    // offset: Vec2::ZERO,
-                    offset: vec2(0.5, 0.5),
-                    rotation: pos.angle,
-                    color: WALL_COLOR,
-                },
-            );
-        }
-    }
-
-    fn draw_ballohurt(
-        &mut self,
-        pos: View<Transform>,
-        ball_state: View<BallState>,
-    ) {
-        for (pos, ball) in (&pos, &ball_state).iter() {
-            match ball {
-                BallState::InPocket => (),
-                _ => draw_circle(
-                    pos.pos.x,
-                    pos.pos.y,
-                    16.0,
-                    GREEN,
-                ),
-            }
-        }
-    }
-
-    fn draw_bullets(
-        &mut self,
-        pos: View<Transform>,
-        bullet: View<BulletTag>,
-        score: UniqueView<PlayerScore>,
-    ) {
-        let ammo_hint = "AMMO";
-
-        for (pos, bul) in (&pos, &bullet).iter() {
-            if bul.is_picked { continue; }
-
-            let mes = measure_text(
-                &ammo_hint,
-                None,
-                16,
-                1.0
-            );
-
-            if score.0 == 0 {
-                draw_text(
-                    &ammo_hint,
-                    pos.pos.x - mes.width / 2.0,
-                    pos.pos.y - 20.0,
-                    16.0,
-                    YELLOW,
-                );
-            }
-
-            draw_rectangle_ex(
-                pos.pos.x,
-                pos.pos.y,
-                16.0,
-                16.0,
-                DrawRectangleParams {
-                    // offset: Vec2::ZERO,
-                    offset: vec2(0.5, 0.5),
-                    rotation: pos.angle,
-                    color: YELLOW,
-                },
-            );
-        }
-    }
-
-    fn draw_rays(
-        &mut self,
-        pos: View<Transform>,
-        ray: View<RayTag>,
-    ) {
-        for (pos, ray) in (&pos, &ray).iter() {
-            let k = ray.life_left / PLAYER_RAY_LINGER;
-            draw_rectangle_ex(
-                pos.pos.x,
-                pos.pos.y,
-                ray.len,
-                PLAYER_RAY_WIDTH * k,
-                DrawRectangleParams {
-                    offset: vec2(0.0, 0.5),
-                    rotation: pos.angle,
-                    color: Color {
-                        a: k,
-                        ..GREEN
-                    },
-                }
-            );
-        }
-    }
-
-    fn draw_one_sensors(
-        &mut self,
-        pos: View<Transform>,
-        sens_tag: View<OneSensorTag>,
-    ) {
-        for (tf, tag) in (&pos, &sens_tag).iter() {
-            let color = if tag.col.is_some() {
-                Color::new(0.00, 0.93, 0.80, 1.00)
-            } else {
-                GREEN
-            };
-
-            match tag.shape {
-                ColliderTy::Box { width, height } => draw_rectangle_lines_ex(
-                    tf.pos.x,
-                    tf.pos.y,
-                    width,
-                    height,
-                    1.0,
-                    DrawRectangleParams {
-                        offset: vec2(0.5, 0.5),
-                        rotation: tf.angle,
-                        color,
-                    },
-                ),
-                ColliderTy::Circle { radius } => draw_circle_lines(
-                    tf.pos.x,
-                    tf.pos.y,
-                    radius,
-                    1.0,
-                    color,
-                ),
-            }
-        }
-    }
-
-    fn draw_beams(
-        &mut self,
-        pos: View<Transform>,
-        beam_tag: View<BeamTag>,
-    ) {
-        // TODO: draw collision count
-        for (tf, tag) in (&pos, &beam_tag).iter() {
-            let color = GREEN;
-
-            draw_rectangle_lines_ex(
-                tf.pos.x,
-                tf.pos.y,
-                tag.length,
-                tag.width,
-                1.0,
-                DrawRectangleParams {
-                    offset: vec2(0.0, 0.5),
-                    rotation: tf.angle,
-                    color,
-                },
-            );
-        }
-    }
-
-    fn draw_bodies(
-        &mut self,
-        pos: View<Transform>,
-        body_tag: View<BodyTag>,
-    ) {
-        for (tf, tag) in (&pos, &body_tag).iter() {
-            let color = match tag.kind() {
-                BodyKind::Static => DARKBLUE,
-                BodyKind::Dynamic => RED,
-                BodyKind::Kinematic => YELLOW,
-            };
-
-            match tag.shape() {
-                ColliderTy::Box { width, height } => draw_rectangle_ex(
-                    tf.pos.x,
-                    tf.pos.y,
-                    *width,
-                    *height,
-                    DrawRectangleParams {
-                        // offset: Vec2::ZERO,
-                        offset: vec2(0.5, 0.5),
-                        rotation: tf.angle,
-                        color,
-                    },
-                ),
-                ColliderTy::Circle { radius } => draw_circle(
-                    tf.pos.x,
-                    tf.pos.y,
-                    *radius,
-                    color,
-                ),
-            }
-        }
-    }
-
-    fn draw_stats(
-        &mut self,
-        score: UniqueView<PlayerScore>,
-        health: View<Health>,
-        player: View<PlayerTag>,
-        gun: View<PlayerGunState>,
-        state: View<EnemyState>,
-    ) {
-        let ui_x = 600.0;
-        let score = score.0;
-        let player_health = (&player, &health).iter().next().unwrap().1.0;
-        let player_gun = *(&gun,).iter().next().unwrap();
-
-        draw_text(
-            &format!("Score:{score}"),
-            ui_x,
-            32.0,
-            32.0,
-            YELLOW,
-        );
-        draw_text(
-            &format!("Health:{player_health}"),
-            ui_x,
-            64.0,
-            32.0,
-            YELLOW,
-        );
-        match player_gun {
-            PlayerGunState::Empty => draw_text(
-                &"Your gun is not loaded",
-                ui_x,
-                96.0,
-                32.0,
-                YELLOW,
-            ),
-            PlayerGunState::Full => draw_text(
-                &"Ready to shoot",
-                ui_x,
-                96.0,
-                32.0,
-                YELLOW,
-            ),
-        };
-
-        let count = state.iter()
-            .filter(|x| !matches!(x, EnemyState::Dead))
-            .count();
-
-        if count == 0 {
-            draw_text(
-                "YOU WIN!",
-                ui_x,
-                148.0,
-                64.0,
-                GREEN,
-            );
-        } else if player_health <= 0 {
-            draw_text(
-                "You are dead!",
-                ui_x,
-                148.0,
-                64.0,
-                RED,
-            );
-        }
-    }
-}

@@ -3,9 +3,16 @@ use std::collections::HashMap;
 use macroquad::prelude::*;
 use nalgebra::Translation2;
 use rapier2d::{na::{Isometry2, UnitComplex, Vector2}, parry::{query::{DefaultQueryDispatcher, PersistentQueryDispatcher, ShapeCastOptions}, shape::{Ball, Cuboid}}, prelude::*};
-use shipyard::{EntityId, Get, IntoIter, View, ViewMut, Component};
+use shipyard::{EntityId, Get, IntoIter, View, ViewMut};
 
-use crate::Transform;
+mod components;
+mod debug;
+
+use crate::components::Transform;
+pub use components::*;
+pub use debug::*;
+
+pub use rapier2d::prelude::InteractionGroups;
 
 pub const PIXEL_PER_METER : f32 = 32.0;
 pub const MAX_KINEMATICS_ITERS: i32 = 20;
@@ -13,137 +20,6 @@ pub const KINEMATIC_SKIN: f32 = 0.001;
 pub const PUSH_SKIN: f32 = KINEMATIC_SKIN + 0.05;
 pub const KINEMATIC_NORMAL_NUDGE: f32 = 1.0e-4;
 pub const LENGTH_EPSILON: f32 = 1.0e-5;
-
-pub mod groups {
-    use rapier2d::prelude::*;
-
-    pub const LEVEL: Group = Group::GROUP_1;
-    pub const NPCS: Group = Group::GROUP_2;
-    pub const PLAYER: Group = Group::GROUP_3;
-    pub const PROJECTILES: Group = Group::GROUP_4;
-
-    pub const LEVEL_INTERACT: Group =
-        LEVEL
-            .union(NPCS)
-            .union(PLAYER)
-            .union(PROJECTILES);
-    pub const PLAYER_INTERACT: Group =
-        LEVEL;
-    pub const NPCS_INTERACT: Group =
-        LEVEL
-            .union(PROJECTILES)
-            .union(NPCS);
-    pub const PROJECTILES_INTERACT: Group =
-        LEVEL;
-}
-
-#[derive(Clone, Copy, Debug)]
-pub enum ColliderTy {
-    Box {
-        width: f32,
-        height: f32,
-    },
-    Circle {
-        radius: f32,
-    }
-}
-
-#[derive(Clone, Debug, Component)]
-pub struct BeamTag {
-    pub width: f32,
-    pub length: f32,
-    pub cast_filter: InteractionGroups,
-    pub overlap_filter: InteractionGroups,
-    pub overlaps: Vec<EntityId>,
-}
-
-impl BeamTag {
-    pub fn new(
-        overlap_filter: InteractionGroups,
-        cast_filter: InteractionGroups,
-        width: f32,
-    ) -> Self {
-        Self {
-            width,
-            length: 0.0f32,
-            cast_filter,
-            overlap_filter,
-            overlaps: Vec::with_capacity(32),
-        }
-    }
-}
-
-#[derive(Clone, Debug, Component)]
-pub struct OneSensorTag {
-    pub shape: ColliderTy,
-    pub groups: InteractionGroups,
-    pub col: Option<EntityId>,
-}
-
-impl OneSensorTag {
-    pub fn new(shape: ColliderTy, groups: InteractionGroups) -> Self {
-        Self {
-            shape,
-            groups,
-            col: None,
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Component)]
-pub struct KinematicControl {
-    pub dr: Vec2,
-    pub slide: bool,
-}
-
-impl KinematicControl {
-    pub fn new() -> Self {
-        Self {
-            dr: Vec2::ZERO,
-            slide: false,
-        }
-    }
-}
-
-#[derive(Clone, Copy, Debug, Component)]
-pub struct ForceApplier {
-    pub force: Vec2,
-}
-
-
-#[derive(Clone, Copy, Debug)]
-#[derive(PartialEq, Eq, Hash)]
-pub enum BodyKind {
-    Static,
-    Dynamic,
-    Kinematic,
-}
-
-#[derive(Clone, Copy, Debug, Component)]
-#[track(Deletion, Removal, Insertion)]
-pub struct BodyTag {
-    pub enabled: bool,
-    pub groups: InteractionGroups,
-    shape: ColliderTy,
-    mass: f32,
-    kind: BodyKind,
-}
-
-impl BodyTag {
-    pub fn new(groups: InteractionGroups, shape: ColliderTy, mass: f32, enabled: bool, kind: BodyKind) -> Self {
-        Self {
-            enabled,
-            groups,
-            mass,
-            shape,
-            kind,
-        }
-    }
-
-    pub fn shape(&self) -> &ColliderTy { &self.shape }
-
-    pub fn kind(&self) -> BodyKind { self.kind }
-}
 
 pub struct PhysicsState {
     islands: IslandManager,
@@ -167,6 +43,8 @@ pub struct PhysicsState {
 
 impl PhysicsState {
     pub fn new() -> Self {
+        info!("lib-game physics backend: rapier version {}", rapier2d::VERSION);
+
         Self {
             islands: IslandManager::new(),
             broad_phase: DefaultBroadPhase::new(),
@@ -600,7 +478,7 @@ impl PhysicsState {
 
     pub fn allocate_bodies(
         &mut self,
-        info: View<BodyTag>,
+        info: ViewMut<BodyTag>,
         tf: View<Transform>,
     ) {
         for (entity, info) in info.inserted().iter().with_id() {
@@ -618,6 +496,8 @@ impl PhysicsState {
                 info.mass,
             );
         }
+
+        info.clear_all_inserted()
     }
 
     pub fn remove_dead_handles(
