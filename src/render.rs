@@ -1,17 +1,12 @@
 use std::borrow::Cow;
 
 use macroquad::prelude::*;
-use shipyard::{Get, IntoIter, UniqueView, View, World};
+use shipyard::{Get, IntoIter, UniqueView, View};
 
 use crate::logic::*;
 use lib_game::*;
 use crate::components::*;
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
-
-const FONT_SCALE: f32 = 1.0;
-const MAIN_FONT_SIZE: u16 = 32;
-const HINT_FONT_SIZE: u16 = 16;
-const VERTICAL_ORIENT_HORIZONTAL_PADDING: f32 = 16.0;
 
 static WIN_TEXT: &'static str = "Congratulations!";
 static GAMEOVER_TEXT: &'static str = "Game Over";

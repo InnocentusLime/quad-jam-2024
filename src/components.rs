@@ -101,6 +101,8 @@ impl TileStorage {
             mem,
         })
     }
+
+    #[allow(dead_code)]
     pub fn new(width: usize, height: usize) -> TileStorage {
         TileStorage::from_data(
             width,
@@ -112,10 +114,13 @@ impl TileStorage {
         ).unwrap()
     }
 
+    #[allow(dead_code)]
     pub fn width(&self) -> usize { self.width }
 
+    #[allow(dead_code)]
     pub fn height(&self) -> usize { self.height }
 
+    #[allow(dead_code)]
     pub fn get(&self, x: usize, y: usize) -> Option<EntityId> {
         debug_assert!(self.mem.len() < self.width * self.height);
 
@@ -125,6 +130,7 @@ impl TileStorage {
         Some(self.mem[y * self.width + x])
     }
 
+    #[allow(dead_code)]
     pub fn set(&mut self, x: usize, y: usize, val: EntityId) {
         debug_assert!(self.mem.len() < self.width * self.height);
 

@@ -105,7 +105,7 @@ async fn main() {
 
             render_toplevel_ui(app_state, render);
         },
-        |world| {
+        |_world| {
             // draw_physics_debug(world);
         },
     ).await
