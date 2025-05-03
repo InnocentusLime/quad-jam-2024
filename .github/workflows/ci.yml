@@ -37,7 +37,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - name: List FIXME
-        run: grep -Iirn "FIXME" . --exclude-dir ./target --exclude-dir ./assets --exclude "*.lock" --exclude-dir ./static --exclude-dir ./.github/workflows
+        run: grep -Iirn "FIXME" . --exclude-dir ./target --exclude-dir ./assets --exclude "*.lock" --exclude-dir ./static --exclude " ./.github/workflows/ci.yml"
   cargo-fmt:
     runs-on: ubuntu-latest
     steps:
