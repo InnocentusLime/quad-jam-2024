@@ -17,11 +17,9 @@ static WIN_TEXT: &'static str = "Congratulations!";
 static GAMEOVER_TEXT: &'static str = "Game Over";
 static PAUSE_TEXT: &'static str = "Paused";
 static PAUSE_HINT: &'static str = "Move: WASD\nShoot: Mouse + Left Button\nYou get extra score for hitting multiple enemies at once\nPress escape to resume";
-static ORIENTATION_TEXT: &'static str = "Wrong Orientation";
 
 static RESTART_HINT_DESK: &'static str = "Press Space to restart";
 static RESTART_HINT_MOBILE: &'static str = "Tap the screen to restart";
-static ORIENTATION_HINT: &'static str = "Please re-orient your device\ninto landscape";
 
 static START_TEXT_DESK: &'static str = "Controls";
 static START_HINT: &'static str = "Move: WASD\nShoot: Mouse + Left Button\nYou get extra score for hitting multiple enemies at once\nPRESS SPACE TO START\nGet ready to run!";
@@ -279,6 +277,48 @@ pub fn render_game_ui(
     ));
 }
 
+pub fn render_toplevel_ui(app_state: AppState, render: &mut Render) {
+    match app_state {
+        AppState::Start => { render.world.add_entity(AnnouncementText {
+            heading: start_text(),
+            body: Some(START_HINT),
+        }); },
+        AppState::GameOver => { render.world.add_entity(AnnouncementText {
+            heading: GAMEOVER_TEXT,
+            body: Some(game_restart_hint()),
+        }); },
+        AppState::Win => { render.world.add_entity(AnnouncementText {
+            heading: WIN_TEXT,
+            body: Some(game_restart_hint()),
+        }); },
+        AppState::Paused => { render.world.add_entity(AnnouncementText {
+            heading: PAUSE_TEXT,
+            body: Some(PAUSE_HINT),
+        }); },
+        AppState::PleaseRotate => { render.world.add_entity(AnnouncementText {
+            heading: ORIENTATION_TEXT,
+            body: Some(ORIENTATION_HINT),
+        }); },
+        _ => (),
+    }
+}
+
+fn start_text() -> &'static str {
+    if lib_game::sys::on_mobile() {
+        START_TEXT_MOBILE
+    } else {
+        START_TEXT_DESK
+    }
+}
+
+fn game_restart_hint() -> &'static str {
+    if lib_game::sys::on_mobile() {
+        RESTART_HINT_MOBILE
+    } else {
+        RESTART_HINT_DESK
+    }
+}
+
 // fn trail() -> particles::EmitterConfig {
 //     particles::EmitterConfig {
 //         emitting: true,
@@ -352,200 +392,3 @@ pub fn render_game_ui(
 //         ..Default::default()
 //     }
 // }
-
-pub struct Render3 {
-    // ball_emit: particles::Emitter,
-    // pl_emit: particles::Emitter,
-    // brick_emit: particles::Emitter,
-    // ball_exp: particles::Emitter,
-    tiles: Texture2D,
-    oegnek: Font,
-    render_world: bool,
-    render_colliders: bool,
-}
-
-impl Render3 {
-    pub async fn new() -> anyhow::Result<Self> {
-        let tiles = load_texture("assets/tiles.png").await?;
-        Ok(Self {
-            tiles,
-            oegnek: load_ttf_font("assets/oegnek.ttf").await?,
-            render_world: true,
-            render_colliders: false,
-            // ball_emit: particles::Emitter::new(EmitterConfig {
-            //     texture: None,
-            //     ..trail()
-            // }),
-            // pl_emit: particles::Emitter::new(EmitterConfig {
-            //     texture: None,
-            //     ..trail()
-            // }),
-            // brick_emit:  particles::Emitter::new(EmitterConfig {
-            //     texture: None,
-            //     ..explosion()
-            // }),
-            // ball_exp:  particles::Emitter::new(EmitterConfig {
-            //     texture: Some(sad),
-            //     ..ball_explosion()
-            // }),
-        })
-    }
-
-    pub fn render_ui(
-        &mut self,
-        state: AppState,
-    ) {
-        set_camera(&self.get_cam());
-
-        if lib_game::sys::on_mobile() && state == AppState::Active {
-            /* Mobile controls */
-        }
-
-        match state {
-            AppState::Start => self.draw_announcement_text(
-                true,
-                Self::start_text(),
-                Some(START_HINT),
-            ),
-            AppState::GameOver => self.draw_announcement_text(
-                true,
-                GAMEOVER_TEXT,
-                Some(Self::game_restart_hint()),
-            ),
-            AppState::Win => self.draw_announcement_text(
-                false,
-                WIN_TEXT,
-                Some(Self::game_restart_hint()),
-            ),
-            AppState::Paused => self.draw_announcement_text(
-                true,
-                PAUSE_TEXT,
-                Some(PAUSE_HINT),
-            ),
-            AppState::PleaseRotate => self.draw_announcement_text(
-                true,
-                ORIENTATION_TEXT,
-                Some(ORIENTATION_HINT),
-            ),
-            _ => (),
-        }
-    }
-
-    fn start_text() -> &'static str {
-        if lib_game::sys::on_mobile() {
-            START_TEXT_MOBILE
-        } else {
-            START_TEXT_DESK
-        }
-    }
-
-    fn game_restart_hint() -> &'static str {
-        if lib_game::sys::on_mobile() {
-            RESTART_HINT_MOBILE
-        } else {
-            RESTART_HINT_DESK
-        }
-    }
-
-    fn draw_announcement_text(&self, backdrop: bool, text: &str, hint: Option<&str>) {
-        let view_rect = self.view_rect();
-
-        if backdrop {
-            draw_rectangle(
-                view_rect.x,
-                view_rect.y,
-                view_rect.w,
-                view_rect.h,
-                Color {
-                    r: 0.0,
-                    g: 0.0,
-                    b: 0.12,
-                    a: 0.5,
-                }
-            );
-        }
-
-        let center = get_text_center(
-            text,
-            Some(&self.oegnek),
-            MAIN_FONT_SIZE,
-            FONT_SCALE,
-            0.0
-        );
-        draw_text_ex(
-            text,
-            view_rect.left() + view_rect.w / 2.0 - center.x,
-            view_rect.top() + view_rect.h / 2.0 - center.y,
-            TextParams {
-                font: Some(&self.oegnek),
-                font_size: MAIN_FONT_SIZE,
-                color: Color::from_hex(0xDDFBFF),
-                font_scale: FONT_SCALE,
-                ..Default::default()
-            }
-        );
-
-        let Some(hint) = hint else { return; };
-        let center = get_text_center(
-            Self::find_longest_line(hint),
-            Some(&self.oegnek),
-            HINT_FONT_SIZE,
-            FONT_SCALE,
-            0.0
-        );
-        draw_multiline_text_ex(
-            hint,
-            view_rect.left() + view_rect.w / 2.0 - center.x,
-            view_rect.top() + view_rect.h / 2.0 - center.y + (MAIN_FONT_SIZE as f32) * 1.5,
-            None,
-            TextParams {
-                font: Some(&self.oegnek),
-                font_size: HINT_FONT_SIZE,
-                color: Color::from_hex(0xDDFBFF),
-                font_scale: FONT_SCALE,
-                ..Default::default()
-            }
-        );
-    }
-
-    fn find_longest_line(text: &str) -> &str {
-        text.split('\n').max_by_key(|x| x.len())
-            .unwrap_or("")
-    }
-
-    fn view_rect(&self) -> Rect {
-        // Special case for misoriented mobile devices
-        if screen_height() > screen_width() {
-            let measure = measure_text(
-                ORIENTATION_TEXT,
-                Some(&self.oegnek),
-                MAIN_FONT_SIZE,
-                FONT_SCALE
-            );
-            let view_width = measure.width +
-                2.0 * VERTICAL_ORIENT_HORIZONTAL_PADDING;
-
-            return Rect {
-                x: -VERTICAL_ORIENT_HORIZONTAL_PADDING,
-                y: 0.0,
-                w: view_width,
-                h: view_width * (screen_height() / screen_width())
-            }
-        }
-
-        let view_height = (MAIN_FONT_SIZE as f32) * 12.0;
-        Rect {
-            x: 0.0,
-            y: 0.0,
-            w: view_height * (screen_width() / screen_height()),
-            h: view_height,
-        }
-    }
-
-    fn get_cam(&self) -> Camera2D {
-        let mut cam = Camera2D::from_display_rect(self.view_rect());
-        cam.zoom.y *= -1.0;
-
-        cam
-    }
-}

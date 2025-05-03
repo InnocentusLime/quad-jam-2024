@@ -1,6 +1,7 @@
 use lib_game::{CameraDef, FontKey, Render, TextureKey};
 use logic::{decide_next_state, Game};
 use macroquad::prelude::*;
+use render::render_toplevel_ui;
 use shipyard::UniqueView;
 
 mod util;
@@ -38,6 +39,7 @@ async fn load_graphics(render: &mut Render) -> anyhow::Result<()> {
         FontKey("oegnek"),
         &load_ttf_font("assets/oegnek.ttf").await?,
     );
+    render.ui_font = FontKey("oegnek");
 
     build_textures_atlas();
 
@@ -100,6 +102,8 @@ async fn main() {
             world.run_with_data(render::render_rays, render);
             world.run_with_data(render::render_ammo, render);
             world.run_with_data(render::render_game_ui, render);
+
+            render_toplevel_ui(app_state, render);
         },
         |world| {
             // draw_physics_debug(world);

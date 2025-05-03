@@ -12,6 +12,13 @@ use shipyard::{EntitiesView, EntityId, Get, IntoIter, UniqueView, View, ViewMut,
 
 use crate::Transform;
 
+const FONT_SCALE: f32 = 1.0;
+const MAIN_FONT_SIZE: u16 = 32;
+const HINT_FONT_SIZE: u16 = 16;
+const VERTICAL_ORIENT_HORIZONTAL_PADDING: f32 = 16.0;
+pub static ORIENTATION_TEXT: &'static str = "Wrong Orientation";
+pub static ORIENTATION_HINT: &'static str = "Please re-orient your device\ninto landscape";
+
 struct TextureVal {
     texture: Texture2D,
     texture_rect: Rect,
@@ -23,13 +30,13 @@ struct TextureVal {
 /// It also provides a simple asset storage for quick access
 /// for the rendering code callers.
 pub struct Render {
+    pub ui_font: FontKey,
     pub world: World,
 
     camera: Camera2D,
     to_delete: Vec<EntityId>,
     time: f32,
 
-    // FIXME: put a faster hash here
     textures: HashMap<TextureKey, TextureVal, BuildHasherDefault<AHasher>>,
     fonts: HashMap<FontKey, Font, BuildHasherDefault<AHasher>>,
 }
@@ -37,6 +44,7 @@ pub struct Render {
 impl Render {
     pub fn new() -> Self {
         Self {
+            ui_font: FontKey("undefined"),
             world: World::new(),
             camera: Camera2D::default(),
             to_delete: Vec::new(),
@@ -112,8 +120,12 @@ impl Render {
             b: 0.02,
             a: 1.0,
         });
+
         self.setup_world_camera();
         self.draw_world(dt, dry_run);
+
+        self.setup_ui_camera();
+        self.draw_announcement_text();
     }
 
     pub fn debug_render<F>(&mut self, code: F)
@@ -147,6 +159,77 @@ impl Render {
         });
 
         set_camera(&self.camera);
+    }
+
+    fn setup_ui_camera(&mut self) {
+        match self.get_font(self.ui_font) {
+            None => { warn!("No such font: {:?}", self.ui_font); set_default_camera(); },
+            Some(font) => set_camera(&Self::get_ui_cam(font)),
+        }
+    }
+
+    fn draw_announcement_text(&mut self) {
+        self.world.run(|announce: View<AnnouncementText>| for announce in announce.iter() {
+            let Some(font) = self.get_font(self.ui_font)
+            else { warn!("No such font: {:?}", self.ui_font); continue; };
+
+            let view_rect = Self::ui_view_rect(font);
+
+            draw_rectangle(
+                view_rect.x,
+                view_rect.y,
+                view_rect.w,
+                view_rect.h,
+                Color {
+                    r: 0.0,
+                    g: 0.0,
+                    b: 0.12,
+                    a: 0.5,
+                }
+            );
+
+            let center = get_text_center(
+                announce.heading,
+                Some(font),
+                MAIN_FONT_SIZE,
+                FONT_SCALE,
+                0.0
+            );
+            draw_text_ex(
+                announce.heading,
+                view_rect.left() + view_rect.w / 2.0 - center.x,
+                view_rect.top() + view_rect.h / 2.0 - center.y,
+                TextParams {
+                    font: Some(font),
+                    font_size: MAIN_FONT_SIZE,
+                    color: Color::from_hex(0xDDFBFF),
+                    font_scale: FONT_SCALE,
+                    ..Default::default()
+                }
+            );
+
+            let Some(hint) = announce.body else { continue; };
+            let center = get_text_center(
+                Self::find_longest_line(hint),
+                Some(font),
+                HINT_FONT_SIZE,
+                FONT_SCALE,
+                0.0
+            );
+            draw_multiline_text_ex(
+                hint,
+                view_rect.left() + view_rect.w / 2.0 - center.x,
+                view_rect.top() + view_rect.h / 2.0 - center.y + (MAIN_FONT_SIZE as f32) * 1.5,
+                None,
+                TextParams {
+                    font: Some(font),
+                    font_size: HINT_FONT_SIZE,
+                    color: Color::from_hex(0xDDFBFF),
+                    font_scale: FONT_SCALE,
+                    ..Default::default()
+                }
+            );
+        })
     }
 
     fn draw_rects(&mut self) {
@@ -298,5 +381,46 @@ impl Render {
             else { return true };
 
         timed.time <= 0.0
+    }
+
+    fn find_longest_line(text: &str) -> &str {
+        text.split('\n').max_by_key(|x| x.len())
+            .unwrap_or("")
+    }
+
+    fn ui_view_rect(font: &Font) -> Rect {
+        // Special case for misoriented mobile devices
+        if screen_height() > screen_width() {
+            let measure = measure_text(
+                ORIENTATION_TEXT,
+                Some(font),
+                MAIN_FONT_SIZE,
+                FONT_SCALE
+            );
+            let view_width = measure.width +
+                2.0 * VERTICAL_ORIENT_HORIZONTAL_PADDING;
+
+            return Rect {
+                x: -VERTICAL_ORIENT_HORIZONTAL_PADDING,
+                y: 0.0,
+                w: view_width,
+                h: view_width * (screen_height() / screen_width())
+            }
+        }
+
+        let view_height = (MAIN_FONT_SIZE as f32) * 12.0;
+        Rect {
+            x: 0.0,
+            y: 0.0,
+            w: view_height * (screen_width() / screen_height()),
+            h: view_height,
+        }
+    }
+
+    fn get_ui_cam(font: &Font) -> Camera2D {
+        let mut cam = Camera2D::from_display_rect(Self::ui_view_rect(font));
+        cam.zoom.y *= -1.0;
+
+        cam
     }
 }

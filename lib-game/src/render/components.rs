@@ -122,3 +122,10 @@ pub struct GlyphText {
     pub font_scale: f32,
     pub font_scale_aspect: f32,
 }
+
+/// Renders an announcement text with a background.
+#[derive(Clone, Copy, Component, Debug)]
+pub struct AnnouncementText {
+    pub heading: &'static str,
+    pub body: Option<&'static str>,
+}
