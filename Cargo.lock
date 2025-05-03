@@ -328,6 +328,7 @@ dependencies = [
  "macroquad",
  "quad-dbg",
  "rapier2d",
+ "sapp-jsutils",
  "shipyard",
 ]
 
@@ -669,7 +670,6 @@ dependencies = [
  "macroquad",
  "macroquad-particles",
  "quad-dbg",
- "sapp-jsutils",
  "shipyard",
 ]
 

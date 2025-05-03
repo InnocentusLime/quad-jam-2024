@@ -10,7 +10,7 @@ mod platform {
     mod imports {
         use sapp_jsutils::JsObject;
 
-        extern "C" {
+        unsafe extern "C" {
             pub fn app_done_loading();
             pub fn app_is_on_mobile() -> bool;
             pub fn app_get_orientation() -> f32;
