@@ -47,6 +47,5 @@ jobs:
           profile: minimal
           toolchain: ${{ vars.RUST_VERSION }}
           override: true
-          target: wasm32-unknown-unknown
           components: rustfmt
       - run: cargo fmt --all -- --check
