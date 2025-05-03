@@ -307,6 +307,7 @@ impl Game {
         });
         this.camera.zoom.y *= -1.0;
 
+        // FIXME: macroquad's camera is super confusing. Just like this math
         for storage in tile_storage.iter() {
             this.camera.target = vec2(
                 (0.5 * 32.0) * (storage.width() as f32),
