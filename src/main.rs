@@ -88,22 +88,19 @@ async fn main() {
             world.run(decide_next_state)
         },
         |app_state, world, render| {
-            world.run(|game: UniqueView<Game>| {
-                render.world.add_unique(CameraDef {
-                    rotation: game.camera().rotation,
-                    zoom: game.camera().zoom,
-                    target: game.camera().target,
-                    offset: game.camera().offset,
-                })
-            });
+            if app_state.is_presentable() {
+                world.run(|game: UniqueView<Game>| {
+                    render.world.add_unique::<CameraDef>(game.camera().into())
+                });
 
-            world.run_with_data(render::render_tiles, render);
-            world.run_with_data(render::render_player, render);
-            world.run_with_data(render::render_brute, render);
-            world.run_with_data(render::render_boxes, render);
-            world.run_with_data(render::render_rays, render);
-            world.run_with_data(render::render_ammo, render);
-            world.run_with_data(render::render_game_ui, render);
+                world.run_with_data(render::render_tiles, render);
+                world.run_with_data(render::render_player, render);
+                world.run_with_data(render::render_brute, render);
+                world.run_with_data(render::render_boxes, render);
+                world.run_with_data(render::render_rays, render);
+                world.run_with_data(render::render_ammo, render);
+                world.run_with_data(render::render_game_ui, render);
+            }
 
             render_toplevel_ui(app_state, render);
         },

@@ -29,6 +29,17 @@ pub enum AppState {
     PleaseRotate,
 }
 
+impl AppState {
+    /// Gives a hint whether the user should start
+    /// rendering the game state or not
+    pub fn is_presentable(&self) -> bool {
+        match self {
+            AppState::Active | AppState::GameOver | AppState::Paused | AppState::Win => true,
+            _ => false,
+        }
+    }
+}
+
 /// The app run all the boilerplate code to make the game tick.
 /// The following features are provided:
 /// * State transitions and handling
@@ -99,9 +110,6 @@ impl App {
         ScreenCons::init_log();
 
         sys::done_loading();
-
-        // FIXME: dirty hack
-        init_game(&mut self.world);
 
         info!("Done loading");
         info!("lib-game version: {}", env!("CARGO_PKG_VERSION"));
