@@ -110,21 +110,20 @@ impl App {
             ScreenDump::new_frame();
 
             let input = InputModel::capture();
+            let real_dt = get_frame_time();
+            let do_tick = self.update_ticking(real_dt);
+            let mut reset_queued;
 
             if is_key_pressed(KeyCode::GraveAccent) || is_key_pressed(KeyCode::Apostrophe) {
                 self.console_mode = (self.console_mode + 1) % 3;
             }
 
-            let real_dt = get_frame_time();
-            let do_tick = self.update_ticking(real_dt);
-
             self.fullscreen_toggles(&input);
 
             self.rotate_states();
-            self.next_state(&input, &mut init_game);
+            reset_queued = self.next_state(&input);
             if self.state == AppState::Active && input.reset_requested {
-                self.world.clear();
-                init_game(&mut self.world);
+                reset_queued = true;
             }
 
             self.world
@@ -159,6 +158,11 @@ impl App {
                 if let Some(new_state) = new_state {
                     self.state = new_state;
                 }
+            }
+
+            if reset_queued {
+                self.world.clear();
+                init_game(&mut self.world);
             }
 
             self.sound.run(&self.world);
@@ -232,22 +236,24 @@ impl App {
         }
     }
 
-    fn next_state(&mut self, input: &InputModel, mut init_game: impl FnMut(&mut World)) {
-        let new_state = match self.state {
-            AppState::Start if input.confirmation_detected => AppState::Active,
-            AppState::Win | AppState::GameOver if input.confirmation_detected => AppState::Active,
-            AppState::Paused if input.pause_requested => AppState::Active,
-            AppState::Active if input.pause_requested => AppState::Paused,
-            AppState::Active if input.reset_requested => AppState::Active,
-            _ => return,
+    fn next_state(&mut self, input: &InputModel) -> bool {
+        let (new_state, reset) = match self.state {
+            AppState::Start if input.confirmation_detected => {
+                (AppState::Active, true)
+            },
+            AppState::Win | AppState::GameOver if input.confirmation_detected => {
+                (AppState::Active, true)
+            },
+            AppState::Paused if input.pause_requested => {
+                (AppState::Active, false)
+            },
+            AppState::Active if input.pause_requested => {
+                (AppState::Paused, false)
+            },
+            _ => return false,
         };
 
-        if new_state == AppState::Active && matches!(self.state, AppState::GameOver | AppState::Win)
-        {
-            self.world.clear();
-            init_game(&mut self.world);
-        }
-
         self.state = new_state;
+        reset
     }
 }
