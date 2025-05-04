@@ -144,11 +144,11 @@ impl App {
         input: &InputModel,
         mut render: impl FnMut(AppState, &World, &mut Render),
         mut debug_render: impl FnMut(&mut World),
-    ) { 
+    ) {
         if input.console_toggle_requested {
             self.console_mode = (self.console_mode + 1) % 3;
         }
-        
+
         self.sound.run(&self.world);
         self.render.new_frame();
         render(self.state, &self.world, &mut self.render);
@@ -191,7 +191,7 @@ impl App {
             .run_with_data(PhysicsState::export_sensor_queries, &mut self.physics);
 
         let new_state = update(GAME_TICKRATE, &mut self.world);
-        
+
         self.world.clear_all_removed_and_deleted();
 
         if let Some(new_state) = new_state {
@@ -261,21 +261,13 @@ impl App {
 
         /* Normal state transitions */
         let (new_state, reset) = match self.state {
-            AppState::Start if input.confirmation_detected => {
-                (AppState::Active, true)
-            },
+            AppState::Start if input.confirmation_detected => (AppState::Active, true),
             AppState::Win | AppState::GameOver if input.confirmation_detected => {
                 (AppState::Active, true)
-            },
-            AppState::Paused if input.pause_requested => {
-                (AppState::Active, false)
-            },
-            AppState::Active if input.pause_requested => {
-                (AppState::Paused, false)
-            },
-            AppState::Active if input.reset_requested => {
-                (AppState::Active, true)
-            },
+            }
+            AppState::Paused if input.pause_requested => (AppState::Active, false),
+            AppState::Active if input.pause_requested => (AppState::Paused, false),
+            AppState::Active if input.reset_requested => (AppState::Active, true),
             _ => return false,
         };
 

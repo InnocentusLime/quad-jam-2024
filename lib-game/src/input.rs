@@ -31,7 +31,7 @@ impl InputModel {
         let fullscreen_toggle_requested = is_key_pressed(KeyCode::F11);
         let attack_down = is_mouse_button_down(MouseButton::Left);
         let reset_requested = is_key_pressed(KeyCode::R);
-        let console_toggle_requested = 
+        let console_toggle_requested =
             is_key_pressed(KeyCode::GraveAccent) || is_key_pressed(KeyCode::Apostrophe);
 
         Self {
