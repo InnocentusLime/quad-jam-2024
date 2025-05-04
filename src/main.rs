@@ -1,8 +1,7 @@
-use lib_game::{CameraDef, FontKey, Render, TextureKey};
+use lib_game::{FontKey, Render, TextureKey};
 use logic::{decide_next_state, Game};
 use macroquad::prelude::*;
 use render::render_toplevel_ui;
-use shipyard::UniqueView;
 
 mod components;
 mod logic;
@@ -89,10 +88,7 @@ async fn main() {
         },
         |app_state, world, render| {
             if app_state.is_presentable() {
-                world.run(|game: UniqueView<Game>| {
-                    render.world.add_unique::<CameraDef>(game.camera().into())
-                });
-
+                world.run_with_data(render::prepare_world_cam, render);
                 world.run_with_data(render::render_tiles, render);
                 world.run_with_data(render::render_player, render);
                 world.run_with_data(render::render_brute, render);
