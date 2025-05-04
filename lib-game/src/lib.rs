@@ -112,71 +112,81 @@ impl App {
             let input = InputModel::capture();
             let real_dt = get_frame_time();
             let do_tick = self.update_ticking(real_dt);
-            let mut reset_queued;
-
+            
             if is_key_pressed(KeyCode::GraveAccent) || is_key_pressed(KeyCode::Apostrophe) {
                 self.console_mode = (self.console_mode + 1) % 3;
             }
-
             self.fullscreen_toggles(&input);
-
-            self.rotate_states();
-            reset_queued = self.next_state(&input);
-            if self.state == AppState::Active && input.reset_requested {
-                reset_queued = true;
-            }
-
-            self.world
-                .run_with_data(PhysicsState::allocate_bodies, &mut self.physics);
-
-            if matches!(self.state, AppState::Active) && do_tick {
-                self.world
-                    .run_with_data(PhysicsState::reset_forces, &mut self.physics);
-
-                input_phase(&input, GAME_TICKRATE, &mut self.world);
-
-                self.world
-                    .run_with_data(PhysicsState::import_positions_and_info, &mut self.physics);
-                self.world
-                    .run_with_data(PhysicsState::import_forces, &mut self.physics);
-                self.world
-                    .run_with_data(PhysicsState::apply_kinematic_moves, &mut self.physics);
-                self.world
-                    .run_with_data(PhysicsState::step, &mut self.physics);
-                self.world
-                    .run_with_data(PhysicsState::export_body_poses, &mut self.physics);
-
-                pre_physics_query_phase(GAME_TICKRATE, &mut self.world);
-
-                self.world
-                    .run_with_data(PhysicsState::export_beam_queries, &mut self.physics);
-                self.world
-                    .run_with_data(PhysicsState::export_sensor_queries, &mut self.physics);
-
-                let new_state = update(GAME_TICKRATE, &mut self.world);
-
-                if let Some(new_state) = new_state {
-                    self.state = new_state;
-                }
-            }
-
-            if reset_queued {
+            if self.next_state(&input) {
                 self.world.clear();
                 init_game(&mut self.world);
             }
-
-            self.sound.run(&self.world);
-            self.render.new_frame();
-            render(self.state, &self.world, &mut self.render);
-            self.render.render(!self.draw_world, real_dt);
-
-            self.debug_info(&mut debug_render);
-
-            self.world
-                .run_with_data(PhysicsState::remove_dead_handles, &mut self.physics);
-            self.world.clear_all_removed_and_deleted();
-
+            if matches!(self.state, AppState::Active) && do_tick {
+                self.game_update(
+                    &input,
+                    &mut input_phase,
+                    &mut pre_physics_query_phase,
+                    &mut update,
+                );
+            }
+            self.game_present(real_dt, &mut render, &mut debug_render);
             next_frame().await
+        }
+    }
+
+    fn game_present(
+        &mut self,
+        real_dt: f32,
+        mut render: impl FnMut(AppState, &World, &mut Render),
+        mut debug_render: impl FnMut(&mut World),
+    ) {
+        self.sound.run(&self.world);
+        self.render.new_frame();
+        render(self.state, &self.world, &mut self.render);
+        self.render.render(!self.draw_world, real_dt);
+        self.debug_info(&mut debug_render);
+    }
+
+    fn game_update(
+        &mut self,
+        input: &InputModel,
+        mut input_phase: impl FnMut(&InputModel, f32, &mut World),
+        mut pre_physics_query_phase: impl FnMut(f32, &mut World),
+        mut update: impl FnMut(f32, &mut World) -> Option<AppState>,
+    ) {
+        self.world
+            .run_with_data(PhysicsState::remove_dead_handles, &mut self.physics);
+        self.world
+            .run_with_data(PhysicsState::allocate_bodies, &mut self.physics);
+        self.world
+            .run_with_data(PhysicsState::reset_forces, &mut self.physics);
+
+        input_phase(&input, GAME_TICKRATE, &mut self.world);
+
+        self.world
+            .run_with_data(PhysicsState::import_positions_and_info, &mut self.physics);
+        self.world
+            .run_with_data(PhysicsState::import_forces, &mut self.physics);
+        self.world
+            .run_with_data(PhysicsState::apply_kinematic_moves, &mut self.physics);
+        self.world
+            .run_with_data(PhysicsState::step, &mut self.physics);
+        self.world
+            .run_with_data(PhysicsState::export_body_poses, &mut self.physics);
+
+        pre_physics_query_phase(GAME_TICKRATE, &mut self.world);
+
+        self.world
+            .run_with_data(PhysicsState::export_beam_queries, &mut self.physics);
+        self.world
+            .run_with_data(PhysicsState::export_sensor_queries, &mut self.physics);
+
+        let new_state = update(GAME_TICKRATE, &mut self.world);
+        
+        self.world.clear_all_removed_and_deleted();
+
+        if let Some(new_state) = new_state {
+            self.state = new_state;
         }
     }
 
@@ -226,17 +236,21 @@ impl App {
         }
     }
 
-    fn rotate_states(&mut self) {
+    fn next_state(&mut self, input: &InputModel) -> bool {
+        /* Mobile device orientation enforcement */
+
         if sys::get_orientation() != 0.0 && self.state != AppState::PleaseRotate {
             self.paused_state = self.state;
             self.state = AppState::PleaseRotate;
+            return false;
         }
+
         if sys::get_orientation() == 0.0 && self.state == AppState::PleaseRotate {
             self.state = self.paused_state;
+            return false;
         }
-    }
 
-    fn next_state(&mut self, input: &InputModel) -> bool {
+        /* Normal state transitions */
         let (new_state, reset) = match self.state {
             AppState::Start if input.confirmation_detected => {
                 (AppState::Active, true)
@@ -249,6 +263,9 @@ impl App {
             },
             AppState::Active if input.pause_requested => {
                 (AppState::Paused, false)
+            },
+            AppState::Active if input.reset_requested => {
+                (AppState::Active, true)
             },
             _ => return false,
         };
