@@ -170,7 +170,6 @@ impl App {
             render(self.state, &self.world, &mut self.render);
             self.render.render(!self.draw_world, real_dt);
 
-            dump!("{}", self.accumelated_time);
             self.debug_info(&mut debug_render);
 
             self.world
@@ -215,6 +214,7 @@ impl App {
 
         let ent_count = self.world.borrow::<EntitiesView>().unwrap().iter().count();
 
+        dump!("{}", self.accumelated_time);
         dump!("FPS: {:?}", get_fps());
         dump!("Entities: {ent_count}");
 
