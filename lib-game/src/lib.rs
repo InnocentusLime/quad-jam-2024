@@ -112,10 +112,6 @@ impl App {
             let input = InputModel::capture();
             let real_dt = get_frame_time();
             let do_tick = self.update_ticking(real_dt);
-            
-            if is_key_pressed(KeyCode::GraveAccent) || is_key_pressed(KeyCode::Apostrophe) {
-                self.console_mode = (self.console_mode + 1) % 3;
-            }
             self.fullscreen_toggles(&input);
             if self.next_state(&input) {
                 self.world.clear();
@@ -129,7 +125,7 @@ impl App {
                     &mut update,
                 );
             }
-            self.game_present(real_dt, &mut render, &mut debug_render);
+            self.game_present(real_dt, &input, &mut render, &mut debug_render);
             next_frame().await
         }
     }
@@ -137,9 +133,14 @@ impl App {
     fn game_present(
         &mut self,
         real_dt: f32,
+        input: &InputModel,
         mut render: impl FnMut(AppState, &World, &mut Render),
         mut debug_render: impl FnMut(&mut World),
-    ) {
+    ) { 
+        if input.console_toggle_requested {
+            self.console_mode = (self.console_mode + 1) % 3;
+        }
+        
         self.sound.run(&self.world);
         self.render.new_frame();
         render(self.state, &self.world, &mut self.render);
