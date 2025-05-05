@@ -29,7 +29,11 @@ impl CommandCenter {
 
     pub fn input(&mut self, ch: char) {
         if !self.buff.is_empty() {
-            self.buff.push(ch);
+            if ch == '\u{0008}' {
+                self.buff.pop();
+            } else {
+                self.buff.push(ch);
+            }
             return;
         }
 
