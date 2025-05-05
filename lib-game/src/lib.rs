@@ -133,7 +133,7 @@ impl App {
                     &mut update,
                 );
             }
-            self.game_present(real_dt, &mut render, &mut debug_render);
+            self.game_present(real_dt, &mut render);
             self.debug_info(&input, &mut debug_render);
             next_frame().await
         }
@@ -143,7 +143,6 @@ impl App {
         &mut self,
         real_dt: f32,
         mut render: impl FnMut(AppState, &World, &mut Render),
-        mut debug_render: impl FnMut(&mut World),
     ) {
         self.sound.run(&self.world);
         self.render.new_frame();
