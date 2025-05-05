@@ -14,6 +14,8 @@ pub struct InputModel {
     pub attack_down: bool,
     pub scroll_up: bool,
     pub scroll_down: bool,
+    pub cmd_exit: bool,
+    pub cmd_submit: bool,
 }
 
 impl InputModel {
@@ -37,6 +39,8 @@ impl InputModel {
             is_key_pressed(KeyCode::GraveAccent) || is_key_pressed(KeyCode::Apostrophe);
         let scroll_up = is_key_down(KeyCode::PageUp);
         let scroll_down = is_key_down(KeyCode::PageDown);
+        let cmd_exit = is_key_pressed(KeyCode::Escape);
+        let cmd_submit = is_key_pressed(KeyCode::Enter);
 
         Self {
             console_toggle_requested,
@@ -51,6 +55,8 @@ impl InputModel {
             fullscreen_toggle_requested,
             scroll_up,
             scroll_down,
+            cmd_exit,
+            cmd_submit,
         }
     }
 }

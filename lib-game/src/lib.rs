@@ -27,6 +27,7 @@ pub enum AppState {
     Win,
     Paused,
     PleaseRotate,
+    DebugFreeze,
 }
 
 impl AppState {
@@ -34,7 +35,8 @@ impl AppState {
     /// rendering the game state or not
     pub fn is_presentable(&self) -> bool {
         match self {
-            AppState::Active | AppState::GameOver | AppState::Paused | AppState::Win => true,
+            AppState::Active | AppState::GameOver | AppState::Paused 
+            | AppState::Win | AppState::DebugFreeze =>  true,
             _ => false,
         }
     }
@@ -53,6 +55,7 @@ pub struct App {
     fullscreen: bool,
     old_size: (u32, u32),
 
+    cmd: CommandCenter,
     state: AppState,
     paused_state: AppState,
 
@@ -72,6 +75,7 @@ impl App {
             fullscreen: conf.fullscreen,
             old_size: (conf.window_width as u32, conf.window_height as u32),
 
+            cmd: CommandCenter::new(),
             state: AppState::Start,
             paused_state: AppState::Start,
 
@@ -237,6 +241,16 @@ impl App {
         if input.scroll_up {
             ScreenCons::scroll_back();
         }
+            
+        if input.cmd_exit {
+            self.cmd.reset();
+        }
+        if input.cmd_submit {
+            self.cmd.submit();
+        }
+        if let Some(ch) = get_char_pressed() {
+            self.cmd.input(ch);
+        }
 
         self.render.debug_render(|| client_debug(&mut self.world));
 
@@ -264,7 +278,16 @@ impl App {
         }
 
         if sys::get_orientation() == 0.0 && self.state == AppState::PleaseRotate {
-            self.state = self.paused_state;
+            return false;
+        }
+
+        /* Debug freeze */
+        if self.cmd.should_pause() && self.state == AppState::Active {
+            self.state = AppState::DebugFreeze;
+            return false;
+        }
+        if !self.cmd.should_pause() && self.state == AppState::DebugFreeze {
+            self.state = AppState::Active;
             return false;
         }
 
