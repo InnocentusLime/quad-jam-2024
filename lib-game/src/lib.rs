@@ -133,7 +133,8 @@ impl App {
                     &mut update,
                 );
             }
-            self.game_present(real_dt, &input, &mut render, &mut debug_render);
+            self.game_present(real_dt, &mut render, &mut debug_render);
+            self.debug_info(&input, &mut debug_render);
             next_frame().await
         }
     }
@@ -141,19 +142,13 @@ impl App {
     fn game_present(
         &mut self,
         real_dt: f32,
-        input: &InputModel,
         mut render: impl FnMut(AppState, &World, &mut Render),
         mut debug_render: impl FnMut(&mut World),
     ) {
-        if input.console_toggle_requested {
-            self.console_mode = (self.console_mode + 1) % 3;
-        }
-
         self.sound.run(&self.world);
         self.render.new_frame();
         render(self.state, &self.world, &mut self.render);
         self.render.render(!self.draw_world, real_dt);
-        self.debug_info(&mut debug_render);
     }
 
     fn game_update(
@@ -228,7 +223,22 @@ impl App {
         }
     }
 
-    fn debug_info(&mut self, client_debug: impl FnOnce(&mut World)) {
+    fn debug_info(
+        &mut self, 
+        input: &InputModel,
+        client_debug: impl FnOnce(&mut World),
+    ) {
+        if input.console_toggle_requested {
+            self.console_mode = (self.console_mode + 1) % 3;
+        }
+
+        if input.scroll_down {
+            ScreenCons::scroll_forward();
+        }
+        if input.scroll_up {
+            ScreenCons::scroll_back();
+        }
+
         self.render.debug_render(|| client_debug(&mut self.world));
 
         let ent_count = self.world.borrow::<EntitiesView>().unwrap().iter().count();
