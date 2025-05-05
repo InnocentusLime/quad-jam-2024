@@ -266,6 +266,8 @@ impl App {
             2 => ScreenCons::draw(),
             _ => unreachable!("Illegal console mode"),
         }
+
+        self.cmd.draw();
     }
 
     fn next_state(&mut self, input: &InputModel) -> bool {
