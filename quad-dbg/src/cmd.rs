@@ -90,7 +90,8 @@ impl CommandCenter {
     fn is_cmd_char(ch: char) -> bool {
         ch.is_alphabetic() ||
         ch == ' ' ||
-        ch == '.'
+        ch == '.' ||
+        ch == ','
     }
 
     fn reset(&mut self) {
