@@ -30,6 +30,23 @@ pub enum AppState {
     DebugFreeze,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ConsoleMode {
+    Hidden,
+    Dump,
+    Console,
+}
+
+impl ConsoleMode {
+    fn scroll(self) -> Self {
+        match self {
+            ConsoleMode::Hidden => ConsoleMode::Dump,
+            ConsoleMode::Dump => ConsoleMode::Console,
+            ConsoleMode::Console => ConsoleMode::Hidden,
+        }
+    }
+}
+
 impl AppState {
     /// Gives a hint whether the user should start
     /// rendering the game state or not
@@ -59,7 +76,7 @@ pub struct App {
     state: AppState,
     paused_state: AppState,
 
-    console_mode: u8,
+    console_mode: ConsoleMode,
     accumelated_time: f32,
     draw_world: bool,
 
@@ -79,7 +96,7 @@ impl App {
             state: AppState::Start,
             paused_state: AppState::Start,
 
-            console_mode: 0,
+            console_mode: ConsoleMode::Hidden,
             accumelated_time: 0.0,
             draw_world: true,
 
@@ -231,10 +248,6 @@ impl App {
         input: &InputModel,
         client_debug: impl FnOnce(&mut World),
     ) {
-        if input.console_toggle_requested {
-            self.console_mode = (self.console_mode + 1) % 3;
-        }
-
         if input.scroll_down {
             ScreenCons::scroll_forward();
         }
@@ -254,16 +267,18 @@ impl App {
         dump!("FPS: {:?}", get_fps());
         dump!("Entities: {ent_count}");
 
+        if input.console_toggle_requested {
+            self.console_mode = self.console_mode.scroll();
+        }
         let mut console_mode = self.console_mode;
         if self.cmd.should_pause() {
-            console_mode = 2;
+            console_mode = ConsoleMode::Console;
         }
 
         match console_mode {
-            0 => (),
-            1 => ScreenDump::draw(),
-            2 => ScreenCons::draw(),
-            _ => unreachable!("Illegal console mode"),
+            ConsoleMode::Hidden => (),
+            ConsoleMode::Dump => ScreenDump::draw(),
+            ConsoleMode::Console => ScreenCons::draw(),
         }
 
         self.cmd.draw();
