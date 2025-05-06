@@ -1,36 +1,59 @@
 use macroquad::prelude::*;
 use log::info;
 
-use crate::screentext::SCREENCON_LINES_ONSCREEN;
+use crate::{cmd_storage::StrTrie, screentext::SCREENCON_LINES_ONSCREEN};
 
 const CHAR_BACKSPACE: char = '\u{0008}';
 const CHAR_ESCAPE: char  = '\u{001b}';
 const CHAR_ENTER: char = '\u{000d}';
 const MAX_CMD_LEN: usize = 100;
 
-pub struct CommandCenter {
-    buff: String,
+struct CommandEntry<T> {
+    cmd: &'static str,
+    payload: fn(T),
 }
 
-impl CommandCenter {
+pub struct CommandCenter<T> {
+    buff: String,
+    cmd_table: StrTrie,
+    cmds: Vec<CommandEntry<T>>,
+}
+
+impl<T> CommandCenter<T> {
     pub fn new() -> Self {
         Self {
             buff: String::with_capacity(MAX_CMD_LEN),
+            cmd_table: StrTrie::new(),
+            cmds: Vec::new(),
         }
+    }
+
+    pub fn add_command(
+        &mut self,
+        cmd: &'static str,
+        payload: fn(T),
+    ) {
+        let id = self.cmds.len();
+        self.cmds.push(CommandEntry {
+            cmd,
+            payload,
+        });
+
+        self.cmd_table.add_entry(cmd, id);
     }
 
     pub fn should_pause(&self) -> bool {
         !self.buff.is_empty()
     }
 
-    pub fn input(&mut self, ch: char) {
+    pub fn input(&mut self, ch: char, input: T) {
         match (ch, self.buff.is_empty()) {
             (CHAR_BACKSPACE, false) => {
                 self.buff.pop();
             },
             ('/' | ':', true) => self.buff.push(ch),
             (_, true) => (),
-            (CHAR_ENTER, false) => self.submit(),
+            (CHAR_ENTER, false) => self.submit(input),
             (CHAR_ESCAPE, false) => self.reset(),
             (ch, false) => self.append_ch(ch),
         }
@@ -99,8 +122,27 @@ impl CommandCenter {
         self.buff.clear();
     }
 
-    fn submit(&mut self) {
+    fn submit(&mut self, input: T) {
         info!("COMMAND: {}", self.buff);
+
+        match self.buff.as_bytes()[0] {
+            b':' => self.perform_command(input),
+            _ => (),
+        }
+        
         self.reset();
+    }
+
+    fn perform_command(&mut self, input: T) {
+        let s = &self.buff[1..];
+        let mut parts = s.split_ascii_whitespace();
+        let Some(cmd) = parts.next() else { return; };
+        let Some(entry) = self.cmd_table.resolve_str(cmd)
+        else {
+            error!("No such command: {cmd:?}");
+            return;
+        };
+
+        (self.cmds[entry].payload)(input);
     }
 }

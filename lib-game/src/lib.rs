@@ -72,7 +72,7 @@ pub struct App {
     fullscreen: bool,
     old_size: (u32, u32),
 
-    cmd: CommandCenter,
+    cmd: CommandCenter<()>,
     state: AppState,
     paused_state: AppState,
 
@@ -134,6 +134,10 @@ impl App {
 
         info!("Done loading");
         info!("lib-game version: {}", env!("CARGO_PKG_VERSION"));
+
+        self.cmd.add_command("test_command", |_| {
+            println!("LOL!");
+        });
 
         loop {
             ScreenDump::new_frame();
@@ -256,7 +260,7 @@ impl App {
         }
 
         if let Some(ch) = get_char_pressed() {
-            self.cmd.input(ch);
+            self.cmd.input(ch, ());
         }
 
         self.render.debug_render(|| client_debug(&mut self.world));
