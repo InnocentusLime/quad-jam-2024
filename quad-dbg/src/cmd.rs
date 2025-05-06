@@ -91,7 +91,8 @@ impl CommandCenter {
         ch.is_alphabetic() ||
         ch == ' ' ||
         ch == '.' ||
-        ch == ','
+        ch == ',' ||
+        ch == '_'
     }
 
     fn reset(&mut self) {
