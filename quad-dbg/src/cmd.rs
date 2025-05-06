@@ -10,7 +10,7 @@ const MAX_CMD_LEN: usize = 100;
 
 struct CommandEntry<T> {
     cmd: &'static str,
-    payload: fn(T),
+    payload: fn(&mut T),
 }
 
 pub struct CommandCenter<T> {
@@ -31,7 +31,7 @@ impl<T> CommandCenter<T> {
     pub fn add_command(
         &mut self,
         cmd: &'static str,
-        payload: fn(T),
+        payload: fn(&mut T),
     ) {
         let id = self.cmds.len();
         self.cmds.push(CommandEntry {
@@ -46,7 +46,7 @@ impl<T> CommandCenter<T> {
         !self.buff.is_empty()
     }
 
-    pub fn input(&mut self, ch: char, input: T) {
+    pub fn input(&mut self, ch: char, input: &mut T) {
         match (ch, self.buff.is_empty()) {
             (CHAR_BACKSPACE, false) => {
                 self.buff.pop();
@@ -122,7 +122,7 @@ impl<T> CommandCenter<T> {
         self.buff.clear();
     }
 
-    fn submit(&mut self, input: T) {
+    fn submit(&mut self, input: &mut T) {
         info!("COMMAND: {}", self.buff);
 
         match self.buff.as_bytes()[0] {
@@ -133,7 +133,7 @@ impl<T> CommandCenter<T> {
         self.reset();
     }
 
-    fn perform_command(&mut self, input: T) {
+    fn perform_command(&mut self, input: &mut T) {
         let s = &self.buff[1..];
         let mut parts = s.split_ascii_whitespace();
         let Some(cmd) = parts.next() else { return; };

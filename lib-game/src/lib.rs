@@ -60,7 +60,7 @@ impl AppState {
 }
 
 struct DebugStuff {
-    cmd: CommandCenter<()>,
+    cmd: CommandCenter<App>,
     console_mode: ConsoleMode,
 }
 
@@ -89,7 +89,7 @@ impl DebugStuff {
         self.cmd.draw();
     }
 
-    fn input(&mut self, input: &InputModel) {
+    fn input(&mut self, input: &InputModel, app: &mut App) {
         if input.scroll_down {
             ScreenCons::scroll_forward();
         }
@@ -98,7 +98,7 @@ impl DebugStuff {
         }
 
         if let Some(ch) = get_char_pressed() {
-            self.cmd.input(ch, ());
+            self.cmd.input(ch, app);
         }
 
         if input.console_toggle_requested {
@@ -174,6 +174,10 @@ impl App {
     ) {
         let mut debug = DebugStuff::new();
 
+        debug.cmd.add_command("hide_world", |app| {
+            app.draw_world = false;
+        });
+
         sys::done_loading();
 
         info!("Done loading");
@@ -186,7 +190,7 @@ impl App {
             let real_dt = get_frame_time();
             let do_tick = self.update_ticking(real_dt);
             self.fullscreen_toggles(&input);
-            debug.input(&input);
+            debug.input(&input, &mut self);
             if self.next_state(&input, &debug) {
                 self.world.clear();
                 init_game(&mut self.world);
