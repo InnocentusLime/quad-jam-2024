@@ -3,6 +3,10 @@ use log::info;
 
 use crate::screentext::SCREENCON_LINES_ONSCREEN;
 
+const CHAR_BACKSPACE: char = '\u{0008}';
+const CHAR_ESCAPE: char  = '\u{001b}';
+const CHAR_ENTER: char = '\u{000d}';
+
 pub struct CommandCenter {
     buff: String,
 }
@@ -28,20 +32,17 @@ impl CommandCenter {
     }
 
     pub fn input(&mut self, ch: char) {
-        if !self.buff.is_empty() {
-            if ch == '\u{0008}' {
+        match (ch, self.buff.is_empty()) {
+            (CHAR_BACKSPACE, false) => {
                 self.buff.pop();
-            } else {
-                self.buff.push(ch);
-            }
-            return;
+            },
+            ('/' | ':', true) => self.buff.push(ch),
+            (_, true) => (),
+            (CHAR_ENTER, false) => self.submit(),
+            (CHAR_ESCAPE, false) => self.reset(),
+            (ch, false) if ch.is_alphanumeric() => self.buff.push(ch),
+            _ => (),
         }
-
-        if ch != '/' && ch != ':' {
-            return;
-        }
-
-        self.buff.push(ch);
     }
 
     pub fn draw(&self) {

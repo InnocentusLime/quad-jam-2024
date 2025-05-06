@@ -241,13 +241,7 @@ impl App {
         if input.scroll_up {
             ScreenCons::scroll_back();
         }
-            
-        if input.cmd_exit {
-            self.cmd.reset();
-        }
-        if input.cmd_submit {
-            self.cmd.submit();
-        }
+
         if let Some(ch) = get_char_pressed() {
             self.cmd.input(ch);
         }
