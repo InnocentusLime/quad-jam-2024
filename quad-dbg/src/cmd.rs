@@ -6,6 +6,7 @@ use crate::screentext::SCREENCON_LINES_ONSCREEN;
 const CHAR_BACKSPACE: char = '\u{0008}';
 const CHAR_ESCAPE: char  = '\u{001b}';
 const CHAR_ENTER: char = '\u{000d}';
+const MAX_CMD_LEN: usize = 100;
 
 pub struct CommandCenter {
     buff: String,
@@ -14,21 +15,12 @@ pub struct CommandCenter {
 impl CommandCenter {
     pub fn new() -> Self {
         Self {
-            buff: String::new(),
+            buff: String::with_capacity(MAX_CMD_LEN),
         }
     }
 
     pub fn should_pause(&self) -> bool {
         !self.buff.is_empty()
-    }
-
-    pub fn reset(&mut self) {
-        self.buff.clear();
-    }
-
-    pub fn submit(&mut self) {
-        info!("COMMAND: {}", self.buff);
-        self.reset();
     }
 
     pub fn input(&mut self, ch: char) {
@@ -40,8 +32,7 @@ impl CommandCenter {
             (_, true) => (),
             (CHAR_ENTER, false) => self.submit(),
             (CHAR_ESCAPE, false) => self.reset(),
-            (ch, false) if ch.is_alphanumeric() => self.buff.push(ch),
-            _ => (),
+            (ch, false) => self.append_ch(ch),
         }
     }
 
@@ -83,5 +74,31 @@ impl CommandCenter {
             font_size as f32 * font_scale, 
             WHITE,
         );
+    }
+
+    fn append_ch(&mut self, ch: char) {
+        if self.buff.len() >= MAX_CMD_LEN { 
+            return; 
+        }
+        if !Self::is_cmd_char(ch) {
+            return;
+        }
+
+        self.buff.push(ch);
+    }
+
+    fn is_cmd_char(ch: char) -> bool {
+        ch.is_alphabetic() ||
+        ch == ' ' ||
+        ch == '.'
+    }
+
+    fn reset(&mut self) {
+        self.buff.clear();
+    }
+
+    fn submit(&mut self) {
+        info!("COMMAND: {}", self.buff);
+        self.reset();
     }
 }
