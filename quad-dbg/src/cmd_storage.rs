@@ -8,37 +8,95 @@ struct TrieNode {
 }
 
 impl TrieNode {
-    fn char_to_child_id(&self, ch: char) -> Option<usize> {
+    fn new() -> Self {
+        Self {
+            entry: None,
+            children: [None; TRIE_CHILDCOUNT],
+        }
+    }
+
+    fn char_to_child_id(ch: char) -> Option<usize> {
         if 'a' <= ch && ch <= 'z' {
-            return self.children[ch as usize - 'a' as usize]
+            return Some(ch as usize - 'a' as usize)
         }
 
         if ch == '_' {
-            return self.children[TRIE_UNDERSCORE]
+            return Some(TRIE_UNDERSCORE)
         }
 
         None
     }
 }
 
-pub(crate) struct StrTrie<T> {
+pub(crate) struct StrTrie {
     nodes: Vec<TrieNode>,
-    entries: Vec<T>,
 }
 
-impl<T> StrTrie<T> {
-    fn resolve_str(&self, s: &str) -> Option<usize> {
+impl StrTrie {
+    pub(crate) fn new() -> Self {
+        Self {
+            nodes: vec![TrieNode::new()],
+        }
+    }
+
+    pub(crate) fn resolve_str(&self, s: &str) -> Option<usize> {
         let mut curr = 0;
         for ch in s.chars() {
             debug_assert!(curr <= self.nodes.len());
-            let next = self.nodes[curr].char_to_child_id(ch)?;
-            curr = next;
+            let child_id = TrieNode::char_to_child_id(ch)?;
+            curr = self.nodes[curr].children[child_id]?;
         }
 
         self.nodes[curr].entry
     }
 
-    pub(crate) fn resolve_entry(&self, s: &str) -> Option<&T> {
-        Some(&self.entries[self.resolve_str(s)?])
+    pub(crate) fn add_entry(&mut self, s: &str, e: usize) -> bool {
+        let mut curr = 0;
+        for ch in s.chars() {
+            debug_assert!(curr <= self.nodes.len());
+            let Some(child_id) = TrieNode::char_to_child_id(ch)
+            else { return false; };
+            if let Some(next) = self.nodes[curr].children[child_id] {
+                curr = next;
+                continue;
+            }
+
+            let next = self.nodes.len();
+            self.nodes[curr].children[child_id] = Some(next);
+            self.nodes.push(TrieNode::new());
+            curr = next;            
+        }
+
+        if self.nodes[curr].entry.is_some() {
+            return false;
+        }
+
+        self.nodes[curr].entry = Some(e);
+        true
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::StrTrie;
+
+    #[test]
+    fn simple_inserts() {
+        let mut trie = StrTrie::new();
+        let table = [
+            ("sas", 0),
+            ("sa", 1),
+            ("sasa", 2),
+            ("amo", 3),
+            ("a_b", 4),
+        ];
+
+        for (s, idx) in table {
+            assert!(trie.add_entry(s, idx));
+        }
+
+        for (s, idx) in table {
+            assert_eq!(trie.resolve_str(s), Some(idx));
+        }
     }
 }
