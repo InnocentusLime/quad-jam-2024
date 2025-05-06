@@ -254,7 +254,12 @@ impl App {
         dump!("FPS: {:?}", get_fps());
         dump!("Entities: {ent_count}");
 
-        match self.console_mode {
+        let mut console_mode = self.console_mode;
+        if self.cmd.should_pause() {
+            console_mode = 2;
+        }
+
+        match console_mode {
             0 => (),
             1 => ScreenDump::draw(),
             2 => ScreenCons::draw(),
