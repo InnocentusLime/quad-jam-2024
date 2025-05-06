@@ -59,6 +59,54 @@ impl AppState {
     }
 }
 
+struct DebugStuff {
+    cmd: CommandCenter<()>,
+    console_mode: ConsoleMode,
+}
+
+impl DebugStuff {
+    fn new() -> Self {
+        ScreenCons::init_log();
+        
+        Self {
+            cmd: CommandCenter::new(),
+            console_mode: ConsoleMode::Hidden,
+        }
+    }
+
+    fn draw(&self) {
+        let mut console_mode = self.console_mode;
+        if self.cmd.should_pause() {
+            console_mode = ConsoleMode::Console;
+        }
+
+        match console_mode {
+            ConsoleMode::Hidden => (),
+            ConsoleMode::Dump => ScreenDump::draw(),
+            ConsoleMode::Console => ScreenCons::draw(),
+        }
+
+        self.cmd.draw();
+    }
+
+    fn input(&mut self, input: &InputModel) {
+        if input.scroll_down {
+            ScreenCons::scroll_forward();
+        }
+        if input.scroll_up {
+            ScreenCons::scroll_back();
+        }
+
+        if let Some(ch) = get_char_pressed() {
+            self.cmd.input(ch, ());
+        }
+
+        if input.console_toggle_requested {
+            self.console_mode = self.console_mode.scroll();
+        }
+    }
+}
+
 /// The app run all the boilerplate code to make the game tick.
 /// The following features are provided:
 /// * State transitions and handling
@@ -72,11 +120,9 @@ pub struct App {
     fullscreen: bool,
     old_size: (u32, u32),
 
-    cmd: CommandCenter<()>,
     state: AppState,
     paused_state: AppState,
 
-    console_mode: ConsoleMode,
     accumelated_time: f32,
     draw_world: bool,
 
@@ -92,11 +138,9 @@ impl App {
             fullscreen: conf.fullscreen,
             old_size: (conf.window_width as u32, conf.window_height as u32),
 
-            cmd: CommandCenter::new(),
             state: AppState::Start,
             paused_state: AppState::Start,
 
-            console_mode: ConsoleMode::Hidden,
             accumelated_time: 0.0,
             draw_world: true,
 
@@ -128,16 +172,12 @@ impl App {
         mut render: impl FnMut(AppState, &World, &mut Render),
         mut debug_render: impl FnMut(&mut World),
     ) {
-        ScreenCons::init_log();
+        let mut debug = DebugStuff::new();
 
         sys::done_loading();
 
         info!("Done loading");
         info!("lib-game version: {}", env!("CARGO_PKG_VERSION"));
-
-        self.cmd.add_command("test_command", |_| {
-            println!("LOL!");
-        });
 
         loop {
             ScreenDump::new_frame();
@@ -146,7 +186,8 @@ impl App {
             let real_dt = get_frame_time();
             let do_tick = self.update_ticking(real_dt);
             self.fullscreen_toggles(&input);
-            if self.next_state(&input) {
+            debug.input(&input);
+            if self.next_state(&input, &debug) {
                 self.world.clear();
                 init_game(&mut self.world);
             }
@@ -159,7 +200,8 @@ impl App {
                 );
             }
             self.game_present(real_dt, &mut render);
-            self.debug_info(&input, &mut debug_render);
+            self.debug_info(&mut debug_render);
+            debug.draw();
             next_frame().await
         }
     }
@@ -247,22 +289,7 @@ impl App {
         }
     }
 
-    fn debug_info(
-        &mut self, 
-        input: &InputModel,
-        client_debug: impl FnOnce(&mut World),
-    ) {
-        if input.scroll_down {
-            ScreenCons::scroll_forward();
-        }
-        if input.scroll_up {
-            ScreenCons::scroll_back();
-        }
-
-        if let Some(ch) = get_char_pressed() {
-            self.cmd.input(ch, ());
-        }
-
+    fn debug_info(&mut self, client_debug: impl FnOnce(&mut World)) {
         self.render.debug_render(|| client_debug(&mut self.world));
 
         let ent_count = self.world.borrow::<EntitiesView>().unwrap().iter().count();
@@ -270,25 +297,9 @@ impl App {
         dump!("{}", self.accumelated_time);
         dump!("FPS: {:?}", get_fps());
         dump!("Entities: {ent_count}");
-
-        if input.console_toggle_requested {
-            self.console_mode = self.console_mode.scroll();
-        }
-        let mut console_mode = self.console_mode;
-        if self.cmd.should_pause() {
-            console_mode = ConsoleMode::Console;
-        }
-
-        match console_mode {
-            ConsoleMode::Hidden => (),
-            ConsoleMode::Dump => ScreenDump::draw(),
-            ConsoleMode::Console => ScreenCons::draw(),
-        }
-
-        self.cmd.draw();
     }
 
-    fn next_state(&mut self, input: &InputModel) -> bool {
+    fn next_state(&mut self, input: &InputModel, debug: &DebugStuff) -> bool {
         /* Mobile device orientation enforcement */
 
         if sys::get_orientation() != 0.0 && self.state != AppState::PleaseRotate {
@@ -302,11 +313,11 @@ impl App {
         }
 
         /* Debug freeze */
-        if self.cmd.should_pause() && self.state == AppState::Active {
+        if debug.cmd.should_pause() && self.state == AppState::Active {
             self.state = AppState::DebugFreeze;
             return false;
         }
-        if !self.cmd.should_pause() && self.state == AppState::DebugFreeze {
+        if !debug.cmd.should_pause() && self.state == AppState::DebugFreeze {
             self.state = AppState::Active;
             return false;
         }
