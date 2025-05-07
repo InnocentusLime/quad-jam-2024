@@ -1,8 +1,7 @@
-use lib_game::{CameraDef, FontKey, Render, TextureKey};
+use lib_game::{draw_physics_debug, FontKey, Render, TextureKey};
 use logic::{decide_next_state, Game};
 use macroquad::prelude::*;
 use render::render_toplevel_ui;
-use shipyard::UniqueView;
 
 mod components;
 mod logic;
@@ -58,6 +57,8 @@ async fn main() {
 
     let mut app = lib_game::App::new(&window_conf()).await.unwrap();
 
+    app.add_debug_draw("phys", draw_physics_debug);
+
     load_graphics(&mut app.render).await.unwrap();
 
     app.run(
@@ -88,27 +89,18 @@ async fn main() {
             world.run(decide_next_state)
         },
         |app_state, world, render| {
-            world.run(|game: UniqueView<Game>| {
-                render.world.add_unique(CameraDef {
-                    rotation: game.camera().rotation,
-                    zoom: game.camera().zoom,
-                    target: game.camera().target,
-                    offset: game.camera().offset,
-                })
-            });
-
-            world.run_with_data(render::render_tiles, render);
-            world.run_with_data(render::render_player, render);
-            world.run_with_data(render::render_brute, render);
-            world.run_with_data(render::render_boxes, render);
-            world.run_with_data(render::render_rays, render);
-            world.run_with_data(render::render_ammo, render);
-            world.run_with_data(render::render_game_ui, render);
+            if app_state.is_presentable() {
+                world.run_with_data(render::prepare_world_cam, render);
+                world.run_with_data(render::render_tiles, render);
+                world.run_with_data(render::render_player, render);
+                world.run_with_data(render::render_brute, render);
+                world.run_with_data(render::render_boxes, render);
+                world.run_with_data(render::render_rays, render);
+                world.run_with_data(render::render_ammo, render);
+                world.run_with_data(render::render_game_ui, render);
+            }
 
             render_toplevel_ui(app_state, render);
-        },
-        |_world| {
-            // draw_physics_debug(world);
         },
     )
     .await

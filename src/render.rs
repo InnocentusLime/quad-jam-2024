@@ -22,6 +22,10 @@ static START_TEXT_MOBILE: &'static str = "Tap to start";
 
 pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
 
+pub fn prepare_world_cam(render: &mut Render, game: UniqueView<Game>) {
+    render.world.add_unique::<CameraDef>(game.camera().into())
+}
+
 pub fn render_tiles(render: &mut Render, tile_storage: View<TileStorage>, tiles: View<TileType>) {
     let Some(storage) = tile_storage.iter().next() else {
         return;

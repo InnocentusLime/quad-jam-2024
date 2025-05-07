@@ -40,9 +40,12 @@ pub struct Render {
 
 impl Render {
     pub fn new() -> Self {
+        let world = World::new();
+        world.add_unique::<CameraDef>((&Camera2D::default()).into());
+
         Self {
             ui_font: FontKey("undefined"),
-            world: World::new(),
+            world,
             camera: Camera2D::default(),
             to_delete: Vec::new(),
             time: 0.0,

@@ -2,6 +2,7 @@ use macroquad::prelude::*;
 
 #[derive(Clone, Copy, Debug)]
 pub struct InputModel {
+    pub console_toggle_requested: bool,
     pub reset_requested: bool,
     pub left_movement_down: bool,
     pub right_movement_down: bool,
@@ -11,6 +12,8 @@ pub struct InputModel {
     pub pause_requested: bool,
     pub fullscreen_toggle_requested: bool,
     pub attack_down: bool,
+    pub scroll_up: bool,
+    pub scroll_down: bool,
 }
 
 impl InputModel {
@@ -30,8 +33,13 @@ impl InputModel {
         let fullscreen_toggle_requested = is_key_pressed(KeyCode::F11);
         let attack_down = is_mouse_button_down(MouseButton::Left);
         let reset_requested = is_key_pressed(KeyCode::R);
+        let console_toggle_requested =
+            is_key_pressed(KeyCode::GraveAccent) || is_key_pressed(KeyCode::Apostrophe);
+        let scroll_up = is_key_down(KeyCode::PageUp);
+        let scroll_down = is_key_down(KeyCode::PageDown);
 
         Self {
+            console_toggle_requested,
             attack_down,
             reset_requested,
             left_movement_down,
@@ -41,6 +49,8 @@ impl InputModel {
             down_movement_down,
             pause_requested,
             fullscreen_toggle_requested,
+            scroll_up,
+            scroll_down,
         }
     }
 }

@@ -15,6 +15,17 @@ pub struct CameraDef {
     pub offset: Vec2,
 }
 
+impl From<&'_ Camera2D> for CameraDef {
+    fn from(value: &Camera2D) -> Self {
+        Self {
+            rotation: value.rotation,
+            zoom: value.zoom,
+            target: value.target,
+            offset: value.offset,
+        }
+    }
+}
+
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 #[repr(transparent)]
 pub struct TextureKey(pub &'static str);
