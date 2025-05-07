@@ -1,10 +1,10 @@
-use macroquad::prelude::*;
 use log::info;
+use macroquad::prelude::*;
 
 use crate::{cmd_storage::StrTrie, screentext::SCREENCON_LINES_ONSCREEN};
 
 const CHAR_BACKSPACE: char = '\u{0008}';
-const CHAR_ESCAPE: char  = '\u{001b}';
+const CHAR_ESCAPE: char = '\u{001b}';
 const CHAR_ENTER: char = '\u{000d}';
 const MAX_CMD_LEN: usize = 100;
 
@@ -57,7 +57,7 @@ impl<T> CommandCenter<T> {
         match (ch, self.buff.is_empty()) {
             (CHAR_BACKSPACE, false) => {
                 self.buff.pop();
-            },
+            }
             ('/' | ':', true) => self.buff.push(ch),
             (_, true) => (),
             (CHAR_ENTER, false) => self.submit(input),
@@ -98,17 +98,17 @@ impl<T> CommandCenter<T> {
         );
 
         draw_rectangle(
-            res.width + 0.1 * font_size as f32 * font_scale, 
-            rect_y, 
-            0.1 * font_size as f32 * font_scale, 
-            font_size as f32 * font_scale, 
+            res.width + 0.1 * font_size as f32 * font_scale,
+            rect_y,
+            0.1 * font_size as f32 * font_scale,
+            font_size as f32 * font_scale,
             WHITE,
         );
     }
 
     fn append_ch(&mut self, ch: char) {
-        if self.buff.len() >= MAX_CMD_LEN { 
-            return; 
+        if self.buff.len() >= MAX_CMD_LEN {
+            return;
         }
         if !Self::is_cmd_char(ch) {
             return;
@@ -118,11 +118,7 @@ impl<T> CommandCenter<T> {
     }
 
     fn is_cmd_char(ch: char) -> bool {
-        ch.is_alphabetic() ||
-        ch == ' ' ||
-        ch == '.' ||
-        ch == ',' ||
-        ch == '_'
+        ch.is_alphabetic() || ch == ' ' || ch == '.' || ch == ',' || ch == '_'
     }
 
     fn reset(&mut self) {
@@ -136,22 +132,23 @@ impl<T> CommandCenter<T> {
             b':' => self.perform_command(input),
             _ => (),
         }
-        
+
         self.reset();
     }
 
     fn perform_command(&mut self, input: &mut T) {
         let s = &self.buff[1..];
         let mut parts = s.split_ascii_whitespace();
-        let Some(cmd) = parts.next() else { return; };
+        let Some(cmd) = parts.next() else {
+            return;
+        };
 
         if cmd == "help" {
             self.perform_help();
             return;
         }
 
-        let Some(entry) = self.cmd_table.resolve_str(cmd)
-        else {
+        let Some(entry) = self.cmd_table.resolve_str(cmd) else {
             error!("No such command: {cmd:?}");
             return;
         };

@@ -1,9 +1,9 @@
 mod components;
+mod dbg;
 mod input;
 mod physics;
 mod render;
 mod sound_director;
-mod dbg;
 
 pub mod sys;
 
@@ -55,8 +55,11 @@ impl AppState {
     /// rendering the game state or not
     pub fn is_presentable(&self) -> bool {
         match self {
-            AppState::Active | AppState::GameOver | AppState::Paused 
-            | AppState::Win | AppState::DebugFreeze =>  true,
+            AppState::Active
+            | AppState::GameOver
+            | AppState::Paused
+            | AppState::Win
+            | AppState::DebugFreeze => true,
             _ => false,
         }
     }
@@ -70,7 +73,7 @@ struct DebugStuff {
 impl DebugStuff {
     fn new() -> Self {
         ScreenCons::init_log();
-        
+
         Self {
             cmd: CommandCenter::new(),
             console_mode: ConsoleMode::Hidden,
@@ -160,11 +163,7 @@ impl App {
         })
     }
 
-    pub fn add_debug_draw(
-        &mut self,
-        name: &'static str,
-        payload: fn(&World),
-    ) {
+    pub fn add_debug_draw(&mut self, name: &'static str, payload: fn(&World)) {
         self.debug_draws.insert(name.to_owned(), payload);
     }
 
@@ -190,7 +189,7 @@ impl App {
     ) {
         let mut debug = DebugStuff::new();
         init_debug_commands(&mut debug.cmd);
-        
+
         sys::done_loading();
 
         info!("Done loading");
@@ -307,8 +306,10 @@ impl App {
     }
 
     fn debug_info(&mut self) {
-        self.render.debug_render(|| for debug in self.enabled_debug_draws.iter() {
-            (self.debug_draws[debug])(&self.world)
+        self.render.debug_render(|| {
+            for debug in self.enabled_debug_draws.iter() {
+                (self.debug_draws[debug])(&self.world)
+            }
         });
 
         let ent_count = self.world.borrow::<EntitiesView>().unwrap().iter().count();

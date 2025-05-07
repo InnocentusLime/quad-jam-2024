@@ -17,11 +17,11 @@ impl TrieNode {
 
     fn char_to_child_id(ch: char) -> Option<usize> {
         if 'a' <= ch && ch <= 'z' {
-            return Some(ch as usize - 'a' as usize)
+            return Some(ch as usize - 'a' as usize);
         }
 
         if ch == '_' {
-            return Some(TRIE_UNDERSCORE)
+            return Some(TRIE_UNDERSCORE);
         }
 
         None
@@ -54,8 +54,9 @@ impl StrTrie {
         let mut curr = 0;
         for ch in s.chars() {
             debug_assert!(curr <= self.nodes.len());
-            let Some(child_id) = TrieNode::char_to_child_id(ch)
-            else { return false; };
+            let Some(child_id) = TrieNode::char_to_child_id(ch) else {
+                return false;
+            };
             if let Some(next) = self.nodes[curr].children[child_id] {
                 curr = next;
                 continue;
@@ -64,7 +65,7 @@ impl StrTrie {
             let next = self.nodes.len();
             self.nodes[curr].children[child_id] = Some(next);
             self.nodes.push(TrieNode::new());
-            curr = next;            
+            curr = next;
         }
 
         if self.nodes[curr].entry.is_some() {
@@ -83,13 +84,7 @@ mod tests {
     #[test]
     fn simple_inserts() {
         let mut trie = StrTrie::new();
-        let table = [
-            ("sas", 0),
-            ("sa", 1),
-            ("sasa", 2),
-            ("amo", 3),
-            ("a_b", 4),
-        ];
+        let table = [("sas", 0), ("sa", 1), ("sasa", 2), ("amo", 3), ("a_b", 4)];
 
         for (s, idx) in table {
             assert!(trie.add_entry(s, idx));
