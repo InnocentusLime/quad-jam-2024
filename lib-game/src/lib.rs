@@ -4,6 +4,7 @@ mod input;
 mod physics;
 mod render;
 mod sound_director;
+mod profiling;
 
 pub mod sys;
 
@@ -12,6 +13,7 @@ use dbg::init_debug_commands;
 use hashbrown::{HashMap, HashSet};
 pub use input::*;
 pub use physics::*;
+use profiling::SysProfiler;
 pub use render::*;
 pub use sound_director::*;
 
@@ -135,6 +137,8 @@ pub struct App {
     physics: PhysicsState,
     world: World,
 
+
+    prof: SysProfiler,
     draw_world: bool,
     freeze: bool,
     debug_draws: HashMap<String, fn(&World)>,
@@ -156,6 +160,7 @@ impl App {
             physics: PhysicsState::new(),
             world: World::new(),
 
+            prof: SysProfiler::new(),
             draw_world: true,
             freeze: false,
             debug_draws: HashMap::new(),
@@ -217,6 +222,7 @@ impl App {
             }
             self.game_present(real_dt, &mut render);
             self.debug_info();
+            self.prof.log();
             debug.draw();
             next_frame().await
         }
@@ -240,32 +246,52 @@ impl App {
         mut pre_physics_query_phase: impl FnMut(f32, &mut World),
         mut update: impl FnMut(f32, &mut World) -> Option<AppState>,
     ) {
-        self.world
-            .run_with_data(PhysicsState::remove_dead_handles, &mut self.physics);
-        self.world
-            .run_with_data(PhysicsState::allocate_bodies, &mut self.physics);
-        self.world
-            .run_with_data(PhysicsState::reset_forces, &mut self.physics);
+        self.prof.run(|| self.world
+            .run_with_data(PhysicsState::remove_dead_handles, &mut self.physics),
+            PhysicsState::remove_dead_handles,
+        );
+        self.prof.run(|| self.world
+            .run_with_data(PhysicsState::allocate_bodies, &mut self.physics),
+            PhysicsState::allocate_bodies,
+        );
+        self.prof.run(|| self.world
+            .run_with_data(PhysicsState::reset_forces, &mut self.physics),
+            PhysicsState::reset_forces,
+        );
 
         input_phase(&input, GAME_TICKRATE, &mut self.world);
 
-        self.world
-            .run_with_data(PhysicsState::import_positions_and_info, &mut self.physics);
-        self.world
-            .run_with_data(PhysicsState::import_forces, &mut self.physics);
-        self.world
-            .run_with_data(PhysicsState::apply_kinematic_moves, &mut self.physics);
-        self.world
-            .run_with_data(PhysicsState::step, &mut self.physics);
-        self.world
-            .run_with_data(PhysicsState::export_body_poses, &mut self.physics);
+        self.prof.run(|| self.world
+            .run_with_data(PhysicsState::import_positions_and_info, &mut self.physics),
+            PhysicsState::import_positions_and_info,
+        );
+        self.prof.run(|| self.world
+            .run_with_data(PhysicsState::import_forces, &mut self.physics),
+            PhysicsState::import_forces,
+        );
+        self.prof.run(|| self.world
+            .run_with_data(PhysicsState::apply_kinematic_moves, &mut self.physics),
+            PhysicsState::apply_kinematic_moves,
+        );
+        self.prof.run(|| self.world
+            .run_with_data(PhysicsState::step, &mut self.physics),
+            PhysicsState::step,
+        );
+        self.prof.run(|| self.world
+            .run_with_data(PhysicsState::export_body_poses, &mut self.physics),
+            PhysicsState::export_body_poses,
+        );
 
         pre_physics_query_phase(GAME_TICKRATE, &mut self.world);
 
-        self.world
-            .run_with_data(PhysicsState::export_beam_queries, &mut self.physics);
-        self.world
-            .run_with_data(PhysicsState::export_sensor_queries, &mut self.physics);
+        self.prof.run(|| self.world
+            .run_with_data(PhysicsState::export_beam_queries, &mut self.physics),
+            PhysicsState::export_beam_queries,
+        );
+        self.prof.run(|| self.world
+            .run_with_data(PhysicsState::export_sensor_queries, &mut self.physics),
+            PhysicsState::export_sensor_queries,
+        );
 
         let new_state = update(GAME_TICKRATE, &mut self.world);
 
