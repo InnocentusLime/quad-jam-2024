@@ -1,4 +1,4 @@
-use lib_game::{FontKey, Render, TextureKey};
+use lib_game::{draw_physics_debug, FontKey, Render, TextureKey};
 use logic::{decide_next_state, Game};
 use macroquad::prelude::*;
 use render::render_toplevel_ui;
@@ -57,6 +57,8 @@ async fn main() {
 
     let mut app = lib_game::App::new(&window_conf()).await.unwrap();
 
+    app.add_debug_draw("phys", draw_physics_debug);
+
     load_graphics(&mut app.render).await.unwrap();
 
     app.run(
@@ -99,9 +101,6 @@ async fn main() {
             }
 
             render_toplevel_ui(app_state, render);
-        },
-        |_world| {
-            // draw_physics_debug(world);
         },
     )
     .await

@@ -7,6 +7,7 @@ mod sound_director;
 pub mod sys;
 
 pub use components::*;
+use hashbrown::{HashMap, HashSet};
 pub use input::*;
 pub use physics::*;
 pub use render::*;
@@ -121,16 +122,18 @@ pub struct App {
     old_size: (u32, u32),
 
     state: AppState,
-    paused_state: AppState,
-
     accumelated_time: f32,
-    draw_world: bool,
-    freeze: bool,
+    paused_state: AppState,
 
     pub render: Render,
     sound: SoundDirector,
     physics: PhysicsState,
     world: World,
+
+    draw_world: bool,
+    freeze: bool,
+    debug_draws: HashMap<String, fn(&World)>,
+    enabled_debug_draws: HashSet<String>,
 }
 
 impl App {
@@ -139,18 +142,28 @@ impl App {
             fullscreen: conf.fullscreen,
             old_size: (conf.window_width as u32, conf.window_height as u32),
 
+            accumelated_time: 0.0,
             state: AppState::Start,
             paused_state: AppState::Start,
-
-            accumelated_time: 0.0,
-            draw_world: true,
-            freeze: false,
 
             render: Render::new(),
             sound: SoundDirector::new().await?,
             physics: PhysicsState::new(),
             world: World::new(),
+
+            draw_world: true,
+            freeze: false,
+            debug_draws: HashMap::new(),
+            enabled_debug_draws: HashSet::new(),
         })
+    }
+
+    pub fn add_debug_draw(
+        &mut self,
+        name: &'static str,
+        payload: fn(&World),
+    ) {
+        self.debug_draws.insert(name.to_owned(), payload);
     }
 
     /// Just runs the game. This is what you call after loading
@@ -172,7 +185,6 @@ impl App {
         mut pre_physics_query_phase: impl FnMut(f32, &mut World),
         mut update: impl FnMut(f32, &mut World) -> Option<AppState>,
         mut render: impl FnMut(AppState, &World, &mut Render),
-        mut debug_render: impl FnMut(&mut World),
     ) {
         let mut debug = DebugStuff::new();
 
@@ -201,6 +213,42 @@ impl App {
             "reset app back to the start state",
             |app, _| app.state = AppState::Start,
         );
+        debug.cmd.add_command(
+            "dde", 
+            "enable a debug draw. Usage: dde [NAME]", 
+            |app, args| {
+                if args.len() < 1 {
+                    error!("Not enough args");
+                    return;
+                }   
+
+                let dd_name = args[0];
+                if !app.debug_draws.contains_key(dd_name) {
+                    error!("No such debug draw: {:?}", dd_name);
+                    return;
+                }
+
+                app.enabled_debug_draws.insert(dd_name.to_owned());
+            }
+        );
+        debug.cmd.add_command(
+            "ddd", 
+            "disable a debug draw. Usage: ddd [NAME]", 
+            |app, args| {
+                if args.len() < 1 {
+                    error!("Not enough args");
+                    return;
+                }   
+
+                let dd_name = args[0];
+                if !app.enabled_debug_draws.contains(dd_name) {
+                    error!("No enabled debug draw: {:?}", dd_name);
+                    return;
+                }
+
+                app.enabled_debug_draws.remove(dd_name);
+            }
+        );
 
         sys::done_loading();
 
@@ -228,7 +276,7 @@ impl App {
                 );
             }
             self.game_present(real_dt, &mut render);
-            self.debug_info(&mut debug_render);
+            self.debug_info();
             debug.draw();
             next_frame().await
         }
@@ -317,8 +365,10 @@ impl App {
         }
     }
 
-    fn debug_info(&mut self, client_debug: impl FnOnce(&mut World)) {
-        self.render.debug_render(|| client_debug(&mut self.world));
+    fn debug_info(&mut self) {
+        self.render.debug_render(|| for debug in self.enabled_debug_draws.iter() {
+            (self.debug_draws[debug])(&self.world)
+        });
 
         let ent_count = self.world.borrow::<EntitiesView>().unwrap().iter().count();
 
