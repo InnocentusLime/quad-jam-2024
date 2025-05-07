@@ -179,27 +179,27 @@ impl App {
         debug.cmd.add_command(
             "f", 
             "freeze the app", 
-            |app| app.freeze = true,
+            |app, _| app.freeze = true,
         );
         debug.cmd.add_command(
             "uf", 
             "unfreeze the app",
-            |app| app.freeze = false,
+            |app, _| app.freeze = false,
         );
         debug.cmd.add_command(
             "hw", 
             "hide the world rendering",
-            |app| app.draw_world = false,
+            |app, _| app.draw_world = false,
         );
         debug.cmd.add_command(
             "sw", 
             "show the world rendering", 
-            |app| app.draw_world = true,
+            |app, _| app.draw_world = true,
         );
         debug.cmd.add_command(
             "reset", 
             "reset app back to the start state",
-            |app| app.state = AppState::Start,
+            |app, _| app.state = AppState::Start,
         );
 
         sys::done_loading();

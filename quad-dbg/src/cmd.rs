@@ -11,7 +11,7 @@ const MAX_CMD_LEN: usize = 100;
 struct CommandEntry<T> {
     cmd: &'static str,
     description: &'static str,
-    payload: fn(&mut T),
+    payload: fn(&mut T, &[&str]),
 }
 
 pub struct CommandCenter<T> {
@@ -33,7 +33,7 @@ impl<T> CommandCenter<T> {
         &mut self,
         cmd: &'static str,
         description: &'static str,
-        payload: fn(&mut T),
+        payload: fn(&mut T, &[&str]),
     ) {
         if cmd == "help" {
             panic!("Do not add help");
@@ -156,7 +156,9 @@ impl<T> CommandCenter<T> {
             return;
         };
 
-        (self.cmds[entry].payload)(input);
+        let args = parts.collect::<Vec<_>>();
+
+        (self.cmds[entry].payload)(input, &args);
     }
 
     fn perform_help(&self) {
