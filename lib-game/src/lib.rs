@@ -3,10 +3,12 @@ mod input;
 mod physics;
 mod render;
 mod sound_director;
+mod dbg;
 
 pub mod sys;
 
 pub use components::*;
+use dbg::init_debug_commands;
 use hashbrown::{HashMap, HashSet};
 pub use input::*;
 pub use physics::*;
@@ -187,76 +189,8 @@ impl App {
         mut render: impl FnMut(AppState, &World, &mut Render),
     ) {
         let mut debug = DebugStuff::new();
-
-        debug.cmd.add_command(
-            "f", 
-            "freeze the app", 
-            |app, _| app.freeze = true,
-        );
-        debug.cmd.add_command(
-            "uf", 
-            "unfreeze the app",
-            |app, _| app.freeze = false,
-        );
-        debug.cmd.add_command(
-            "hw", 
-            "hide the world rendering",
-            |app, _| app.draw_world = false,
-        );
-        debug.cmd.add_command(
-            "sw", 
-            "show the world rendering", 
-            |app, _| app.draw_world = true,
-        );
-        debug.cmd.add_command(
-            "reset", 
-            "reset app back to the start state",
-            |app, _| app.state = AppState::Start,
-        );
-        debug.cmd.add_command(
-            "dde", 
-            "enable a debug draw. Usage: dde [NAME]", 
-            |app, args| {
-                if args.len() < 1 {
-                    error!("Not enough args");
-                    return;
-                }   
-
-                let dd_name = args[0];
-                if !app.debug_draws.contains_key(dd_name) {
-                    error!("No such debug draw: {:?}", dd_name);
-                    return;
-                }
-
-                app.enabled_debug_draws.insert(dd_name.to_owned());
-            }
-        );
-        debug.cmd.add_command(
-            "ddd", 
-            "disable a debug draw. Usage: ddd [NAME]", 
-            |app, args| {
-                if args.len() < 1 {
-                    error!("Not enough args");
-                    return;
-                }   
-
-                let dd_name = args[0];
-                if !app.enabled_debug_draws.contains(dd_name) {
-                    error!("No enabled debug draw: {:?}", dd_name);
-                    return;
-                }
-
-                app.enabled_debug_draws.remove(dd_name);
-            }
-        );
-        debug.cmd.add_command(
-            "ddl", 
-            "list all debug draws", 
-            |app, _| for key in app.debug_draws.keys() {
-                info!("{}", key);
-            }
-        );
-
+        init_debug_commands(&mut debug.cmd);
+        
         sys::done_loading();
 
         info!("Done loading");
