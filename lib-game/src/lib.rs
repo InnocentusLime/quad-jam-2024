@@ -249,6 +249,13 @@ impl App {
                 app.enabled_debug_draws.remove(dd_name);
             }
         );
+        debug.cmd.add_command(
+            "ddl", 
+            "list all debug draws", 
+            |app, _| for key in app.debug_draws.keys() {
+                info!("{}", key);
+            }
+        );
 
         sys::done_loading();
 
