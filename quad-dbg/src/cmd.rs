@@ -10,6 +10,7 @@ const MAX_CMD_LEN: usize = 100;
 
 struct CommandEntry<T> {
     cmd: &'static str,
+    description: &'static str,
     payload: fn(&mut T),
 }
 
@@ -31,11 +32,17 @@ impl<T> CommandCenter<T> {
     pub fn add_command(
         &mut self,
         cmd: &'static str,
+        description: &'static str,
         payload: fn(&mut T),
     ) {
+        if cmd == "help" {
+            panic!("Do not add help");
+        }
+
         let id = self.cmds.len();
         self.cmds.push(CommandEntry {
             cmd,
+            description,
             payload,
         });
 
@@ -137,6 +144,12 @@ impl<T> CommandCenter<T> {
         let s = &self.buff[1..];
         let mut parts = s.split_ascii_whitespace();
         let Some(cmd) = parts.next() else { return; };
+
+        if cmd == "help" {
+            self.perform_help();
+            return;
+        }
+
         let Some(entry) = self.cmd_table.resolve_str(cmd)
         else {
             error!("No such command: {cmd:?}");
@@ -144,5 +157,11 @@ impl<T> CommandCenter<T> {
         };
 
         (self.cmds[entry].payload)(input);
+    }
+
+    fn perform_help(&self) {
+        for cmd in self.cmds.iter() {
+            info!("{} -- {}", cmd.cmd, cmd.description);
+        }
     }
 }

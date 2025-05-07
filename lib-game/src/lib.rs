@@ -125,6 +125,7 @@ pub struct App {
 
     accumelated_time: f32,
     draw_world: bool,
+    freeze: bool,
 
     pub render: Render,
     sound: SoundDirector,
@@ -143,6 +144,7 @@ impl App {
 
             accumelated_time: 0.0,
             draw_world: true,
+            freeze: false,
 
             render: Render::new(),
             sound: SoundDirector::new().await?,
@@ -174,9 +176,31 @@ impl App {
     ) {
         let mut debug = DebugStuff::new();
 
-        debug.cmd.add_command("hide_world", |app| {
-            app.draw_world = false;
-        });
+        debug.cmd.add_command(
+            "f", 
+            "freeze the app", 
+            |app| app.freeze = true,
+        );
+        debug.cmd.add_command(
+            "uf", 
+            "unfreeze the app",
+            |app| app.freeze = false,
+        );
+        debug.cmd.add_command(
+            "hw", 
+            "hide the world rendering",
+            |app| app.draw_world = false,
+        );
+        debug.cmd.add_command(
+            "sw", 
+            "show the world rendering", 
+            |app| app.draw_world = true,
+        );
+        debug.cmd.add_command(
+            "reset", 
+            "reset app back to the start state",
+            |app| app.state = AppState::Start,
+        );
 
         sys::done_loading();
 
@@ -317,11 +341,11 @@ impl App {
         }
 
         /* Debug freeze */
-        if debug.cmd.should_pause() && self.state == AppState::Active {
+        if (debug.cmd.should_pause() || self.freeze) && self.state == AppState::Active {
             self.state = AppState::DebugFreeze;
             return false;
         }
-        if !debug.cmd.should_pause() && self.state == AppState::DebugFreeze {
+        if !(debug.cmd.should_pause() || self.freeze) && self.state == AppState::DebugFreeze {
             self.state = AppState::Active;
             return false;
         }
