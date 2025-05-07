@@ -1,4 +1,4 @@
-use std::{any::{type_name, TypeId}, hash::Hash};
+use std::any::{type_name, TypeId};
 
 use hashbrown::HashMap;
 use macroquad::time::get_time;
@@ -47,11 +47,11 @@ impl SysProfiler {
 
     pub fn log(&self) {
         for entry in self.storage.values() {
-            dump!("{}: {} {:.3} {:.3}", entry.hits, entry.name, entry.avg * 1000.0, entry.max * 1000.0);
+            dump!("{}: {} {:.3} {:.3}", entry.name, entry.hits, entry.avg * 1000.0, entry.max * 1000.0);
         }
     }
 
-    pub fn run<T: 'static, F: FnOnce()>(&mut self, f: F, sample: T) {
+    pub fn run<T: 'static, F: FnOnce()>(&mut self, f: F, _sample: T) {
         let entry = self.storage.entry(
             TypeId::of::<T>()
         ).or_insert_with(|| ProfilerEntry {
