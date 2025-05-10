@@ -116,7 +116,8 @@ impl PhysicsState {
             ColliderBuilder::new(collider_shape)
                 .collision_groups(groups)
                 .mass(mass)
-                .enabled(is_enabled),
+                .enabled(is_enabled)
+                .friction(0.1),
             body.clone(),
             &mut self.bodies,
         );
