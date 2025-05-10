@@ -141,6 +141,64 @@ pub fn brute_ai(
     }
 }
 
+pub fn stalker_ai(
+    brain: UniqueView<SwarmBrain>,
+    brute_tag: View<StalkerTag>,
+    pos: View<Transform>,
+    state: View<EnemyState>,
+    mut force: ViewMut<ForceApplier>,
+    tile_storage: View<TileStorage>,
+    smell: View<TileSmell>,
+) {
+    let Some(storage) = tile_storage.iter().next() else {
+        return;
+    };
+    let target = match &*brain {
+        SwarmBrain::Chase { pos } => *pos,
+        SwarmBrain::Panic { .. } => return,
+    };
+
+    for (enemy_tf, _, enemy_state, force) in (&pos, &brute_tag, &state, &mut force).iter() {
+        if !matches!(enemy_state, EnemyState::Free | EnemyState::Stunned { .. }) {
+            continue;
+        }
+
+        let mut found = false;
+        let sx = (enemy_tf.pos.x / 32.0) as usize;
+        let sy = (enemy_tf.pos.y / 32.0) as usize;
+        'outer: for sx in ((sx.saturating_sub(1))..(sx+1)) {
+            for sy in ((sy.saturating_sub(1))..(sy+1)) {
+                found = sample_spot(storage, &smell, sx, sy);
+                if found { break 'outer; }
+            }
+        }
+
+        if found { continue; }
+
+        let dr = target - enemy_tf.pos;
+        force.force += dr.normalize_or_zero() * BRUTE_CHASE_FORCE;
+    }
+}
+
+fn sample_spot(
+    storage: &TileStorage,
+    smell: &View<TileSmell>,
+    sx: usize,
+    sy: usize
+) -> bool {
+    let sample = storage.get(sx, sy)
+        .and_then(|x| smell.get(x).ok())
+        .map(|x| *x);
+
+    if let Some(sample) = sample {
+        if sample.time_left <= 2.5 && sample.time_left >= 1.0 {
+            return true;
+        }
+    }    
+
+    false
+}
+
 // pub fn brute_ai(
 //     dt: f32,
 //     this: UniqueView<Game>,

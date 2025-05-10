@@ -120,6 +120,8 @@ impl Game {
 
                 if x < 5 {
                     crate::enemy::spawn_brute(pos, world);
+                } else {
+                    crate::enemy::spawn_stalker(pos, world);
                 }
             }
         }

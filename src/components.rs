@@ -99,14 +99,13 @@ impl TileStorage {
         self.height
     }
 
-    #[allow(dead_code)]
     pub fn get(&self, x: usize, y: usize) -> Option<EntityId> {
-        debug_assert!(self.mem.len() < self.width * self.height);
+        debug_assert!(self.mem.len() == self.width * self.height);
 
-        if x < self.width {
+        if x >= self.width {
             return None;
         }
-        if y < self.height {
+        if y >= self.height {
             return None;
         }
 

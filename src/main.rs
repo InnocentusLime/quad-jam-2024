@@ -93,6 +93,7 @@ async fn main() {
             if world.run(Game::should_ai) {
                 world.run_with_data(update_brain, dt); 
                 world.run(brute_ai);
+                world.run(stalker_ai);
             }
         },
         |_dt, world| {

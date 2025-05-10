@@ -31,15 +31,18 @@ pub fn player_step_smell(
     let Some(storage) = tile_storage.iter().next() else {
         return;
     };
-
-    for (x, y, id) in storage.iter_poses() {
-        let px = ((player_pos.x + PLAYER_SIZE / 2.0) / 32.0) as usize;
-        let py = ((player_pos.y + PLAYER_SIZE / 2.0) / 32.0) as usize;
-        let Ok(mut smell) = (&mut smell).get(id)
-            else { continue; };
-
-        if x != px || y != py { continue; }
-        smell.time_left = SMELL_AFTER_PLAYER;
+    let px = ((player_pos.x) / 32.0) as usize;
+    let py = ((player_pos.y) / 32.0) as usize;
+   
+    for sx in (px.saturating_sub(1))..(px+1) {
+        for sy in (py.saturating_sub(1))..(py+1) {
+            let Some(id) = storage.get(sx, sy)
+                else { continue; };
+            let Ok(mut smell) = (&mut smell).get(id)
+                else { continue; };
+        
+            smell.time_left = SMELL_AFTER_PLAYER;
+        }
     }
 }
 
