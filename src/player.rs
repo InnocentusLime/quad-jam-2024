@@ -10,6 +10,7 @@ pub const PLAYER_RAY_LEN_NUDGE: f32 = 8.0;
 pub const PLAYER_RAY_WIDTH: f32 = 3.0;
 pub const PLAYER_SPAWN_HEALTH: i32 = 4;
 pub const PLAYER_HIT_COOLDOWN: f32 = 2.0;
+pub const PLAYER_SIZE: f32 = 16.0;
 
 pub const DISTANCE_EPS: f32 = 0.01;
 
@@ -32,8 +33,8 @@ pub fn spawn_player(world: &mut World) -> EntityId {
                 filter: groups::PLAYER_INTERACT,
             },
             ColliderTy::Box {
-                width: 16.0,
-                height: 16.0,
+                width: PLAYER_SIZE,
+                height: PLAYER_SIZE,
             },
             1.0,
             true,

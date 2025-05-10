@@ -7,7 +7,9 @@ use shipyard::World;
 
 use crate::enemy::*;
 use crate::player::*;
+use crate::tile::*;
 
+mod tile;
 mod player;
 mod enemy;
 mod components;
@@ -65,6 +67,8 @@ async fn main() {
     let mut app = lib_game::App::new(&window_conf()).await.unwrap();
 
     app.add_debug_draw("phys", draw_physics_debug);
+    app.add_debug_draw("smell", debug_draw_tile_smell);
+
     let debug_commands: Vec<(&'static str, &'static str, fn(&mut World, &[&str]))> = vec![
         ("noai", "disable ai", |world: &mut World, _| {
             world.run(|mut game: UniqueViewMut<Game>| game.do_ai = false);
@@ -96,6 +100,8 @@ async fn main() {
         },
         |dt, world| {
             world.run(Game::update_camera);
+            world.run_with_data(tick_smell, dt);
+            world.run(player_step_smell);
             world.run(player_ammo_pickup);
             world.run(player_ray_effect);
             world.run(Game::reset_amo_pickup);

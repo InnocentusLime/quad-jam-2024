@@ -44,7 +44,12 @@ fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut Wor
                     BodyKind::Static,
                 ),),
             ),
-            TileType::Ground => (),
+            TileType::Ground => world.add_component(
+                tile, 
+                (
+                    TileSmell { time_left: 0.0 },
+                ),
+            ),
         }
     }
 

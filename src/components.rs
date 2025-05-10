@@ -152,3 +152,8 @@ pub enum SwarmBrain {
         pos: Vec2,
     },
 }
+
+#[derive(Debug, Clone, Copy, Component)]
+pub struct TileSmell {
+    pub time_left: f32,
+}
