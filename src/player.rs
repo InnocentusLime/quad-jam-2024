@@ -4,7 +4,7 @@ use macroquad::prelude::*;
 use crate::game::Game;
 use shipyard::{EntityId, Get, IntoIter, UniqueView, UniqueViewMut, View, ViewMut, World};
 
-pub const PLAYER_SPEED: f32 = 128.0;
+pub const PLAYER_SPEED: f32 = 132.0;
 pub const PLAYER_RAY_LINGER: f32 = 2.0;
 pub const PLAYER_RAY_LEN_NUDGE: f32 = 8.0;
 pub const PLAYER_RAY_WIDTH: f32 = 3.0;
@@ -217,7 +217,7 @@ pub fn player_damage_state(dt: f32, mut player_dmg: ViewMut<PlayerDamageState>) 
     
 pub fn player_ray_effect(
     this: UniqueView<Game>,
-    mut know: UniqueViewMut<SwarmKnowledge>,
+    mut brain: UniqueViewMut<SwarmBrain>,
     beam_tag: View<BeamTag>,
     mut tf: ViewMut<Transform>,
     mut ray_tag: ViewMut<RayTag>,
@@ -239,6 +239,7 @@ pub fn player_ray_effect(
         score.0 += (hitcount as u32) * mul_table[hitcount.clamp(0, mul_table.len() - 1)];
 
         let mut overall_dir = Vec2::ZERO; 
+        // TODO: use more general damage notifications
         for col in &beam_tag.overlaps {
             let (mut enemy_state, enemy_tf) = (&mut enemy_state, &tf).get(*col).unwrap();
             *enemy_state = EnemyState::Stunned {
@@ -247,9 +248,15 @@ pub fn player_ray_effect(
             let dir = (player_tf.pos - enemy_tf.pos).normalize_or_zero();
             overall_dir = (overall_dir + dir).normalize_or_zero();
         }
-            
-        know.last_hit.anger_time = 0.8;
-        know.last_hit.anger_dir = overall_dir;
+
+        // TODO: move swarm notification out
+        if hitcount > 0 {
+            // *brain = SwarmBrain::Panic { 
+            //     time_left: 0.8, 
+            //     pos: overall_dir, 
+            // };
+        }
+       
         off = shootdir * (beam_tag.length - 2.0 * PLAYER_RAY_LEN_NUDGE)
     }
 

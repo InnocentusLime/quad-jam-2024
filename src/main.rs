@@ -74,7 +74,8 @@ async fn main() {
         |input, dt, world| {
             world.run_with_data(player_controls, (input, dt));
             world.run_with_data(player_ray_controls, input);
-            world.run_with_data(brute_ai, dt);
+            world.run_with_data(update_brain, dt);
+            world.run(cell_ai);
         },
         |_dt, world| {
             world.run(player_sensor_pose);
@@ -85,7 +86,7 @@ async fn main() {
             world.run(player_ray_effect);
             world.run(Game::reset_amo_pickup);
             world.run_with_data(enemy_states, dt);
-            world.run(enemy_state_data);
+            world.run(cell_phys_data);
             world.run(player_damage);
             world.run_with_data(player_damage_state, dt);
             world.run(Game::reward_enemies);

@@ -139,13 +139,13 @@ pub enum PlayerDamageState {
     Cooldown(f32),
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct SwarmLastHit {
-    pub anger_time: f32,
-    pub anger_dir: Vec2,
-}
-
 #[derive(Debug, Clone, Copy, Unique)]
-pub struct SwarmKnowledge {
-    pub last_hit: SwarmLastHit,
+pub enum SwarmBrain {
+    Chase {
+        pos: Vec2,
+    },
+    Panic {
+        time_left: f32,
+        pos: Vec2,
+    },
 }
