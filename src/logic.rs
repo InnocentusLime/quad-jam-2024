@@ -253,6 +253,9 @@ impl Game {
         );
 
         world.add_unique(PlayerScore(0));
+        world.add_unique(SwarmKnowledge {
+            last_hit: SwarmLastHit { anger_time: 0.0, anger_dir: Vec2::ZERO, },
+        });
 
         Self {
             player,
@@ -379,6 +382,7 @@ impl Game {
 
     pub fn player_ray_effect(
         this: UniqueView<Game>,
+        mut know: UniqueViewMut<SwarmKnowledge>,
         beam_tag: View<BeamTag>,
         mut tf: ViewMut<Transform>,
         mut ray_tag: ViewMut<RayTag>,
@@ -390,21 +394,27 @@ impl Game {
         let mul_table = [0, 1, 1, 1, 2, 2, 2, 10, 10, 20];
         let mut off = Vec2::ZERO;
 
-        for (tf, ray_tag, beam_tag) in (&tf, &mut ray_tag, &beam_tag).iter() {
+        for (ray_tf, ray_tag, beam_tag) in (&tf, &mut ray_tag, &beam_tag).iter() {
             if !ray_tag.shooting {
                 return;
             }
 
-            let shootdir = Vec2::from_angle(tf.angle);
+            let shootdir = Vec2::from_angle(ray_tf.angle);
             let hitcount = beam_tag.overlaps.len();
             score.0 += (hitcount as u32) * mul_table[hitcount.clamp(0, mul_table.len() - 1)];
 
+            let mut overall_dir = Vec2::ZERO; 
             for col in &beam_tag.overlaps {
-                *(&mut enemy_state).get(*col).unwrap() = EnemyState::Stunned {
+                let (mut enemy_state, enemy_tf) = (&mut enemy_state, &tf).get(*col).unwrap();
+                *enemy_state = EnemyState::Stunned {
                     left: PLAYER_HIT_COOLDOWN,
                 };
+                let dir = (player_tf.pos - enemy_tf.pos).normalize_or_zero();
+                overall_dir = (overall_dir + dir).normalize_or_zero();
             }
-
+                
+            know.last_hit.anger_time = 0.8;
+            know.last_hit.anger_dir = overall_dir;
             off = shootdir * (beam_tag.length - 2.0 * PLAYER_RAY_LEN_NUDGE)
         }
 
@@ -462,7 +472,9 @@ impl Game {
     }
 
     pub fn brute_ai(
+        dt: f32,
         this: UniqueView<Game>,
+        mut know: UniqueViewMut<SwarmKnowledge>,
         brute_tag: View<BruteTag>,
         pos: View<Transform>,
         state: View<EnemyState>,
@@ -487,7 +499,15 @@ impl Game {
 
             let dr = player_pos - enemy_tf.pos;
 
-            force.force += dr.normalize_or_zero() * BRUTE_CHASE_FORCE;
+            if know.last_hit.anger_time <= 0.0 {
+                force.force += dr.normalize_or_zero() * BRUTE_CHASE_FORCE;
+            } else {
+                force.force += know.last_hit.anger_dir * (BRUTE_CHASE_FORCE * 3.0);
+            }
+        }
+                
+        if know.last_hit.anger_time > 0.0 {
+            know.last_hit.anger_time -= dt;
         }
     }
 

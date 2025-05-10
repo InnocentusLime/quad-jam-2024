@@ -69,7 +69,7 @@ async fn main() {
         |input, dt, world| {
             world.run_with_data(Game::player_controls, (input, dt));
             world.run_with_data(Game::player_ray_controls, input);
-            world.run(Game::brute_ai);
+            world.run_with_data(Game::brute_ai, dt);
         },
         |_dt, world| {
             world.run(Game::player_sensor_pose);
