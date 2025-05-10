@@ -2,6 +2,8 @@ use lib_game::{draw_physics_debug, FontKey, Render, TextureKey};
 use game::{decide_next_state, Game};
 use macroquad::prelude::*;
 use render::render_toplevel_ui;
+use shipyard::UniqueViewMut;
+use shipyard::World;
 
 use crate::enemy::*;
 use crate::player::*;
@@ -63,10 +65,20 @@ async fn main() {
     let mut app = lib_game::App::new(&window_conf()).await.unwrap();
 
     app.add_debug_draw("phys", draw_physics_debug);
+    let debug_commands: Vec<(&'static str, &'static str, fn(&mut World, &[&str]))> = vec![
+        ("noai", "disable ai", |world: &mut World, _| {
+            world.run(|mut game: UniqueViewMut<Game>| game.do_ai = false);
+        }),
+        ("ai", "enable ai", |world: &mut World, _| {
+            world.run(|mut game: UniqueViewMut<Game>| game.do_ai = true);
+        }),
+    ];
 
     load_graphics(&mut app.render).await.unwrap();
 
+
     app.run(
+        debug_commands,
         |world| {
             let game = Game::new(world);
             world.add_unique(game);
@@ -74,8 +86,10 @@ async fn main() {
         |input, dt, world| {
             world.run_with_data(player_controls, (input, dt));
             world.run_with_data(player_ray_controls, input);
-            world.run_with_data(update_brain, dt);
-            world.run(brute_ai);
+            if world.run(Game::should_ai) {
+                world.run_with_data(update_brain, dt); 
+                world.run(brute_ai);
+            }
         },
         |_dt, world| {
             world.run(player_sensor_pose);

@@ -53,6 +53,7 @@ fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut Wor
 
 #[derive(Unique)]
 pub struct Game {
+    pub do_ai: bool,
     pub player: EntityId,
     pub _boxes: [EntityId; 4],
     pub _tilemap: EntityId,
@@ -153,11 +154,16 @@ impl Game {
         );
 
         Self {
+            do_ai: true,
             player: crate::player::spawn_player(world),
             _boxes: boxes,
             _tilemap: tilemap,
             camera: Camera2D::default(),
         }
+    }
+
+    pub fn should_ai(this: UniqueView<Game>) -> bool {
+        this.do_ai
     }
 
     pub fn mouse_pos(&self) -> Vec2 {

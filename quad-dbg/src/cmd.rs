@@ -11,7 +11,7 @@ const MAX_CMD_LEN: usize = 100;
 struct CommandEntry<T> {
     cmd: &'static str,
     description: &'static str,
-    payload: fn(&mut T, &[&str]),
+    payload: Box<dyn FnMut(&mut T, &[&str])>,
 }
 
 pub struct CommandCenter<T> {
@@ -33,7 +33,7 @@ impl<T> CommandCenter<T> {
         &mut self,
         cmd: &'static str,
         description: &'static str,
-        payload: fn(&mut T, &[&str]),
+        payload: impl FnMut(&mut T, &[&str]) + 'static,
     ) {
         if cmd == "help" {
             panic!("Do not add help");
@@ -43,7 +43,7 @@ impl<T> CommandCenter<T> {
         self.cmds.push(CommandEntry {
             cmd,
             description,
-            payload,
+            payload: Box::new(payload),
         });
 
         self.cmd_table.add_entry(cmd, id);
