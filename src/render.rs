@@ -98,7 +98,7 @@ pub fn render_brute(
 
         let r_enemy = render
             .world
-            .add_entity((*pos, CircleShape { radius: 8.0 }, Tint(color)));
+            .add_entity((*pos, CircleShape { radius: 6.0 }, Tint(color)));
 
         if is_flickering {
             render.world.add_component(r_enemy, Flicker);

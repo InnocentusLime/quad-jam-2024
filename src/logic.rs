@@ -14,7 +14,7 @@ pub const PLAYER_RAY_LEN_NUDGE: f32 = 8.0;
 pub const PLAYER_RAY_WIDTH: f32 = 3.0;
 pub const PLAYER_SPAWN_HEALTH: i32 = 4;
 pub const PLAYER_HIT_COOLDOWN: f32 = 2.0;
-pub const BRUTE_SPAWN_HEALTH: i32 = 3;
+pub const BRUTE_SPAWN_HEALTH: i32 = 2;
 
 pub const BRUTE_GROUP_FORCE: f32 = 0.01 * 22.0;
 pub const BRUTE_CHASE_FORCE: f32 = 40.0 * 24.0;
@@ -90,7 +90,7 @@ impl Game {
                     memberships: groups::NPCS,
                     filter: groups::NPCS_INTERACT,
                 },
-                ColliderTy::Circle { radius: 8.0 },
+                ColliderTy::Circle { radius: 6.0 },
                 5.0,
                 true,
                 BodyKind::Dynamic,
@@ -210,9 +210,9 @@ impl Game {
             ),
         ));
 
-        for x in 0..5 {
-            for y in 0..5 {
-                let pos = vec2(x as f32 * 16.0 + 100.0, y as f32 * 16.0 + 200.0);
+        for x in 0..8 {
+            for y in 0..8 {
+                let pos = vec2(x as f32 * 12.0 + 100.0, y as f32 * 12.0 + 200.0);
 
                 Self::spawn_brute(pos, world);
             }
