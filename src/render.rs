@@ -4,7 +4,7 @@ use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, UniqueView, View};
 
 use crate::components::*;
-use crate::logic::*;
+use crate::game::*;
 use lib_game::*;
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
@@ -92,7 +92,7 @@ pub fn render_brute(
             continue;
         }
 
-        let k = hp.0 as f32 / BRUTE_SPAWN_HEALTH as f32;
+        let k = hp.0 as f32 / crate::enemy::BRUTE_SPAWN_HEALTH as f32;
         let is_flickering = matches!(state, EnemyState::Stunned { .. });
         let color = Color::new(RED.r * k, RED.g * k, RED.b * k, 1.0);
 
@@ -136,11 +136,11 @@ pub fn render_rays(
             *pos,
             RectShape {
                 origin: vec2(0.0, 0.5),
-                height: PLAYER_RAY_WIDTH,
+                height: crate::player::PLAYER_RAY_WIDTH,
                 width: beam.length,
             },
             Scale(vec2(1.0, 1.0)),
-            Timed::new(PLAYER_RAY_LINGER),
+            Timed::new(crate::player::PLAYER_RAY_LINGER),
             VertShrinkFadeoutAnim,
         ));
     }

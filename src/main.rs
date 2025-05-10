@@ -1,10 +1,15 @@
 use lib_game::{draw_physics_debug, FontKey, Render, TextureKey};
-use logic::{decide_next_state, Game};
+use game::{decide_next_state, Game};
 use macroquad::prelude::*;
 use render::render_toplevel_ui;
 
+use crate::enemy::*;
+use crate::player::*;
+
+mod player;
+mod enemy;
 mod components;
-mod logic;
+mod game;
 mod render;
 mod util;
 
@@ -67,22 +72,22 @@ async fn main() {
             world.add_unique(game);
         },
         |input, dt, world| {
-            world.run_with_data(Game::player_controls, (input, dt));
-            world.run_with_data(Game::player_ray_controls, input);
-            world.run_with_data(Game::brute_ai, dt);
+            world.run_with_data(player_controls, (input, dt));
+            world.run_with_data(player_ray_controls, input);
+            world.run_with_data(brute_ai, dt);
         },
         |_dt, world| {
-            world.run(Game::player_sensor_pose);
+            world.run(player_sensor_pose);
         },
         |dt, world| {
             world.run(Game::update_camera);
-            world.run(Game::player_ammo_pickup);
-            world.run(Game::player_ray_effect);
+            world.run(player_ammo_pickup);
+            world.run(player_ray_effect);
             world.run(Game::reset_amo_pickup);
-            world.run_with_data(Game::enemy_states, dt);
-            world.run(Game::enemy_state_data);
-            world.run(Game::player_damage);
-            world.run_with_data(Game::player_damage_state, dt);
+            world.run_with_data(enemy_states, dt);
+            world.run(enemy_state_data);
+            world.run(player_damage);
+            world.run_with_data(player_damage_state, dt);
             world.run(Game::reward_enemies);
             world.run(Game::count_rewards);
 
