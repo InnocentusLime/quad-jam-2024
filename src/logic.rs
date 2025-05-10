@@ -444,7 +444,7 @@ impl Game {
                     };
                 }
                 EnemyState::Stunned { .. } => {
-                    rb.enabled = false;
+                    rb.enabled = true;
                     rb.groups = InteractionGroups {
                         memberships: groups::NPCS,
                         filter: groups::NPCS_INTERACT,
@@ -471,12 +471,12 @@ impl Game {
         let player_pos = pos.get(this.player).unwrap().pos;
 
         for (enemy_tf, _, enemy_state, force) in (&pos, &brute_tag, &state, &mut force).iter() {
-            if !matches!(enemy_state, EnemyState::Free) {
+            if !matches!(enemy_state, EnemyState::Free | EnemyState::Stunned { .. }) {
                 continue;
             }
 
             for (fella_tf, _, fella_state) in (&pos, &brute_tag, &state).iter() {
-                if !matches!(fella_state, EnemyState::Free) {
+                if !matches!(fella_state, EnemyState::Free | EnemyState::Stunned { .. }) {
                     continue;
                 }
 
