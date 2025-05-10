@@ -112,7 +112,9 @@ impl Game {
             for y in 0..8 {
                 let pos = vec2(x as f32 * 12.0 + 100.0, y as f32 * 12.0 + 200.0);
 
-                crate::enemy::spawn_brute(pos, world);
+                if x < 5 {
+                    crate::enemy::spawn_brute(pos, world);
+                }
             }
         }
 

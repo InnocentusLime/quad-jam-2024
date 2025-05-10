@@ -39,6 +39,34 @@ pub fn spawn_brute(pos: Vec2, world: &mut World) {
     ));
 }
 
+pub fn spawn_stalker(pos: Vec2, world: &mut World) {
+    world.add_unique(SwarmBrain::Chase { 
+        pos: Vec2::ZERO,
+    });
+    
+    let _brute = world.add_entity((
+        Transform { pos, angle: 0.0 },
+        RewardInfo {
+            state: RewardState::Locked,
+            amount: REWARD_PER_ENEMY,
+        },
+        StalkerTag,
+        EnemyState::Free,
+        Health(BRUTE_SPAWN_HEALTH),
+        BodyTag::new(
+            InteractionGroups {
+                memberships: groups::NPCS,
+                filter: groups::NPCS_INTERACT,
+            },
+            ColliderTy::Circle { radius: 6.0 },
+            5.0,
+            true,
+            BodyKind::Dynamic,
+        ),
+        ForceApplier { force: Vec2::ZERO },
+        DamageTag,
+    ));
+}
 
 pub fn enemy_states(dt: f32, mut enemy: ViewMut<EnemyState>, mut hp: ViewMut<Health>) {
     for (enemy, hp) in (&mut enemy, &mut hp).iter() {
@@ -91,7 +119,7 @@ pub fn update_brain(
     }
 }
 
-pub fn cell_ai(
+pub fn brute_ai(
     brain: UniqueView<SwarmBrain>,
     brute_tag: View<BruteTag>,
     pos: View<Transform>,

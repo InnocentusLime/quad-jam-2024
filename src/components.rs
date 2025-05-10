@@ -57,6 +57,9 @@ pub struct PlayerDamageSensorTag;
 pub struct BruteTag;
 
 #[derive(Debug, Clone, Copy, Component)]
+pub struct StalkerTag;
+
+#[derive(Debug, Clone, Copy, Component)]
 pub struct RayTag {
     pub shooting: bool,
 }
