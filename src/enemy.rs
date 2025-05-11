@@ -6,7 +6,7 @@ use shipyard::{Get, IntoIter, UniqueView, UniqueViewMut, View, ViewMut, World};
 
 pub const BRUTE_SPAWN_HEALTH: i32 = 2;
 pub const BRUTE_GROUP_FORCE: f32 = 0.01 * 22.0;
-pub const BRUTE_CHASE_FORCE: f32 = 1000.0;
+pub const BRUTE_CHASE_FORCE: f32 = 900.0;
 pub const REWARD_PER_ENEMY: u32 = 10;
 pub const BRAIN_TARGET_SPEED: f32 = 130.0;
     
@@ -34,7 +34,7 @@ pub fn spawn_brute(pos: Vec2, world: &mut World) {
             true,
             BodyKind::Dynamic,
         ),
-        ForceApplier { force: Vec2::ZERO },
+        ImpulseApplier { impulse: Vec2::ZERO },
         DamageTag,
     ));
 }
@@ -88,7 +88,7 @@ pub fn spawn_main_cell(pos: Vec2, world: &mut World) {
             true,
             BodyKind::Dynamic,
         ),
-        ForceApplier { force: Vec2::ZERO },
+        ImpulseApplier { impulse: Vec2::ZERO },
         DamageTag,
     ));
 }
@@ -126,32 +126,19 @@ pub fn main_cell_ai(
     player_tag:  View<PlayerTag>,
     mut pos: ViewMut<Transform>,
     state: View<EnemyState>,
-    mut force: ViewMut<ForceApplier>,
+    mut impulse: ViewMut<ImpulseApplier>,
 ) {
     let target_tf = (&pos, &player_tag).iter()
         .next().unwrap();
     let target_pos = target_tf.0.pos;
     
-    for (enemy_tf, _, enemy_state, force) in (&mut pos, &main_tag, &state, &mut force).iter() {
+    for (enemy_tf, _, enemy_state, impulse) in (&mut pos, &main_tag, &state, &mut impulse).iter() {
         if !matches!(enemy_state, EnemyState::Free | EnemyState::Stunned { .. }) {
             continue;
         }
 
         let dr = target_pos - enemy_tf.pos;
-        force.force += dr.normalize_or_zero() * BRUTE_CHASE_FORCE;
-
-        if is_key_down(KeyCode::U) {
-            force.force += vec2(0.0, -1.0) * 200000.0;
-        }
-        if is_key_down(KeyCode::J) {
-            force.force += vec2(0.0, 1.0) * 200000.0;
-        }
-        if is_key_down(KeyCode::H) {
-            force.force += vec2(-1.0, 0.0) * 200000.0;
-        }
-        if is_key_down(KeyCode::K) {
-            force.force += vec2(1.0, 0.0) * 200000.0;
-        }
+        impulse.impulse += dr.normalize_or_zero() * 1600.0;
     }
 }
 
@@ -181,40 +168,25 @@ pub fn update_brain(
 }
 
 pub fn brute_ai(
-    brain: UniqueView<SwarmBrain>,
+    main_tag: View<MainCellTag>,
     brute_tag: View<BruteTag>,
     pos: View<Transform>,
     state: View<EnemyState>,
-    mut force: ViewMut<ForceApplier>,
+    mut impulse: ViewMut<ImpulseApplier>,
 ) {
-    let target = match &*brain {
-        SwarmBrain::Chase { pos } => *pos,
-        SwarmBrain::Panic { .. } => return,
+    let target = match (&pos, &main_tag).iter().next() {
+        Some((x, _)) => x.pos,
+        _ => return,
     };
 
-    for (enemy_tf, _, enemy_state, force) in (&pos, &brute_tag, &state, &mut force).iter() {
+    for (enemy_tf, _, enemy_state, impulse) in (&pos, &brute_tag, &state, &mut impulse).iter() {
         if !matches!(enemy_state, EnemyState::Free | EnemyState::Stunned { .. }) {
             continue;
         }
 
         let dr = target - enemy_tf.pos;
-        // if dr.length() <= 32.0 {
-        //     force.force -= dr.normalize_or_zero() * BRUTE_CHASE_FORCE;
-        // } else { 
-        //     let k = 1.0 / (dr.length() / 48.0);
-        //     force.force += dr.normalize_or_zero() * BRUTE_CHASE_FORCE * k;
-        // }
-        force.force += dr.normalize_or_zero() * BRUTE_CHASE_FORCE;
-
-        // for (other_tf, _, state) in (&pos, &brute_tag, &state).iter() {
-        //     if !matches!(enemy_state, EnemyState::Free | EnemyState::Stunned { .. }) {
-        //         continue;
-        //     }
-        //     let dr = other_tf.pos - enemy_tf.pos;
-        //     if dr.length() <= 16.0 {
-        //         force.force -= dr.normalize_or_zero() * (0.8 * BRUTE_CHASE_FORCE);
-        //     }
-        // }
+        let k = (dr.length() / 64.0).powf(1.4);
+        impulse.impulse += dr.normalize_or_zero() * k * 10.0;
     }
 }
 
