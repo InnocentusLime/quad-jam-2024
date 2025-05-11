@@ -118,13 +118,15 @@ impl Game {
             for y in 0..8 {
                 let pos = vec2(x as f32 * 12.0 + 100.0, y as f32 * 12.0 + 200.0);
 
-                if x < 5 {
+                // if x < 5 {
                     crate::enemy::spawn_brute(pos, world);
-                } else {
-                    crate::enemy::spawn_stalker(pos, world);
-                }
+                // } else {
+                    // crate::enemy::spawn_stalker(pos, world);
+                // }
             }
         }
+
+        crate::enemy::spawn_main_cell(vec2(64.0, 128.0), world);
 
         /* Uncomment for a tough topology */
         // for x in 0..5 {

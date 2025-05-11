@@ -59,7 +59,32 @@ pub fn spawn_stalker(pos: Vec2, world: &mut World) {
                 filter: groups::NPCS_INTERACT,
             },
             ColliderTy::Circle { radius: 6.0 },
-            5.0,
+            2.0,
+            true,
+            BodyKind::Dynamic,
+        ),
+        ForceApplier { force: Vec2::ZERO },
+        DamageTag,
+    ));
+}
+
+pub fn spawn_main_cell(pos: Vec2, world: &mut World) {
+    let _brute = world.add_entity((
+        Transform { pos, angle: 0.0 },
+        RewardInfo {
+            state: RewardState::Locked,
+            amount: REWARD_PER_ENEMY,
+        },
+        MainCellTag,
+        EnemyState::Free,
+        Health(BRUTE_SPAWN_HEALTH),
+        BodyTag::new(
+            InteractionGroups {
+                memberships: groups::NPCS,
+                filter: groups::NPCS_INTERACT,
+            },
+            ColliderTy::Circle { radius: 12.0 },
+            1000.0,
             true,
             BodyKind::Dynamic,
         ),
@@ -96,20 +121,56 @@ pub fn cell_phys_data(mut rbs: ViewMut<BodyTag>, mut enemy: ViewMut<EnemyState>)
     }
 }
 
+pub fn main_cell_ai(
+    main_tag: View<MainCellTag>,
+    player_tag:  View<PlayerTag>,
+    mut pos: ViewMut<Transform>,
+    state: View<EnemyState>,
+    mut force: ViewMut<ForceApplier>,
+) {
+    let target_tf = (&pos, &player_tag).iter()
+        .next().unwrap();
+    let target_pos = target_tf.0.pos;
+    
+    for (enemy_tf, _, enemy_state, force) in (&mut pos, &main_tag, &state, &mut force).iter() {
+        if !matches!(enemy_state, EnemyState::Free | EnemyState::Stunned { .. }) {
+            continue;
+        }
+
+        let dr = target_pos - enemy_tf.pos;
+        force.force += dr.normalize_or_zero() * BRUTE_CHASE_FORCE;
+
+        if is_key_down(KeyCode::U) {
+            force.force += vec2(0.0, -1.0) * 200000.0;
+        }
+        if is_key_down(KeyCode::J) {
+            force.force += vec2(0.0, 1.0) * 200000.0;
+        }
+        if is_key_down(KeyCode::H) {
+            force.force += vec2(-1.0, 0.0) * 200000.0;
+        }
+        if is_key_down(KeyCode::K) {
+            force.force += vec2(1.0, 0.0) * 200000.0;
+        }
+    }
+}
+
 pub fn update_brain(
     dt: f32,
-    this: UniqueView<Game>,
     pos: View<Transform>,
-    brute_tag: View<BruteTag>,
+    main_tag: View<MainCellTag>,
     mut brain: UniqueViewMut<SwarmBrain>,
 ) {
-    let player_pos = pos.get(this.player).unwrap().pos;
+    let target_tf = (&pos, &main_tag).iter()
+        .next().unwrap();
+    let target_pos = target_tf.0.pos;
 
     match &mut *brain {
         SwarmBrain::Chase { pos } => {
-            let dr = player_pos - *pos;
+            *pos = target_pos;
+            // let dr = target_pos - *pos;
 
-            *pos += dr.normalize_or_zero() * (BRAIN_TARGET_SPEED * dt);
+            // *pos += dr.normalize_or_zero() * (BRAIN_TARGET_SPEED * dt);
         },
         SwarmBrain::Panic { time_left, .. } if *time_left >= 0.0 => {
             *time_left -= dt;
@@ -137,7 +198,23 @@ pub fn brute_ai(
         }
 
         let dr = target - enemy_tf.pos;
+        // if dr.length() <= 32.0 {
+        //     force.force -= dr.normalize_or_zero() * BRUTE_CHASE_FORCE;
+        // } else { 
+        //     let k = 1.0 / (dr.length() / 48.0);
+        //     force.force += dr.normalize_or_zero() * BRUTE_CHASE_FORCE * k;
+        // }
         force.force += dr.normalize_or_zero() * BRUTE_CHASE_FORCE;
+
+        // for (other_tf, _, state) in (&pos, &brute_tag, &state).iter() {
+        //     if !matches!(enemy_state, EnemyState::Free | EnemyState::Stunned { .. }) {
+        //         continue;
+        //     }
+        //     let dr = other_tf.pos - enemy_tf.pos;
+        //     if dr.length() <= 16.0 {
+        //         force.force -= dr.normalize_or_zero() * (0.8 * BRUTE_CHASE_FORCE);
+        //     }
+        // }
     }
 }
 

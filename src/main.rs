@@ -94,6 +94,7 @@ async fn main() {
                 world.run_with_data(update_brain, dt); 
                 world.run(brute_ai);
                 world.run(stalker_ai);
+                world.run(main_cell_ai);
             }
         },
         |_dt, world| {
@@ -121,6 +122,7 @@ async fn main() {
                 world.run_with_data(render::render_tiles, render);
                 world.run_with_data(render::render_player, render);
                 world.run_with_data(render::render_brute, render);
+                world.run_with_data(render::render_main_cell, render);
                 world.run_with_data(render::render_stalker, render);
                 world.run_with_data(render::render_boxes, render);
                 world.run_with_data(render::render_rays, render);

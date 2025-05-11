@@ -80,6 +80,32 @@ pub fn render_player(
     }
 }
 
+pub fn render_main_cell(
+    render: &mut Render,
+    pos: View<Transform>,
+    brute: View<MainCellTag>,
+    state: View<EnemyState>,
+    hp: View<Health>,
+) {
+    for (_, pos, state, hp) in (&brute, &pos, &state, &hp).iter() {
+        if matches!(state, EnemyState::Dead) {
+            continue;
+        }
+
+        let k = hp.0 as f32 / crate::enemy::BRUTE_SPAWN_HEALTH as f32;
+        let is_flickering = matches!(state, EnemyState::Stunned { .. });
+        let color = Color::new(RED.r * k, RED.g * k, RED.b * k, 1.0);
+
+        let r_enemy = render
+            .world
+            .add_entity((*pos, CircleShape { radius: 12.0 }, Tint(color)));
+
+        if is_flickering {
+            render.world.add_component(r_enemy, Flicker);
+        }
+    }
+}
+
 pub fn render_brute(
     render: &mut Render,
     pos: View<Transform>,

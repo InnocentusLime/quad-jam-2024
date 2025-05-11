@@ -153,6 +153,9 @@ pub enum SwarmBrain {
 }
 
 #[derive(Debug, Clone, Copy, Component)]
+pub struct MainCellTag;
+
+#[derive(Debug, Clone, Copy, Component)]
 pub struct TileSmell {
     pub time_left: f32,
 }
