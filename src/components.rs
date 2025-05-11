@@ -143,6 +143,13 @@ pub enum PlayerDamageState {
 
 #[derive(Debug, Clone, Copy, Unique)]
 pub enum SwarmBrain {
+    Walk {
+        think: f32,
+        dir: Vec2,
+    },
+    Wait {
+        think: f32,
+    },
     Chase {
         pos: Vec2,
     },

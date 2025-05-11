@@ -11,10 +11,6 @@ pub const REWARD_PER_ENEMY: u32 = 10;
 pub const BRAIN_TARGET_SPEED: f32 = 130.0;
     
 pub fn spawn_brute(pos: Vec2, world: &mut World) {
-    world.add_unique(SwarmBrain::Chase { 
-        pos: Vec2::ZERO,
-    });
-    
     let _brute = world.add_entity((
         Transform { pos, angle: 0.0 },
         RewardInfo {
@@ -40,10 +36,6 @@ pub fn spawn_brute(pos: Vec2, world: &mut World) {
 }
 
 pub fn spawn_stalker(pos: Vec2, world: &mut World) {
-    world.add_unique(SwarmBrain::Chase { 
-        pos: Vec2::ZERO,
-    });
-    
     let _brute = world.add_entity((
         Transform { pos, angle: 0.0 },
         RewardInfo {
@@ -69,6 +61,11 @@ pub fn spawn_stalker(pos: Vec2, world: &mut World) {
 }
 
 pub fn spawn_main_cell(pos: Vec2, world: &mut World) {
+    world.add_unique(SwarmBrain::Walk { 
+        dir: Vec2::ZERO,
+        think: 0.0,
+    });
+    
     let _brute = world.add_entity((
         Transform { pos, angle: 0.0 },
         RewardInfo {
@@ -122,48 +119,63 @@ pub fn cell_phys_data(mut rbs: ViewMut<BodyTag>, mut enemy: ViewMut<EnemyState>)
 }
 
 pub fn main_cell_ai(
+    brain: UniqueView<SwarmBrain>,
     main_tag: View<MainCellTag>,
-    player_tag:  View<PlayerTag>,
+    // player_tag:  View<PlayerTag>,
     mut pos: ViewMut<Transform>,
     state: View<EnemyState>,
     mut impulse: ViewMut<ImpulseApplier>,
 ) {
-    let target_tf = (&pos, &player_tag).iter()
-        .next().unwrap();
-    let target_pos = target_tf.0.pos;
+    let dir = match &*brain {
+        SwarmBrain::Walk { dir, .. } => *dir,
+        _ => return,
+    };
+    // let target_tf = (&pos, &player_tag).iter()
+    //     .next().unwrap();
+    // let target_pos = target_tf.0.pos;
     
     for (enemy_tf, _, enemy_state, impulse) in (&mut pos, &main_tag, &state, &mut impulse).iter() {
         if !matches!(enemy_state, EnemyState::Free | EnemyState::Stunned { .. }) {
             continue;
         }
 
-        let dr = target_pos - enemy_tf.pos;
-        impulse.impulse += dr.normalize_or_zero() * 1600.0;
+        // let dr = target_pos - enemy_tf.pos;
+        impulse.impulse += dir.normalize_or_zero() * 1600.0;
     }
 }
 
 pub fn update_brain(
     dt: f32,
     pos: View<Transform>,
+    player_tag: View<PlayerTag>,
     main_tag: View<MainCellTag>,
     mut brain: UniqueViewMut<SwarmBrain>,
 ) {
-    let target_tf = (&pos, &main_tag).iter()
+    let target_tf = (&pos, &player_tag).iter()
+        .next().unwrap();
+    let this_tf = (&pos, &main_tag).iter()
         .next().unwrap();
     let target_pos = target_tf.0.pos;
+    let this_pos = this_tf.0.pos;
 
     match &mut *brain {
-        SwarmBrain::Chase { pos } => {
-            *pos = target_pos;
-            // let dr = target_pos - *pos;
-
-            // *pos += dr.normalize_or_zero() * (BRAIN_TARGET_SPEED * dt);
+        SwarmBrain::Wait { think } if *think <= 0.0 => {
+            let dr = target_pos - this_pos;
+            *brain = SwarmBrain::Walk { 
+                think: 2.0, 
+                dir: dr.normalize_or_zero(), 
+            };
         },
-        SwarmBrain::Panic { time_left, .. } if *time_left >= 0.0 => {
-            *time_left -= dt;
+        SwarmBrain::Wait { think } => {
+            *think -= dt;
+        }
+        SwarmBrain::Walk { think, .. } if *think <= 0.0 => {
+            *brain = SwarmBrain::Wait { think: 3.0 };
+        },
+        SwarmBrain::Walk { think, .. } => {
+            *think -= dt;
         },
         _ => (),
-        // SwarmBrain::Panic { .. } => *brain = SwarmBrain::Chase { pos: player_pos },
     }
 }
 
@@ -185,8 +197,8 @@ pub fn brute_ai(
         }
 
         let dr = target - enemy_tf.pos;
-        let k = (dr.length() / 64.0).powf(1.4);
-        impulse.impulse += dr.normalize_or_zero() * k * 10.0;
+        // let k = (dr.length() / 64.0).powf(1.4);
+        impulse.impulse += dr.normalize_or_zero() * 10.0;
     }
 }
 
@@ -199,34 +211,34 @@ pub fn stalker_ai(
     tile_storage: View<TileStorage>,
     smell: View<TileSmell>,
 ) {
-    let Some(storage) = tile_storage.iter().next() else {
-        return;
-    };
-    let target = match &*brain {
-        SwarmBrain::Chase { pos } => *pos,
-        SwarmBrain::Panic { .. } => return,
-    };
+    // let Some(storage) = tile_storage.iter().next() else {
+    //     return;
+    // };
+    // let target = match &*brain {
+    //     SwarmBrain::Chase { pos } => *pos,
+    //     SwarmBrain::Panic { .. } => return,
+    // };
 
-    for (enemy_tf, _, enemy_state, force) in (&pos, &brute_tag, &state, &mut force).iter() {
-        if !matches!(enemy_state, EnemyState::Free | EnemyState::Stunned { .. }) {
-            continue;
-        }
+    // for (enemy_tf, _, enemy_state, force) in (&pos, &brute_tag, &state, &mut force).iter() {
+    //     if !matches!(enemy_state, EnemyState::Free | EnemyState::Stunned { .. }) {
+    //         continue;
+    //     }
 
-        let mut found = false;
-        let sx = (enemy_tf.pos.x / 32.0) as usize;
-        let sy = (enemy_tf.pos.y / 32.0) as usize;
-        'outer: for sx in ((sx.saturating_sub(1))..(sx+1)) {
-            for sy in ((sy.saturating_sub(1))..(sy+1)) {
-                found = sample_spot(storage, &smell, sx, sy);
-                if found { break 'outer; }
-            }
-        }
+    //     let mut found = false;
+    //     let sx = (enemy_tf.pos.x / 32.0) as usize;
+    //     let sy = (enemy_tf.pos.y / 32.0) as usize;
+    //     'outer: for sx in ((sx.saturating_sub(1))..(sx+1)) {
+    //         for sy in ((sy.saturating_sub(1))..(sy+1)) {
+    //             found = sample_spot(storage, &smell, sx, sy);
+    //             if found { break 'outer; }
+    //         }
+    //     }
 
-        if found { continue; }
+    //     if found { continue; }
 
-        let dr = target - enemy_tf.pos;
-        force.force += dr.normalize_or_zero() * BRUTE_CHASE_FORCE;
-    }
+    //     let dr = target - enemy_tf.pos;
+    //     force.force += dr.normalize_or_zero() * BRUTE_CHASE_FORCE;
+    // }
 }
 
 fn sample_spot(
