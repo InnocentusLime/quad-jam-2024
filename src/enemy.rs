@@ -140,7 +140,7 @@ pub fn main_cell_ai(
         }
 
         // let dr = target_pos - enemy_tf.pos;
-        impulse.impulse += dir.normalize_or_zero() * 1600.0;
+        impulse.impulse += dir.normalize_or_zero() * 1700.0;
     }
 }
 
