@@ -74,10 +74,10 @@ pub fn spawn_main_cell(pos: Vec2, world: &mut World) {
         },
         MainCellTag,
         EnemyState::Free,
-        Health(BRUTE_SPAWN_HEALTH),
+        Health(5),
         BodyTag::new(
             InteractionGroups {
-                memberships: groups::NPCS,
+                memberships: groups::NPCS.union(groups::MAINCELL),
                 filter: groups::NPCS_INTERACT,
             },
             ColliderTy::Circle { radius: 12.0 },

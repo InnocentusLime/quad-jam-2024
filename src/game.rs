@@ -69,7 +69,7 @@ impl Game {
     fn spawn_bullet(pos: Vec2, world: &mut World) {
         world.add_entity((
             Transform { pos, angle: 0.0 },
-            BulletTag { is_picked: false },
+            BulletTag::Dropped,
             OneSensorTag::new(
                 ColliderTy::Box {
                     width: 16.0,
@@ -78,6 +78,34 @@ impl Game {
                 InteractionGroups {
                     memberships: groups::LEVEL,
                     filter: groups::PLAYER,
+                },
+            ),
+        ));
+        world.add_entity((
+            Transform { pos, angle: 0.0 },
+            BulletHitterTag,
+            OneSensorTag::new(
+                ColliderTy::Box {
+                    width: 24.0,
+                    height: 24.0,
+                },
+                InteractionGroups {
+                    memberships: groups::PROJECTILES,
+                    filter: groups::MAINCELL,
+                },
+            ),
+        ));
+        world.add_entity((
+            Transform { pos, angle: 0.0 },
+            BulletWallHitterTag,
+            OneSensorTag::new(
+                ColliderTy::Box {
+                    width: 16.0,
+                    height: 16.0,
+                },
+                InteractionGroups {
+                    memberships: groups::PROJECTILES,
+                    filter: groups::LEVEL.union(groups::NPCS),
                 },
             ),
         ));
@@ -202,22 +230,6 @@ impl Game {
 
     pub fn camera(&self) -> &Camera2D {
         &self.camera
-    }
-
-    pub fn reset_amo_pickup(
-        this: UniqueView<Game>,
-        mut bullet: ViewMut<BulletTag>,
-        player_amo: View<PlayerGunState>,
-    ) {
-        let pl = (&player_amo).get(this.player).unwrap();
-
-        if *pl != PlayerGunState::Empty {
-            return;
-        }
-
-        for bul in (&mut bullet).iter() {
-            bul.is_picked = false;
-        }
     }
 
     pub fn reward_enemies(enemy: View<EnemyState>, mut reward: ViewMut<RewardInfo>) {

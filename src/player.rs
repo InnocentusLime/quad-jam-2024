@@ -1,4 +1,5 @@
 use lib_game::*;
+use quad_dbg::dump;
 use crate::components::*;
 use macroquad::prelude::*;
 use crate::game::Game;
@@ -60,25 +61,6 @@ pub fn spawn_player(world: &mut World) -> EntityId {
         PlayerDamageSensorTag,
     ));
 
-    world.add_entity((
-        Transform {
-            pos: vec2(300.0, 300.0),
-            angle: 0.0,
-        },
-        RayTag { shooting: false },
-        BeamTag::new(
-            InteractionGroups {
-                memberships: groups::PROJECTILES,
-                filter: groups::NPCS,
-            },
-            InteractionGroups {
-                memberships: groups::PROJECTILES,
-                filter: groups::PROJECTILES_INTERACT,
-            },
-            crate::player::PLAYER_RAY_WIDTH,
-        ),
-    ));
-
     player
 }
 
@@ -126,11 +108,10 @@ pub fn player_ammo_pickup(
     bul_sensor: View<OneSensorTag>,
 ) {
     for (bul, sens) in (&mut bullet, &bul_sensor).iter() {
-        if bul.is_picked {
+        if !matches!(bul, BulletTag::Dropped) {
             continue;
         }
 
-        let mut pl = (&mut player_amo).get(this.player).unwrap();
         let Some(col) = sens.col else {
             continue;
         };
@@ -138,42 +119,8 @@ pub fn player_ammo_pickup(
         if col != this.player {
             continue;
         }
-
-        if *pl == PlayerGunState::Full {
-            continue;
-        }
-
-        *pl = PlayerGunState::Full;
-        bul.is_picked = true;
-    }
-}
-
-pub fn player_ray_controls(
-    input: &InputModel,
-    this: UniqueView<Game>,
-    mut tf: ViewMut<Transform>,
-    mut ray_tag: ViewMut<RayTag>,
-    mut player_amo: ViewMut<PlayerGunState>,
-) {
-    let player_tf = *(&tf).get(this.player).unwrap();
-    let player_pos = player_tf.pos;
-    let mut amo = (&mut player_amo).get(this.player).unwrap();
-    let mpos = this.mouse_pos();
-    let shootdir = mpos - player_pos;
-
-    if shootdir.length() <= DISTANCE_EPS {
-        return;
-    }
-
-    for (tf, tag) in (&mut tf, &mut ray_tag).iter() {
-        tag.shooting = false;
-        tf.pos = player_pos;
-        tf.angle = shootdir.to_angle();
-
-        if input.attack_down && *amo == PlayerGunState::Full {
-            tag.shooting = true;
-            *amo = PlayerGunState::Empty;
-        }
+        
+        *bul = BulletTag::PickedUp;
     }
 }
 
@@ -215,53 +162,94 @@ pub fn player_damage_state(dt: f32, mut player_dmg: ViewMut<PlayerDamageState>) 
         *player_dmg = PlayerDamageState::Hittable;
     }
 }
-    
-pub fn player_ray_effect(
-    this: UniqueView<Game>,
-    mut brain: UniqueViewMut<SwarmBrain>,
-    beam_tag: View<BeamTag>,
-    mut tf: ViewMut<Transform>,
-    mut ray_tag: ViewMut<RayTag>,
-    mut enemy_state: ViewMut<EnemyState>,
-    mut score: UniqueViewMut<PlayerScore>,
+
+pub fn player_throw(
+    input: &InputModel,
+    game: UniqueView<Game>,
     mut bullet: ViewMut<BulletTag>,
+    player_tag: View<PlayerTag>,
+    mut tf: ViewMut<Transform>,
 ) {
-    let player_tf = *(&tf).get(this.player).unwrap();
-    let mul_table = [0, 1, 1, 1, 2, 2, 2, 10, 10, 20];
-    let mut off = Vec2::ZERO;
-
-    for (ray_tf, ray_tag, beam_tag) in (&tf, &mut ray_tag, &beam_tag).iter() {
-        if !ray_tag.shooting {
-            return;
-        }
-
-        let shootdir = Vec2::from_angle(ray_tf.angle);
-        let hitcount = beam_tag.overlaps.len();
-        score.0 += (hitcount as u32) * mul_table[hitcount.clamp(0, mul_table.len() - 1)];
-
-        let mut overall_dir = Vec2::ZERO; 
-        // TODO: use more general damage notifications
-        for col in &beam_tag.overlaps {
-            let (mut enemy_state, enemy_tf) = (&mut enemy_state, &tf).get(*col).unwrap();
-            *enemy_state = EnemyState::Stunned {
-                left: PLAYER_HIT_COOLDOWN,
-            };
-            let dir = (player_tf.pos - enemy_tf.pos).normalize_or_zero();
-            overall_dir = (overall_dir + dir).normalize_or_zero();
-        }
-
-        // TODO: move swarm notification out
-        if hitcount > 0 {
-            // *brain = SwarmBrain::Panic { 
-            //     time_left: 0.8, 
-            //     pos: overall_dir, 
-            // };
-        }
-       
-        off = shootdir * (beam_tag.length - 2.0 * PLAYER_RAY_LEN_NUDGE)
+    if !input.attack_down {
+        return;
     }
 
-    for (pos, _) in (&mut tf, &mut bullet).iter() {
-        pos.pos = player_tf.pos + off;
+    let (&player_tf, _) = (&tf, &player_tag).iter().next().unwrap();
+    for (bullet, tf) in (&mut bullet, &mut tf).iter() {
+        if !matches!(bullet, BulletTag::PickedUp) {
+            continue;
+        }
+
+        let mpos = game.mouse_pos();
+        let dir = (mpos - player_tf.pos).normalize_or_zero();
+        if dir.length() < LENGTH_EPSILON {
+            continue;
+        }
+
+        tf.pos = player_tf.pos;
+        *bullet = BulletTag::Thrown { dir };
+    }
+}
+
+pub fn bullet_parts(
+    mut bullet: ViewMut<BulletTag>,
+    bullet_hitter: ViewMut<BulletHitterTag>,
+    bullet_wall_hitter: ViewMut<BulletWallHitterTag>,
+    mut pos: ViewMut<Transform>,
+) {
+    let mut bullet_pos = Vec2::ZERO;
+    for (_, pos) in (&mut bullet, &mut pos).iter() {
+        bullet_pos = pos.pos;
+    }
+
+    for (pos, _) in (&mut pos, &bullet_hitter).iter() {
+        pos.pos = bullet_pos;
+    }
+
+    for (pos, _) in (&mut pos, &bullet_wall_hitter).iter() {
+        pos.pos = bullet_pos;
+    }
+}
+
+pub fn thrown_damage(
+    mut bullet: ViewMut<BulletTag>,
+    bullet_hitter: ViewMut<BulletHitterTag>,
+    sense_tag: View<OneSensorTag>,
+    mut enemy_state: ViewMut<EnemyState>,
+) {
+    let bullet = bullet.iter().next().unwrap();
+    if !matches!(bullet, BulletTag::Thrown { .. }) {
+        return;
+    }
+
+    for (sens, _) in (&sense_tag, &bullet_hitter).iter() {
+        let Some(hit) = sens.col else { continue; };
+
+        *(&mut enemy_state).get(hit).unwrap() = EnemyState::Stunned {
+            left: PLAYER_HIT_COOLDOWN,
+        };
+    }
+}
+
+pub fn thrown_logic(
+    dt: f32,
+    mut bullet: ViewMut<BulletTag>,
+    bullet_wall_hitter: ViewMut<BulletWallHitterTag>,
+    mut pos: ViewMut<Transform>,
+    sense_tag: View<OneSensorTag>,
+) {
+    let hit_wall = (&bullet_wall_hitter, &sense_tag).iter()
+        .next().unwrap().1.col.is_some();
+
+    for (bullet, pos) in (&mut bullet, &mut pos).iter() {
+        let BulletTag::Thrown { dir } = *bullet
+            else { continue; };
+
+        if hit_wall {
+            *bullet = BulletTag::Dropped;
+            continue;
+        }
+
+        pos.pos += dir * dt * 636.0;
     }
 }

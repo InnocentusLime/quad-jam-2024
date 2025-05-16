@@ -118,9 +118,9 @@ pub fn render_brute(
             continue;
         }
 
-        let k = hp.0 as f32 / crate::enemy::BRUTE_SPAWN_HEALTH as f32;
+        let k = 0.4;
         let is_flickering = matches!(state, EnemyState::Stunned { .. });
-        let color = Color::new(RED.r * k, RED.g * k, RED.b * k, 1.0);
+        let color = Color::new(BLUE.r * k, BLUE.g * k, BLUE.b * k, 1.0);
 
         let r_enemy = render
             .world
@@ -202,13 +202,9 @@ pub fn render_ammo(
     render: &mut Render,
     pos: View<Transform>,
     bullet: View<BulletTag>,
-    score: UniqueView<PlayerScore>,
 ) {
-    let ammo_hint = "AMMO";
-    let mes = measure_text(&ammo_hint, render.get_font(FontKey("oegnek")), 16, 1.0);
-
     for (pos, bul) in (&pos, &bullet).iter() {
-        if bul.is_picked {
+        if matches!(bul, BulletTag::PickedUp) {
             continue;
         }
 
@@ -219,25 +215,6 @@ pub fn render_ammo(
                 origin: vec2(0.5, 0.5),
                 width: 16.0,
                 height: 16.0,
-            },
-        ));
-
-        if score.0 > 0 {
-            continue;
-        }
-
-        render.world.add_entity((
-            Transform {
-                pos: vec2(pos.pos.x - mes.width / 2.0, pos.pos.y - 20.0),
-                ..*pos
-            },
-            Tint(YELLOW),
-            GlyphText {
-                font: FontKey("oegnek"),
-                string: Cow::Borrowed(ammo_hint),
-                font_size: 16,
-                font_scale: 1.0,
-                font_scale_aspect: 1.0,
             },
         ));
     }

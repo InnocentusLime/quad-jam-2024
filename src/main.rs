@@ -89,7 +89,7 @@ async fn main() {
         },
         |input, dt, world| {
             world.run_with_data(player_controls, (input, dt));
-            world.run_with_data(player_ray_controls, input);
+            world.run_with_data(player_throw, input);
             if world.run(Game::should_ai) {
                 world.run_with_data(update_brain, dt); 
                 world.run(brute_ai);
@@ -99,14 +99,15 @@ async fn main() {
         },
         |_dt, world| {
             world.run(player_sensor_pose);
+            world.run(bullet_parts);
         },
         |dt, world| {
             world.run(Game::update_camera);
             world.run_with_data(tick_smell, dt);
             world.run(player_step_smell);
             world.run(player_ammo_pickup);
-            world.run(player_ray_effect);
-            world.run(Game::reset_amo_pickup);
+            world.run(thrown_damage);
+            world.run_with_data(thrown_logic, dt);
             world.run_with_data(enemy_states, dt);
             world.run(cell_phys_data);
             world.run(player_damage);

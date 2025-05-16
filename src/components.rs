@@ -37,8 +37,12 @@ pub enum PlayerGunState {
 // TODO: this is a hack, because deleting entities
 // in shipyard is unreasonably difficult
 #[derive(Debug, Clone, Copy, Component)]
-pub struct BulletTag {
-    pub is_picked: bool,
+pub enum BulletTag {
+    Dropped,
+    PickedUp,
+    Thrown {
+        dir: Vec2,
+    },
 }
 
 #[derive(Debug, Clone, Copy, Component)]
@@ -166,3 +170,9 @@ pub struct MainCellTag;
 pub struct TileSmell {
     pub time_left: f32,
 }
+
+#[derive(Debug, Clone, Copy, Component)]
+pub struct BulletHitterTag;
+
+#[derive(Debug, Clone, Copy, Component)]
+pub struct BulletWallHitterTag;
