@@ -1,14 +1,10 @@
 use lib_game::*;
 use crate::components::*;
 use macroquad::prelude::*;
-use crate::game::Game;
 use shipyard::{Get, IntoIter, UniqueView, UniqueViewMut, View, ViewMut, World};
 
 pub const BRUTE_SPAWN_HEALTH: i32 = 2;
-pub const BRUTE_GROUP_FORCE: f32 = 0.01 * 22.0;
-pub const BRUTE_CHASE_FORCE: f32 = 900.0;
 pub const REWARD_PER_ENEMY: u32 = 10;
-pub const BRAIN_TARGET_SPEED: f32 = 130.0;
     
 pub fn spawn_brute(pos: Vec2, world: &mut World) {
     let _brute = world.add_entity((
@@ -35,6 +31,7 @@ pub fn spawn_brute(pos: Vec2, world: &mut World) {
     ));
 }
 
+#[allow(dead_code)]
 pub fn spawn_stalker(pos: Vec2, world: &mut World) {
     let _brute = world.add_entity((
         Transform { pos, angle: 0.0 },
@@ -121,8 +118,6 @@ pub fn cell_phys_data(mut rbs: ViewMut<BodyTag>, mut enemy: ViewMut<EnemyState>)
 pub fn main_cell_ai(
     brain: UniqueView<SwarmBrain>,
     main_tag: View<MainCellTag>,
-    // player_tag:  View<PlayerTag>,
-    mut pos: ViewMut<Transform>,
     state: View<EnemyState>,
     mut impulse: ViewMut<ImpulseApplier>,
 ) {
@@ -130,16 +125,12 @@ pub fn main_cell_ai(
         SwarmBrain::Walk { dir, .. } => *dir,
         _ => return,
     };
-    // let target_tf = (&pos, &player_tag).iter()
-    //     .next().unwrap();
-    // let target_pos = target_tf.0.pos;
     
-    for (enemy_tf, _, enemy_state, impulse) in (&mut pos, &main_tag, &state, &mut impulse).iter() {
+    for (_, enemy_state, impulse) in (&main_tag, &state, &mut impulse).iter() {
         if !matches!(enemy_state, EnemyState::Free | EnemyState::Stunned { .. }) {
             continue;
         }
 
-        // let dr = target_pos - enemy_tf.pos;
         impulse.impulse += dir.normalize_or_zero() * 1700.0;
     }
 }
@@ -175,7 +166,6 @@ pub fn update_brain(
         SwarmBrain::Walk { think, .. } => {
             *think -= dt;
         },
-        _ => (),
     }
 }
 
@@ -203,44 +193,17 @@ pub fn brute_ai(
 }
 
 pub fn stalker_ai(
-    brain: UniqueView<SwarmBrain>,
-    brute_tag: View<StalkerTag>,
-    pos: View<Transform>,
-    state: View<EnemyState>,
-    mut force: ViewMut<ForceApplier>,
-    tile_storage: View<TileStorage>,
-    smell: View<TileSmell>,
+    _brain: UniqueView<SwarmBrain>,
+    _brute_tag: View<StalkerTag>,
+    _pos: View<Transform>,
+    _state: View<EnemyState>,
+    _force: ViewMut<ForceApplier>,
+    _tile_storage: View<TileStorage>,
+    _smell: View<TileSmell>,
 ) {
-    // let Some(storage) = tile_storage.iter().next() else {
-    //     return;
-    // };
-    // let target = match &*brain {
-    //     SwarmBrain::Chase { pos } => *pos,
-    //     SwarmBrain::Panic { .. } => return,
-    // };
-
-    // for (enemy_tf, _, enemy_state, force) in (&pos, &brute_tag, &state, &mut force).iter() {
-    //     if !matches!(enemy_state, EnemyState::Free | EnemyState::Stunned { .. }) {
-    //         continue;
-    //     }
-
-    //     let mut found = false;
-    //     let sx = (enemy_tf.pos.x / 32.0) as usize;
-    //     let sy = (enemy_tf.pos.y / 32.0) as usize;
-    //     'outer: for sx in ((sx.saturating_sub(1))..(sx+1)) {
-    //         for sy in ((sy.saturating_sub(1))..(sy+1)) {
-    //             found = sample_spot(storage, &smell, sx, sy);
-    //             if found { break 'outer; }
-    //         }
-    //     }
-
-    //     if found { continue; }
-
-    //     let dr = target - enemy_tf.pos;
-    //     force.force += dr.normalize_or_zero() * BRUTE_CHASE_FORCE;
-    // }
 }
 
+#[allow(dead_code)]
 fn sample_spot(
     storage: &TileStorage,
     smell: &View<TileSmell>,
@@ -259,43 +222,3 @@ fn sample_spot(
 
     false
 }
-
-// pub fn brute_ai(
-//     dt: f32,
-//     this: UniqueView<Game>,
-//     mut know: UniqueViewMut<SwarmBrain>,
-//     brute_tag: View<BruteTag>,
-//     pos: View<Transform>,
-//     state: View<EnemyState>,
-//     mut force: ViewMut<ForceApplier>,
-// ) {
-//     let player_pos = pos.get(this.player).unwrap().pos;
-
-//     for (enemy_tf, _, enemy_state, force) in (&pos, &brute_tag, &state, &mut force).iter() {
-//         if !matches!(enemy_state, EnemyState::Free | EnemyState::Stunned { .. }) {
-//             continue;
-//         }
-
-//         for (fella_tf, _, fella_state) in (&pos, &brute_tag, &state).iter() {
-//             if !matches!(fella_state, EnemyState::Free | EnemyState::Stunned { .. }) {
-//                 continue;
-//             }
-
-//             let dr = fella_tf.pos - enemy_tf.pos;
-
-//             force.force += dr * BRUTE_GROUP_FORCE;
-//         }
-
-//         let dr = player_pos - enemy_tf.pos;
-
-//         if know.last_hit.anger_time <= 0.0 {
-//             force.force += dr.normalize_or_zero() * BRUTE_CHASE_FORCE;
-//         } else {
-//             force.force += know.last_hit.anger_dir * (BRUTE_CHASE_FORCE * 3.0);
-//         }
-//     }
-            
-//     if know.last_hit.anger_time > 0.0 {
-//         know.last_hit.anger_time -= dt;
-//     }
-// }

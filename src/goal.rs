@@ -2,7 +2,7 @@ use lib_game::*;
 use crate::components::*;
 use macroquad::prelude::*;
 use crate::game::Game;
-use shipyard::{Get, IntoIter, UniqueView, UniqueViewMut, View, ViewMut, World};
+use shipyard::{IntoIter, UniqueViewMut, View, World};
 
 pub fn spawn_goal(world: &mut World, pos: Vec2) {
     world.add_entity((

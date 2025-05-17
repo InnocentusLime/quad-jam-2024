@@ -1,19 +1,15 @@
 use lib_game::*;
-use quad_dbg::dump;
 use crate::components::*;
 use macroquad::prelude::*;
 use crate::game::Game;
-use shipyard::{EntityId, Get, IntoIter, UniqueView, UniqueViewMut, View, ViewMut, World};
+use shipyard::{EntityId, Get, IntoIter, UniqueView, View, ViewMut, World};
 
 pub const PLAYER_SPEED: f32 = 132.0;
 pub const PLAYER_RAY_LINGER: f32 = 2.0;
-pub const PLAYER_RAY_LEN_NUDGE: f32 = 8.0;
 pub const PLAYER_RAY_WIDTH: f32 = 3.0;
 pub const PLAYER_SPAWN_HEALTH: i32 = 3;
 pub const PLAYER_HIT_COOLDOWN: f32 = 2.0;
 pub const PLAYER_SIZE: f32 = 16.0;
-
-pub const DISTANCE_EPS: f32 = 0.01;
 
 pub fn spawn_player(world: &mut World) -> EntityId {
     world.add_unique(PlayerScore(0));
@@ -26,7 +22,6 @@ pub fn spawn_player(world: &mut World) -> EntityId {
         PlayerTag,
         Health(crate::player::PLAYER_SPAWN_HEALTH),
         PlayerDamageState::Hittable,
-        PlayerGunState::Empty,
         KinematicControl::new(),
         BodyTag::new(
             InteractionGroups {
@@ -103,7 +98,6 @@ pub fn player_sensor_pose(
 
 pub fn player_ammo_pickup(
     this: UniqueView<Game>,
-    mut player_amo: ViewMut<PlayerGunState>,
     mut bullet: ViewMut<BulletTag>,
     bul_sensor: View<OneSensorTag>,
 ) {
@@ -212,7 +206,7 @@ pub fn bullet_parts(
 }
 
 pub fn thrown_damage(
-    mut bullet: ViewMut<BulletTag>,
+    bullet: View<BulletTag>,
     bullet_hitter: ViewMut<BulletHitterTag>,
     sense_tag: View<OneSensorTag>,
     mut enemy_state: ViewMut<EnemyState>,

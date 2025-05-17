@@ -1,8 +1,8 @@
 use lib_game::*;
-use crate::{components::*, player::PLAYER_SIZE};
+use crate::components::*;
 use macroquad::prelude::*;
 use crate::game::Game;
-use shipyard::{EntityId, Get, IntoIter, UniqueView, UniqueViewMut, View, ViewMut, World};
+use shipyard::{Get, IntoIter, UniqueView, View, ViewMut, World};
 
 pub const SMELL_AFTER_PLAYER: f32 = 4.0;
 

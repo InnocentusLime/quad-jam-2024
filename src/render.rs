@@ -111,9 +111,8 @@ pub fn render_brute(
     pos: View<Transform>,
     brute: View<BruteTag>,
     state: View<EnemyState>,
-    hp: View<Health>,
 ) {
-    for (_, pos, state, hp) in (&brute, &pos, &state, &hp).iter() {
+    for (_, pos, state) in (&brute, &pos, &state).iter() {
         if matches!(state, EnemyState::Dead) {
             continue;
         }
@@ -225,7 +224,6 @@ pub fn render_game_ui(
     score: UniqueView<PlayerScore>,
     health: View<Health>,
     player: View<PlayerTag>,
-    gun: View<PlayerGunState>,
     state: View<EnemyState>,
 ) {
     let font_size = 32;
@@ -233,16 +231,10 @@ pub fn render_game_ui(
     let ui_x = 536.0;
     let score = score.0;
     let player_health = (&player, &health).iter().next().unwrap().1 .0;
-    let player_gun = *(&gun,).iter().next().unwrap();
     let alive_enemy_count = state
         .iter()
         .filter(|x| !matches!(x, EnemyState::Dead))
         .count();
-
-    let gun_state = match player_gun {
-        PlayerGunState::Empty => "Your gun is empty",
-        PlayerGunState::Full => "Gun loaded",
-    };
     let (game_state, game_state_color) = if alive_enemy_count == 0 {
         ("You win", GREEN)
     } else if player_health <= 0 {
@@ -272,17 +264,6 @@ pub fn render_game_ui(
         },
         Tint(YELLOW),
         Transform::from_xy(ui_x, off_y * 2.0),
-    ));
-    render.world.add_entity((
-        GlyphText {
-            font: FontKey("oegnek"),
-            string: Cow::Borrowed(gun_state),
-            font_size,
-            font_scale: 1.0,
-            font_scale_aspect: 1.0,
-        },
-        Tint(YELLOW),
-        Transform::from_xy(ui_x, off_y * 3.0),
     ));
     render.world.add_entity((
         GlyphText {

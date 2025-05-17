@@ -28,12 +28,6 @@ pub enum EnemyState {
     Dead,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Component)]
-pub enum PlayerGunState {
-    Empty,
-    Full,
-}
-
 // TODO: this is a hack, because deleting entities
 // in shipyard is unreasonably difficult
 #[derive(Debug, Clone, Copy, Component)]
@@ -153,13 +147,6 @@ pub enum SwarmBrain {
     },
     Wait {
         think: f32,
-    },
-    Chase {
-        pos: Vec2,
-    },
-    Panic {
-        time_left: f32,
-        pos: Vec2,
     },
 }
 

@@ -1,6 +1,6 @@
 use lib_game::*;
 use macroquad::prelude::*;
-use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
+use shipyard::{EntityId, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
 
 use crate::goal::spawn_goal;
 use crate::inline_tilemap;
@@ -260,39 +260,12 @@ impl Game {
             score.0 += reward.amount;
         }
     }
-
-    // Doesn't work because we end up doing 2 borrows
-    // pub fn box_deleter(
-    //     &mut self,
-    //     mut stores: AllStoragesViewMut,
-    // ) {
-    //     let map = [
-    //         (KeyCode::Key1, 0),
-    //         (KeyCode::Key2, 1),
-    //         (KeyCode::Key3, 2),
-    //         (KeyCode::Key4, 3),
-    //     ];
-
-    //     for (key, idx) in map {
-    //         if is_key_pressed(key) {
-    //             stores.delete_entity(self.boxes[idx]);
-    //         }
-    //     }
-    // }
 }
-
-// method_as_system!(
-//     Game::box_deleter as game_box_deleter(
-//         this: Game,
-//         stores: AllStoragesViewMut
-//     )
-// );
 
 pub fn decide_next_state(
     game: UniqueView<Game>,
     player: View<PlayerTag>,
     health: View<Health>,
-    enemy_state: View<EnemyState>,
 ) -> Option<AppState> {
     let player_dead = (&player, &health).iter().all(|(_, hp)| hp.0 <= 0);
 
