@@ -9,9 +9,11 @@ pub mod groups {
     pub const NPCS: Group = Group::GROUP_2;
     pub const PLAYER: Group = Group::GROUP_3;
     pub const PROJECTILES: Group = Group::GROUP_4;
+    pub const MAINCELL: Group = Group::GROUP_5;
+    pub const ITEMS: Group = Group::GROUP_6;
 
     pub const LEVEL_INTERACT: Group = LEVEL.union(NPCS).union(PLAYER).union(PROJECTILES);
-    pub const PLAYER_INTERACT: Group = LEVEL;
+    pub const PLAYER_INTERACT: Group = LEVEL.union(ITEMS);
     pub const NPCS_INTERACT: Group = LEVEL.union(PROJECTILES).union(NPCS);
     pub const PROJECTILES_INTERACT: Group = LEVEL;
 }
@@ -82,6 +84,11 @@ impl KinematicControl {
 #[derive(Clone, Copy, Debug, Component)]
 pub struct ForceApplier {
     pub force: Vec2,
+}
+
+#[derive(Clone, Copy, Debug, Component)]
+pub struct ImpulseApplier {
+    pub impulse: Vec2,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]

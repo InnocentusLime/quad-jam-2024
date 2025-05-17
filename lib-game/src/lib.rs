@@ -181,6 +181,7 @@ impl App {
     /// This method will run forever as it provides the application loop.
     pub async fn run(
         mut self,
+        debug_commands: Vec<(&'static str, &'static str, fn(&mut World, &[&str]))>,
         mut init_game: impl FnMut(&mut World),
         mut input_phase: impl FnMut(&InputModel, f32, &mut World),
         mut pre_physics_query_phase: impl FnMut(f32, &mut World),
@@ -189,6 +190,11 @@ impl App {
     ) {
         let mut debug = DebugStuff::new();
         init_debug_commands(&mut debug.cmd);
+        for (cmd, description, payload) in debug_commands {
+            debug.cmd.add_command(cmd, description, move |app, args| {
+                payload(&mut app.world, args)
+            });
+        }
 
         sys::done_loading();
 
@@ -246,6 +252,8 @@ impl App {
             .run_with_data(PhysicsState::allocate_bodies, &mut self.physics);
         self.world
             .run_with_data(PhysicsState::reset_forces, &mut self.physics);
+        self.world
+            .run_with_data(PhysicsState::reset_impulses, &mut self.physics);
 
         input_phase(&input, GAME_TICKRATE, &mut self.world);
 
@@ -253,6 +261,8 @@ impl App {
             .run_with_data(PhysicsState::import_positions_and_info, &mut self.physics);
         self.world
             .run_with_data(PhysicsState::import_forces, &mut self.physics);
+        self.world
+            .run_with_data(PhysicsState::import_impulses, &mut self.physics);
         self.world
             .run_with_data(PhysicsState::apply_kinematic_moves, &mut self.physics);
         self.world

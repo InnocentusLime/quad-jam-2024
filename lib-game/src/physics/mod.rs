@@ -101,7 +101,7 @@ impl PhysicsState {
             RigidBodyBuilder::new(rap_ty)
                 .position(iso)
                 .soft_ccd_prediction(2.0)
-                .linear_damping(1.0)
+                .linear_damping(0.4)
                 .angular_damping(1.0),
         );
         let collider_shape = match collision {
@@ -116,7 +116,8 @@ impl PhysicsState {
             ColliderBuilder::new(collider_shape)
                 .collision_groups(groups)
                 .mass(mass)
-                .enabled(is_enabled),
+                .enabled(is_enabled)
+                .friction(0.1),
             body.clone(),
             &mut self.bodies,
         );
@@ -495,6 +496,12 @@ impl PhysicsState {
         }
     }
 
+    pub fn reset_impulses(&mut self, mut impulse: ViewMut<ImpulseApplier>) {
+        for impulse in (&mut impulse).iter() {
+            impulse.impulse = Vec2::ZERO;
+        }
+    }
+
     pub fn import_forces(&mut self, body_tag: View<BodyTag>, force: View<ForceApplier>) {
         for (ent, (body_tag, force)) in (&body_tag, &force).iter().with_id() {
             if body_tag.kind != BodyKind::Dynamic {
@@ -506,6 +513,20 @@ impl PhysicsState {
             let rbh = self.mapping[&ent];
             let body = self.bodies.get_mut(rbh).unwrap();
             body.add_force(nalgebra::vector![force.x, force.y], true);
+        }
+    }
+
+    pub fn import_impulses(&mut self, body_tag: View<BodyTag>, impulse: View<ImpulseApplier>) {
+        for (ent, (body_tag, impulse)) in (&body_tag, &impulse).iter().with_id() {
+            if body_tag.kind != BodyKind::Dynamic {
+                warn!("Impulse applier attached to a non-dynamic body: {ent:?}");
+                continue;
+            }
+
+            let impulse = Self::world_to_phys(impulse.impulse);
+            let rbh = self.mapping[&ent];
+            let body = self.bodies.get_mut(rbh).unwrap();
+            body.apply_impulse(nalgebra::vector![impulse.x, impulse.y], true);
         }
     }
 

@@ -4,7 +4,7 @@ use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, UniqueView, View};
 
 use crate::components::*;
-use crate::logic::*;
+use crate::game::*;
 use lib_game::*;
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
@@ -80,10 +80,10 @@ pub fn render_player(
     }
 }
 
-pub fn render_brute(
+pub fn render_main_cell(
     render: &mut Render,
     pos: View<Transform>,
-    brute: View<BruteTag>,
+    brute: View<MainCellTag>,
     state: View<EnemyState>,
     hp: View<Health>,
 ) {
@@ -92,13 +92,64 @@ pub fn render_brute(
             continue;
         }
 
-        let k = hp.0 as f32 / BRUTE_SPAWN_HEALTH as f32;
+        let k = hp.0 as f32 / crate::enemy::BRUTE_SPAWN_HEALTH as f32;
         let is_flickering = matches!(state, EnemyState::Stunned { .. });
         let color = Color::new(RED.r * k, RED.g * k, RED.b * k, 1.0);
 
         let r_enemy = render
             .world
-            .add_entity((*pos, CircleShape { radius: 8.0 }, Tint(color)));
+            .add_entity((*pos, CircleShape { radius: 12.0 }, Tint(color)));
+
+        if is_flickering {
+            render.world.add_component(r_enemy, Flicker);
+        }
+    }
+}
+
+pub fn render_brute(
+    render: &mut Render,
+    pos: View<Transform>,
+    brute: View<BruteTag>,
+    state: View<EnemyState>,
+) {
+    for (_, pos, state) in (&brute, &pos, &state).iter() {
+        if matches!(state, EnemyState::Dead) {
+            continue;
+        }
+
+        let k = 0.4;
+        let is_flickering = matches!(state, EnemyState::Stunned { .. });
+        let color = Color::new(BLUE.r * k, BLUE.g * k, BLUE.b * k, 1.0);
+
+        let r_enemy = render
+            .world
+            .add_entity((*pos, CircleShape { radius: 6.0 }, Tint(color)));
+
+        if is_flickering {
+            render.world.add_component(r_enemy, Flicker);
+        }
+    }
+}
+
+pub fn render_stalker(
+    render: &mut Render,
+    pos: View<Transform>,
+    brute: View<StalkerTag>,
+    state: View<EnemyState>,
+    hp: View<Health>,
+) {
+    for (_, pos, state, hp) in (&brute, &pos, &state, &hp).iter() {
+        if matches!(state, EnemyState::Dead) {
+            continue;
+        }
+
+        let k = hp.0 as f32 / crate::enemy::BRUTE_SPAWN_HEALTH as f32;
+        let is_flickering = matches!(state, EnemyState::Stunned { .. });
+        let color = Color::new(BLUE.r * k, BLUE.g * k, BLUE.b * k, 1.0);
+
+        let r_enemy = render
+            .world
+            .add_entity((*pos, CircleShape { radius: 6.0 }, Tint(color)));
 
         if is_flickering {
             render.world.add_component(r_enemy, Flicker);
@@ -136,27 +187,19 @@ pub fn render_rays(
             *pos,
             RectShape {
                 origin: vec2(0.0, 0.5),
-                height: PLAYER_RAY_WIDTH,
+                height: crate::player::PLAYER_RAY_WIDTH,
                 width: beam.length,
             },
             Scale(vec2(1.0, 1.0)),
-            Timed::new(PLAYER_RAY_LINGER),
+            Timed::new(crate::player::PLAYER_RAY_LINGER),
             VertShrinkFadeoutAnim,
         ));
     }
 }
 
-pub fn render_ammo(
-    render: &mut Render,
-    pos: View<Transform>,
-    bullet: View<BulletTag>,
-    score: UniqueView<PlayerScore>,
-) {
-    let ammo_hint = "AMMO";
-    let mes = measure_text(&ammo_hint, render.get_font(FontKey("oegnek")), 16, 1.0);
-
+pub fn render_ammo(render: &mut Render, pos: View<Transform>, bullet: View<BulletTag>) {
     for (pos, bul) in (&pos, &bullet).iter() {
-        if bul.is_picked {
+        if matches!(bul, BulletTag::PickedUp) {
             continue;
         }
 
@@ -169,25 +212,6 @@ pub fn render_ammo(
                 height: 16.0,
             },
         ));
-
-        if score.0 > 0 {
-            continue;
-        }
-
-        render.world.add_entity((
-            Transform {
-                pos: vec2(pos.pos.x - mes.width / 2.0, pos.pos.y - 20.0),
-                ..*pos
-            },
-            Tint(YELLOW),
-            GlyphText {
-                font: FontKey("oegnek"),
-                string: Cow::Borrowed(ammo_hint),
-                font_size: 16,
-                font_scale: 1.0,
-                font_scale_aspect: 1.0,
-            },
-        ));
     }
 }
 
@@ -196,7 +220,6 @@ pub fn render_game_ui(
     score: UniqueView<PlayerScore>,
     health: View<Health>,
     player: View<PlayerTag>,
-    gun: View<PlayerGunState>,
     state: View<EnemyState>,
 ) {
     let font_size = 32;
@@ -204,16 +227,10 @@ pub fn render_game_ui(
     let ui_x = 536.0;
     let score = score.0;
     let player_health = (&player, &health).iter().next().unwrap().1 .0;
-    let player_gun = *(&gun,).iter().next().unwrap();
     let alive_enemy_count = state
         .iter()
         .filter(|x| !matches!(x, EnemyState::Dead))
         .count();
-
-    let gun_state = match player_gun {
-        PlayerGunState::Empty => "Your gun is empty",
-        PlayerGunState::Full => "Gun loaded",
-    };
     let (game_state, game_state_color) = if alive_enemy_count == 0 {
         ("You win", GREEN)
     } else if player_health <= 0 {
@@ -247,17 +264,6 @@ pub fn render_game_ui(
     render.world.add_entity((
         GlyphText {
             font: FontKey("oegnek"),
-            string: Cow::Borrowed(gun_state),
-            font_size,
-            font_scale: 1.0,
-            font_scale_aspect: 1.0,
-        },
-        Tint(YELLOW),
-        Transform::from_xy(ui_x, off_y * 3.0),
-    ));
-    render.world.add_entity((
-        GlyphText {
-            font: FontKey("oegnek"),
             string: Cow::Borrowed(game_state),
             font_size: 64,
             font_scale: 1.0,
@@ -266,6 +272,20 @@ pub fn render_game_ui(
         Tint(game_state_color),
         Transform::from_xy(ui_x, off_y * 5.0),
     ));
+}
+
+pub fn render_goal(render: &mut Render, pos: View<Transform>, goal: View<GoalTag>) {
+    for (pos, _) in (&pos, &goal).iter() {
+        render.world.add_entity((
+            *pos,
+            Tint(GREEN),
+            RectShape {
+                origin: vec2(0.5, 0.5),
+                width: 16.0,
+                height: 16.0,
+            },
+        ));
+    }
 }
 
 pub fn render_toplevel_ui(app_state: AppState, render: &mut Render) {

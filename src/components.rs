@@ -28,17 +28,13 @@ pub enum EnemyState {
     Dead,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Component)]
-pub enum PlayerGunState {
-    Empty,
-    Full,
-}
-
 // TODO: this is a hack, because deleting entities
 // in shipyard is unreasonably difficult
 #[derive(Debug, Clone, Copy, Component)]
-pub struct BulletTag {
-    pub is_picked: bool,
+pub enum BulletTag {
+    Dropped,
+    PickedUp,
+    Thrown { dir: Vec2 },
 }
 
 #[derive(Debug, Clone, Copy, Component)]
@@ -55,6 +51,9 @@ pub struct PlayerDamageSensorTag;
 
 #[derive(Debug, Clone, Copy, Component)]
 pub struct BruteTag;
+
+#[derive(Debug, Clone, Copy, Component)]
+pub struct StalkerTag;
 
 #[derive(Debug, Clone, Copy, Component)]
 pub struct RayTag {
@@ -96,14 +95,13 @@ impl TileStorage {
         self.height
     }
 
-    #[allow(dead_code)]
     pub fn get(&self, x: usize, y: usize) -> Option<EntityId> {
-        debug_assert!(self.mem.len() < self.width * self.height);
+        debug_assert!(self.mem.len() == self.width * self.height);
 
-        if x < self.width {
+        if x >= self.width {
             return None;
         }
-        if y < self.height {
+        if y >= self.height {
             return None;
         }
 
@@ -138,3 +136,26 @@ pub enum PlayerDamageState {
     Hittable,
     Cooldown(f32),
 }
+
+#[derive(Debug, Clone, Copy, Unique)]
+pub enum SwarmBrain {
+    Walk { think: f32, dir: Vec2 },
+    Wait { think: f32 },
+}
+
+#[derive(Debug, Clone, Copy, Component)]
+pub struct MainCellTag;
+
+#[derive(Debug, Clone, Copy, Component)]
+pub struct TileSmell {
+    pub time_left: f32,
+}
+
+#[derive(Debug, Clone, Copy, Component)]
+pub struct BulletHitterTag;
+
+#[derive(Debug, Clone, Copy, Component)]
+pub struct BulletWallHitterTag;
+
+#[derive(Debug, Clone, Copy, Component)]
+pub struct GoalTag;
