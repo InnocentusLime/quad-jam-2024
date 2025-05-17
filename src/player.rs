@@ -9,7 +9,7 @@ pub const PLAYER_SPEED: f32 = 132.0;
 pub const PLAYER_RAY_LINGER: f32 = 2.0;
 pub const PLAYER_RAY_LEN_NUDGE: f32 = 8.0;
 pub const PLAYER_RAY_WIDTH: f32 = 3.0;
-pub const PLAYER_SPAWN_HEALTH: i32 = 4;
+pub const PLAYER_SPAWN_HEALTH: i32 = 3;
 pub const PLAYER_HIT_COOLDOWN: f32 = 2.0;
 pub const PLAYER_SIZE: f32 = 16.0;
 
