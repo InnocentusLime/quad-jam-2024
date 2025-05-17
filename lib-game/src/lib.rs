@@ -8,7 +8,7 @@ mod sound_director;
 pub mod sys;
 
 pub use components::*;
-use dbg::init_debug_commands;
+use dbg::{init_debug_commands, DebugStuff};
 use hashbrown::{HashMap, HashSet};
 pub use input::*;
 pub use physics::*;
@@ -77,23 +77,6 @@ pub trait Game {
     fn render_export(&self, state: AppState, world: &World, render: &mut Render);
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum ConsoleMode {
-    Hidden,
-    Dump,
-    Console,
-}
-
-impl ConsoleMode {
-    fn scroll(self) -> Self {
-        match self {
-            ConsoleMode::Hidden => ConsoleMode::Dump,
-            ConsoleMode::Dump => ConsoleMode::Console,
-            ConsoleMode::Console => ConsoleMode::Hidden,
-        }
-    }
-}
-
 impl AppState {
     /// Gives a hint whether the user should start
     /// rendering the game state or not
@@ -105,54 +88,6 @@ impl AppState {
             | AppState::Win
             | AppState::DebugFreeze => true,
             _ => false,
-        }
-    }
-}
-
-struct DebugStuff {
-    cmd: CommandCenter<App>,
-    console_mode: ConsoleMode,
-}
-
-impl DebugStuff {
-    fn new() -> Self {
-        ScreenCons::init_log();
-
-        Self {
-            cmd: CommandCenter::new(),
-            console_mode: ConsoleMode::Hidden,
-        }
-    }
-
-    fn draw(&self) { 
-        let mut console_mode = self.console_mode;
-        if self.cmd.should_pause() {
-            console_mode = ConsoleMode::Console;
-        }
-
-        match console_mode {
-            ConsoleMode::Hidden => (),
-            ConsoleMode::Dump => ScreenDump::draw(),
-            ConsoleMode::Console => ScreenCons::draw(),
-        }
-
-        self.cmd.draw();
-    }
-
-    fn input(&mut self, input: &InputModel, app: &mut App) {
-        if input.scroll_down {
-            ScreenCons::scroll_forward();
-        }
-        if input.scroll_up {
-            ScreenCons::scroll_back();
-        }
-
-        if let Some(ch) = get_char_pressed() {
-            self.cmd.input(ch, app);
-        }
-
-        if input.console_toggle_requested {
-            self.console_mode = self.console_mode.scroll();
         }
     }
 }
@@ -181,8 +116,6 @@ pub struct App {
 
     draw_world: bool,
     freeze: bool,
-    debug_draws: HashMap<String, fn(&World)>,
-    enabled_debug_draws: HashSet<String>,
 }
 
 impl App {
@@ -202,26 +135,17 @@ impl App {
 
             draw_world: true,
             freeze: false,
-            debug_draws: HashMap::new(),
-            enabled_debug_draws: HashSet::new(),
         })
     }
 
     /// Just runs the game. This is what you call after loading all the resources. 
     /// This method will run forever as it provides the application loop.
     pub async fn run(mut self, game: &dyn Game) {
-        let mut debug = DebugStuff::new();
-        self.debug_draws = game.debug_draws()
-            .iter()
-            .map(|(name, payload)| (name.to_string(), *payload))
-            .collect();
-        init_debug_commands(&mut debug.cmd);
-        for (cmd, description, payload) in game.debug_commands() {
-            let payload = *payload;
-            debug.cmd.add_command(cmd, description, move |app, args| {
-                payload(&mut app.world, args)
-            });
-        }
+        let mut debug = DebugStuff::new(
+            game.debug_draws().iter().map(|(name, payload)| (name.to_string(), *payload)),
+            game.debug_commands().iter()
+                .map(|(x, y, z)| (*x, *y, *z))
+        );
         
         sys::done_loading();
 
@@ -245,12 +169,7 @@ impl App {
             }
             self.game_present(real_dt, game);
             self.debug_info();
-            self.render.debug_render(|| {
-                for debug in self.enabled_debug_draws.iter() {
-                    (self.debug_draws[debug])(&self.world)
-                }
-            });
-            debug.draw();
+            debug.draw(&mut self.render, &self.world);
             next_frame().await
         }
     }
@@ -354,11 +273,11 @@ impl App {
         }
 
         /* Debug freeze */
-        if (debug.cmd.should_pause() || self.freeze) && self.state == AppState::Active {
+        if (debug.should_pause() || self.freeze) && self.state == AppState::Active {
             self.state = AppState::DebugFreeze;
             return false;
         }
-        if !(debug.cmd.should_pause() || self.freeze) && self.state == AppState::DebugFreeze {
+        if !(debug.should_pause() || self.freeze) && self.state == AppState::DebugFreeze {
             self.state = AppState::Active;
             return false;
         }
