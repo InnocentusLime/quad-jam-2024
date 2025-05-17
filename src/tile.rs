@@ -1,5 +1,5 @@
 use crate::components::*;
-use crate::game::Game;
+use crate::game::GameState;
 use lib_game::*;
 use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, UniqueView, View, ViewMut, World};
@@ -17,7 +17,7 @@ pub fn tick_smell(dt: f32, mut smell: ViewMut<TileSmell>) {
 }
 
 pub fn player_step_smell(
-    game: UniqueView<Game>,
+    game: UniqueView<GameState>,
     mut smell: ViewMut<TileSmell>,
     pos: View<Transform>,
     tile_storage: View<TileStorage>,

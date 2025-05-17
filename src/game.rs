@@ -53,7 +53,7 @@ fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut Wor
 }
 
 #[derive(Unique)]
-pub struct Game {
+pub struct GameState {
     pub do_ai: bool,
     pub player: EntityId,
     pub _boxes: [EntityId; 4],
@@ -62,7 +62,7 @@ pub struct Game {
     camera: Camera2D,
 }
 
-impl Game {
+impl GameState {
     fn spawn_bullet(pos: Vec2, world: &mut World) {
         world.add_entity((
             Transform { pos, angle: 0.0 },
@@ -199,7 +199,7 @@ impl Game {
         }
     }
 
-    pub fn should_ai(this: UniqueView<Game>) -> bool {
+    pub fn should_ai(this: UniqueView<GameState>) -> bool {
         this.do_ai
     }
 
@@ -208,7 +208,7 @@ impl Game {
         self.camera.screen_to_world(vec2(mx, my))
     }
 
-    pub fn update_camera(mut this: UniqueViewMut<Game>, tile_storage: View<TileStorage>) {
+    pub fn update_camera(mut this: UniqueViewMut<GameState>, tile_storage: View<TileStorage>) {
         let view_height = 19.0 * 32.0;
         let view_width = (screen_width() / screen_height()) * view_height;
         this.camera = Camera2D::from_display_rect(Rect {
@@ -258,7 +258,7 @@ impl Game {
 }
 
 pub fn decide_next_state(
-    game: UniqueView<Game>,
+    game: UniqueView<GameState>,
     player: View<PlayerTag>,
     health: View<Health>,
 ) -> Option<AppState> {

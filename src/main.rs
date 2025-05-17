@@ -1,5 +1,5 @@
-use game::{decide_next_state, Game};
-use lib_game::{draw_physics_debug, FontKey, Render, TextureKey};
+use game::{decide_next_state, GameState};
+use lib_game::{draw_physics_debug, AppState, FontKey, Game, Render, TextureKey};
 use macroquad::prelude::*;
 use render::render_toplevel_ui;
 use shipyard::UniqueViewMut;
@@ -56,6 +56,85 @@ async fn load_graphics(render: &mut Render) -> anyhow::Result<()> {
     Ok(())
 }
 
+struct Project;
+
+impl Game for Project {
+    fn debug_commands(&self) -> &[(&'static str, &'static str, fn(&mut World, &[&str]))] {
+        &[
+            ("noai", "disable ai", |world: &mut World, _| {
+                world.run(|mut game: UniqueViewMut<GameState>| game.do_ai = false);
+            }),
+            ("ai", "enable ai", |world: &mut World, _| {
+                world.run(|mut game: UniqueViewMut<GameState>| game.do_ai = true);
+            }),
+        ]
+    }
+
+    fn debug_draws(&self) -> &[(&'static str, fn(&World))] {
+        &[
+            ("phys", draw_physics_debug),
+            ("smell", debug_draw_tile_smell),
+        ]
+    }
+
+    fn init(&self, world: &mut World) {
+        let game = GameState::new(world);
+        world.add_unique(game);
+    }
+
+    fn input_phase(&self, input: &lib_game::InputModel, dt: f32, world: &mut World) {
+        world.run_with_data(player_controls, (input, dt));
+        world.run_with_data(player_throw, input);
+        if world.run(GameState::should_ai) {
+            world.run_with_data(update_brain, dt);
+            world.run(brute_ai);
+            world.run(stalker_ai);
+            world.run(main_cell_ai);
+        }
+    }
+
+    fn plan_physics_queries(&self, _dt: f32, world: &mut World) {
+        world.run(player_sensor_pose);
+        world.run(bullet_parts);
+    }
+
+    fn update(&self, dt: f32, world: &mut World) -> Option<lib_game::AppState> {
+        world.run(GameState::update_camera);
+        world.run_with_data(tick_smell, dt);
+        world.run(player_step_smell);
+        world.run(player_ammo_pickup);
+        world.run(thrown_damage);
+        world.run_with_data(thrown_logic, dt);
+        world.run_with_data(enemy_states, dt);
+        world.run(cell_phys_data);
+        world.run(player_damage);
+        world.run_with_data(player_damage_state, dt);
+        world.run(GameState::reward_enemies);
+        world.run(GameState::count_rewards);
+        world.run(check_goal);
+
+        world.run(decide_next_state)
+    }
+
+    fn render_export(&self, app_state: &AppState, world: &World, render: &mut Render) {
+        if app_state.is_presentable() {
+            world.run_with_data(render::prepare_world_cam, render);
+            world.run_with_data(render::render_tiles, render);
+            world.run_with_data(render::render_player, render);
+            world.run_with_data(render::render_brute, render);
+            world.run_with_data(render::render_main_cell, render);
+            world.run_with_data(render::render_stalker, render);
+            world.run_with_data(render::render_boxes, render);
+            world.run_with_data(render::render_rays, render);
+            world.run_with_data(render::render_ammo, render);
+            world.run_with_data(render::render_goal, render);
+            world.run_with_data(render::render_game_ui, render);
+        }
+
+        render_toplevel_ui(app_state, render);
+    }
+}
+
 #[macroquad::main(window_conf)]
 async fn main() {
     let hook = std::panic::take_hook();
@@ -68,74 +147,7 @@ async fn main() {
 
     let mut app = lib_game::App::new(&window_conf()).await.unwrap();
 
-    app.add_debug_draw("phys", draw_physics_debug);
-    app.add_debug_draw("smell", debug_draw_tile_smell);
-
-    let debug_commands: Vec<(&'static str, &'static str, fn(&mut World, &[&str]))> = vec![
-        ("noai", "disable ai", |world: &mut World, _| {
-            world.run(|mut game: UniqueViewMut<Game>| game.do_ai = false);
-        }),
-        ("ai", "enable ai", |world: &mut World, _| {
-            world.run(|mut game: UniqueViewMut<Game>| game.do_ai = true);
-        }),
-    ];
-
     load_graphics(&mut app.render).await.unwrap();
 
-    app.run(
-        debug_commands,
-        |world| {
-            let game = Game::new(world);
-            world.add_unique(game);
-        },
-        |input, dt, world| {
-            world.run_with_data(player_controls, (input, dt));
-            world.run_with_data(player_throw, input);
-            if world.run(Game::should_ai) {
-                world.run_with_data(update_brain, dt);
-                world.run(brute_ai);
-                world.run(stalker_ai);
-                world.run(main_cell_ai);
-            }
-        },
-        |_dt, world| {
-            world.run(player_sensor_pose);
-            world.run(bullet_parts);
-        },
-        |dt, world| {
-            world.run(Game::update_camera);
-            world.run_with_data(tick_smell, dt);
-            world.run(player_step_smell);
-            world.run(player_ammo_pickup);
-            world.run(thrown_damage);
-            world.run_with_data(thrown_logic, dt);
-            world.run_with_data(enemy_states, dt);
-            world.run(cell_phys_data);
-            world.run(player_damage);
-            world.run_with_data(player_damage_state, dt);
-            world.run(Game::reward_enemies);
-            world.run(Game::count_rewards);
-            world.run(check_goal);
-
-            world.run(decide_next_state)
-        },
-        |app_state, world, render| {
-            if app_state.is_presentable() {
-                world.run_with_data(render::prepare_world_cam, render);
-                world.run_with_data(render::render_tiles, render);
-                world.run_with_data(render::render_player, render);
-                world.run_with_data(render::render_brute, render);
-                world.run_with_data(render::render_main_cell, render);
-                world.run_with_data(render::render_stalker, render);
-                world.run_with_data(render::render_boxes, render);
-                world.run_with_data(render::render_rays, render);
-                world.run_with_data(render::render_ammo, render);
-                world.run_with_data(render::render_goal, render);
-                world.run_with_data(render::render_game_ui, render);
-            }
-
-            render_toplevel_ui(app_state, render);
-        },
-    )
-    .await
+    app.run(&Project).await;
 }

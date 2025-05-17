@@ -22,7 +22,7 @@ static START_TEXT_MOBILE: &'static str = "Tap to start";
 
 pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
 
-pub fn prepare_world_cam(render: &mut Render, game: UniqueView<Game>) {
+pub fn prepare_world_cam(render: &mut Render, game: UniqueView<GameState>) {
     render.world.add_unique::<CameraDef>(game.camera().into())
 }
 
@@ -288,7 +288,7 @@ pub fn render_goal(render: &mut Render, pos: View<Transform>, goal: View<GoalTag
     }
 }
 
-pub fn render_toplevel_ui(app_state: AppState, render: &mut Render) {
+pub fn render_toplevel_ui(app_state: &AppState, render: &mut Render) {
     match app_state {
         AppState::Start => {
             render.world.add_entity(AnnouncementText {
@@ -308,7 +308,7 @@ pub fn render_toplevel_ui(app_state: AppState, render: &mut Render) {
                 body: Some(game_restart_hint()),
             });
         }
-        AppState::Paused => {
+        AppState::Active { paused: true } => {
             render.world.add_entity(AnnouncementText {
                 heading: PAUSE_TEXT,
                 body: Some(PAUSE_HINT),

@@ -31,7 +31,7 @@ members = [ "lib-game", "quad-dbg" ]
 
 [workspace.dependencies]
 shipyard = "0.8"
-log = { version = "0.4.22", features = ["max_level_info", "release_max_level_warn"] }
+log = { version = "0.4.22", features = ["max_level_info", "release_max_level_info"] }
 macroquad = { version = "0.4.13", features = ["audio", "log-rs"] }
 macroquad-particles = "0.2.1"
 anyhow = "1"

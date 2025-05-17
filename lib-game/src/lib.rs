@@ -8,8 +8,7 @@ mod sound_director;
 pub mod sys;
 
 pub use components::*;
-use dbg::init_debug_commands;
-use hashbrown::{HashMap, HashSet};
+use dbg::DebugStuff;
 pub use input::*;
 pub use physics::*;
 pub use render::*;
@@ -22,32 +21,58 @@ use quad_dbg::*;
 
 const GAME_TICKRATE: f32 = 1.0 / 60.0;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum AppState {
     Start,
-    Active,
+    Active { paused: bool },
     GameOver,
     Win,
-    Paused,
     PleaseRotate,
     DebugFreeze,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum ConsoleMode {
-    Hidden,
-    Dump,
-    Console,
-}
+/// The trait containing all callbacks for the game,
+/// that is run inside the App. Do not store the game
+/// state in the structure itself. All game state should
+/// be inside the ECS world.
+///
+/// The application loop is structured as follows:
+/// 1. Clearing the physics state
+/// 2. Game::input_phase
+/// 3. Physics simulation step and writeback
+/// 4. Game::pre_physics_query_phase
+/// 5. Handling of the physics queries
+/// 6. Game::update
+/// 7. Game::render
+pub trait Game {
+    /// Return the debug commands of this game. These commands
+    /// will be added to the App's command registry.
+    fn debug_commands(&self) -> &[(&'static str, &'static str, fn(&mut World, &[&str]))];
 
-impl ConsoleMode {
-    fn scroll(self) -> Self {
-        match self {
-            ConsoleMode::Hidden => ConsoleMode::Dump,
-            ConsoleMode::Dump => ConsoleMode::Console,
-            ConsoleMode::Console => ConsoleMode::Hidden,
-        }
-    }
+    /// Return the list of the debug draws. Debug draws are batches
+    /// of (usually, macroquad) draw calls to assist you at debugging
+    /// the game logic.
+    ///
+    /// These debug draws can be used in `dde` and `ddd` and will
+    /// show up in `ddl`
+    fn debug_draws(&self) -> &[(&'static str, fn(&World))];
+
+    /// Put all the appropriate data into the ECS World.
+    /// The ECS world should be the only place where the state
+    /// is located.
+    fn init(&self, world: &mut World);
+
+    /// Handle the user input. You also get the delta-time.
+    fn input_phase(&self, input: &InputModel, dt: f32, world: &mut World);
+
+    fn plan_physics_queries(&self, dt: f32, world: &mut World);
+
+    /// Main update routine. You can request the App to transition
+    /// into a new state by returning [Option::Some].
+    fn update(&self, dt: f32, world: &mut World) -> Option<AppState>;
+
+    /// Export the game world for rendering.
+    fn render_export(&self, state: &AppState, world: &World, render: &mut Render);
 }
 
 impl AppState {
@@ -55,60 +80,11 @@ impl AppState {
     /// rendering the game state or not
     pub fn is_presentable(&self) -> bool {
         match self {
-            AppState::Active
+            AppState::Active { .. }
             | AppState::GameOver
-            | AppState::Paused
             | AppState::Win
             | AppState::DebugFreeze => true,
             _ => false,
-        }
-    }
-}
-
-struct DebugStuff {
-    cmd: CommandCenter<App>,
-    console_mode: ConsoleMode,
-}
-
-impl DebugStuff {
-    fn new() -> Self {
-        ScreenCons::init_log();
-
-        Self {
-            cmd: CommandCenter::new(),
-            console_mode: ConsoleMode::Hidden,
-        }
-    }
-
-    fn draw(&self) {
-        let mut console_mode = self.console_mode;
-        if self.cmd.should_pause() {
-            console_mode = ConsoleMode::Console;
-        }
-
-        match console_mode {
-            ConsoleMode::Hidden => (),
-            ConsoleMode::Dump => ScreenDump::draw(),
-            ConsoleMode::Console => ScreenCons::draw(),
-        }
-
-        self.cmd.draw();
-    }
-
-    fn input(&mut self, input: &InputModel, app: &mut App) {
-        if input.scroll_down {
-            ScreenCons::scroll_forward();
-        }
-        if input.scroll_up {
-            ScreenCons::scroll_back();
-        }
-
-        if let Some(ch) = get_char_pressed() {
-            self.cmd.input(ch, app);
-        }
-
-        if input.console_toggle_requested {
-            self.console_mode = self.console_mode.scroll();
         }
     }
 }
@@ -128,7 +104,6 @@ pub struct App {
 
     state: AppState,
     accumelated_time: f32,
-    paused_state: AppState,
 
     pub render: Render,
     sound: SoundDirector,
@@ -137,8 +112,6 @@ pub struct App {
 
     draw_world: bool,
     freeze: bool,
-    debug_draws: HashMap<String, fn(&World)>,
-    enabled_debug_draws: HashSet<String>,
 }
 
 impl App {
@@ -149,7 +122,6 @@ impl App {
 
             accumelated_time: 0.0,
             state: AppState::Start,
-            paused_state: AppState::Start,
 
             render: Render::new(),
             sound: SoundDirector::new().await?,
@@ -158,43 +130,18 @@ impl App {
 
             draw_world: true,
             freeze: false,
-            debug_draws: HashMap::new(),
-            enabled_debug_draws: HashSet::new(),
         })
     }
 
-    pub fn add_debug_draw(&mut self, name: &'static str, payload: fn(&World)) {
-        self.debug_draws.insert(name.to_owned(), payload);
-    }
-
-    /// Just runs the game. This is what you call after loading
-    /// all the resources. The app takes a few callbacks to know
-    /// what to do:
-    /// * init_game -- what to do to set up a game
-    /// * input_phase -- various input processing
-    /// * pre_physics_query_phase -- last chance to properly plan all
-    /// physics engine queries
-    /// * update -- the crux of the logic
-    /// * render -- export the world into render
-    /// * debug_render -- draw some debug assist stuff on top of the world
-    ///
+    /// Just runs the game. This is what you call after loading all the resources.
     /// This method will run forever as it provides the application loop.
-    pub async fn run(
-        mut self,
-        debug_commands: Vec<(&'static str, &'static str, fn(&mut World, &[&str]))>,
-        mut init_game: impl FnMut(&mut World),
-        mut input_phase: impl FnMut(&InputModel, f32, &mut World),
-        mut pre_physics_query_phase: impl FnMut(f32, &mut World),
-        mut update: impl FnMut(f32, &mut World) -> Option<AppState>,
-        mut render: impl FnMut(AppState, &World, &mut Render),
-    ) {
-        let mut debug = DebugStuff::new();
-        init_debug_commands(&mut debug.cmd);
-        for (cmd, description, payload) in debug_commands {
-            debug.cmd.add_command(cmd, description, move |app, args| {
-                payload(&mut app.world, args)
-            });
-        }
+    pub async fn run(mut self, game: &dyn Game) {
+        let mut debug = DebugStuff::new(
+            game.debug_draws()
+                .iter()
+                .map(|(name, payload)| (name.to_string(), *payload)),
+            game.debug_commands().iter().map(|(x, y, z)| (*x, *y, *z)),
+        );
 
         sys::done_loading();
 
@@ -209,43 +156,31 @@ impl App {
             let do_tick = self.update_ticking(real_dt);
             self.fullscreen_toggles(&input);
             debug.input(&input, &mut self);
-            if self.next_state(&input, &debug) {
-                self.world.clear();
-                init_game(&mut self.world);
+
+            if let Some(next_state) = self.next_state(&input, &debug) {
+                self.apply_state(next_state, game);
             }
-            if matches!(self.state, AppState::Active) && do_tick {
-                self.game_update(
-                    &input,
-                    &mut input_phase,
-                    &mut pre_physics_query_phase,
-                    &mut update,
-                );
+            if matches!(self.state, AppState::Active { paused: false }) && do_tick {
+                if let Some(next_state) = self.game_update(&input, game) {
+                    self.apply_state(next_state, game);
+                }
             }
-            self.game_present(real_dt, &mut render);
+
+            self.game_present(real_dt, game);
             self.debug_info();
-            debug.draw();
+            debug.draw(&mut self.render, &self.world);
             next_frame().await
         }
     }
 
-    fn game_present(
-        &mut self,
-        real_dt: f32,
-        mut render: impl FnMut(AppState, &World, &mut Render),
-    ) {
+    fn game_present(&mut self, real_dt: f32, game: &dyn Game) {
         self.sound.run(&self.world);
         self.render.new_frame();
-        render(self.state, &self.world, &mut self.render);
+        game.render_export(&self.state, &self.world, &mut self.render);
         self.render.render(!self.draw_world, real_dt);
     }
 
-    fn game_update(
-        &mut self,
-        input: &InputModel,
-        mut input_phase: impl FnMut(&InputModel, f32, &mut World),
-        mut pre_physics_query_phase: impl FnMut(f32, &mut World),
-        mut update: impl FnMut(f32, &mut World) -> Option<AppState>,
-    ) {
+    fn game_update(&mut self, input: &InputModel, game: &dyn Game) -> Option<AppState> {
         self.world
             .run_with_data(PhysicsState::remove_dead_handles, &mut self.physics);
         self.world
@@ -255,7 +190,7 @@ impl App {
         self.world
             .run_with_data(PhysicsState::reset_impulses, &mut self.physics);
 
-        input_phase(&input, GAME_TICKRATE, &mut self.world);
+        game.input_phase(&input, GAME_TICKRATE, &mut self.world);
 
         self.world
             .run_with_data(PhysicsState::import_positions_and_info, &mut self.physics);
@@ -270,20 +205,29 @@ impl App {
         self.world
             .run_with_data(PhysicsState::export_body_poses, &mut self.physics);
 
-        pre_physics_query_phase(GAME_TICKRATE, &mut self.world);
+        game.plan_physics_queries(GAME_TICKRATE, &mut self.world);
 
         self.world
             .run_with_data(PhysicsState::export_beam_queries, &mut self.physics);
         self.world
             .run_with_data(PhysicsState::export_sensor_queries, &mut self.physics);
 
-        let new_state = update(GAME_TICKRATE, &mut self.world);
+        let new_state = game.update(GAME_TICKRATE, &mut self.world);
 
         self.world.clear_all_removed_and_deleted();
+        new_state
+    }
 
-        if let Some(new_state) = new_state {
-            self.state = new_state;
+    fn apply_state(&mut self, next_state: AppState, game: &dyn Game) {
+        let mut reset = !matches!(&self.state, AppState::Active { .. } | AppState::DebugFreeze);
+        reset = reset && matches!(&next_state, AppState::Active { .. });
+        self.state = next_state;
+
+        if !reset {
+            return;
         }
+        self.world.clear();
+        game.init(&mut self.world);
     }
 
     fn fullscreen_toggles(&mut self, input: &InputModel) {
@@ -316,12 +260,6 @@ impl App {
     }
 
     fn debug_info(&mut self) {
-        self.render.debug_render(|| {
-            for debug in self.enabled_debug_draws.iter() {
-                (self.debug_draws[debug])(&self.world)
-            }
-        });
-
         let ent_count = self.world.borrow::<EntitiesView>().unwrap().iter().count();
 
         dump!("{}", self.accumelated_time);
@@ -329,42 +267,29 @@ impl App {
         dump!("Entities: {ent_count}");
     }
 
-    fn next_state(&mut self, input: &InputModel, debug: &DebugStuff) -> bool {
-        /* Mobile device orientation enforcement */
-
-        if sys::get_orientation() != 0.0 && self.state != AppState::PleaseRotate {
-            self.paused_state = self.state;
-            self.state = AppState::PleaseRotate;
-            return false;
-        }
-
-        if sys::get_orientation() == 0.0 && self.state == AppState::PleaseRotate {
-            return false;
-        }
-
+    fn next_state(&mut self, input: &InputModel, debug: &DebugStuff) -> Option<AppState> {
         /* Debug freeze */
-        if (debug.cmd.should_pause() || self.freeze) && self.state == AppState::Active {
-            self.state = AppState::DebugFreeze;
-            return false;
+        if (debug.should_pause() || self.freeze)
+            && self.state == (AppState::Active { paused: false })
+        {
+            return Some(AppState::DebugFreeze);
         }
-        if !(debug.cmd.should_pause() || self.freeze) && self.state == AppState::DebugFreeze {
-            self.state = AppState::Active;
-            return false;
+        if !(debug.should_pause() || self.freeze) && self.state == AppState::DebugFreeze {
+            return Some(AppState::Active { paused: false });
         }
 
         /* Normal state transitions */
-        let (new_state, reset) = match self.state {
-            AppState::Start if input.confirmation_detected => (AppState::Active, true),
-            AppState::Win | AppState::GameOver if input.confirmation_detected => {
-                (AppState::Active, true)
+        match self.state {
+            AppState::Start if input.confirmation_detected => {
+                Some(AppState::Active { paused: false })
             }
-            AppState::Paused if input.pause_requested => (AppState::Active, false),
-            AppState::Active if input.pause_requested => (AppState::Paused, false),
-            AppState::Active if input.reset_requested => (AppState::Active, true),
-            _ => return false,
-        };
-
-        self.state = new_state;
-        reset
+            AppState::Win | AppState::GameOver if input.confirmation_detected => {
+                Some(AppState::Active { paused: false })
+            }
+            AppState::Active { paused } if input.pause_requested => {
+                Some(AppState::Active { paused: !paused })
+            }
+            _ => None,
+        }
     }
 }
