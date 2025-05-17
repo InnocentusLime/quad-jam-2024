@@ -297,6 +297,24 @@ pub fn render_game_ui(
     ));
 }
 
+pub fn render_goal(
+    render: &mut Render,
+    pos: View<Transform>,
+    goal: View<GoalTag>,
+) {
+    for (pos, _) in (&pos, &goal).iter() {
+        render.world.add_entity((
+            *pos,
+            Tint(GREEN),
+            RectShape {
+                origin: vec2(0.5, 0.5),
+                width: 16.0,
+                height: 16.0,
+            },
+        ));
+    }
+}
+
 pub fn render_toplevel_ui(app_state: AppState, render: &mut Render) {
     match app_state {
         AppState::Start => {

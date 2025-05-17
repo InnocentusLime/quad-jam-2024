@@ -176,3 +176,6 @@ pub struct BulletHitterTag;
 
 #[derive(Debug, Clone, Copy, Component)]
 pub struct BulletWallHitterTag;
+
+#[derive(Debug, Clone, Copy, Component)]
+pub struct GoalTag;

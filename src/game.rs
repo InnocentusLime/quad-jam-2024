@@ -2,6 +2,7 @@ use lib_game::*;
 use macroquad::prelude::*;
 use shipyard::{EntityId, Get, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
 
+use crate::goal::spawn_goal;
 use crate::inline_tilemap;
 
 use crate::components::*;
@@ -62,6 +63,7 @@ pub struct Game {
     pub player: EntityId,
     pub _boxes: [EntityId; 4],
     pub _tilemap: EntityId,
+    pub goal_achieved: bool,
     camera: Camera2D,
 }
 
@@ -190,11 +192,14 @@ impl Game {
             world,
         );
 
+        spawn_goal(world, vec2(400.0, 64.0));
+
         Self {
             do_ai: true,
             player: crate::player::spawn_player(world),
             _boxes: boxes,
             _tilemap: tilemap,
+            goal_achieved: false,
             camera: Camera2D::default(),
         }
     }
@@ -284,20 +289,18 @@ impl Game {
 // );
 
 pub fn decide_next_state(
+    game: UniqueView<Game>,
     player: View<PlayerTag>,
     health: View<Health>,
     enemy_state: View<EnemyState>,
 ) -> Option<AppState> {
     let player_dead = (&player, &health).iter().all(|(_, hp)| hp.0 <= 0);
-    let enemies_dead = enemy_state
-        .iter()
-        .all(|state| matches!(state, EnemyState::Dead));
 
     if player_dead {
         return Some(AppState::GameOver);
     }
 
-    if enemies_dead {
+    if game.goal_achieved {
         return Some(AppState::Win);
     }
 

@@ -8,7 +8,9 @@ use shipyard::World;
 use crate::enemy::*;
 use crate::player::*;
 use crate::tile::*;
+use crate::goal::*;
 
+mod goal;
 mod tile;
 mod player;
 mod enemy;
@@ -114,6 +116,7 @@ async fn main() {
             world.run_with_data(player_damage_state, dt);
             world.run(Game::reward_enemies);
             world.run(Game::count_rewards);
+            world.run(check_goal);
 
             world.run(decide_next_state)
         },
@@ -128,6 +131,7 @@ async fn main() {
                 world.run_with_data(render::render_boxes, render);
                 world.run_with_data(render::render_rays, render);
                 world.run_with_data(render::render_ammo, render);
+                world.run_with_data(render::render_goal, render);
                 world.run_with_data(render::render_game_ui, render);
             }
 
