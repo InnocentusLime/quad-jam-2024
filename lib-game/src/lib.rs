@@ -7,6 +7,8 @@ mod sound_director;
 
 pub mod sys;
 
+use std::rc::Rc;
+
 pub use components::*;
 use dbg::DebugStuff;
 pub use input::*;
@@ -21,10 +23,10 @@ use quad_dbg::*;
 
 const GAME_TICKRATE: f32 = 1.0 / 60.0;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AppState {
     Start,
-    Load(String),
+    Load,
     Active { paused: bool },
     GameOver,
     Win,
@@ -66,7 +68,7 @@ pub trait Game {
     /// Used by the app to consult what should be the next
     /// level to load. For now the data returned is just forwarded
     /// to `init`.
-    fn next_level(&self, app_state: &AppState, world: &World) -> String;
+    fn next_level(&self, data: &str, app_state: &AppState, world: &World) -> String;
 
     /// Handle the user input. You also get the delta-time.
     fn input_phase(&self, input: &InputModel, dt: f32, world: &mut World);
@@ -95,6 +97,19 @@ impl AppState {
     }
 }
 
+#[derive(Debug, Default)]
+struct LoadedLevel(Option<String>);
+
+impl LoadedLevel {
+    pub fn from_string(x: String) -> LoadedLevel {
+        LoadedLevel(Some(x))
+    }
+
+    pub fn get(&self) -> &str {
+        self.0.as_ref().map(String::as_str).unwrap_or("null")
+    }
+}
+
 /// The app run all the boilerplate code to make the game tick.
 /// The following features are provided:
 /// * State transitions and handling
@@ -108,6 +123,7 @@ pub struct App {
     fullscreen: bool,
     old_size: (u32, u32),
 
+    loaded_level: LoadedLevel,
     state: AppState,
     accumelated_time: f32,
 
@@ -126,8 +142,9 @@ impl App {
             fullscreen: conf.fullscreen,
             old_size: (conf.window_width as u32, conf.window_height as u32),
 
-            accumelated_time: 0.0,
+            loaded_level: LoadedLevel::default(),
             state: AppState::Start,
+            accumelated_time: 0.0,
 
             render: Render::new(),
             sound: SoundDirector::new().await?,
@@ -157,9 +174,9 @@ impl App {
         loop {
             ScreenDump::new_frame();
 
-            if let AppState::Load(data) = &self.state {
+            if let AppState::Load = &self.state {
                 self.world.clear();
-                game.init(data, &mut self.world);
+                game.init(self.loaded_level.get(), &mut self.world);
                 self.state = AppState::Active { paused: false };
             }
 
@@ -280,12 +297,10 @@ impl App {
 
         /* Normal state transitions */
         match self.state {
-            AppState::Start if input.confirmation_detected => {
-                Some(AppState::Load("nil".to_owned()))
-            }
-            AppState::Win | AppState::GameOver if input.confirmation_detected => {
-                let data = game.next_level(&self.state, &self.world);
-                Some(AppState::Load(data))
+            AppState::Win | AppState::GameOver | AppState::Start if input.confirmation_detected => {
+                let data = game.next_level(self.loaded_level.get(), &self.state, &self.world);
+                self.loaded_level = LoadedLevel::from_string(data);
+                Some(AppState::Load)
             }
             AppState::Active { paused } if input.pause_requested => {
                 Some(AppState::Active { paused: !paused })
