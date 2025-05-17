@@ -57,7 +57,6 @@ fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut Wor
 #[derive(Unique)]
 pub struct GameState {
     pub do_ai: bool,
-    pub goal_achieved: bool,
 }
 
 impl GameState {
@@ -168,7 +167,6 @@ impl GameState {
 
         Self {
             do_ai: true,
-            goal_achieved: false,
         }
     }
 
@@ -202,17 +200,18 @@ pub fn count_rewards(mut reward: ViewMut<RewardInfo>, mut score: UniqueViewMut<P
 }
 
 pub fn decide_next_state(
-    game: UniqueView<GameState>,
     player: View<PlayerTag>,
     health: View<Health>,
+    goal: View<GoalTag>,
 ) -> Option<AppState> {
     let player_dead = (&player, &health).iter().all(|(_, hp)| hp.0 <= 0);
+    let goal_achieved = goal.iter().any(|x| x.achieved);
 
     if player_dead {
         return Some(AppState::GameOver);
     }
 
-    if game.goal_achieved {
+    if goal_achieved {
         return Some(AppState::Win);
     }
 

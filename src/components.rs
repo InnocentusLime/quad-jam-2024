@@ -160,4 +160,6 @@ pub struct BulletHitterTag;
 pub struct BulletWallHitterTag;
 
 #[derive(Debug, Clone, Copy, Component)]
-pub struct GoalTag;
+pub struct GoalTag {
+    pub achieved: bool,
+}
