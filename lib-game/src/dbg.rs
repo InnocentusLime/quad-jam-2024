@@ -39,7 +39,7 @@ impl DebugStuff {
         debug_draws: impl Iterator<Item = (String, fn(&World))>,
         user_cmds: impl Iterator<Item = (&'static str, &'static str, fn(&mut World, &[&str]))>,
     ) -> Self {
-        let mut cmd_center =CommandCenter::new(); 
+        let mut cmd_center = CommandCenter::new();
 
         ScreenCons::init_log();
         init_debug_commands(&mut cmd_center);
@@ -52,20 +52,20 @@ impl DebugStuff {
         Self {
             cmd_center,
             console_mode: ConsoleMode::Hidden,
-            state: DebugState { 
-                debug_draws: debug_draws.collect(), 
-                enabled_debug_draws: HashSet::new(), 
+            state: DebugState {
+                debug_draws: debug_draws.collect(),
+                enabled_debug_draws: HashSet::new(),
             },
         }
     }
 
-    pub(crate) fn draw(&self, render: &mut Render, world: &World) { 
+    pub(crate) fn draw(&self, render: &mut Render, world: &World) {
         render.debug_render(|| {
             for debug in self.state.enabled_debug_draws.iter() {
                 (self.state.debug_draws[debug])(world)
             }
         });
-        
+
         let mut console_mode = self.console_mode;
         if self.cmd_center.should_pause() {
             console_mode = ConsoleMode::Console;

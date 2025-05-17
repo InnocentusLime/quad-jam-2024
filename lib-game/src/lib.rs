@@ -35,7 +35,7 @@ pub enum AppState {
 /// that is run inside the App. Do not store the game
 /// state in the structure itself. All game state should
 /// be inside the ECS world.
-/// 
+///
 /// The application loop is structured as follows:
 /// 1. Clearing the physics state
 /// 2. Game::input_phase
@@ -52,7 +52,7 @@ pub trait Game {
     /// Return the list of the debug draws. Debug draws are batches
     /// of (usually, macroquad) draw calls to assist you at debugging
     /// the game logic.
-    /// 
+    ///
     /// These debug draws can be used in `dde` and `ddd` and will
     /// show up in `ddl`
     fn debug_draws(&self) -> &[(&'static str, fn(&World))];
@@ -133,15 +133,16 @@ impl App {
         })
     }
 
-    /// Just runs the game. This is what you call after loading all the resources. 
+    /// Just runs the game. This is what you call after loading all the resources.
     /// This method will run forever as it provides the application loop.
     pub async fn run(mut self, game: &dyn Game) {
         let mut debug = DebugStuff::new(
-            game.debug_draws().iter().map(|(name, payload)| (name.to_string(), *payload)),
-            game.debug_commands().iter()
-                .map(|(x, y, z)| (*x, *y, *z))
+            game.debug_draws()
+                .iter()
+                .map(|(name, payload)| (name.to_string(), *payload)),
+            game.debug_commands().iter().map(|(x, y, z)| (*x, *y, *z)),
         );
-        
+
         sys::done_loading();
 
         info!("Done loading");
@@ -155,7 +156,6 @@ impl App {
             let do_tick = self.update_ticking(real_dt);
             self.fullscreen_toggles(&input);
             debug.input(&input, &mut self);
-
 
             if let Some(next_state) = self.next_state(&input, &debug) {
                 self.apply_state(next_state, game);
@@ -269,7 +269,9 @@ impl App {
 
     fn next_state(&mut self, input: &InputModel, debug: &DebugStuff) -> Option<AppState> {
         /* Debug freeze */
-        if (debug.should_pause() || self.freeze) && self.state == (AppState::Active { paused: false }) {
+        if (debug.should_pause() || self.freeze)
+            && self.state == (AppState::Active { paused: false })
+        {
             return Some(AppState::DebugFreeze);
         }
         if !(debug.should_pause() || self.freeze) && self.state == AppState::DebugFreeze {
@@ -278,9 +280,15 @@ impl App {
 
         /* Normal state transitions */
         match self.state {
-            AppState::Start if input.confirmation_detected => Some(AppState::Active { paused: false }),
-            AppState::Win | AppState::GameOver if input.confirmation_detected => Some(AppState::Active { paused: false }),
-            AppState::Active { paused } if input.pause_requested => Some(AppState::Active { paused: !paused }),
+            AppState::Start if input.confirmation_detected => {
+                Some(AppState::Active { paused: false })
+            }
+            AppState::Win | AppState::GameOver if input.confirmation_detected => {
+                Some(AppState::Active { paused: false })
+            }
+            AppState::Active { paused } if input.pause_requested => {
+                Some(AppState::Active { paused: !paused })
+            }
             _ => None,
         }
     }

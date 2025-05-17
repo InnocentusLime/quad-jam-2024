@@ -1,5 +1,5 @@
 use game::{decide_next_state, GameState};
-use lib_game::{draw_physics_debug, FontKey, Render, TextureKey, Game, AppState};
+use lib_game::{draw_physics_debug, AppState, FontKey, Game, Render, TextureKey};
 use macroquad::prelude::*;
 use render::render_toplevel_ui;
 use shipyard::UniqueViewMut;
