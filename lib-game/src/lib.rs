@@ -25,10 +25,9 @@ const GAME_TICKRATE: f32 = 1.0 / 60.0;
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AppState {
     Start,
-    Active,
+    Active { paused: bool },
     GameOver,
     Win,
-    Paused,
     PleaseRotate,
     DebugFreeze,
 }
@@ -82,9 +81,8 @@ impl AppState {
     /// rendering the game state or not
     pub fn is_presentable(&self) -> bool {
         match self {
-            AppState::Active
+            AppState::Active { .. }
             | AppState::GameOver
-            | AppState::Paused
             | AppState::Win
             | AppState::DebugFreeze => true,
             _ => false,
@@ -160,13 +158,17 @@ impl App {
             let do_tick = self.update_ticking(real_dt);
             self.fullscreen_toggles(&input);
             debug.input(&input, &mut self);
-            if self.next_state(&input, &debug) {
-                self.world.clear();
-                game.init(&mut self.world);
+
+
+            if let Some(next_state) = self.next_state(&input, &debug) {
+                self.apply_state(next_state, game);
             }
-            if matches!(self.state, AppState::Active) && do_tick {
-                self.game_update(&input, game);
+            if matches!(self.state, AppState::Active { paused: false }) && do_tick {
+                if let Some(next_state) = self.game_update(&input, game) {
+                    self.apply_state(next_state, game);
+                }
             }
+
             self.game_present(real_dt, game);
             self.debug_info();
             debug.draw(&mut self.render, &self.world);
@@ -181,7 +183,7 @@ impl App {
         self.render.render(!self.draw_world, real_dt);
     }
 
-    fn game_update(&mut self, input: &InputModel, game: &dyn Game) {
+    fn game_update(&mut self, input: &InputModel, game: &dyn Game) -> Option<AppState> {
         self.world
             .run_with_data(PhysicsState::remove_dead_handles, &mut self.physics);
         self.world
@@ -216,10 +218,19 @@ impl App {
         let new_state = game.update(GAME_TICKRATE, &mut self.world);
 
         self.world.clear_all_removed_and_deleted();
+        new_state
+    }
 
-        if let Some(new_state) = new_state {
-            self.state = new_state;
+    fn apply_state(&mut self, next_state: AppState, game: &dyn Game) {
+        let mut reset = !matches!(&self.state, AppState::Active { .. } | AppState::DebugFreeze);
+        reset = reset && matches!(&next_state, AppState::Active { .. });
+        self.state = next_state;
+
+        if !reset {
+            return;
         }
+        self.world.clear();
+        game.init(&mut self.world);
     }
 
     fn fullscreen_toggles(&mut self, input: &InputModel) {
@@ -259,42 +270,32 @@ impl App {
         dump!("Entities: {ent_count}");
     }
 
-    fn next_state(&mut self, input: &InputModel, debug: &DebugStuff) -> bool {
+    fn next_state(&mut self, input: &InputModel, debug: &DebugStuff) -> Option<AppState> {
         /* Mobile device orientation enforcement */
 
         if sys::get_orientation() != 0.0 && self.state != AppState::PleaseRotate {
             self.paused_state = self.state;
-            self.state = AppState::PleaseRotate;
-            return false;
+            return Some(AppState::PleaseRotate);
         }
 
         if sys::get_orientation() == 0.0 && self.state == AppState::PleaseRotate {
-            return false;
+            return None;
         }
 
         /* Debug freeze */
-        if (debug.should_pause() || self.freeze) && self.state == AppState::Active {
-            self.state = AppState::DebugFreeze;
-            return false;
+        if (debug.should_pause() || self.freeze) && self.state == (AppState::Active { paused: false }) {
+            return Some(AppState::DebugFreeze);
         }
         if !(debug.should_pause() || self.freeze) && self.state == AppState::DebugFreeze {
-            self.state = AppState::Active;
-            return false;
+            return Some(AppState::Active { paused: false });
         }
 
         /* Normal state transitions */
-        let (new_state, reset) = match self.state {
-            AppState::Start if input.confirmation_detected => (AppState::Active, true),
-            AppState::Win | AppState::GameOver if input.confirmation_detected => {
-                (AppState::Active, true)
-            }
-            AppState::Paused if input.pause_requested => (AppState::Active, false),
-            AppState::Active if input.pause_requested => (AppState::Paused, false),
-            AppState::Active if input.reset_requested => (AppState::Active, true),
-            _ => return false,
-        };
-
-        self.state = new_state;
-        reset
+        match self.state {
+            AppState::Start if input.confirmation_detected => Some(AppState::Active { paused: false }),
+            AppState::Win | AppState::GameOver if input.confirmation_detected => Some(AppState::Active { paused: false }),
+            AppState::Active { paused } if input.pause_requested => Some(AppState::Active { paused: !paused }),
+            _ => None,
+        }
     }
 }

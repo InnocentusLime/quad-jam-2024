@@ -308,7 +308,7 @@ pub fn render_toplevel_ui(app_state: AppState, render: &mut Render) {
                 body: Some(game_restart_hint()),
             });
         }
-        AppState::Paused => {
+        AppState::Active { paused: true } => {
             render.world.add_entity(AnnouncementText {
                 heading: PAUSE_TEXT,
                 body: Some(PAUSE_HINT),
