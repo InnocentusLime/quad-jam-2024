@@ -60,51 +60,6 @@ pub struct GameState {
 }
 
 impl GameState {
-    fn spawn_bullet(pos: Vec2, world: &mut World) {
-        world.add_entity((
-            Transform { pos, angle: 0.0 },
-            BulletTag::Dropped,
-            OneSensorTag::new(
-                ColliderTy::Box {
-                    width: 16.0,
-                    height: 16.0,
-                },
-                InteractionGroups {
-                    memberships: groups::LEVEL,
-                    filter: groups::PLAYER,
-                },
-            ),
-        ));
-        world.add_entity((
-            Transform { pos, angle: 0.0 },
-            BulletHitterTag,
-            OneSensorTag::new(
-                ColliderTy::Box {
-                    width: 24.0,
-                    height: 24.0,
-                },
-                InteractionGroups {
-                    memberships: groups::PROJECTILES,
-                    filter: groups::MAINCELL,
-                },
-            ),
-        ));
-        world.add_entity((
-            Transform { pos, angle: 0.0 },
-            BulletWallHitterTag,
-            OneSensorTag::new(
-                ColliderTy::Box {
-                    width: 16.0,
-                    height: 16.0,
-                },
-                InteractionGroups {
-                    memberships: groups::PROJECTILES,
-                    filter: groups::LEVEL.union(groups::NPCS),
-                },
-            ),
-        ));
-    }
-
     pub fn new(world: &mut World) -> Self {
         let mut angle = 0.0;
         let poses = [
@@ -142,7 +97,7 @@ impl GameState {
         }
 
         spawn_main_cell(vec2(64.0, 128.0), world);
-        Self::spawn_bullet(vec2(100.0, 100.0), world);
+        spawn_bullet(vec2(100.0, 100.0), world);
 
         spawn_tiles(
             16,
@@ -173,6 +128,51 @@ impl GameState {
     pub fn should_ai(this: UniqueView<GameState>) -> bool {
         this.do_ai
     }
+}
+    
+fn spawn_bullet(pos: Vec2, world: &mut World) {
+    world.add_entity((
+        Transform { pos, angle: 0.0 },
+        BulletTag::Dropped,
+        OneSensorTag::new(
+            ColliderTy::Box {
+                width: 16.0,
+                height: 16.0,
+            },
+            InteractionGroups {
+                memberships: groups::LEVEL,
+                filter: groups::PLAYER,
+            },
+        ),
+    ));
+    world.add_entity((
+        Transform { pos, angle: 0.0 },
+        BulletHitterTag,
+        OneSensorTag::new(
+            ColliderTy::Box {
+                width: 24.0,
+                height: 24.0,
+            },
+            InteractionGroups {
+                memberships: groups::PROJECTILES,
+                filter: groups::MAINCELL,
+            },
+        ),
+    ));
+    world.add_entity((
+        Transform { pos, angle: 0.0 },
+        BulletWallHitterTag,
+        OneSensorTag::new(
+            ColliderTy::Box {
+                width: 16.0,
+                height: 16.0,
+            },
+            InteractionGroups {
+                memberships: groups::PROJECTILES,
+                filter: groups::LEVEL.union(groups::NPCS),
+            },
+        ),
+    ));
 }
 
 pub fn reward_enemies(enemy: View<EnemyState>, mut reward: ViewMut<RewardInfo>) {
