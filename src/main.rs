@@ -77,7 +77,11 @@ impl Game for Project {
         ]
     }
 
-    fn init(&self, world: &mut World) {
+    fn next_level(&self, _app_state: &AppState, _world: &World) -> String {
+        "nil".to_string()
+    }
+
+    fn init(&self, _data: &str, world: &mut World) {
         let game = GameState::new(world);
         world.add_unique(game);
     }
