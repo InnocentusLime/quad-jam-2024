@@ -5,7 +5,7 @@ use quad_dbg::dump;
 
 pub use components::*;
 use macroquad::prelude::*;
-use shipyard::{EntitiesView, EntityId, Get, IntoIter, UniqueView, View, ViewMut, World};
+use shipyard::{EntitiesView, EntityId, Get, IntoIter, View, ViewMut, World};
 
 use crate::Transform;
 
@@ -30,7 +30,6 @@ pub struct Render {
     pub ui_font: FontKey,
     pub world: World,
 
-    camera: Camera2D,
     to_delete: Vec<EntityId>,
     time: f32,
 
@@ -41,12 +40,10 @@ pub struct Render {
 impl Render {
     pub fn new() -> Self {
         let world = World::new();
-        world.add_unique::<CameraDef>((&Camera2D::default()).into());
 
         Self {
             ui_font: FontKey("undefined"),
             world,
-            camera: Camera2D::default(),
             to_delete: Vec::new(),
             time: 0.0,
             textures: HashMap::new(),
@@ -102,7 +99,7 @@ impl Render {
         }
     }
 
-    pub fn render(&mut self, dry_run: bool, dt: f32) {
+    pub fn render(&mut self, camera: &dyn Camera, dry_run: bool, dt: f32) {
         clear_background(Color {
             r: 0.0,
             g: 0.0,
@@ -110,22 +107,21 @@ impl Render {
             a: 1.0,
         });
 
-        self.setup_world_camera();
-        self.draw_world(dt, dry_run);
+        self.draw_world(camera, dt, dry_run);
 
         self.setup_ui_camera();
         self.draw_announcement_text();
     }
 
-    pub fn debug_render<F>(&mut self, code: F)
+    pub fn debug_render<F>(&mut self, camera: &dyn Camera, code: F)
     where
         F: FnOnce(),
     {
-        self.setup_world_camera();
+        set_camera(camera);
         code();
     }
 
-    fn draw_world(&mut self, dt: f32, dry_run: bool) {
+    fn draw_world(&mut self, camera: &dyn Camera, dt: f32, dry_run: bool) {
         self.update_time(dt);
         self.update_flickers();
         self.anim_vert_shrink_fadeout();
@@ -134,22 +130,13 @@ impl Render {
             return;
         }
 
+        set_camera(camera);
+
         // FIXME: draw order is broken
         self.draw_sprites();
         self.draw_circles();
         self.draw_rects();
         self.draw_texts();
-    }
-
-    fn setup_world_camera(&mut self) {
-        self.world.run(|cam_def: UniqueView<CameraDef>| {
-            self.camera.offset = cam_def.offset;
-            self.camera.rotation = cam_def.rotation;
-            self.camera.zoom = cam_def.zoom;
-            self.camera.target = cam_def.target;
-        });
-
-        set_camera(&self.camera);
     }
 
     fn setup_ui_camera(&mut self) {

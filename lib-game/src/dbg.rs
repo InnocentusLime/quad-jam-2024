@@ -1,6 +1,6 @@
 use hashbrown::{HashMap, HashSet};
 use log::{error, info};
-use macroquad::input::get_char_pressed;
+use macroquad::{camera::Camera, input::get_char_pressed};
 use quad_dbg::{CommandCenter, ScreenCons, ScreenDump};
 use shipyard::World;
 
@@ -59,8 +59,8 @@ impl DebugStuff {
         }
     }
 
-    pub(crate) fn draw(&self, render: &mut Render, world: &World) {
-        render.debug_render(|| {
+    pub(crate) fn draw(&self, camera: &dyn Camera, render: &mut Render, world: &World) {
+        render.debug_render(camera, || {
             for debug in self.state.enabled_debug_draws.iter() {
                 (self.state.debug_draws[debug])(world)
             }

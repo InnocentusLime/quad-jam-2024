@@ -125,6 +125,7 @@ pub struct App {
     state: AppState,
     accumelated_time: f32,
 
+    camera: Camera2D,
     pub render: Render,
     sound: SoundDirector,
     physics: PhysicsState,
@@ -144,6 +145,7 @@ impl App {
             state: AppState::Start,
             accumelated_time: 0.0,
 
+            camera: Camera2D::default(),
             render: Render::new(),
             sound: SoundDirector::new().await?,
             physics: PhysicsState::new(),
@@ -178,7 +180,7 @@ impl App {
                 self.state = AppState::Active { paused: false };
             }
 
-            let input = InputModel::capture();
+            let input = InputModel::capture(&self.camera);
             let real_dt = get_frame_time();
             let do_tick = self.update_ticking(real_dt);
             self.fullscreen_toggles(&input);
@@ -195,7 +197,7 @@ impl App {
 
             self.game_present(real_dt, game);
             self.debug_info();
-            debug.draw(&mut self.render, &self.world);
+            debug.draw(&self.camera, &mut self.render, &self.world);
             next_frame().await
         }
     }
@@ -204,7 +206,7 @@ impl App {
         self.sound.run(&self.world);
         self.render.new_frame();
         game.render_export(&self.state, &self.world, &mut self.render);
-        self.render.render(!self.draw_world, real_dt);
+        self.render.render(&self.camera, !self.draw_world, real_dt);
     }
 
     fn game_update(&mut self, input: &InputModel, game: &dyn Game) -> Option<AppState> {
@@ -240,6 +242,8 @@ impl App {
             .run_with_data(PhysicsState::export_sensor_queries, &mut self.physics);
 
         let new_state = game.update(GAME_TICKRATE, &mut self.world);
+
+        self.update_camera();
 
         self.world.clear_all_removed_and_deleted();
         new_state
@@ -305,5 +309,23 @@ impl App {
             }
             _ => None,
         }
+    }
+
+    fn update_camera(&mut self) {
+        let view_height = 19.0 * 32.0;
+        let view_width = (screen_width() / screen_height()) * view_height;
+        self.camera = Camera2D::from_display_rect(Rect {
+            x: 0.0,
+            y: 0.0,
+            w: view_width,
+            h: view_height,
+        });
+        self.camera.zoom.y *= -1.0;
+
+        // FIXME: magic numbers!
+        self.camera.target = vec2(
+            (0.5 * 32.0) * 17.0,
+            (0.5 * 32.0) * 17.0,
+        );
     }
 }

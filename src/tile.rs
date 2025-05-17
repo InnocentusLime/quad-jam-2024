@@ -1,8 +1,7 @@
 use crate::components::*;
-use crate::game::GameState;
 use lib_game::*;
 use macroquad::prelude::*;
-use shipyard::{Get, IntoIter, UniqueView, View, ViewMut, World};
+use shipyard::{Get, IntoIter, View, ViewMut, World};
 
 pub const SMELL_AFTER_PLAYER: f32 = 4.0;
 
@@ -17,12 +16,13 @@ pub fn tick_smell(dt: f32, mut smell: ViewMut<TileSmell>) {
 }
 
 pub fn player_step_smell(
-    game: UniqueView<GameState>,
     mut smell: ViewMut<TileSmell>,
+    player_tag: View<PlayerTag>,
     pos: View<Transform>,
     tile_storage: View<TileStorage>,
 ) {
-    let player_pos = pos.get(game.player).unwrap().pos;
+    let (player_tf, _) = (&pos, &player_tag).iter().next().unwrap();
+    let player_pos = player_tf.pos;
     let Some(storage) = tile_storage.iter().next() else {
         return;
     };

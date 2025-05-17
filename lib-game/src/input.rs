@@ -13,13 +13,13 @@ pub struct InputModel {
     pub attack_down: bool,
     pub scroll_up: bool,
     pub scroll_down: bool,
+    pub aim: Vec2,
 }
 
 impl InputModel {
-    pub fn capture() -> Self {
-        // NOTE: for mobile
-        // let (mx, my) = mouse_position();
-        // let Vec2 { x: mx, y: my } = self.get_cam().screen_to_world(vec2(mx, my));
+    pub fn capture(camera: &Camera2D) -> Self {
+        let (mx, my) = mouse_position();
+        let aim = camera.screen_to_world(vec2(mx, my));
 
         // TODO: handle mobile
         let left_movement_down = is_key_down(KeyCode::A) || is_key_down(KeyCode::Left);
@@ -48,6 +48,7 @@ impl InputModel {
             fullscreen_toggle_requested,
             scroll_up,
             scroll_down,
+            aim,
         }
     }
 }

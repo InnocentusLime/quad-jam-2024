@@ -9,6 +9,7 @@ use crate::enemy::*;
 use crate::goal::*;
 use crate::player::*;
 use crate::tile::*;
+use crate::game::*;
 
 mod components;
 mod enemy;
@@ -120,7 +121,6 @@ impl Game for Project {
     }
 
     fn update(&self, dt: f32, world: &mut World) -> Option<lib_game::AppState> {
-        world.run(GameState::update_camera);
         world.run_with_data(tick_smell, dt);
         world.run(player_step_smell);
         world.run(player_ammo_pickup);
@@ -130,8 +130,8 @@ impl Game for Project {
         world.run(cell_phys_data);
         world.run(player_damage);
         world.run_with_data(player_damage_state, dt);
-        world.run(GameState::reward_enemies);
-        world.run(GameState::count_rewards);
+        world.run(reward_enemies);
+        world.run(count_rewards);
         world.run(check_goal);
 
         world.run(decide_next_state)
@@ -139,7 +139,6 @@ impl Game for Project {
 
     fn render_export(&self, app_state: &AppState, world: &World, render: &mut Render) {
         if app_state.is_presentable() {
-            world.run_with_data(render::prepare_world_cam, render);
             world.run_with_data(render::render_tiles, render);
             world.run_with_data(render::render_player, render);
             world.run_with_data(render::render_brute, render);

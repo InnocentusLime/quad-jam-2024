@@ -2,10 +2,12 @@ use lib_game::*;
 use macroquad::prelude::*;
 use shipyard::{EntityId, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
 
+use crate::enemy::spawn_main_cell;
 use crate::goal::spawn_goal;
 use crate::inline_tilemap;
 
 use crate::components::*;
+use crate::player::spawn_player;
 
 fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut World) -> EntityId {
     assert_eq!(data.len(), width * height);
@@ -55,11 +57,7 @@ fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut Wor
 #[derive(Unique)]
 pub struct GameState {
     pub do_ai: bool,
-    pub player: EntityId,
-    pub _boxes: [EntityId; 4],
-    pub _tilemap: EntityId,
     pub goal_achieved: bool,
-    camera: Camera2D,
 }
 
 impl GameState {
@@ -116,9 +114,9 @@ impl GameState {
             vec2(128.0, 150.0),
             vec2(300.0, 250.0),
         ];
-        let boxes = poses.map(|pos| {
+        for pos in poses {
             angle += 0.2;
-            let the_box = world.add_entity((
+            world.add_entity((
                 Transform { pos, angle },
                 BoxTag,
                 BodyTag::new(
@@ -135,41 +133,19 @@ impl GameState {
                     BodyKind::Dynamic,
                 ),
             ));
-
-            the_box
-        });
+        }
 
         for x in 0..8 {
             for y in 0..8 {
                 let pos = vec2(x as f32 * 12.0 + 100.0, y as f32 * 12.0 + 200.0);
-
-                // if x < 5 {
                 crate::enemy::spawn_brute(pos, world);
-                // } else {
-                // crate::enemy::spawn_stalker(pos, world);
-                // }
             }
         }
 
-        crate::enemy::spawn_main_cell(vec2(64.0, 128.0), world);
-
-        /* Uncomment for a tough topology */
-        // for x in 0..5 {
-        //     for y in 0..5 {
-        //         let a = x as f32 + y as f32 * 2.0;
-        //         let (dx, dy) = a.sin_cos();
-        //         let pos = vec2(
-        //             x as f32 * 8.0 * 4.0 + 100.0 + dx * 13.0,
-        //             y as f32 * 3.0 + 200.0 + dy * 7.0,
-        //         );
-
-        //         Self::spawn_brute(pos, world);
-        //     }
-        // }
-
+        spawn_main_cell(vec2(64.0, 128.0), world);
         Self::spawn_bullet(vec2(100.0, 100.0), world);
 
-        let tilemap = spawn_tiles(
+        spawn_tiles(
             16,
             16,
             inline_tilemap![
@@ -188,72 +164,40 @@ impl GameState {
         );
 
         spawn_goal(world, vec2(400.0, 64.0));
+        spawn_player(world);
 
         Self {
             do_ai: true,
-            player: crate::player::spawn_player(world),
-            _boxes: boxes,
-            _tilemap: tilemap,
             goal_achieved: false,
-            camera: Camera2D::default(),
         }
     }
 
     pub fn should_ai(this: UniqueView<GameState>) -> bool {
         this.do_ai
     }
+}
 
-    pub fn mouse_pos(&self) -> Vec2 {
-        let (mx, my) = mouse_position();
-        self.camera.screen_to_world(vec2(mx, my))
-    }
-
-    pub fn update_camera(mut this: UniqueViewMut<GameState>, tile_storage: View<TileStorage>) {
-        let view_height = 19.0 * 32.0;
-        let view_width = (screen_width() / screen_height()) * view_height;
-        this.camera = Camera2D::from_display_rect(Rect {
-            x: 0.0,
-            y: 0.0,
-            w: view_width,
-            h: view_height,
-        });
-        this.camera.zoom.y *= -1.0;
-
-        // FIXME: macroquad's camera is super confusing. Just like this math
-        for storage in tile_storage.iter() {
-            this.camera.target = vec2(
-                (0.5 * 32.0) * (storage.width() as f32),
-                (0.5 * 32.0) * (storage.height() as f32),
-            );
+pub fn reward_enemies(enemy: View<EnemyState>, mut reward: ViewMut<RewardInfo>) {
+    for (state, reward) in (&enemy, &mut reward).iter() {
+        if !matches!(
+            (state, reward.state),
+            (EnemyState::Dead, RewardState::Locked)
+        ) {
+            continue;
         }
+
+        reward.state = RewardState::Pending;
     }
+}
 
-    pub fn camera(&self) -> &Camera2D {
-        &self.camera
-    }
-
-    pub fn reward_enemies(enemy: View<EnemyState>, mut reward: ViewMut<RewardInfo>) {
-        for (state, reward) in (&enemy, &mut reward).iter() {
-            if !matches!(
-                (state, reward.state),
-                (EnemyState::Dead, RewardState::Locked)
-            ) {
-                continue;
-            }
-
-            reward.state = RewardState::Pending;
+pub fn count_rewards(mut reward: ViewMut<RewardInfo>, mut score: UniqueViewMut<PlayerScore>) {
+    for reward in (&mut reward).iter() {
+        if !matches!(reward.state, RewardState::Pending) {
+            continue;
         }
-    }
 
-    pub fn count_rewards(mut reward: ViewMut<RewardInfo>, mut score: UniqueViewMut<PlayerScore>) {
-        for reward in (&mut reward).iter() {
-            if !matches!(reward.state, RewardState::Pending) {
-                continue;
-            }
-
-            reward.state = RewardState::Counted;
-            score.0 += reward.amount;
-        }
+        reward.state = RewardState::Counted;
+        score.0 += reward.amount;
     }
 }
 
