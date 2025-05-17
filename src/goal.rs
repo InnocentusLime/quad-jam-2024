@@ -1,5 +1,5 @@
 use crate::components::*;
-use crate::game::Game;
+use crate::game::GameState;
 use lib_game::*;
 use macroquad::prelude::*;
 use shipyard::{IntoIter, UniqueViewMut, View, World};
@@ -21,7 +21,7 @@ pub fn spawn_goal(world: &mut World, pos: Vec2) {
     ));
 }
 
-pub fn check_goal(mut game: UniqueViewMut<Game>, goal: View<GoalTag>, sens: View<OneSensorTag>) {
+pub fn check_goal(mut game: UniqueViewMut<GameState>, goal: View<GoalTag>, sens: View<OneSensorTag>) {
     for (sens, _) in (&sens, &goal).iter() {
         if sens.col.is_none() {
             continue;

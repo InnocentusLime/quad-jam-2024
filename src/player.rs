@@ -1,5 +1,5 @@
 use crate::components::*;
-use crate::game::Game;
+use crate::game::GameState;
 use lib_game::*;
 use macroquad::prelude::*;
 use shipyard::{EntityId, Get, IntoIter, UniqueView, View, ViewMut, World};
@@ -97,7 +97,7 @@ pub fn player_sensor_pose(
 }
 
 pub fn player_ammo_pickup(
-    this: UniqueView<Game>,
+    this: UniqueView<GameState>,
     mut bullet: ViewMut<BulletTag>,
     bul_sensor: View<OneSensorTag>,
 ) {
@@ -119,7 +119,7 @@ pub fn player_ammo_pickup(
 }
 
 pub fn player_damage(
-    this: UniqueView<Game>,
+    this: UniqueView<GameState>,
     pl_sense_tag: View<PlayerDamageSensorTag>,
     sense_tag: View<OneSensorTag>,
     mut player_dmg: ViewMut<PlayerDamageState>,
@@ -159,7 +159,7 @@ pub fn player_damage_state(dt: f32, mut player_dmg: ViewMut<PlayerDamageState>) 
 
 pub fn player_throw(
     input: &InputModel,
-    game: UniqueView<Game>,
+    game: UniqueView<GameState>,
     mut bullet: ViewMut<BulletTag>,
     player_tag: View<PlayerTag>,
     mut tf: ViewMut<Transform>,

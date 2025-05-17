@@ -22,7 +22,7 @@ static START_TEXT_MOBILE: &'static str = "Tap to start";
 
 pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
 
-pub fn prepare_world_cam(render: &mut Render, game: UniqueView<Game>) {
+pub fn prepare_world_cam(render: &mut Render, game: UniqueView<GameState>) {
     render.world.add_unique::<CameraDef>(game.camera().into())
 }
 
