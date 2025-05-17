@@ -93,7 +93,7 @@ impl Game for Project {
         }
     }
 
-    fn plan_physics_queries(&self, dt: f32, world: &mut World) {
+    fn plan_physics_queries(&self, _dt: f32, world: &mut World) {
         world.run(player_sensor_pose);
         world.run(bullet_parts);
     }

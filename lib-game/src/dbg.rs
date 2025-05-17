@@ -102,7 +102,7 @@ impl DebugStuff {
     }
 }
 
-pub fn init_debug_commands(cmds: &mut CommandCenter<App, DebugState>) {
+fn init_debug_commands(cmds: &mut CommandCenter<App, DebugState>) {
     cmds.add_command("f", "freeze the app", |app, _, _| app.freeze = true);
     cmds.add_command("uf", "unfreeze the app", |app, _, _| app.freeze = false);
     cmds.add_command("hw", "hide the world rendering", |app, _, _| {
@@ -117,7 +117,7 @@ pub fn init_debug_commands(cmds: &mut CommandCenter<App, DebugState>) {
     cmds.add_command(
         "dde",
         "enable a debug draw. Usage: dde [NAME]",
-        |app, state, args| {
+        |_app, state, args| {
             if args.len() < 1 {
                 error!("Not enough args");
                 return;
@@ -135,7 +135,7 @@ pub fn init_debug_commands(cmds: &mut CommandCenter<App, DebugState>) {
     cmds.add_command(
         "ddd",
         "disable a debug draw. Usage: ddd [NAME]",
-        |app, state, args| {
+        |_app, state, args| {
             if args.len() < 1 {
                 error!("Not enough args");
                 return;
@@ -150,7 +150,7 @@ pub fn init_debug_commands(cmds: &mut CommandCenter<App, DebugState>) {
             state.enabled_debug_draws.remove(dd_name);
         },
     );
-    cmds.add_command("ddl", "list all debug draws", |app, state, _| {
+    cmds.add_command("ddl", "list all debug draws", |_app, state, _| {
         for key in state.debug_draws.keys() {
             info!("{}", key);
         }
