@@ -2,6 +2,7 @@ use lib_game::*;
 use macroquad::prelude::*;
 use shipyard::{EntityId, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
 
+use crate::enemy::spawn_brute;
 use crate::enemy::spawn_main_cell;
 use crate::goal::spawn_goal;
 use crate::inline_tilemap;
@@ -61,7 +62,6 @@ pub struct GameState {
 
 impl GameState {
     pub fn new(world: &mut World) -> Self {
-        let mut angle = 0.0;
         let poses = [
             vec2(200.0, 160.0),
             vec2(64.0, 250.0),
@@ -69,30 +69,13 @@ impl GameState {
             vec2(300.0, 250.0),
         ];
         for pos in poses {
-            angle += 0.2;
-            world.add_entity((
-                Transform { pos, angle },
-                BoxTag,
-                BodyTag::new(
-                    InteractionGroups {
-                        memberships: groups::LEVEL,
-                        filter: groups::LEVEL_INTERACT,
-                    },
-                    ColliderTy::Box {
-                        width: 32.0,
-                        height: 32.0,
-                    },
-                    1.0,
-                    true,
-                    BodyKind::Dynamic,
-                ),
-            ));
+            spawn_box(pos, world);
         }
 
         for x in 0..8 {
             for y in 0..8 {
                 let pos = vec2(x as f32 * 12.0 + 100.0, y as f32 * 12.0 + 200.0);
-                crate::enemy::spawn_brute(pos, world);
+                spawn_brute(pos, world);
             }
         }
 
@@ -129,10 +112,30 @@ impl GameState {
         this.do_ai
     }
 }
+
+fn spawn_box(pos: Vec2, world: &mut World) {
+    world.add_entity((
+        Transform::from_pos(pos),
+        BoxTag,
+        BodyTag::new(
+            InteractionGroups {
+                memberships: groups::LEVEL,
+                filter: groups::LEVEL_INTERACT,
+            },
+            ColliderTy::Box {
+                width: 32.0,
+                height: 32.0,
+            },
+            1.0,
+            true,
+            BodyKind::Dynamic,
+        ),
+    ));
+}
     
 fn spawn_bullet(pos: Vec2, world: &mut World) {
     world.add_entity((
-        Transform { pos, angle: 0.0 },
+        Transform::from_pos(pos),
         BulletTag::Dropped,
         OneSensorTag::new(
             ColliderTy::Box {
@@ -146,7 +149,7 @@ fn spawn_bullet(pos: Vec2, world: &mut World) {
         ),
     ));
     world.add_entity((
-        Transform { pos, angle: 0.0 },
+        Transform::from_pos(pos),
         BulletHitterTag,
         OneSensorTag::new(
             ColliderTy::Box {
@@ -160,7 +163,7 @@ fn spawn_bullet(pos: Vec2, world: &mut World) {
         ),
     ));
     world.add_entity((
-        Transform { pos, angle: 0.0 },
+        Transform::from_pos(pos),
         BulletWallHitterTag,
         OneSensorTag::new(
             ColliderTy::Box {
