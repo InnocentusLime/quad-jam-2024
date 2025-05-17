@@ -77,9 +77,30 @@ impl Game for Project {
         ]
     }
 
-    fn init(&self, world: &mut World) {
-        let game = GameState::new(world);
-        world.add_unique(game);
+    fn next_level(&self, data: &str, app_state: &AppState, _world: &World) -> String {
+        if *app_state == AppState::Start {
+            return "first".to_string();
+        }
+
+        match data {
+            x if *app_state == AppState::GameOver => x.to_string(),
+            "null" => "first".to_string(),
+            "first" => "celebrate".to_string(),
+            _ => "null".to_string(),
+        }
+    }
+
+    fn init(&self, data: &str, world: &mut World) {
+        match data {
+            "first" => {
+                let game = GameState::new(world);
+                world.add_unique(game);
+            },
+            "celebrate" => (),
+            _ => {
+                error!("Unknown level: {data}");
+            }
+        }
     }
 
     fn input_phase(&self, input: &lib_game::InputModel, dt: f32, world: &mut World) {

@@ -21,9 +21,10 @@ use quad_dbg::*;
 
 const GAME_TICKRATE: f32 = 1.0 / 60.0;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AppState {
     Start,
+    Load,
     Active { paused: bool },
     GameOver,
     Win,
@@ -60,7 +61,12 @@ pub trait Game {
     /// Put all the appropriate data into the ECS World.
     /// The ECS world should be the only place where the state
     /// is located.
-    fn init(&self, world: &mut World);
+    fn init(&self, data: &str, world: &mut World);
+
+    /// Used by the app to consult what should be the next
+    /// level to load. For now the data returned is just forwarded
+    /// to `init`.
+    fn next_level(&self, data: &str, app_state: &AppState, world: &World) -> String;
 
     /// Handle the user input. You also get the delta-time.
     fn input_phase(&self, input: &InputModel, dt: f32, world: &mut World);
@@ -89,6 +95,19 @@ impl AppState {
     }
 }
 
+#[derive(Debug, Default)]
+struct LoadedLevel(Option<String>);
+
+impl LoadedLevel {
+    pub fn from_string(x: String) -> LoadedLevel {
+        LoadedLevel(Some(x))
+    }
+
+    pub fn get(&self) -> &str {
+        self.0.as_ref().map(String::as_str).unwrap_or("null")
+    }
+}
+
 /// The app run all the boilerplate code to make the game tick.
 /// The following features are provided:
 /// * State transitions and handling
@@ -102,6 +121,7 @@ pub struct App {
     fullscreen: bool,
     old_size: (u32, u32),
 
+    loaded_level: LoadedLevel,
     state: AppState,
     accumelated_time: f32,
 
@@ -120,8 +140,9 @@ impl App {
             fullscreen: conf.fullscreen,
             old_size: (conf.window_width as u32, conf.window_height as u32),
 
-            accumelated_time: 0.0,
+            loaded_level: LoadedLevel::default(),
             state: AppState::Start,
+            accumelated_time: 0.0,
 
             render: Render::new(),
             sound: SoundDirector::new().await?,
@@ -151,18 +172,24 @@ impl App {
         loop {
             ScreenDump::new_frame();
 
+            if let AppState::Load = &self.state {
+                self.world.clear();
+                game.init(self.loaded_level.get(), &mut self.world);
+                self.state = AppState::Active { paused: false };
+            }
+
             let input = InputModel::capture();
             let real_dt = get_frame_time();
             let do_tick = self.update_ticking(real_dt);
             self.fullscreen_toggles(&input);
             debug.input(&input, &mut self);
 
-            if let Some(next_state) = self.next_state(&input, &debug) {
-                self.apply_state(next_state, game);
+            if let Some(next_state) = self.next_state(&input, &debug, game) {
+                self.state = next_state;
             }
             if matches!(self.state, AppState::Active { paused: false }) && do_tick {
                 if let Some(next_state) = self.game_update(&input, game) {
-                    self.apply_state(next_state, game);
+                    self.state = next_state;
                 }
             }
 
@@ -218,18 +245,6 @@ impl App {
         new_state
     }
 
-    fn apply_state(&mut self, next_state: AppState, game: &dyn Game) {
-        let mut reset = !matches!(&self.state, AppState::Active { .. } | AppState::DebugFreeze);
-        reset = reset && matches!(&next_state, AppState::Active { .. });
-        self.state = next_state;
-
-        if !reset {
-            return;
-        }
-        self.world.clear();
-        game.init(&mut self.world);
-    }
-
     fn fullscreen_toggles(&mut self, input: &InputModel) {
         if !input.fullscreen_toggle_requested {
             return;
@@ -267,7 +282,7 @@ impl App {
         dump!("Entities: {ent_count}");
     }
 
-    fn next_state(&mut self, input: &InputModel, debug: &DebugStuff) -> Option<AppState> {
+    fn next_state(&mut self, input: &InputModel, debug: &DebugStuff, game: &dyn Game) -> Option<AppState> {
         /* Debug freeze */
         if (debug.should_pause() || self.freeze)
             && self.state == (AppState::Active { paused: false })
@@ -280,11 +295,10 @@ impl App {
 
         /* Normal state transitions */
         match self.state {
-            AppState::Start if input.confirmation_detected => {
-                Some(AppState::Active { paused: false })
-            }
-            AppState::Win | AppState::GameOver if input.confirmation_detected => {
-                Some(AppState::Active { paused: false })
+            AppState::Win | AppState::GameOver | AppState::Start if input.confirmation_detected => {
+                let data = game.next_level(self.loaded_level.get(), &self.state, &self.world);
+                self.loaded_level = LoadedLevel::from_string(data);
+                Some(AppState::Load)
             }
             AppState::Active { paused } if input.pause_requested => {
                 Some(AppState::Active { paused: !paused })
