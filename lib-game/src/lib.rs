@@ -22,7 +22,7 @@ use quad_dbg::*;
 
 const GAME_TICKRATE: f32 = 1.0 / 60.0;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum AppState {
     Start,
     Active { paused: bool },
@@ -73,7 +73,7 @@ pub trait Game {
     fn update(&self, dt: f32, world: &mut World) -> Option<AppState>;
 
     /// Export the game world for rendering.
-    fn render_export(&self, state: AppState, world: &World, render: &mut Render);
+    fn render_export(&self, state: &AppState, world: &World, render: &mut Render);
 }
 
 impl AppState {
@@ -105,7 +105,6 @@ pub struct App {
 
     state: AppState,
     accumelated_time: f32,
-    paused_state: AppState,
 
     pub render: Render,
     sound: SoundDirector,
@@ -124,7 +123,6 @@ impl App {
 
             accumelated_time: 0.0,
             state: AppState::Start,
-            paused_state: AppState::Start,
 
             render: Render::new(),
             sound: SoundDirector::new().await?,
@@ -179,7 +177,7 @@ impl App {
     fn game_present(&mut self, real_dt: f32, game: &dyn Game) {
         self.sound.run(&self.world);
         self.render.new_frame();
-        game.render_export(self.state, &self.world, &mut self.render);
+        game.render_export(&self.state, &self.world, &mut self.render);
         self.render.render(!self.draw_world, real_dt);
     }
 
@@ -271,17 +269,6 @@ impl App {
     }
 
     fn next_state(&mut self, input: &InputModel, debug: &DebugStuff) -> Option<AppState> {
-        /* Mobile device orientation enforcement */
-
-        if sys::get_orientation() != 0.0 && self.state != AppState::PleaseRotate {
-            self.paused_state = self.state;
-            return Some(AppState::PleaseRotate);
-        }
-
-        if sys::get_orientation() == 0.0 && self.state == AppState::PleaseRotate {
-            return None;
-        }
-
         /* Debug freeze */
         if (debug.should_pause() || self.freeze) && self.state == (AppState::Active { paused: false }) {
             return Some(AppState::DebugFreeze);

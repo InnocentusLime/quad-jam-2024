@@ -288,7 +288,7 @@ pub fn render_goal(render: &mut Render, pos: View<Transform>, goal: View<GoalTag
     }
 }
 
-pub fn render_toplevel_ui(app_state: AppState, render: &mut Render) {
+pub fn render_toplevel_ui(app_state: &AppState, render: &mut Render) {
     match app_state {
         AppState::Start => {
             render.world.add_entity(AnnouncementText {

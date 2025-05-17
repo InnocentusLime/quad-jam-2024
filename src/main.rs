@@ -116,7 +116,7 @@ impl Game for Project {
         world.run(decide_next_state)
     }
 
-    fn render_export(&self, app_state: AppState, world: &World, render: &mut Render) {
+    fn render_export(&self, app_state: &AppState, world: &World, render: &mut Render) {
         if app_state.is_presentable() {
             world.run_with_data(render::prepare_world_cam, render);
             world.run_with_data(render::render_tiles, render);
