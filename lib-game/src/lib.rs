@@ -191,11 +191,9 @@ impl App {
         let mut debug = DebugStuff::new();
         init_debug_commands(&mut debug.cmd);
         for (cmd, description, payload) in debug_commands {
-            debug.cmd.add_command(
-                cmd,
-                description, 
-                move |app, args| payload(&mut app.world, args),
-            );
+            debug.cmd.add_command(cmd, description, move |app, args| {
+                payload(&mut app.world, args)
+            });
         }
 
         sys::done_loading();

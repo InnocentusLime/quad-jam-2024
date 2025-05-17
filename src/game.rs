@@ -45,12 +45,7 @@ fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut Wor
                     BodyKind::Static,
                 ),),
             ),
-            TileType::Ground => world.add_component(
-                tile, 
-                (
-                    TileSmell { time_left: 0.0 },
-                ),
-            ),
+            TileType::Ground => world.add_component(tile, (TileSmell { time_left: 0.0 },)),
         }
     }
 
@@ -149,9 +144,9 @@ impl Game {
                 let pos = vec2(x as f32 * 12.0 + 100.0, y as f32 * 12.0 + 200.0);
 
                 // if x < 5 {
-                    crate::enemy::spawn_brute(pos, world);
+                crate::enemy::spawn_brute(pos, world);
                 // } else {
-                    // crate::enemy::spawn_stalker(pos, world);
+                // crate::enemy::spawn_stalker(pos, world);
                 // }
             }
         }

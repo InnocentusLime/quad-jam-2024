@@ -1,7 +1,7 @@
-use lib_game::*;
 use crate::components::*;
-use macroquad::prelude::*;
 use crate::game::Game;
+use lib_game::*;
+use macroquad::prelude::*;
 use shipyard::{EntityId, Get, IntoIter, UniqueView, View, ViewMut, World};
 
 pub const PLAYER_SPEED: f32 = 132.0;
@@ -13,7 +13,7 @@ pub const PLAYER_SIZE: f32 = 16.0;
 
 pub fn spawn_player(world: &mut World) -> EntityId {
     world.add_unique(PlayerScore(0));
-    
+
     let player = world.add_entity((
         Transform {
             pos: vec2(300.0, 300.0),
@@ -113,7 +113,7 @@ pub fn player_ammo_pickup(
         if col != this.player {
             continue;
         }
-        
+
         *bul = BulletTag::PickedUp;
     }
 }
@@ -217,7 +217,9 @@ pub fn thrown_damage(
     }
 
     for (sens, _) in (&sense_tag, &bullet_hitter).iter() {
-        let Some(hit) = sens.col else { continue; };
+        let Some(hit) = sens.col else {
+            continue;
+        };
 
         *(&mut enemy_state).get(hit).unwrap() = EnemyState::Stunned {
             left: PLAYER_HIT_COOLDOWN,
@@ -232,12 +234,18 @@ pub fn thrown_logic(
     mut pos: ViewMut<Transform>,
     sense_tag: View<OneSensorTag>,
 ) {
-    let hit_wall = (&bullet_wall_hitter, &sense_tag).iter()
-        .next().unwrap().1.col.is_some();
+    let hit_wall = (&bullet_wall_hitter, &sense_tag)
+        .iter()
+        .next()
+        .unwrap()
+        .1
+        .col
+        .is_some();
 
     for (bullet, pos) in (&mut bullet, &mut pos).iter() {
-        let BulletTag::Thrown { dir } = *bullet
-            else { continue; };
+        let BulletTag::Thrown { dir } = *bullet else {
+            continue;
+        };
 
         if hit_wall {
             *bullet = BulletTag::Dropped;

@@ -1,11 +1,11 @@
-use lib_game::*;
 use crate::components::*;
+use lib_game::*;
 use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, UniqueView, UniqueViewMut, View, ViewMut, World};
 
 pub const BRUTE_SPAWN_HEALTH: i32 = 2;
 pub const REWARD_PER_ENEMY: u32 = 10;
-    
+
 pub fn spawn_brute(pos: Vec2, world: &mut World) {
     let _brute = world.add_entity((
         Transform { pos, angle: 0.0 },
@@ -26,7 +26,9 @@ pub fn spawn_brute(pos: Vec2, world: &mut World) {
             true,
             BodyKind::Dynamic,
         ),
-        ImpulseApplier { impulse: Vec2::ZERO },
+        ImpulseApplier {
+            impulse: Vec2::ZERO,
+        },
         DamageTag,
     ));
 }
@@ -58,11 +60,11 @@ pub fn spawn_stalker(pos: Vec2, world: &mut World) {
 }
 
 pub fn spawn_main_cell(pos: Vec2, world: &mut World) {
-    world.add_unique(SwarmBrain::Walk { 
+    world.add_unique(SwarmBrain::Walk {
         dir: Vec2::ZERO,
         think: 0.0,
     });
-    
+
     let _brute = world.add_entity((
         Transform { pos, angle: 0.0 },
         RewardInfo {
@@ -82,7 +84,9 @@ pub fn spawn_main_cell(pos: Vec2, world: &mut World) {
             true,
             BodyKind::Dynamic,
         ),
-        ImpulseApplier { impulse: Vec2::ZERO },
+        ImpulseApplier {
+            impulse: Vec2::ZERO,
+        },
         DamageTag,
     ));
 }
@@ -125,7 +129,7 @@ pub fn main_cell_ai(
         SwarmBrain::Walk { dir, .. } => *dir,
         _ => return,
     };
-    
+
     for (_, enemy_state, impulse) in (&main_tag, &state, &mut impulse).iter() {
         if !matches!(enemy_state, EnemyState::Free | EnemyState::Stunned { .. }) {
             continue;
@@ -142,30 +146,28 @@ pub fn update_brain(
     main_tag: View<MainCellTag>,
     mut brain: UniqueViewMut<SwarmBrain>,
 ) {
-    let target_tf = (&pos, &player_tag).iter()
-        .next().unwrap();
-    let this_tf = (&pos, &main_tag).iter()
-        .next().unwrap();
+    let target_tf = (&pos, &player_tag).iter().next().unwrap();
+    let this_tf = (&pos, &main_tag).iter().next().unwrap();
     let target_pos = target_tf.0.pos;
     let this_pos = this_tf.0.pos;
 
     match &mut *brain {
         SwarmBrain::Wait { think } if *think <= 0.0 => {
             let dr = target_pos - this_pos;
-            *brain = SwarmBrain::Walk { 
-                think: 2.0, 
-                dir: dr.normalize_or_zero(), 
+            *brain = SwarmBrain::Walk {
+                think: 2.0,
+                dir: dr.normalize_or_zero(),
             };
-        },
+        }
         SwarmBrain::Wait { think } => {
             *think -= dt;
         }
         SwarmBrain::Walk { think, .. } if *think <= 0.0 => {
             *brain = SwarmBrain::Wait { think: 3.0 };
-        },
+        }
         SwarmBrain::Walk { think, .. } => {
             *think -= dt;
-        },
+        }
     }
 }
 
@@ -204,13 +206,9 @@ pub fn stalker_ai(
 }
 
 #[allow(dead_code)]
-fn sample_spot(
-    storage: &TileStorage,
-    smell: &View<TileSmell>,
-    sx: usize,
-    sy: usize
-) -> bool {
-    let sample = storage.get(sx, sy)
+fn sample_spot(storage: &TileStorage, smell: &View<TileSmell>, sx: usize, sy: usize) -> bool {
+    let sample = storage
+        .get(sx, sy)
         .and_then(|x| smell.get(x).ok())
         .map(|x| *x);
 
@@ -218,7 +216,7 @@ fn sample_spot(
         if sample.time_left <= 2.5 && sample.time_left >= 1.0 {
             return true;
         }
-    }    
+    }
 
     false
 }

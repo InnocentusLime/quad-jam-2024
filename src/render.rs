@@ -197,11 +197,7 @@ pub fn render_rays(
     }
 }
 
-pub fn render_ammo(
-    render: &mut Render,
-    pos: View<Transform>,
-    bullet: View<BulletTag>,
-) {
+pub fn render_ammo(render: &mut Render, pos: View<Transform>, bullet: View<BulletTag>) {
     for (pos, bul) in (&pos, &bullet).iter() {
         if matches!(bul, BulletTag::PickedUp) {
             continue;
@@ -278,11 +274,7 @@ pub fn render_game_ui(
     ));
 }
 
-pub fn render_goal(
-    render: &mut Render,
-    pos: View<Transform>,
-    goal: View<GoalTag>,
-) {
+pub fn render_goal(render: &mut Render, pos: View<Transform>, goal: View<GoalTag>) {
     for (pos, _) in (&pos, &goal).iter() {
         render.world.add_entity((
             *pos,

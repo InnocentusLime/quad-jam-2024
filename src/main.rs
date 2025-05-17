@@ -1,22 +1,22 @@
-use lib_game::{draw_physics_debug, FontKey, Render, TextureKey};
 use game::{decide_next_state, Game};
+use lib_game::{draw_physics_debug, FontKey, Render, TextureKey};
 use macroquad::prelude::*;
 use render::render_toplevel_ui;
 use shipyard::UniqueViewMut;
 use shipyard::World;
 
 use crate::enemy::*;
+use crate::goal::*;
 use crate::player::*;
 use crate::tile::*;
-use crate::goal::*;
 
-mod goal;
-mod tile;
-mod player;
-mod enemy;
 mod components;
+mod enemy;
 mod game;
+mod goal;
+mod player;
 mod render;
+mod tile;
 mod util;
 
 fn window_conf() -> Conf {
@@ -82,7 +82,6 @@ async fn main() {
 
     load_graphics(&mut app.render).await.unwrap();
 
-
     app.run(
         debug_commands,
         |world| {
@@ -93,7 +92,7 @@ async fn main() {
             world.run_with_data(player_controls, (input, dt));
             world.run_with_data(player_throw, input);
             if world.run(Game::should_ai) {
-                world.run_with_data(update_brain, dt); 
+                world.run_with_data(update_brain, dt);
                 world.run(brute_ai);
                 world.run(stalker_ai);
                 world.run(main_cell_ai);

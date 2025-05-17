@@ -34,9 +34,7 @@ pub enum EnemyState {
 pub enum BulletTag {
     Dropped,
     PickedUp,
-    Thrown {
-        dir: Vec2,
-    },
+    Thrown { dir: Vec2 },
 }
 
 #[derive(Debug, Clone, Copy, Component)]
@@ -141,13 +139,8 @@ pub enum PlayerDamageState {
 
 #[derive(Debug, Clone, Copy, Unique)]
 pub enum SwarmBrain {
-    Walk {
-        think: f32,
-        dir: Vec2,
-    },
-    Wait {
-        think: f32,
-    },
+    Walk { think: f32, dir: Vec2 },
+    Wait { think: f32 },
 }
 
 #[derive(Debug, Clone, Copy, Component)]
