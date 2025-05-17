@@ -7,8 +7,6 @@ mod sound_director;
 
 pub mod sys;
 
-use std::rc::Rc;
-
 pub use components::*;
 use dbg::DebugStuff;
 pub use input::*;
