@@ -1,30 +1,7 @@
 use std::borrow::Cow;
 
 use macroquad::prelude::*;
-use shipyard::{Component, Unique};
-
-#[derive(Clone, Copy, Debug, Unique)]
-pub struct CameraDef {
-    /// Rotation in degrees.
-    pub rotation: f32,
-    /// Scaling, should be (1.0, 1.0) by default.
-    pub zoom: Vec2,
-    /// Rotation and zoom origin.
-    pub target: Vec2,
-    /// Displacement from target.
-    pub offset: Vec2,
-}
-
-impl From<&'_ Camera2D> for CameraDef {
-    fn from(value: &Camera2D) -> Self {
-        Self {
-            rotation: value.rotation,
-            zoom: value.zoom,
-            target: value.target,
-            offset: value.offset,
-        }
-    }
-}
+use shipyard::Component;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 #[repr(transparent)]

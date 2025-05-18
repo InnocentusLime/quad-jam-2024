@@ -1,11 +1,14 @@
 use lib_game::*;
 use macroquad::prelude::*;
-use shipyard::{EntityId, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
+use shipyard::{EntityId, IntoIter, UniqueViewMut, View, ViewMut, World};
 
+use crate::enemy::spawn_brute;
+use crate::enemy::spawn_main_cell;
 use crate::goal::spawn_goal;
-use crate::inline_tilemap;
 
 use crate::components::*;
+use crate::level::LevelDef;
+use crate::player::spawn_player;
 
 fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut World) -> EntityId {
     assert_eq!(data.len(), width * height);
@@ -52,223 +55,132 @@ fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut Wor
     world.add_entity(storage)
 }
 
-#[derive(Unique)]
-pub struct GameState {
-    pub do_ai: bool,
-    pub player: EntityId,
-    pub _boxes: [EntityId; 4],
-    pub _tilemap: EntityId,
-    pub goal_achieved: bool,
-    camera: Camera2D,
+pub fn init_level(world: &mut World, level_def: LevelDef) {
+    let tile_data = level_def
+        .map
+        .tiles
+        .into_iter()
+        .map(|x| match x {
+            crate::level::TileDef::Wall => TileType::Wall,
+            crate::level::TileDef::Ground => TileType::Ground,
+        })
+        .collect::<Vec<_>>();
+
+    spawn_tiles(level_def.map.width, level_def.map.height, tile_data, world);
+    for entity in level_def.entities {
+        match entity {
+            crate::level::EntityDef::Player(pos) => spawn_player(world, pos),
+            crate::level::EntityDef::MainCell(pos) => spawn_main_cell(world, pos),
+            crate::level::EntityDef::Brute(pos) => spawn_brute(world, pos),
+            crate::level::EntityDef::Goal(pos) => spawn_goal(world, pos),
+            crate::level::EntityDef::Box(pos) => spawn_box(world, pos),
+            crate::level::EntityDef::Bullet(pos) => spawn_bullet(world, pos),
+        }
+    }
 }
 
-impl GameState {
-    fn spawn_bullet(pos: Vec2, world: &mut World) {
-        world.add_entity((
-            Transform { pos, angle: 0.0 },
-            BulletTag::Dropped,
-            OneSensorTag::new(
-                ColliderTy::Box {
-                    width: 16.0,
-                    height: 16.0,
-                },
-                InteractionGroups {
-                    memberships: groups::LEVEL,
-                    filter: groups::PLAYER,
-                },
-            ),
-        ));
-        world.add_entity((
-            Transform { pos, angle: 0.0 },
-            BulletHitterTag,
-            OneSensorTag::new(
-                ColliderTy::Box {
-                    width: 24.0,
-                    height: 24.0,
-                },
-                InteractionGroups {
-                    memberships: groups::PROJECTILES,
-                    filter: groups::MAINCELL,
-                },
-            ),
-        ));
-        world.add_entity((
-            Transform { pos, angle: 0.0 },
-            BulletWallHitterTag,
-            OneSensorTag::new(
-                ColliderTy::Box {
-                    width: 16.0,
-                    height: 16.0,
-                },
-                InteractionGroups {
-                    memberships: groups::PROJECTILES,
-                    filter: groups::LEVEL.union(groups::NPCS),
-                },
-            ),
-        ));
-    }
+fn spawn_box(world: &mut World, pos: Vec2) {
+    world.add_entity((
+        Transform::from_pos(pos),
+        BoxTag,
+        BodyTag::new(
+            InteractionGroups {
+                memberships: groups::LEVEL,
+                filter: groups::LEVEL_INTERACT,
+            },
+            ColliderTy::Box {
+                width: 32.0,
+                height: 32.0,
+            },
+            1.0,
+            true,
+            BodyKind::Dynamic,
+        ),
+    ));
+}
 
-    pub fn new(world: &mut World) -> Self {
-        let mut angle = 0.0;
-        let poses = [
-            vec2(200.0, 160.0),
-            vec2(64.0, 250.0),
-            vec2(128.0, 150.0),
-            vec2(300.0, 250.0),
-        ];
-        let boxes = poses.map(|pos| {
-            angle += 0.2;
-            let the_box = world.add_entity((
-                Transform { pos, angle },
-                BoxTag,
-                BodyTag::new(
-                    InteractionGroups {
-                        memberships: groups::LEVEL,
-                        filter: groups::LEVEL_INTERACT,
-                    },
-                    ColliderTy::Box {
-                        width: 32.0,
-                        height: 32.0,
-                    },
-                    1.0,
-                    true,
-                    BodyKind::Dynamic,
-                ),
-            ));
+fn spawn_bullet(world: &mut World, pos: Vec2) {
+    world.add_entity((
+        Transform::from_pos(pos),
+        BulletTag::Dropped,
+        OneSensorTag::new(
+            ColliderTy::Box {
+                width: 16.0,
+                height: 16.0,
+            },
+            InteractionGroups {
+                memberships: groups::LEVEL,
+                filter: groups::PLAYER,
+            },
+        ),
+    ));
+    world.add_entity((
+        Transform::from_pos(pos),
+        BulletHitterTag,
+        OneSensorTag::new(
+            ColliderTy::Box {
+                width: 24.0,
+                height: 24.0,
+            },
+            InteractionGroups {
+                memberships: groups::PROJECTILES,
+                filter: groups::MAINCELL,
+            },
+        ),
+    ));
+    world.add_entity((
+        Transform::from_pos(pos),
+        BulletWallHitterTag,
+        OneSensorTag::new(
+            ColliderTy::Box {
+                width: 16.0,
+                height: 16.0,
+            },
+            InteractionGroups {
+                memberships: groups::PROJECTILES,
+                filter: groups::LEVEL.union(groups::NPCS),
+            },
+        ),
+    ));
+}
 
-            the_box
-        });
-
-        for x in 0..8 {
-            for y in 0..8 {
-                let pos = vec2(x as f32 * 12.0 + 100.0, y as f32 * 12.0 + 200.0);
-
-                // if x < 5 {
-                crate::enemy::spawn_brute(pos, world);
-                // } else {
-                // crate::enemy::spawn_stalker(pos, world);
-                // }
-            }
+pub fn reward_enemies(enemy: View<EnemyState>, mut reward: ViewMut<RewardInfo>) {
+    for (state, reward) in (&enemy, &mut reward).iter() {
+        if !matches!(
+            (state, reward.state),
+            (EnemyState::Dead, RewardState::Locked)
+        ) {
+            continue;
         }
 
-        crate::enemy::spawn_main_cell(vec2(64.0, 128.0), world);
+        reward.state = RewardState::Pending;
+    }
+}
 
-        /* Uncomment for a tough topology */
-        // for x in 0..5 {
-        //     for y in 0..5 {
-        //         let a = x as f32 + y as f32 * 2.0;
-        //         let (dx, dy) = a.sin_cos();
-        //         let pos = vec2(
-        //             x as f32 * 8.0 * 4.0 + 100.0 + dx * 13.0,
-        //             y as f32 * 3.0 + 200.0 + dy * 7.0,
-        //         );
-
-        //         Self::spawn_brute(pos, world);
-        //     }
-        // }
-
-        Self::spawn_bullet(vec2(100.0, 100.0), world);
-
-        let tilemap = spawn_tiles(
-            16,
-            16,
-            inline_tilemap![
-                w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, g, g, g, g, g, g, g, g, g, g, g,
-                g, g, g, w, w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w, w, g, g, g, g, g, g, g,
-                g, g, g, g, g, g, g, w, w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w, w, g, g, g,
-                g, g, w, w, w, g, g, g, g, g, g, w, w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
-                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w, w, g, g, g, g, g, g, g, g, g, g, g,
-                g, w, g, w, w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w, w, g, g, g, g, g, g, w,
-                g, g, w, g, g, g, g, w, w, g, g, w, g, g, g, g, g, g, w, g, g, g, g, w, w, g, g, g,
-                g, g, g, g, g, g, w, g, g, g, g, w, w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
-                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w, w, w, w, w, w, w, w, w, w, w, w, w,
-                w, w, w, w
-            ],
-            world,
-        );
-
-        spawn_goal(world, vec2(400.0, 64.0));
-
-        Self {
-            do_ai: true,
-            player: crate::player::spawn_player(world),
-            _boxes: boxes,
-            _tilemap: tilemap,
-            goal_achieved: false,
-            camera: Camera2D::default(),
+pub fn count_rewards(mut reward: ViewMut<RewardInfo>, mut score: UniqueViewMut<PlayerScore>) {
+    for reward in (&mut reward).iter() {
+        if !matches!(reward.state, RewardState::Pending) {
+            continue;
         }
-    }
 
-    pub fn should_ai(this: UniqueView<GameState>) -> bool {
-        this.do_ai
-    }
-
-    pub fn mouse_pos(&self) -> Vec2 {
-        let (mx, my) = mouse_position();
-        self.camera.screen_to_world(vec2(mx, my))
-    }
-
-    pub fn update_camera(mut this: UniqueViewMut<GameState>, tile_storage: View<TileStorage>) {
-        let view_height = 19.0 * 32.0;
-        let view_width = (screen_width() / screen_height()) * view_height;
-        this.camera = Camera2D::from_display_rect(Rect {
-            x: 0.0,
-            y: 0.0,
-            w: view_width,
-            h: view_height,
-        });
-        this.camera.zoom.y *= -1.0;
-
-        // FIXME: macroquad's camera is super confusing. Just like this math
-        for storage in tile_storage.iter() {
-            this.camera.target = vec2(
-                (0.5 * 32.0) * (storage.width() as f32),
-                (0.5 * 32.0) * (storage.height() as f32),
-            );
-        }
-    }
-
-    pub fn camera(&self) -> &Camera2D {
-        &self.camera
-    }
-
-    pub fn reward_enemies(enemy: View<EnemyState>, mut reward: ViewMut<RewardInfo>) {
-        for (state, reward) in (&enemy, &mut reward).iter() {
-            if !matches!(
-                (state, reward.state),
-                (EnemyState::Dead, RewardState::Locked)
-            ) {
-                continue;
-            }
-
-            reward.state = RewardState::Pending;
-        }
-    }
-
-    pub fn count_rewards(mut reward: ViewMut<RewardInfo>, mut score: UniqueViewMut<PlayerScore>) {
-        for reward in (&mut reward).iter() {
-            if !matches!(reward.state, RewardState::Pending) {
-                continue;
-            }
-
-            reward.state = RewardState::Counted;
-            score.0 += reward.amount;
-        }
+        reward.state = RewardState::Counted;
+        score.0 += reward.amount;
     }
 }
 
 pub fn decide_next_state(
-    game: UniqueView<GameState>,
     player: View<PlayerTag>,
     health: View<Health>,
+    goal: View<GoalTag>,
 ) -> Option<AppState> {
     let player_dead = (&player, &health).iter().all(|(_, hp)| hp.0 <= 0);
+    let goal_achieved = goal.iter().any(|x| x.achieved);
 
     if player_dead {
         return Some(AppState::GameOver);
     }
 
-    if game.goal_achieved {
+    if goal_achieved {
         return Some(AppState::Win);
     }
 

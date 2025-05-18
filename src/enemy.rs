@@ -6,7 +6,7 @@ use shipyard::{Get, IntoIter, UniqueView, UniqueViewMut, View, ViewMut, World};
 pub const BRUTE_SPAWN_HEALTH: i32 = 2;
 pub const REWARD_PER_ENEMY: u32 = 10;
 
-pub fn spawn_brute(pos: Vec2, world: &mut World) {
+pub fn spawn_brute(world: &mut World, pos: Vec2) {
     let _brute = world.add_entity((
         Transform { pos, angle: 0.0 },
         RewardInfo {
@@ -34,7 +34,7 @@ pub fn spawn_brute(pos: Vec2, world: &mut World) {
 }
 
 #[allow(dead_code)]
-pub fn spawn_stalker(pos: Vec2, world: &mut World) {
+pub fn spawn_stalker(world: &mut World, pos: Vec2) {
     let _brute = world.add_entity((
         Transform { pos, angle: 0.0 },
         RewardInfo {
@@ -59,7 +59,7 @@ pub fn spawn_stalker(pos: Vec2, world: &mut World) {
     ));
 }
 
-pub fn spawn_main_cell(pos: Vec2, world: &mut World) {
+pub fn spawn_main_cell(world: &mut World, pos: Vec2) {
     world.add_unique(SwarmBrain::Walk {
         dir: Vec2::ZERO,
         think: 0.0,

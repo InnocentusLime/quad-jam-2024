@@ -8,19 +8,19 @@ const CHAR_ESCAPE: char = '\u{001b}';
 const CHAR_ENTER: char = '\u{000d}';
 const MAX_CMD_LEN: usize = 100;
 
-struct CommandEntry<Input, Persist> {
+struct CommandEntry<I1, I2, Persist> {
     cmd: &'static str,
     description: &'static str,
-    payload: Box<dyn FnMut(&mut Input, &mut Persist, &[&str])>,
+    payload: Box<dyn FnMut(&mut I1, &mut I2, &mut Persist, &[&str])>,
 }
 
-pub struct CommandCenter<Input, Persist> {
+pub struct CommandCenter<I1, I2, Persist> {
     buff: String,
     cmd_table: StrTrie,
-    cmds: Vec<CommandEntry<Input, Persist>>,
+    cmds: Vec<CommandEntry<I1, I2, Persist>>,
 }
 
-impl<Input, Persist> CommandCenter<Input, Persist> {
+impl<I1, I2, Persist> CommandCenter<I1, I2, Persist> {
     pub fn new() -> Self {
         Self {
             buff: String::with_capacity(MAX_CMD_LEN),
@@ -33,7 +33,7 @@ impl<Input, Persist> CommandCenter<Input, Persist> {
         &mut self,
         cmd: &'static str,
         description: &'static str,
-        payload: impl FnMut(&mut Input, &mut Persist, &[&str]) + 'static,
+        payload: impl FnMut(&mut I1, &mut I2, &mut Persist, &[&str]) + 'static,
     ) {
         if cmd == "help" {
             panic!("Do not add help");
@@ -53,14 +53,14 @@ impl<Input, Persist> CommandCenter<Input, Persist> {
         !self.buff.is_empty()
     }
 
-    pub fn input(&mut self, ch: char, input: &mut Input, persist: &mut Persist) {
+    pub fn input(&mut self, ch: char, in1: &mut I1, in2: &mut I2, persist: &mut Persist) {
         match (ch, self.buff.is_empty()) {
             (CHAR_BACKSPACE, false) => {
                 self.buff.pop();
             }
             ('/' | ':', true) => self.buff.push(ch),
             (_, true) => (),
-            (CHAR_ENTER, false) => self.submit(input, persist),
+            (CHAR_ENTER, false) => self.submit(in1, in2, persist),
             (CHAR_ESCAPE, false) => self.reset(),
             (ch, false) => self.append_ch(ch),
         }
@@ -125,18 +125,18 @@ impl<Input, Persist> CommandCenter<Input, Persist> {
         self.buff.clear();
     }
 
-    fn submit(&mut self, input: &mut Input, persist: &mut Persist) {
+    fn submit(&mut self, in1: &mut I1, in2: &mut I2, persist: &mut Persist) {
         info!("COMMAND: {}", self.buff);
 
         match self.buff.as_bytes()[0] {
-            b':' => self.perform_command(input, persist),
+            b':' => self.perform_command(in1, in2, persist),
             _ => (),
         }
 
         self.reset();
     }
 
-    fn perform_command(&mut self, input: &mut Input, persist: &mut Persist) {
+    fn perform_command(&mut self, in1: &mut I1, in2: &mut I2, persist: &mut Persist) {
         let s = &self.buff[1..];
         let mut parts = s.split_ascii_whitespace();
         let Some(cmd) = parts.next() else {
@@ -155,7 +155,7 @@ impl<Input, Persist> CommandCenter<Input, Persist> {
 
         let args = parts.collect::<Vec<_>>();
 
-        (self.cmds[entry].payload)(input, persist, &args);
+        (self.cmds[entry].payload)(in1, in2, persist, &args);
     }
 
     fn perform_help(&self) {

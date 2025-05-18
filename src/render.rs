@@ -4,27 +4,25 @@ use macroquad::prelude::*;
 use shipyard::{Get, IntoIter, UniqueView, View};
 
 use crate::components::*;
-use crate::game::*;
 use lib_game::*;
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 static WIN_TEXT: &'static str = "Congratulations!";
 static GAMEOVER_TEXT: &'static str = "Game Over";
+static COMPLETE_TEXT: &'static str = "Congratulations! You beat the game!";
 static PAUSE_TEXT: &'static str = "Paused";
 static PAUSE_HINT: &'static str = "Move: WASD\nShoot: Mouse + Left Button\nYou get extra score for hitting multiple enemies at once\nPress escape to resume";
 
 static RESTART_HINT_DESK: &'static str = "Press Space to restart";
 static RESTART_HINT_MOBILE: &'static str = "Tap the screen to restart";
+static CONTINUE_HINT_DESK: &'static str = "Press Space to continue";
+static CONTINUE_HINT_MOBILE: &'static str = "Tap the screen to continue";
 
 static START_TEXT_DESK: &'static str = "Controls";
 static START_HINT: &'static str = "Move: WASD\nShoot: Mouse + Left Button\nYou get extra score for hitting multiple enemies at once\nPRESS SPACE TO START\nGet ready to run!";
 static START_TEXT_MOBILE: &'static str = "Tap to start";
 
 pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
-
-pub fn prepare_world_cam(render: &mut Render, game: UniqueView<GameState>) {
-    render.world.add_unique::<CameraDef>(game.camera().into())
-}
 
 pub fn render_tiles(render: &mut Render, tile_storage: View<TileStorage>, tiles: View<TileType>) {
     let Some(storage) = tile_storage.iter().next() else {
@@ -305,7 +303,7 @@ pub fn render_toplevel_ui(app_state: &AppState, render: &mut Render) {
         AppState::Win => {
             render.world.add_entity(AnnouncementText {
                 heading: WIN_TEXT,
-                body: Some(game_restart_hint()),
+                body: Some(game_continue_hint()),
             });
         }
         AppState::Active { paused: true } => {
@@ -318,6 +316,12 @@ pub fn render_toplevel_ui(app_state: &AppState, render: &mut Render) {
             render.world.add_entity(AnnouncementText {
                 heading: ORIENTATION_TEXT,
                 body: Some(ORIENTATION_HINT),
+            });
+        }
+        AppState::GameDone => {
+            render.world.add_entity(AnnouncementText {
+                heading: COMPLETE_TEXT,
+                body: Some(game_restart_hint()),
             });
         }
         _ => (),
@@ -337,6 +341,14 @@ fn game_restart_hint() -> &'static str {
         RESTART_HINT_MOBILE
     } else {
         RESTART_HINT_DESK
+    }
+}
+
+fn game_continue_hint() -> &'static str {
+    if lib_game::sys::on_mobile() {
+        CONTINUE_HINT_MOBILE
+    } else {
+        CONTINUE_HINT_DESK
     }
 }
 

@@ -1,8 +1,7 @@
 use crate::components::*;
-use crate::game::GameState;
 use lib_game::*;
 use macroquad::prelude::*;
-use shipyard::{EntityId, Get, IntoIter, UniqueView, View, ViewMut, World};
+use shipyard::{Get, IntoIter, View, ViewMut, World};
 
 pub const PLAYER_SPEED: f32 = 132.0;
 pub const PLAYER_RAY_LINGER: f32 = 2.0;
@@ -11,14 +10,11 @@ pub const PLAYER_SPAWN_HEALTH: i32 = 3;
 pub const PLAYER_HIT_COOLDOWN: f32 = 2.0;
 pub const PLAYER_SIZE: f32 = 16.0;
 
-pub fn spawn_player(world: &mut World) -> EntityId {
+pub fn spawn_player(world: &mut World, pos: Vec2) {
     world.add_unique(PlayerScore(0));
 
-    let player = world.add_entity((
-        Transform {
-            pos: vec2(300.0, 300.0),
-            angle: 0.0,
-        },
+    world.add_entity((
+        Transform::from_pos(pos),
         PlayerTag,
         Health(crate::player::PLAYER_SPAWN_HEALTH),
         PlayerDamageState::Hittable,
@@ -55,8 +51,6 @@ pub fn spawn_player(world: &mut World) -> EntityId {
         ),
         PlayerDamageSensorTag,
     ));
-
-    player
 }
 
 pub fn player_controls(
@@ -97,10 +91,11 @@ pub fn player_sensor_pose(
 }
 
 pub fn player_ammo_pickup(
-    this: UniqueView<GameState>,
     mut bullet: ViewMut<BulletTag>,
     bul_sensor: View<OneSensorTag>,
+    player_tag: View<PlayerTag>,
 ) {
+    let (player_id, _) = player_tag.iter().with_id().next().unwrap();
     for (bul, sens) in (&mut bullet, &bul_sensor).iter() {
         if !matches!(bul, BulletTag::Dropped) {
             continue;
@@ -110,7 +105,7 @@ pub fn player_ammo_pickup(
             continue;
         };
 
-        if col != this.player {
+        if col != player_id {
             continue;
         }
 
@@ -119,14 +114,16 @@ pub fn player_ammo_pickup(
 }
 
 pub fn player_damage(
-    this: UniqueView<GameState>,
+    player_tag: View<PlayerTag>,
     pl_sense_tag: View<PlayerDamageSensorTag>,
     sense_tag: View<OneSensorTag>,
     mut player_dmg: ViewMut<PlayerDamageState>,
     mut health: ViewMut<Health>,
 ) {
-    let (mut player_dmg, mut player_health) =
-        (&mut player_dmg, &mut health).get(this.player).unwrap();
+    let (player_dmg, player_health, _) = (&mut player_dmg, &mut health, &player_tag)
+        .iter()
+        .next()
+        .unwrap();
     let (sens, _) = (&sense_tag, &pl_sense_tag).iter().next().unwrap();
 
     if sens.col.is_none() {
@@ -159,7 +156,6 @@ pub fn player_damage_state(dt: f32, mut player_dmg: ViewMut<PlayerDamageState>) 
 
 pub fn player_throw(
     input: &InputModel,
-    game: UniqueView<GameState>,
     mut bullet: ViewMut<BulletTag>,
     player_tag: View<PlayerTag>,
     mut tf: ViewMut<Transform>,
@@ -174,7 +170,7 @@ pub fn player_throw(
             continue;
         }
 
-        let mpos = game.mouse_pos();
+        let mpos = input.aim;
         let dir = (mpos - player_tf.pos).normalize_or_zero();
         if dir.length() < LENGTH_EPSILON {
             continue;

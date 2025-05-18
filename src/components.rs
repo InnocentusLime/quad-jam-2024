@@ -87,10 +87,12 @@ impl TileStorage {
         TileStorage::from_data(width, height, vec![EntityId::dead(); width * height]).unwrap()
     }
 
+    #[allow(dead_code)]
     pub fn width(&self) -> usize {
         self.width
     }
 
+    #[allow(dead_code)]
     pub fn height(&self) -> usize {
         self.height
     }
@@ -158,4 +160,6 @@ pub struct BulletHitterTag;
 pub struct BulletWallHitterTag;
 
 #[derive(Debug, Clone, Copy, Component)]
-pub struct GoalTag;
+pub struct GoalTag {
+    pub achieved: bool,
+}
