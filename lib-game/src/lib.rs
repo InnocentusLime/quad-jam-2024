@@ -339,6 +339,6 @@ impl App {
         self.camera.zoom.y *= -1.0;
 
         // FIXME: magic numbers!
-        self.camera.target = vec2((0.5 * 32.0) * 17.0, (0.5 * 32.0) * 17.0);
+        self.camera.target = vec2((0.5 * 32.0) * 16.0, (0.5 * 32.0) * 16.0);
     }
 }
