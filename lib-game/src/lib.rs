@@ -40,7 +40,7 @@ pub enum NextState {
 
 /// The trait containing all callbacks for the game,
 /// that is run inside the App. It is usually best to
-/// only keep configuration stuff inside this struct. 
+/// only keep configuration stuff inside this struct.
 ///
 /// The application loop is structured as follows:
 /// 1. Clearing the physics state
@@ -53,7 +53,13 @@ pub enum NextState {
 pub trait Game: 'static {
     /// Return the debug commands of this game. These commands
     /// will be added to the App's command registry.
-    fn debug_commands(&self) -> &[(&'static str, &'static str, fn(&mut Self, &mut World, &[&str]))];
+    fn debug_commands(
+        &self,
+    ) -> &[(
+        &'static str,
+        &'static str,
+        fn(&mut Self, &mut World, &[&str]),
+    )];
 
     /// Return the list of the debug draws. Debug draws are batches
     /// of (usually, macroquad) draw calls to assist you at debugging
@@ -160,9 +166,7 @@ impl App {
             game.debug_draws()
                 .iter()
                 .map(|(name, payload)| (name.to_string(), *payload)),
-            game.debug_commands()
-                .iter()
-                .map(|(x, y, z)| (*x, *y, *z)),
+            game.debug_commands().iter().map(|(x, y, z)| (*x, *y, *z)),
         );
 
         sys::done_loading();

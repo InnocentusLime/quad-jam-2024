@@ -79,7 +79,6 @@ pub fn init_level(world: &mut World, level_def: LevelDef) {
     }
 }
 
-
 fn spawn_box(world: &mut World, pos: Vec2) {
     world.add_entity((
         Transform::from_pos(pos),

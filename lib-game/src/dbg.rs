@@ -111,10 +111,14 @@ fn init_debug_commands<T>(cmds: &mut CommandCenter<App, T, DebugState>) {
     cmds.add_command("sw", "show the world rendering", |app, _, _, _| {
         app.draw_world = true
     });
-    cmds.add_command("reset", "reset app back to the start state", |app, _, _, _| {
-        app.state = AppState::Start;
-        app.loaded_level = None;
-    });
+    cmds.add_command(
+        "reset",
+        "reset app back to the start state",
+        |app, _, _, _| {
+            app.state = AppState::Start;
+            app.loaded_level = None;
+        },
+    );
     cmds.add_command(
         "dde",
         "enable a debug draw. Usage: dde [NAME]",

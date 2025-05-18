@@ -64,9 +64,7 @@ struct Project {
 
 impl Project {
     fn new() -> Project {
-        Project { 
-            do_ai: true, 
-        }
+        Project { do_ai: true }
     }
 
     fn disable_ai(&mut self, _world: &mut World, _args: &[&str]) {
@@ -79,7 +77,13 @@ impl Project {
 }
 
 impl Game for Project {
-    fn debug_commands(&self) -> &[(&'static str, &'static str, fn(&mut Self, &mut World, &[&str]))] {
+    fn debug_commands(
+        &self,
+    ) -> &[(
+        &'static str,
+        &'static str,
+        fn(&mut Self, &mut World, &[&str]),
+    )] {
         &[
             ("noai", "disable ai", Self::disable_ai),
             ("ai", "enable ai", Self::enable_ai),
@@ -120,7 +124,7 @@ impl Game for Project {
     async fn init(&self, path: &str, world: &mut World) {
         let level_data = load_string(path).await.unwrap();
         let level = ron::from_str::<LevelDef>(level_data.as_str()).unwrap();
-        
+
         init_level(world, level);
     }
 
