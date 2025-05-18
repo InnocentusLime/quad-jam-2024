@@ -1,7 +1,7 @@
 use crate::components::*;
 use lib_game::*;
 use macroquad::prelude::*;
-use shipyard::{EntityId, Get, IntoIter, View, ViewMut, World};
+use shipyard::{Get, IntoIter, View, ViewMut, World};
 
 pub const PLAYER_SPEED: f32 = 132.0;
 pub const PLAYER_RAY_LINGER: f32 = 2.0;
@@ -10,14 +10,11 @@ pub const PLAYER_SPAWN_HEALTH: i32 = 3;
 pub const PLAYER_HIT_COOLDOWN: f32 = 2.0;
 pub const PLAYER_SIZE: f32 = 16.0;
 
-pub fn spawn_player(world: &mut World) -> EntityId {
+pub fn spawn_player(world: &mut World, pos: Vec2) {
     world.add_unique(PlayerScore(0));
 
-    let player = world.add_entity((
-        Transform {
-            pos: vec2(300.0, 300.0),
-            angle: 0.0,
-        },
+    world.add_entity((
+        Transform::from_pos(pos),
         PlayerTag,
         Health(crate::player::PLAYER_SPAWN_HEALTH),
         PlayerDamageState::Hittable,
@@ -54,8 +51,6 @@ pub fn spawn_player(world: &mut World) -> EntityId {
         ),
         PlayerDamageSensorTag,
     ));
-
-    player
 }
 
 pub fn player_controls(
@@ -125,8 +120,10 @@ pub fn player_damage(
     mut player_dmg: ViewMut<PlayerDamageState>,
     mut health: ViewMut<Health>,
 ) {
-    let (player_dmg, player_health, _) =
-        (&mut player_dmg, &mut health, &player_tag).iter().next().unwrap();
+    let (player_dmg, player_health, _) = (&mut player_dmg, &mut health, &player_tag)
+        .iter()
+        .next()
+        .unwrap();
     let (sens, _) = (&sense_tag, &pl_sense_tag).iter().next().unwrap();
 
     if sens.col.is_none() {

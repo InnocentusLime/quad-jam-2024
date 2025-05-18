@@ -1,4 +1,6 @@
 use game::{decide_next_state, GameState};
+use level::LevelDef;
+use lib_game::NextState;
 use lib_game::{draw_physics_debug, AppState, FontKey, Game, Render, TextureKey};
 use macroquad::prelude::*;
 use render::render_toplevel_ui;
@@ -6,19 +8,19 @@ use shipyard::UniqueViewMut;
 use shipyard::World;
 
 use crate::enemy::*;
+use crate::game::*;
 use crate::goal::*;
 use crate::player::*;
 use crate::tile::*;
-use crate::game::*;
 
 mod components;
 mod enemy;
 mod game;
 mod goal;
+mod level;
 mod player;
 mod render;
 mod tile;
-mod util;
 
 fn window_conf() -> Conf {
     Conf {
@@ -78,30 +80,36 @@ impl Game for Project {
         ]
     }
 
-    fn next_level(&self, data: &str, app_state: &AppState, _world: &World) -> String {
-        if *app_state == AppState::Start {
-            return "first".to_string();
+    async fn next_level(
+        &self,
+        prev: Option<&str>,
+        app_state: &AppState,
+        _world: &World,
+    ) -> NextState {
+        let Some(prev) = prev else {
+            return NextState::Load("assets/levels/level1.ron".to_string());
+        };
+
+        if *app_state == AppState::GameOver {
+            return NextState::Load(prev.to_string());
         }
 
-        match data {
-            x if *app_state == AppState::GameOver => x.to_string(),
-            "null" => "first".to_string(),
-            "first" => "celebrate".to_string(),
-            _ => "null".to_string(),
+        // FIXME: do not crash
+        let prev_level = load_string(prev).await.unwrap();
+        let level = ron::from_str::<LevelDef>(prev_level.as_str()).unwrap();
+
+        match level.next_level {
+            Some(x) => NextState::Load(x),
+            None => NextState::AppState(AppState::GameDone),
         }
     }
 
-    fn init(&self, data: &str, world: &mut World) {
-        match data {
-            "first" => {
-                let game = GameState::new(world);
-                world.add_unique(game);
-            },
-            "celebrate" => (),
-            _ => {
-                error!("Unknown level: {data}");
-            }
-        }
+    async fn init(&self, path: &str, world: &mut World) {
+        let level_data = load_string(path).await.unwrap();
+        let level = ron::from_str::<LevelDef>(level_data.as_str()).unwrap();
+        let game = GameState::from_level(world, level);
+
+        world.add_unique(game);
     }
 
     fn input_phase(&self, input: &lib_game::InputModel, dt: f32, world: &mut World) {

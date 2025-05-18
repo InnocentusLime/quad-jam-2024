@@ -112,7 +112,8 @@ fn init_debug_commands(cmds: &mut CommandCenter<App, DebugState>) {
         app.draw_world = true
     });
     cmds.add_command("reset", "reset app back to the start state", |app, _, _| {
-        app.state = AppState::Start
+        app.state = AppState::Start;
+        app.loaded_level = None;
     });
     cmds.add_command(
         "dde",

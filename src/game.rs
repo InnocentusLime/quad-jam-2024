@@ -5,9 +5,9 @@ use shipyard::{EntityId, IntoIter, Unique, UniqueView, UniqueViewMut, View, View
 use crate::enemy::spawn_brute;
 use crate::enemy::spawn_main_cell;
 use crate::goal::spawn_goal;
-use crate::inline_tilemap;
 
 use crate::components::*;
+use crate::level::LevelDef;
 use crate::player::spawn_player;
 
 fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut World) -> EntityId {
@@ -61,51 +61,30 @@ pub struct GameState {
 }
 
 impl GameState {
-    pub fn new(world: &mut World) -> Self {
-        let poses = [
-            vec2(200.0, 160.0),
-            vec2(64.0, 250.0),
-            vec2(128.0, 150.0),
-            vec2(300.0, 250.0),
-        ];
-        for pos in poses {
-            spawn_box(pos, world);
-        }
+    pub fn from_level(world: &mut World, level_def: LevelDef) -> Self {
+        let tile_data = level_def
+            .map
+            .tiles
+            .into_iter()
+            .map(|x| match x {
+                crate::level::TileDef::Wall => TileType::Wall,
+                crate::level::TileDef::Ground => TileType::Ground,
+            })
+            .collect::<Vec<_>>();
 
-        for x in 0..8 {
-            for y in 0..8 {
-                let pos = vec2(x as f32 * 12.0 + 100.0, y as f32 * 12.0 + 200.0);
-                spawn_brute(pos, world);
+        spawn_tiles(level_def.map.width, level_def.map.height, tile_data, world);
+        for entity in level_def.entities {
+            match entity {
+                crate::level::EntityDef::Player(pos) => spawn_player(world, pos),
+                crate::level::EntityDef::MainCell(pos) => spawn_main_cell(world, pos),
+                crate::level::EntityDef::Brute(pos) => spawn_brute(world, pos),
+                crate::level::EntityDef::Goal(pos) => spawn_goal(world, pos),
+                crate::level::EntityDef::Box(pos) => spawn_box(world, pos),
+                crate::level::EntityDef::Bullet(pos) => spawn_bullet(world, pos),
             }
         }
 
-        spawn_main_cell(vec2(64.0, 128.0), world);
-        spawn_bullet(vec2(100.0, 100.0), world);
-
-        spawn_tiles(
-            16,
-            16,
-            inline_tilemap![
-                w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, g, g, g, g, g, g, g, g, g, g, g,
-                g, g, g, w, w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w, w, g, g, g, g, g, g, g,
-                g, g, g, g, g, g, g, w, w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w, w, g, g, g,
-                g, g, w, w, w, g, g, g, g, g, g, w, w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
-                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w, w, g, g, g, g, g, g, g, g, g, g, g,
-                g, w, g, w, w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w, w, g, g, g, g, g, g, w,
-                g, g, w, g, g, g, g, w, w, g, g, w, g, g, g, g, g, g, w, g, g, g, g, w, w, g, g, g,
-                g, g, g, g, g, g, w, g, g, g, g, w, w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w,
-                w, g, g, g, g, g, g, g, g, g, g, g, g, g, g, w, w, w, w, w, w, w, w, w, w, w, w, w,
-                w, w, w, w
-            ],
-            world,
-        );
-
-        spawn_goal(world, vec2(400.0, 64.0));
-        spawn_player(world);
-
-        Self {
-            do_ai: true,
-        }
+        Self { do_ai: true }
     }
 
     pub fn should_ai(this: UniqueView<GameState>) -> bool {
@@ -113,7 +92,7 @@ impl GameState {
     }
 }
 
-fn spawn_box(pos: Vec2, world: &mut World) {
+fn spawn_box(world: &mut World, pos: Vec2) {
     world.add_entity((
         Transform::from_pos(pos),
         BoxTag,
@@ -132,8 +111,8 @@ fn spawn_box(pos: Vec2, world: &mut World) {
         ),
     ));
 }
-    
-fn spawn_bullet(pos: Vec2, world: &mut World) {
+
+fn spawn_bullet(world: &mut World, pos: Vec2) {
     world.add_entity((
         Transform::from_pos(pos),
         BulletTag::Dropped,

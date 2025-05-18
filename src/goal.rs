@@ -20,10 +20,7 @@ pub fn spawn_goal(world: &mut World, pos: Vec2) {
     ));
 }
 
-pub fn check_goal(
-    mut goal: ViewMut<GoalTag>,
-    sens: View<OneSensorTag>,
-) {
+pub fn check_goal(mut goal: ViewMut<GoalTag>, sens: View<OneSensorTag>) {
     for (sens, goal) in (&sens, &mut goal).iter() {
         if sens.col.is_none() {
             continue;
