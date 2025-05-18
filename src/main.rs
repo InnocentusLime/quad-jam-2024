@@ -1,10 +1,9 @@
-use game::{decide_next_state, GameState};
+use game::decide_next_state;
 use level::LevelDef;
 use lib_game::NextState;
 use lib_game::{draw_physics_debug, AppState, FontKey, Game, Render, TextureKey};
 use macroquad::prelude::*;
 use render::render_toplevel_ui;
-use shipyard::UniqueViewMut;
 use shipyard::World;
 
 use crate::enemy::*;
@@ -59,17 +58,31 @@ async fn load_graphics(render: &mut Render) -> anyhow::Result<()> {
     Ok(())
 }
 
-struct Project;
+struct Project {
+    do_ai: bool,
+}
+
+impl Project {
+    fn new() -> Project {
+        Project { 
+            do_ai: true, 
+        }
+    }
+
+    fn disable_ai(&mut self, _world: &mut World, _args: &[&str]) {
+        self.do_ai = false;
+    }
+
+    fn enable_ai(&mut self, _world: &mut World, _args: &[&str]) {
+        self.do_ai = true;
+    }
+}
 
 impl Game for Project {
-    fn debug_commands(&self) -> &[(&'static str, &'static str, fn(&mut World, &[&str]))] {
+    fn debug_commands(&self) -> &[(&'static str, &'static str, fn(&mut Self, &mut World, &[&str]))] {
         &[
-            ("noai", "disable ai", |world: &mut World, _| {
-                world.run(|mut game: UniqueViewMut<GameState>| game.do_ai = false);
-            }),
-            ("ai", "enable ai", |world: &mut World, _| {
-                world.run(|mut game: UniqueViewMut<GameState>| game.do_ai = true);
-            }),
+            ("noai", "disable ai", Self::disable_ai),
+            ("ai", "enable ai", Self::enable_ai),
         ]
     }
 
@@ -107,15 +120,14 @@ impl Game for Project {
     async fn init(&self, path: &str, world: &mut World) {
         let level_data = load_string(path).await.unwrap();
         let level = ron::from_str::<LevelDef>(level_data.as_str()).unwrap();
-        let game = GameState::from_level(world, level);
-
-        world.add_unique(game);
+        
+        init_level(world, level);
     }
 
     fn input_phase(&self, input: &lib_game::InputModel, dt: f32, world: &mut World) {
         world.run_with_data(player_controls, (input, dt));
         world.run_with_data(player_throw, input);
-        if world.run(GameState::should_ai) {
+        if self.do_ai {
             world.run_with_data(update_brain, dt);
             world.run(brute_ai);
             world.run(stalker_ai);
@@ -177,5 +189,5 @@ async fn main() {
 
     load_graphics(&mut app.render).await.unwrap();
 
-    app.run(&Project).await;
+    app.run(&mut Project::new()).await;
 }

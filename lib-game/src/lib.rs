@@ -51,10 +51,10 @@ pub enum NextState {
 /// 5. Handling of the physics queries
 /// 6. Game::update
 /// 7. Game::render
-pub trait Game {
+pub trait Game: 'static {
     /// Return the debug commands of this game. These commands
     /// will be added to the App's command registry.
-    fn debug_commands(&self) -> &[(&'static str, &'static str, fn(&mut World, &[&str]))];
+    fn debug_commands(&self) -> &[(&'static str, &'static str, fn(&mut Self, &mut World, &[&str]))];
 
     /// Return the list of the debug draws. Debug draws are batches
     /// of (usually, macroquad) draw calls to assist you at debugging
@@ -156,12 +156,14 @@ impl App {
 
     /// Just runs the game. This is what you call after loading all the resources.
     /// This method will run forever as it provides the application loop.
-    pub async fn run<G: Game>(mut self, game: &G) {
-        let mut debug = DebugStuff::new(
+    pub async fn run<G: Game>(mut self, game: &mut G) {
+        let mut debug = DebugStuff::<G>::new(
             game.debug_draws()
                 .iter()
                 .map(|(name, payload)| (name.to_string(), *payload)),
-            game.debug_commands().iter().map(|(x, y, z)| (*x, *y, *z)),
+            game.debug_commands()
+                .iter()
+                .map(|(x, y, z)| (*x, *y, *z)),
         );
 
         sys::done_loading();
@@ -176,7 +178,7 @@ impl App {
             let real_dt = get_frame_time();
             let do_tick = self.update_ticking(real_dt);
             self.fullscreen_toggles(&input);
-            debug.input(&input, &mut self);
+            debug.input(&input, &mut self, game);
 
             if let Some(next_state) = self.next_state(&input, &debug, game).await {
                 match next_state {
@@ -290,7 +292,7 @@ impl App {
     async fn next_state<G: Game>(
         &mut self,
         input: &InputModel,
-        debug: &DebugStuff,
+        debug: &DebugStuff<G>,
         game: &G,
     ) -> Option<NextState> {
         /* Debug freeze */

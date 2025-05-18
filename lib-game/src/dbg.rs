@@ -28,24 +28,24 @@ struct DebugState {
     enabled_debug_draws: HashSet<String>,
 }
 
-pub(crate) struct DebugStuff {
-    cmd_center: CommandCenter<App, DebugState>,
+pub(crate) struct DebugStuff<T> {
+    cmd_center: CommandCenter<App, T, DebugState>,
     console_mode: ConsoleMode,
     state: DebugState,
 }
 
-impl DebugStuff {
+impl<T: 'static> DebugStuff<T> {
     pub(crate) fn new(
         debug_draws: impl Iterator<Item = (String, fn(&World))>,
-        user_cmds: impl Iterator<Item = (&'static str, &'static str, fn(&mut World, &[&str]))>,
+        user_cmds: impl Iterator<Item = (&'static str, &'static str, fn(&mut T, &mut World, &[&str]))>,
     ) -> Self {
         let mut cmd_center = CommandCenter::new();
 
         ScreenCons::init_log();
         init_debug_commands(&mut cmd_center);
         for (cmd, description, payload) in user_cmds {
-            cmd_center.add_command(cmd, description, move |app, _, args| {
-                payload(&mut app.world, args)
+            cmd_center.add_command(cmd, description, move |app, ex, _, args| {
+                payload(ex, &mut app.world, args)
             });
         }
 
@@ -80,7 +80,7 @@ impl DebugStuff {
         self.cmd_center.draw();
     }
 
-    pub(crate) fn input(&mut self, input: &InputModel, app: &mut App) {
+    pub(crate) fn input(&mut self, input: &InputModel, app: &mut App, ex: &mut T) {
         if input.scroll_down {
             ScreenCons::scroll_forward();
         }
@@ -89,7 +89,7 @@ impl DebugStuff {
         }
 
         if let Some(ch) = get_char_pressed() {
-            self.cmd_center.input(ch, app, &mut self.state);
+            self.cmd_center.input(ch, app, ex, &mut self.state);
         }
 
         if input.console_toggle_requested {
@@ -102,23 +102,23 @@ impl DebugStuff {
     }
 }
 
-fn init_debug_commands(cmds: &mut CommandCenter<App, DebugState>) {
-    cmds.add_command("f", "freeze the app", |app, _, _| app.freeze = true);
-    cmds.add_command("uf", "unfreeze the app", |app, _, _| app.freeze = false);
-    cmds.add_command("hw", "hide the world rendering", |app, _, _| {
+fn init_debug_commands<T>(cmds: &mut CommandCenter<App, T, DebugState>) {
+    cmds.add_command("f", "freeze the app", |app, _, _, _| app.freeze = true);
+    cmds.add_command("uf", "unfreeze the app", |app, _, _, _| app.freeze = false);
+    cmds.add_command("hw", "hide the world rendering", |app, _, _, _| {
         app.draw_world = false
     });
-    cmds.add_command("sw", "show the world rendering", |app, _, _| {
+    cmds.add_command("sw", "show the world rendering", |app, _, _, _| {
         app.draw_world = true
     });
-    cmds.add_command("reset", "reset app back to the start state", |app, _, _| {
+    cmds.add_command("reset", "reset app back to the start state", |app, _, _, _| {
         app.state = AppState::Start;
         app.loaded_level = None;
     });
     cmds.add_command(
         "dde",
         "enable a debug draw. Usage: dde [NAME]",
-        |_app, state, args| {
+        |_app, _, state, args| {
             if args.len() < 1 {
                 error!("Not enough args");
                 return;
@@ -136,7 +136,7 @@ fn init_debug_commands(cmds: &mut CommandCenter<App, DebugState>) {
     cmds.add_command(
         "ddd",
         "disable a debug draw. Usage: ddd [NAME]",
-        |_app, state, args| {
+        |_app, _, state, args| {
             if args.len() < 1 {
                 error!("Not enough args");
                 return;
@@ -151,7 +151,7 @@ fn init_debug_commands(cmds: &mut CommandCenter<App, DebugState>) {
             state.enabled_debug_draws.remove(dd_name);
         },
     );
-    cmds.add_command("ddl", "list all debug draws", |_app, state, _| {
+    cmds.add_command("ddl", "list all debug draws", |_app, _, state, _| {
         for key in state.debug_draws.keys() {
             info!("{}", key);
         }

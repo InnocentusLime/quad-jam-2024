@@ -1,6 +1,6 @@
 use lib_game::*;
 use macroquad::prelude::*;
-use shipyard::{EntityId, IntoIter, Unique, UniqueView, UniqueViewMut, View, ViewMut, World};
+use shipyard::{EntityId, IntoIter, UniqueViewMut, View, ViewMut, World};
 
 use crate::enemy::spawn_brute;
 use crate::enemy::spawn_main_cell;
@@ -55,42 +55,30 @@ fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut Wor
     world.add_entity(storage)
 }
 
-#[derive(Unique)]
-pub struct GameState {
-    pub do_ai: bool,
-}
+pub fn init_level(world: &mut World, level_def: LevelDef) {
+    let tile_data = level_def
+        .map
+        .tiles
+        .into_iter()
+        .map(|x| match x {
+            crate::level::TileDef::Wall => TileType::Wall,
+            crate::level::TileDef::Ground => TileType::Ground,
+        })
+        .collect::<Vec<_>>();
 
-impl GameState {
-    pub fn from_level(world: &mut World, level_def: LevelDef) -> Self {
-        let tile_data = level_def
-            .map
-            .tiles
-            .into_iter()
-            .map(|x| match x {
-                crate::level::TileDef::Wall => TileType::Wall,
-                crate::level::TileDef::Ground => TileType::Ground,
-            })
-            .collect::<Vec<_>>();
-
-        spawn_tiles(level_def.map.width, level_def.map.height, tile_data, world);
-        for entity in level_def.entities {
-            match entity {
-                crate::level::EntityDef::Player(pos) => spawn_player(world, pos),
-                crate::level::EntityDef::MainCell(pos) => spawn_main_cell(world, pos),
-                crate::level::EntityDef::Brute(pos) => spawn_brute(world, pos),
-                crate::level::EntityDef::Goal(pos) => spawn_goal(world, pos),
-                crate::level::EntityDef::Box(pos) => spawn_box(world, pos),
-                crate::level::EntityDef::Bullet(pos) => spawn_bullet(world, pos),
-            }
+    spawn_tiles(level_def.map.width, level_def.map.height, tile_data, world);
+    for entity in level_def.entities {
+        match entity {
+            crate::level::EntityDef::Player(pos) => spawn_player(world, pos),
+            crate::level::EntityDef::MainCell(pos) => spawn_main_cell(world, pos),
+            crate::level::EntityDef::Brute(pos) => spawn_brute(world, pos),
+            crate::level::EntityDef::Goal(pos) => spawn_goal(world, pos),
+            crate::level::EntityDef::Box(pos) => spawn_box(world, pos),
+            crate::level::EntityDef::Bullet(pos) => spawn_bullet(world, pos),
         }
-
-        Self { do_ai: true }
-    }
-
-    pub fn should_ai(this: UniqueView<GameState>) -> bool {
-        this.do_ai
     }
 }
+
 
 fn spawn_box(world: &mut World, pos: Vec2) {
     world.add_entity((
