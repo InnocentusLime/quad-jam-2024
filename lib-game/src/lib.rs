@@ -39,9 +39,8 @@ pub enum NextState {
 }
 
 /// The trait containing all callbacks for the game,
-/// that is run inside the App. Do not store the game
-/// state in the structure itself. All game state should
-/// be inside the ECS world.
+/// that is run inside the App. It is usually best to
+/// only keep configuration stuff inside this struct. 
 ///
 /// The application loop is structured as follows:
 /// 1. Clearing the physics state
