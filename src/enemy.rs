@@ -6,7 +6,7 @@ use shipyard::{Get, IntoIter, UniqueView, UniqueViewMut, View, ViewMut, World};
 
 pub const BRUTE_SPAWN_HEALTH: i32 = 2;
 pub const REWARD_PER_ENEMY: u32 = 10;
-pub const MAIN_CELL_SPEED: f32 = 164.0;
+pub const MAIN_CELL_SPEED: f32 = 124.0;
 pub const BRUTE_GROUP_IMPULSE: f32 = 15.0;
 pub const MAIN_CELL_DIR_ADJUST_SPEED: f32 = std::f32::consts::PI / 20.0;
 pub const MAIN_CELL_WALK_TIME: f32 = 2.0;
@@ -220,35 +220,32 @@ pub fn main_cell_ai(
                 target: target, 
                 counter,
             },
+            // TODO: wait for collision instead
             MainCellState::Walk { think, .. } if think <= 0.0 => MainCellState::Wait {
-                think: 0.6,
+                think: 1.0,
                 counter: None,
             },
+            // TODO: wait for cells to gather
             MainCellState::Wait { think, counter } => MainCellState::Wait {
                 think: think - dt,
                 counter,
             },
             MainCellState::Walk { think, dir } => MainCellState::Walk {
                 think: think - dt,
-                dir: if think < 0.2 * MAIN_CELL_WALK_TIME {
-                    dir
-                } else {
-                    player_dir
-                },
+                dir,
             }
         };
-        let dir = match main_tag.state {
-            MainCellState::Walk { dir, think } => {
-                let k = ((think + 1.0) / MAIN_CELL_WALK_TIME).min(1.0);
-                let k = k.powf(2.0);
-                dir * k
+        let (dir, k) = match main_tag.state {
+            MainCellState::Walk { dir, .. } => {
+                (dir, 1.4)
             },
-            // TODO: graceful start
             MainCellState::Wander { target, .. } => {
                 let dr = target - this_pos;
-                let k = (dr.length() / 72.0).max(0.0);
-                let k = k.powf(2.0);
-                dr.normalize_or_zero() * k.min(1.0) 
+                (dr.normalize_or_zero(), 1.0)
+            },
+            MainCellState::Wait { think, .. } if think <= 0.2 => {
+                vel.0 = Vec2::ZERO;
+                continue;
             },
             _ => {
                 // vel.0 = Vec2::ZERO;
@@ -257,7 +254,8 @@ pub fn main_cell_ai(
         };
 
         // assert!(dir.length() <= 1.1, "{}");
-        vel.0 = dir * MAIN_CELL_SPEED;
+        vel.0 += dir.normalize_or_zero() * 200.0 * dt;
+        vel.0 = vel.0.clamp_length_max(MAIN_CELL_SPEED) * k;
     }
 }
 
