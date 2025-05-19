@@ -5,6 +5,8 @@ use shipyard::{Get, IntoIter, UniqueView, UniqueViewMut, View, ViewMut, World};
 
 pub const BRUTE_SPAWN_HEALTH: i32 = 2;
 pub const REWARD_PER_ENEMY: u32 = 10;
+pub const MAIN_CELL_IMPULSE: f32 = 3000.0;
+pub const BRUTE_GROUP_IMPULSE: f32 = 20.0;
 
 pub fn spawn_brute(world: &mut World, pos: Vec2) {
     let _brute = world.add_entity((
@@ -135,7 +137,7 @@ pub fn main_cell_ai(
             continue;
         }
 
-        impulse.impulse += dir.normalize_or_zero() * 1700.0;
+        impulse.impulse += dir.normalize_or_zero() * MAIN_CELL_IMPULSE;
     }
 }
 
@@ -190,7 +192,7 @@ pub fn brute_ai(
 
         let dr = target - enemy_tf.pos;
         // let k = (dr.length() / 64.0).powf(1.4);
-        impulse.impulse += dr.normalize_or_zero() * 10.0;
+        impulse.impulse += dr.normalize_or_zero() * BRUTE_GROUP_IMPULSE;
     }
 }
 
