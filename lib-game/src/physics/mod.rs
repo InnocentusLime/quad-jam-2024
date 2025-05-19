@@ -117,7 +117,7 @@ impl PhysicsState {
                 .collision_groups(groups)
                 .mass(mass)
                 .enabled(is_enabled)
-                .friction(0.1),
+                .friction(0.001),
             body.clone(),
             &mut self.bodies,
         );
