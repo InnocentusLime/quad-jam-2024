@@ -10,6 +10,8 @@ pub const MAIN_CELL_IMPULSE: f32 = 3000.0;
 pub const BRUTE_GROUP_IMPULSE: f32 = 20.0;
 pub const MAIN_CELL_DIR_ADJUST_SPEED: f32 = std::f32::consts::PI / 20.0;
 pub const MAIN_CELL_WALK_TIME: f32 = 2.0;
+pub const MAIN_CELL_TARGET_NUDGE: f32 = 64.0;
+pub const MAIN_CELL_WANDER_STEPS: u32 = 2;
 
 pub fn spawn_brute(world: &mut World, pos: Vec2) {
     let _brute = world.add_entity((
@@ -71,8 +73,12 @@ pub fn spawn_main_cell(world: &mut World, pos: Vec2) {
             state: RewardState::Locked,
             amount: REWARD_PER_ENEMY,
         },
-        MainCellTag::Wait {
-            think: 2.0,
+        MainCellTag {
+            state: MainCellState::Wait {
+                think: 2.0,
+                counter: None,
+            },
+            step: 0,
         },
         EnemyState::Free,
         Health(5),
@@ -178,8 +184,8 @@ pub fn main_cell_ai(
     state: View<EnemyState>,
     mut impulse: ViewMut<ImpulseApplier>,
 ) {
-    let target_tf = (&pos, &player_tag).iter().next().unwrap();
-    let target_pos = target_tf.0.pos;
+    let player_tf = (&pos, &player_tag).iter().next().unwrap();
+    let player_pos = player_tf.0.pos;
 
     for (this_tf, main_tag, enemy_state, impulse) in (&pos, &mut main_tag, &state, &mut impulse).iter() {
         if !matches!(enemy_state, EnemyState::Free | EnemyState::Stunned { .. }) {
@@ -187,30 +193,108 @@ pub fn main_cell_ai(
         }
 
         let this_pos = this_tf.pos;
-        let real_dir = (target_pos - this_pos).normalize_or_zero();
-        *main_tag = match *main_tag {
-            MainCellTag::Wait { think } if think <= 0.0 =>  MainCellTag::Walk {
+        let player_dir = (player_pos - this_pos).normalize_or_zero();
+        if matches!(main_tag.state, MainCellState::Wait { counter: None, .. }) {
+            main_tag.step += 1;
+        }
+        main_tag.state = match main_tag.state {
+            MainCellState::Wander { think, counter, .. } if think <= 0.0 => MainCellState::Wait { 
+                think: 2.0, 
+                counter: Some(counter),
+            },
+            MainCellState::Wander { counter, target, .. } if this_pos.distance(target) <= 32.0 => MainCellState::Wait { 
+                think: 0.4, 
+                counter: Some(counter),
+            },
+            MainCellState::Wait { think, counter: None } if think <= 0.0 =>  MainCellState::Wander {
                 think: MAIN_CELL_WALK_TIME,
-                dir: (target_pos - this_pos).normalize_or_zero(),
+                target: pick_new_destination(this_pos, MAIN_CELL_WANDER_STEPS, main_tag.step),
+                counter: counter_value(main_tag.step),
             },
-            MainCellTag::Walk { think, .. } if think <= 0.0 => MainCellTag::Wait {
+            MainCellState::Wait { think, counter: Some(0) } if think <= 0.0 =>  MainCellState::Walk {
+                think: MAIN_CELL_WALK_TIME,
+                dir: (player_pos - this_pos).normalize_or_zero(),
+            },
+            MainCellState::Wait { think, counter: Some(n) } if think <= 0.0 =>  MainCellState::Wander {
+                think: MAIN_CELL_WALK_TIME,
+                target: pick_new_destination(this_pos, n, main_tag.step),
+                counter: n - 1,
+            },
+            MainCellState::Wait { think, counter: Some(n) } if think <= 0.0 =>  MainCellState::Wander {
+                think: MAIN_CELL_WALK_TIME,
+                target: pick_new_destination(this_pos, n, main_tag.step),
+                counter: n - 1,
+            },
+            MainCellState::Wander { think, target, counter } => MainCellState::Wander { 
+                think: think - dt, 
+                target: target, 
+                counter,
+            },
+            MainCellState::Walk { think, .. } if think <= 0.0 => MainCellState::Wait {
                 think: 3.0,
+                counter: None,
             },
-            MainCellTag::Wait { think } => MainCellTag::Wait {
+            MainCellState::Wait { think, counter } => MainCellState::Wait {
                 think: think - dt,
+                counter,
             },
-            MainCellTag::Walk { think, dir } => MainCellTag::Walk {
+            MainCellState::Walk { think, dir } => MainCellState::Walk {
                 think: think - dt,
                 dir: if think < 0.2 * MAIN_CELL_WALK_TIME {
                     dir
                 } else {
-                    real_dir
+                    player_dir
                 },
             }
         };
-        let MainCellTag::Walk { dir, .. } = *main_tag
-            else { continue; };
+        let dir = match main_tag.state {
+            MainCellState::Walk { dir, .. } => dir,
+            MainCellState::Wander { target, .. } => (target - this_pos) / 256.0,
+            _ => continue,
+        };
 
         impulse.impulse += dir.normalize_or_zero() * MAIN_CELL_IMPULSE;
     }
+}
+
+static FUZZ_TABLE: [i32; 13] = [
+    -1,
+    1,
+    1,
+    1,
+    0,
+    0,
+    -1,
+    1,
+    1,
+    -1,
+    0,
+    0,
+    0,
+];
+
+fn counter_value(step: u32) -> u32 {
+    ((MAIN_CELL_WANDER_STEPS as i32) + FUZZ_TABLE[step as usize % FUZZ_TABLE.len()]) as u32
+}
+
+fn pick_new_destination(main_pos: Vec2, counter: u32, step: u32) -> Vec2 {
+    let poses = [
+        vec2(MAIN_CELL_TARGET_NUDGE, MAIN_CELL_TARGET_NUDGE),
+        vec2(16.0*32.0 - MAIN_CELL_TARGET_NUDGE, MAIN_CELL_TARGET_NUDGE),
+        vec2(16.0*32.0 - MAIN_CELL_TARGET_NUDGE, 16.0*32.0 - MAIN_CELL_TARGET_NUDGE),
+        vec2(MAIN_CELL_TARGET_NUDGE, 16.0*32.0 - MAIN_CELL_TARGET_NUDGE),
+    ];
+    let (idx, _) = poses.iter()
+        .enumerate()
+        .map(|(idx, pos)| (idx, pos.distance(main_pos)))
+        .min_by(|(_, l), (_, r)| f32::total_cmp(l, r))
+        .unwrap();
+    let next_idx = if counter == counter_value(step) {
+        idx
+    } else if step % 2 == 0  {
+        (idx + poses.len() - 1) % poses.len()
+    } else {
+        (idx + 1) % poses.len()
+    };
+    poses[next_idx]
 }
