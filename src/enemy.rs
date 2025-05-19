@@ -121,55 +121,6 @@ pub fn cell_phys_data(mut rbs: ViewMut<BodyTag>, mut enemy: ViewMut<EnemyState>)
     }
 }
 
-pub fn main_cell_ai(
-    dt: f32,
-    pos: View<Transform>,
-    player_tag: View<PlayerTag>,
-    mut main_tag: ViewMut<MainCellTag>,
-    state: View<EnemyState>,
-    mut impulse: ViewMut<ImpulseApplier>,
-) {
-    let target_tf = (&pos, &player_tag).iter().next().unwrap();
-    let target_pos = target_tf.0.pos;
-
-    for (this_tf, main_tag, enemy_state, impulse) in (&pos, &mut main_tag, &state, &mut impulse).iter() {
-        if !matches!(enemy_state, EnemyState::Free | EnemyState::Stunned { .. }) {
-            continue;
-        }
-
-        let this_pos = this_tf.pos;
-        let real_dir = (target_pos - this_pos).normalize_or_zero();
-        let dir = match main_tag {
-            MainCellTag::Wait { think } if *think <= 0.0 => {
-                let dr = target_pos - this_pos;
-                *main_tag = MainCellTag::Walk {
-                    think: MAIN_CELL_WALK_TIME,
-                    dir: dr.normalize_or_zero(),
-                };
-                continue;
-            }
-            MainCellTag::Wait { think } => {
-                *think -= dt;
-                continue;
-            }
-            MainCellTag::Walk { think, .. } if *think <= 0.0 => {
-                *main_tag = MainCellTag::Wait { think: 3.0 };
-                continue;
-            }
-            MainCellTag::Walk { think, dir } => {
-                *think -= dt;
-                if *think < 0.2 * MAIN_CELL_WALK_TIME {
-                    return;
-                }
-                *dir = real_dir;
-                *dir 
-            }
-        };
-
-        impulse.impulse += dir.normalize_or_zero() * MAIN_CELL_IMPULSE;
-    }
-}
-
 pub fn brute_ai(
     main_tag: View<MainCellTag>,
     brute_tag: View<BruteTag>,
@@ -217,4 +168,49 @@ fn sample_spot(storage: &TileStorage, smell: &View<TileSmell>, sx: usize, sy: us
     }
 
     false
+}
+
+pub fn main_cell_ai(
+    dt: f32,
+    pos: View<Transform>,
+    player_tag: View<PlayerTag>,
+    mut main_tag: ViewMut<MainCellTag>,
+    state: View<EnemyState>,
+    mut impulse: ViewMut<ImpulseApplier>,
+) {
+    let target_tf = (&pos, &player_tag).iter().next().unwrap();
+    let target_pos = target_tf.0.pos;
+
+    for (this_tf, main_tag, enemy_state, impulse) in (&pos, &mut main_tag, &state, &mut impulse).iter() {
+        if !matches!(enemy_state, EnemyState::Free | EnemyState::Stunned { .. }) {
+            continue;
+        }
+
+        let this_pos = this_tf.pos;
+        let real_dir = (target_pos - this_pos).normalize_or_zero();
+        *main_tag = match *main_tag {
+            MainCellTag::Wait { think } if think <= 0.0 =>  MainCellTag::Walk {
+                think: MAIN_CELL_WALK_TIME,
+                dir: (target_pos - this_pos).normalize_or_zero(),
+            },
+            MainCellTag::Walk { think, .. } if think <= 0.0 => MainCellTag::Wait {
+                think: 3.0,
+            },
+            MainCellTag::Wait { think } => MainCellTag::Wait {
+                think: think - dt,
+            },
+            MainCellTag::Walk { think, dir } => MainCellTag::Walk {
+                think: think - dt,
+                dir: if think < 0.2 * MAIN_CELL_WALK_TIME {
+                    dir
+                } else {
+                    real_dir
+                },
+            }
+        };
+        let MainCellTag::Walk { dir, .. } = *main_tag
+            else { continue; };
+
+        impulse.impulse += dir.normalize_or_zero() * MAIN_CELL_IMPULSE;
+    }
 }
