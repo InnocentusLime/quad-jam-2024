@@ -234,6 +234,8 @@ impl App {
         self.world
             .run_with_data(PhysicsState::import_impulses, &mut self.physics);
         self.world
+            .run_with_data(PhysicsState::import_velocities, &mut self.physics);
+        self.world
             .run_with_data(PhysicsState::apply_kinematic_moves, &mut self.physics);
         self.world
             .run_with_data(PhysicsState::step, &mut self.physics);
@@ -246,6 +248,8 @@ impl App {
             .run_with_data(PhysicsState::export_beam_queries, &mut self.physics);
         self.world
             .run_with_data(PhysicsState::export_sensor_queries, &mut self.physics);
+        self.world
+            .run_with_data(PhysicsState::export_velocities, &mut self.physics);
 
         let new_state = game.update(GAME_TICKRATE, &mut self.world);
 
