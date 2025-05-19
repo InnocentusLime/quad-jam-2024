@@ -7,7 +7,7 @@ use shipyard::{Get, IntoIter, UniqueView, UniqueViewMut, View, ViewMut, World};
 pub const BRUTE_SPAWN_HEALTH: i32 = 2;
 pub const REWARD_PER_ENEMY: u32 = 10;
 pub const MAIN_CELL_SPEED: f32 = 124.0;
-pub const BRUTE_GROUP_IMPULSE: f32 = 15.0;
+pub const BRUTE_GROUP_IMPULSE: f32 = 12.0;
 pub const MAIN_CELL_DIR_ADJUST_SPEED: f32 = std::f32::consts::PI / 20.0;
 pub const MAIN_CELL_WALK_TIME: f32 = 2.0;
 pub const MAIN_CELL_TARGET_NUDGE: f32 = 64.0;
@@ -125,6 +125,7 @@ pub fn cell_phys_data(mut rbs: ViewMut<BodyTag>, mut enemy: ViewMut<EnemyState>)
     }
 }
 
+// FIXIME: boost brutes when the main cell is attacking
 pub fn brute_ai(
     main_tag: View<MainCellTag>,
     brute_tag: View<BruteTag>,
