@@ -6,8 +6,8 @@ use shipyard::{Get, IntoIter, UniqueView, UniqueViewMut, View, ViewMut, World};
 
 pub const BRUTE_SPAWN_HEALTH: i32 = 2;
 pub const REWARD_PER_ENEMY: u32 = 10;
-pub const MAIN_CELL_IMPULSE: f32 = 3000.0;
-pub const BRUTE_GROUP_IMPULSE: f32 = 20.0;
+pub const MAIN_CELL_SPEED: f32 = 164.0;
+pub const BRUTE_GROUP_IMPULSE: f32 = 15.0;
 pub const MAIN_CELL_DIR_ADJUST_SPEED: f32 = std::f32::consts::PI / 20.0;
 pub const MAIN_CELL_WALK_TIME: f32 = 2.0;
 pub const MAIN_CELL_TARGET_NUDGE: f32 = 64.0;
@@ -92,9 +92,7 @@ pub fn spawn_main_cell(world: &mut World, pos: Vec2) {
             true,
             BodyKind::Dynamic,
         ),
-        ImpulseApplier {
-            impulse: Vec2::ZERO,
-        },
+        VelocityProxy(Vec2::ZERO),
         DamageTag,
     ));
 }
@@ -182,12 +180,12 @@ pub fn main_cell_ai(
     player_tag: View<PlayerTag>,
     mut main_tag: ViewMut<MainCellTag>,
     state: View<EnemyState>,
-    mut impulse: ViewMut<ImpulseApplier>,
+    mut vel: ViewMut<VelocityProxy>,
 ) {
     let player_tf = (&pos, &player_tag).iter().next().unwrap();
     let player_pos = player_tf.0.pos;
 
-    for (this_tf, main_tag, enemy_state, impulse) in (&pos, &mut main_tag, &state, &mut impulse).iter() {
+    for (this_tf, main_tag, enemy_state, vel) in (&pos, &mut main_tag, &state, &mut vel).iter() {
         if !matches!(enemy_state, EnemyState::Free | EnemyState::Stunned { .. }) {
             continue;
         }
@@ -198,16 +196,11 @@ pub fn main_cell_ai(
             main_tag.step += 1;
         }
         main_tag.state = match main_tag.state {
-            MainCellState::Wander { think, counter, .. } if think <= 0.0 => MainCellState::Wait { 
-                think: 2.0, 
-                counter: Some(counter),
-            },
             MainCellState::Wander { counter, target, .. } if this_pos.distance(target) <= 32.0 => MainCellState::Wait { 
                 think: 0.4, 
                 counter: Some(counter),
             },
             MainCellState::Wait { think, counter: None } if think <= 0.0 =>  MainCellState::Wander {
-                think: MAIN_CELL_WALK_TIME,
                 target: pick_new_destination(this_pos, MAIN_CELL_WANDER_STEPS, main_tag.step),
                 counter: counter_value(main_tag.step),
             },
@@ -216,22 +209,19 @@ pub fn main_cell_ai(
                 dir: (player_pos - this_pos).normalize_or_zero(),
             },
             MainCellState::Wait { think, counter: Some(n) } if think <= 0.0 =>  MainCellState::Wander {
-                think: MAIN_CELL_WALK_TIME,
                 target: pick_new_destination(this_pos, n, main_tag.step),
                 counter: n - 1,
             },
             MainCellState::Wait { think, counter: Some(n) } if think <= 0.0 =>  MainCellState::Wander {
-                think: MAIN_CELL_WALK_TIME,
                 target: pick_new_destination(this_pos, n, main_tag.step),
                 counter: n - 1,
             },
-            MainCellState::Wander { think, target, counter } => MainCellState::Wander { 
-                think: think - dt, 
+            MainCellState::Wander { target, counter } => MainCellState::Wander { 
                 target: target, 
                 counter,
             },
             MainCellState::Walk { think, .. } if think <= 0.0 => MainCellState::Wait {
-                think: 3.0,
+                think: 0.6,
                 counter: None,
             },
             MainCellState::Wait { think, counter } => MainCellState::Wait {
@@ -248,12 +238,26 @@ pub fn main_cell_ai(
             }
         };
         let dir = match main_tag.state {
-            MainCellState::Walk { dir, .. } => dir,
-            MainCellState::Wander { target, .. } => (target - this_pos) / 256.0,
-            _ => continue,
+            MainCellState::Walk { dir, think } => {
+                let k = ((think + 1.0) / MAIN_CELL_WALK_TIME).min(1.0);
+                let k = k.powf(2.0);
+                dir * k
+            },
+            // TODO: graceful start
+            MainCellState::Wander { target, .. } => {
+                let dr = target - this_pos;
+                let k = (dr.length() / 72.0).max(0.0);
+                let k = k.powf(2.0);
+                dr.normalize_or_zero() * k.min(1.0) 
+            },
+            _ => {
+                // vel.0 = Vec2::ZERO;
+                continue;
+            },
         };
 
-        impulse.impulse += dir.normalize_or_zero() * MAIN_CELL_IMPULSE;
+        // assert!(dir.length() <= 1.1, "{}");
+        vel.0 = dir * MAIN_CELL_SPEED;
     }
 }
 

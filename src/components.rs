@@ -142,7 +142,7 @@ pub enum PlayerDamageState {
 #[derive(Debug, Clone, Copy)]
 pub enum MainCellState {
     Walk { think: f32, dir: Vec2 },
-    Wander { think: f32, target: Vec2, counter: u32 },
+    Wander { target: Vec2, counter: u32 },
     Wait { think: f32, counter: Option<u32>, },
 }
 
