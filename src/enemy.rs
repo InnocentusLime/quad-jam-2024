@@ -1,12 +1,15 @@
 use crate::components::*;
 use lib_game::*;
 use macroquad::prelude::*;
+use quad_dbg::dump;
 use shipyard::{Get, IntoIter, UniqueView, UniqueViewMut, View, ViewMut, World};
 
 pub const BRUTE_SPAWN_HEALTH: i32 = 2;
 pub const REWARD_PER_ENEMY: u32 = 10;
 pub const MAIN_CELL_IMPULSE: f32 = 3000.0;
 pub const BRUTE_GROUP_IMPULSE: f32 = 20.0;
+pub const MAIN_CELL_DIR_ADJUST_SPEED: f32 = std::f32::consts::PI / 20.0;
+pub const MAIN_CELL_WALK_TIME: f32 = 2.0;
 
 pub fn spawn_brute(world: &mut World, pos: Vec2) {
     let _brute = world.add_entity((
@@ -157,7 +160,7 @@ pub fn update_brain(
         SwarmBrain::Wait { think } if *think <= 0.0 => {
             let dr = target_pos - this_pos;
             *brain = SwarmBrain::Walk {
-                think: 2.0,
+                think: MAIN_CELL_WALK_TIME,
                 dir: dr.normalize_or_zero(),
             };
         }
@@ -167,8 +170,13 @@ pub fn update_brain(
         SwarmBrain::Walk { think, .. } if *think <= 0.0 => {
             *brain = SwarmBrain::Wait { think: 3.0 };
         }
-        SwarmBrain::Walk { think, .. } => {
+        SwarmBrain::Walk { think, dir } => {
             *think -= dt;
+            if *think < 0.2 * MAIN_CELL_WALK_TIME {
+                return;
+            }
+            let real_dir = (target_pos - this_pos).normalize_or_zero();
+            *dir = real_dir;
         }
     }
 }
