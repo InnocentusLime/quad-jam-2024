@@ -139,14 +139,11 @@ pub enum PlayerDamageState {
     Cooldown(f32),
 }
 
-#[derive(Debug, Clone, Copy, Unique)]
-pub enum SwarmBrain {
+#[derive(Debug, Clone, Copy, Component)]
+pub enum MainCellTag {
     Walk { think: f32, dir: Vec2 },
     Wait { think: f32 },
 }
-
-#[derive(Debug, Clone, Copy, Component)]
-pub struct MainCellTag;
 
 #[derive(Debug, Clone, Copy, Component)]
 pub struct TileSmell {

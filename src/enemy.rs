@@ -65,18 +65,15 @@ pub fn spawn_stalker(world: &mut World, pos: Vec2) {
 }
 
 pub fn spawn_main_cell(world: &mut World, pos: Vec2) {
-    world.add_unique(SwarmBrain::Walk {
-        dir: Vec2::ZERO,
-        think: 0.0,
-    });
-
     let _brute = world.add_entity((
         Transform { pos, angle: 0.0 },
         RewardInfo {
             state: RewardState::Locked,
             amount: REWARD_PER_ENEMY,
         },
-        MainCellTag,
+        MainCellTag::Wait {
+            think: 2.0,
+        },
         EnemyState::Free,
         Health(5),
         BodyTag::new(
@@ -125,59 +122,51 @@ pub fn cell_phys_data(mut rbs: ViewMut<BodyTag>, mut enemy: ViewMut<EnemyState>)
 }
 
 pub fn main_cell_ai(
-    brain: UniqueView<SwarmBrain>,
-    main_tag: View<MainCellTag>,
+    dt: f32,
+    pos: View<Transform>,
+    player_tag: View<PlayerTag>,
+    mut main_tag: ViewMut<MainCellTag>,
     state: View<EnemyState>,
     mut impulse: ViewMut<ImpulseApplier>,
 ) {
-    let dir = match &*brain {
-        SwarmBrain::Walk { dir, .. } => *dir,
-        _ => return,
-    };
+    let target_tf = (&pos, &player_tag).iter().next().unwrap();
+    let target_pos = target_tf.0.pos;
 
-    for (_, enemy_state, impulse) in (&main_tag, &state, &mut impulse).iter() {
+    for (this_tf, main_tag, enemy_state, impulse) in (&pos, &mut main_tag, &state, &mut impulse).iter() {
         if !matches!(enemy_state, EnemyState::Free | EnemyState::Stunned { .. }) {
             continue;
         }
 
-        impulse.impulse += dir.normalize_or_zero() * MAIN_CELL_IMPULSE;
-    }
-}
-
-pub fn update_brain(
-    dt: f32,
-    pos: View<Transform>,
-    player_tag: View<PlayerTag>,
-    main_tag: View<MainCellTag>,
-    mut brain: UniqueViewMut<SwarmBrain>,
-) {
-    let target_tf = (&pos, &player_tag).iter().next().unwrap();
-    let this_tf = (&pos, &main_tag).iter().next().unwrap();
-    let target_pos = target_tf.0.pos;
-    let this_pos = this_tf.0.pos;
-
-    match &mut *brain {
-        SwarmBrain::Wait { think } if *think <= 0.0 => {
-            let dr = target_pos - this_pos;
-            *brain = SwarmBrain::Walk {
-                think: MAIN_CELL_WALK_TIME,
-                dir: dr.normalize_or_zero(),
-            };
-        }
-        SwarmBrain::Wait { think } => {
-            *think -= dt;
-        }
-        SwarmBrain::Walk { think, .. } if *think <= 0.0 => {
-            *brain = SwarmBrain::Wait { think: 3.0 };
-        }
-        SwarmBrain::Walk { think, dir } => {
-            *think -= dt;
-            if *think < 0.2 * MAIN_CELL_WALK_TIME {
-                return;
+        let this_pos = this_tf.pos;
+        let real_dir = (target_pos - this_pos).normalize_or_zero();
+        let dir = match main_tag {
+            MainCellTag::Wait { think } if *think <= 0.0 => {
+                let dr = target_pos - this_pos;
+                *main_tag = MainCellTag::Walk {
+                    think: MAIN_CELL_WALK_TIME,
+                    dir: dr.normalize_or_zero(),
+                };
+                continue;
             }
-            let real_dir = (target_pos - this_pos).normalize_or_zero();
-            *dir = real_dir;
-        }
+            MainCellTag::Wait { think } => {
+                *think -= dt;
+                continue;
+            }
+            MainCellTag::Walk { think, .. } if *think <= 0.0 => {
+                *main_tag = MainCellTag::Wait { think: 3.0 };
+                continue;
+            }
+            MainCellTag::Walk { think, dir } => {
+                *think -= dt;
+                if *think < 0.2 * MAIN_CELL_WALK_TIME {
+                    return;
+                }
+                *dir = real_dir;
+                *dir 
+            }
+        };
+
+        impulse.impulse += dir.normalize_or_zero() * MAIN_CELL_IMPULSE;
     }
 }
 
@@ -205,7 +194,6 @@ pub fn brute_ai(
 }
 
 pub fn stalker_ai(
-    _brain: UniqueView<SwarmBrain>,
     _brute_tag: View<StalkerTag>,
     _pos: View<Transform>,
     _state: View<EnemyState>,
