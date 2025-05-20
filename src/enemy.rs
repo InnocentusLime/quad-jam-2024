@@ -135,7 +135,7 @@ pub fn brute_ai(
     mut impulse: ViewMut<ImpulseApplier>,
 ) {
     let (target, speedup) = match (&pos, &main_tag).iter().next() {
-        Some((x, main)) => (x.pos, matches!(main.state, MainCellState::Walk { .. })),
+        Some((x, main)) => (x.pos, matches!(main.state, MainCellState::Pounce { .. })),
         _ => return,
     };
 
@@ -209,7 +209,7 @@ pub fn main_cell_ai(
                 target: pick_new_destination(this_pos, MAIN_CELL_WANDER_STEPS, main_tag.step),
                 counter: counter_value(main_tag.step),
             },
-            MainCellState::Wait { think, counter: Some(0) } if think <= 0.0 =>  MainCellState::Walk {
+            MainCellState::Wait { think, counter: Some(0) } if think <= 0.0 =>  MainCellState::Pounce {
                 think: MAIN_CELL_WALK_TIME,
                 dir: (player_pos - this_pos).normalize_or_zero(),
             },
@@ -226,7 +226,7 @@ pub fn main_cell_ai(
                 counter,
             },
             // TODO: wait for collision instead
-            MainCellState::Walk { think, .. } if think <= 0.0 => MainCellState::Wait {
+            MainCellState::Pounce { think, .. } if think <= 0.0 => MainCellState::Wait {
                 think: 1.0,
                 counter: None,
             },
@@ -235,13 +235,13 @@ pub fn main_cell_ai(
                 think: think - dt,
                 counter,
             },
-            MainCellState::Walk { think, dir } => MainCellState::Walk {
+            MainCellState::Pounce { think, dir } => MainCellState::Pounce {
                 think: think - dt,
                 dir,
             }
         };
         let (dir, k) = match main_tag.state {
-            MainCellState::Walk { dir, .. } => {
+            MainCellState::Pounce { dir, .. } => {
                 (dir, 2.0)
             },
             MainCellState::Wander { target, .. } => {
