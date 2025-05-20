@@ -12,6 +12,7 @@ pub const MAIN_CELL_DIR_ADJUST_SPEED: f32 = std::f32::consts::PI / 20.0;
 pub const MAIN_CELL_WALK_TIME: f32 = 2.0;
 pub const MAIN_CELL_TARGET_NUDGE: f32 = 64.0;
 pub const MAIN_CELL_WANDER_STEPS: u32 = 2;
+pub const MAIN_CELL_ATTACK_IMPULSE: f32 = 1300.0;
 
 pub fn spawn_brute(world: &mut World, pos: Vec2) {
     let _brute = world.add_entity((
@@ -133,8 +134,8 @@ pub fn brute_ai(
     state: View<EnemyState>,
     mut impulse: ViewMut<ImpulseApplier>,
 ) {
-    let target = match (&pos, &main_tag).iter().next() {
-        Some((x, _)) => x.pos,
+    let (target, speedup) = match (&pos, &main_tag).iter().next() {
+        Some((x, main)) => (x.pos, matches!(main.state, MainCellState::Walk { .. })),
         _ => return,
     };
 
@@ -146,6 +147,9 @@ pub fn brute_ai(
         let dr = target - enemy_tf.pos;
         // let k = (dr.length() / 64.0).powf(1.4);
         impulse.impulse += dr.normalize_or_zero() * BRUTE_GROUP_IMPULSE;
+        if speedup {
+            impulse.impulse *= 2.0;
+        }
     }
 }
 
@@ -238,25 +242,27 @@ pub fn main_cell_ai(
         };
         let (dir, k) = match main_tag.state {
             MainCellState::Walk { dir, .. } => {
-                (dir, 1.4)
+                (dir, 2.0)
             },
             MainCellState::Wander { target, .. } => {
                 let dr = target - this_pos;
-                (dr.normalize_or_zero(), 1.0)
-            },
-            MainCellState::Wait { think, .. } if think <= 0.2 => {
-                vel.0 = Vec2::ZERO;
-                continue;
+                let k = if dr.length() <= 64.0 {
+                    ((dr.length() + 16.0) / 64.0).powf(2.0).min(1.0)
+                } else {
+                    1.0
+                };
+                (dr.normalize_or_zero(), k)
             },
             _ => {
-                // vel.0 = Vec2::ZERO;
                 continue;
             },
         };
 
         // assert!(dir.length() <= 1.1, "{}");
-        vel.0 += dir.normalize_or_zero() * 200.0 * dt;
-        vel.0 = vel.0.clamp_length_max(MAIN_CELL_SPEED) * k;
+        if k >= 1.0 {
+            vel.0 += dir.normalize_or_zero() * 200.0 * dt * k;
+            vel.0 = vel.0.clamp_length_max(MAIN_CELL_SPEED * k);
+        }
     }
 }
 
