@@ -286,6 +286,7 @@ fn counter_value(step: u32) -> u32 {
     ((MAIN_CELL_WANDER_STEPS as i32) + FUZZ_TABLE[step as usize % FUZZ_TABLE.len()]) as u32
 }
 
+// TODO: load dests from file
 fn pick_new_destination(main_pos: Vec2, counter: u32, step: u32) -> Vec2 {
     let poses = [
         vec2(MAIN_CELL_TARGET_NUDGE, MAIN_CELL_TARGET_NUDGE),
