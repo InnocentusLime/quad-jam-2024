@@ -13,6 +13,7 @@ pub const MAIN_CELL_WALK_TIME: f32 = 2.0;
 pub const MAIN_CELL_TARGET_NUDGE: f32 = 64.0;
 pub const MAIN_CELL_WANDER_STEPS: u32 = 2;
 pub const MAIN_CELL_ATTACK_IMPULSE: f32 = 1300.0;
+pub const MAIN_CELL_WANDER_TARGET_RADIUS: f32 = 32.0;
 
 pub fn spawn_brute(world: &mut World, pos: Vec2) {
     let _brute = world.add_entity((
@@ -201,7 +202,7 @@ pub fn main_cell_ai(
             main_tag.step += 1;
         }
         main_tag.state = match main_tag.state {
-            MainCellState::Wander { counter, target, .. } if this_pos.distance(target) <= 32.0 => MainCellState::Wait { 
+            MainCellState::Wander { counter, target, .. } if this_pos.distance(target) <= MAIN_CELL_WANDER_TARGET_RADIUS => MainCellState::Wait { 
                 think: 0.4, 
                 counter: Some(counter),
             },
@@ -307,4 +308,26 @@ fn pick_new_destination(main_pos: Vec2, counter: u32, step: u32) -> Vec2 {
         (idx + 1) % poses.len()
     };
     poses[next_idx]
+}
+
+const AI_DEBUG_COL: Color = YELLOW;
+
+pub fn debug_draw_main_cell_ai(world: &World) {
+    world.run(|main_tag: View<MainCellTag>, tf: View<Transform>| for (main_tag, tf) in (&main_tag, &tf).iter() {
+        match main_tag.state {
+            MainCellState::Pounce { think, dir } => {
+                let pos1 = tf.pos;
+                let pos2 = tf.pos + dir * 64.0;
+                draw_line(pos1.x, pos1.y, pos2.x, pos2.y, 1.0, AI_DEBUG_COL);
+                draw_text(&format!("THINK: {think:.2}"), tf.pos.x, tf.pos.y, 16.0, AI_DEBUG_COL);
+            },
+            MainCellState::Wander { target, counter } => {
+                draw_circle_lines(target.x, target.y, MAIN_CELL_WANDER_TARGET_RADIUS, 1.0, AI_DEBUG_COL);
+                draw_text(&format!("COUNTER: {counter}"), tf.pos.x, tf.pos.y, 16.0, AI_DEBUG_COL);
+            },
+            MainCellState::Wait { think, counter } => {
+                draw_text(&format!("THINK: {think:.2} COUNTER:{counter:?}"), tf.pos.x, tf.pos.y, 16.0, AI_DEBUG_COL);
+            },
+        }
+    })
 }

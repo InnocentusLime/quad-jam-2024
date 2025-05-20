@@ -94,6 +94,7 @@ impl Game for Project {
         &[
             ("phys", draw_physics_debug),
             ("smell", debug_draw_tile_smell),
+            ("mainai", debug_draw_main_cell_ai)
         ]
     }
 
