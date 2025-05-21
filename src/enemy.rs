@@ -300,9 +300,7 @@ fn pick_new_destination(main_pos: Vec2, counter: u32, step: u32) -> Vec2 {
         .map(|(idx, pos)| (idx, pos.distance(main_pos)))
         .min_by(|(_, l), (_, r)| f32::total_cmp(l, r))
         .unwrap();
-    let next_idx = if counter == counter_value(step) {
-        idx
-    } else if step % 2 == 0  {
+    let next_idx = if step % 2 == 0  {
         (idx + poses.len() - 1) % poses.len()
     } else {
         (idx + 1) % poses.len()
