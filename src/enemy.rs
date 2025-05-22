@@ -135,8 +135,8 @@ pub fn brute_ai(
     state: View<EnemyState>,
     mut impulse: ViewMut<ImpulseApplier>,
 ) {
-    let (target, speedup) = match (&pos, &main_tag).iter().next() {
-        Some((x, main)) => (x.pos, matches!(main.state, MainCellState::Pounce { .. })),
+    let (target, main) = match (&pos, &main_tag).iter().next() {
+        Some((x, main)) => (x.pos, main),
         _ => return,
     };
 
@@ -146,10 +146,14 @@ pub fn brute_ai(
         }
 
         let dr = target - enemy_tf.pos;
-        // let k = (dr.length() / 64.0).powf(1.4);
-        impulse.impulse += dr.normalize_or_zero() * BRUTE_GROUP_IMPULSE;
-        if speedup {
-            impulse.impulse *= 2.5;
+        match main.state {
+            MainCellState::Pounce { think, dir } => {
+                impulse.impulse += dr.normalize_or_zero() * BRUTE_GROUP_IMPULSE * 2.0;
+                impulse.impulse += dir * BRUTE_GROUP_IMPULSE * 2.0;
+            },
+            _ => {
+                impulse.impulse += dr.normalize_or_zero() * BRUTE_GROUP_IMPULSE;
+            },
         }
     }
 }
@@ -238,12 +242,16 @@ pub fn main_cell_ai(
             },
             MainCellState::Pounce { think, dir } => MainCellState::Pounce {
                 think: think - dt,
-                dir,
+                dir: if think >= 0.2 && player_dir.dot(vel.0.normalize_or_zero()) >= 0.8 { 
+                    player_dir 
+                } else { 
+                    dir 
+                },
             }
         };
         let (dir, k) = match main_tag.state {
             MainCellState::Pounce { dir, .. } => {
-                (dir, 2.0)
+                (dir, 2.5)
             },
             MainCellState::Wander { target, .. } => {
                 let dr = target - this_pos;
