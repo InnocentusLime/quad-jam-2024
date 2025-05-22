@@ -149,7 +149,7 @@ pub fn brute_ai(
         // let k = (dr.length() / 64.0).powf(1.4);
         impulse.impulse += dr.normalize_or_zero() * BRUTE_GROUP_IMPULSE;
         if speedup {
-            impulse.impulse *= 2.0;
+            impulse.impulse *= 2.5;
         }
     }
 }
