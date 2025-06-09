@@ -1,18 +1,15 @@
 use crate::components::*;
 use lib_game::*;
 use macroquad::prelude::*;
-use quad_dbg::dump;
-use shipyard::{Get, IntoIter, UniqueView, UniqueViewMut, View, ViewMut, World};
+use shipyard::{Get, IntoIter, View, ViewMut, World};
 
 pub const BRUTE_SPAWN_HEALTH: i32 = 2;
 pub const REWARD_PER_ENEMY: u32 = 10;
 pub const MAIN_CELL_SPEED: f32 = 124.0;
 pub const BRUTE_GROUP_IMPULSE: f32 = 12.0;
-pub const MAIN_CELL_DIR_ADJUST_SPEED: f32 = std::f32::consts::PI / 20.0;
 pub const MAIN_CELL_WALK_TIME: f32 = 2.0;
 pub const MAIN_CELL_TARGET_NUDGE: f32 = 64.0;
 pub const MAIN_CELL_WANDER_STEPS: u32 = 2;
-pub const MAIN_CELL_ATTACK_IMPULSE: f32 = 1300.0;
 pub const MAIN_CELL_WANDER_TARGET_RADIUS: f32 = 32.0;
 
 pub fn spawn_brute(world: &mut World, pos: Vec2) {
@@ -147,7 +144,7 @@ pub fn brute_ai(
 
         let dr = target - enemy_tf.pos;
         match main.state {
-            MainCellState::Pounce { think, dir } => {
+            MainCellState::Pounce { dir, .. } => {
                 impulse.impulse += dr.normalize_or_zero() * BRUTE_GROUP_IMPULSE * 2.0;
                 impulse.impulse += dir * BRUTE_GROUP_IMPULSE * 2.0;
             },
@@ -296,7 +293,7 @@ fn counter_value(step: u32) -> u32 {
 }
 
 // TODO: load dests from file
-fn pick_new_destination(main_pos: Vec2, counter: u32, step: u32) -> Vec2 {
+fn pick_new_destination(main_pos: Vec2, _counter: u32, step: u32) -> Vec2 {
     let poses = [
         vec2(MAIN_CELL_TARGET_NUDGE, MAIN_CELL_TARGET_NUDGE),
         vec2(16.0*32.0 - MAIN_CELL_TARGET_NUDGE, MAIN_CELL_TARGET_NUDGE),
