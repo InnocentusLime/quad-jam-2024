@@ -143,7 +143,7 @@ pub enum PlayerDamageState {
 pub enum MainCellState {
     Pounce { think: f32, dir: Vec2 },
     Wander { target: Vec2, counter: u32 },
-    Wait { think: f32, counter: Option<u32>, },
+    Wait { think: f32, counter: Option<u32> },
 }
 
 #[derive(Debug, Clone, Copy, Component)]
