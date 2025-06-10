@@ -117,7 +117,7 @@ impl PhysicsState {
                 .collision_groups(groups)
                 .mass(mass)
                 .enabled(is_enabled)
-                .friction(0.1),
+                .friction(0.001),
             body.clone(),
             &mut self.bodies,
         );
@@ -555,6 +555,14 @@ impl PhysicsState {
         }
     }
 
+    pub fn import_velocities(&mut self, body_tag: View<BodyTag>, vel: View<VelocityProxy>) {
+        for (ent, (_, vel)) in (&body_tag, &vel).iter().with_id() {
+            let rb = &mut self.bodies[self.mapping[&ent]];
+            let v = Self::world_to_phys(vel.0);
+            rb.set_linvel(nalgebra::vector![v.x, v.y], true);
+        }
+    }
+
     pub fn step(&mut self) {
         // Step simulation
         self.query_pipeline.update(&self.colliders);
@@ -640,6 +648,14 @@ impl PhysicsState {
                 },
                 &mut beam.overlaps,
             );
+        }
+    }
+
+    pub fn export_velocities(&mut self, body_tag: View<BodyTag>, mut vel: ViewMut<VelocityProxy>) {
+        for (ent, (_, vel)) in (&body_tag, &mut vel).iter().with_id() {
+            let rb = &self.bodies[self.mapping[&ent]];
+            let v = rb.linvel();
+            vel.0 = Self::phys_to_world(vec2(v.x, v.y));
         }
     }
 }

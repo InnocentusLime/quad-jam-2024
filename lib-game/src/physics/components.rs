@@ -82,6 +82,9 @@ impl KinematicControl {
 }
 
 #[derive(Clone, Copy, Debug, Component)]
+pub struct VelocityProxy(pub Vec2);
+
+#[derive(Clone, Copy, Debug, Component)]
 pub struct ForceApplier {
     pub force: Vec2,
 }

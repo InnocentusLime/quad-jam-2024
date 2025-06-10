@@ -94,6 +94,7 @@ impl Game for Project {
         &[
             ("phys", draw_physics_debug),
             ("smell", debug_draw_tile_smell),
+            ("mainai", debug_draw_main_cell_ai),
         ]
     }
 
@@ -132,10 +133,9 @@ impl Game for Project {
         world.run_with_data(player_controls, (input, dt));
         world.run_with_data(player_throw, input);
         if self.do_ai {
-            world.run_with_data(update_brain, dt);
             world.run(brute_ai);
             world.run(stalker_ai);
-            world.run(main_cell_ai);
+            world.run_with_data(main_cell_ai, dt);
         }
     }
 
