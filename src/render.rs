@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use macroquad::prelude::*;
-use shipyard::{Get, IntoIter, UniqueView, View};
+use shipyard::{Get, IntoIter, View};
 
 use crate::components::*;
 use lib_game::*;
@@ -215,7 +215,7 @@ pub fn render_ammo(render: &mut Render, pos: View<Transform>, bullet: View<Bulle
 
 pub fn render_game_ui(
     render: &mut Render,
-    score: UniqueView<PlayerScore>,
+    score: View<PlayerScore>,
     health: View<Health>,
     player: View<PlayerTag>,
     state: View<EnemyState>,
@@ -223,7 +223,7 @@ pub fn render_game_ui(
     let font_size = 32;
     let off_y = 32.0;
     let ui_x = 536.0;
-    let score = score.0;
+    let score = score.iter().next().unwrap().0;
     let player_health = (&player, &health).iter().next().unwrap().1 .0;
     let alive_enemy_count = state
         .iter()

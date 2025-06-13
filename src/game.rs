@@ -1,6 +1,6 @@
 use lib_game::*;
 use macroquad::prelude::*;
-use shipyard::{EntityId, IntoIter, UniqueViewMut, View, ViewMut, World};
+use shipyard::{EntityId, IntoIter, View, ViewMut, World};
 
 use crate::enemy::spawn_brute;
 use crate::enemy::spawn_main_cell;
@@ -157,14 +157,16 @@ pub fn reward_enemies(enemy: View<EnemyState>, mut reward: ViewMut<RewardInfo>) 
     }
 }
 
-pub fn count_rewards(mut reward: ViewMut<RewardInfo>, mut score: UniqueViewMut<PlayerScore>) {
+pub fn count_rewards(mut reward: ViewMut<RewardInfo>, mut score: ViewMut<PlayerScore>) {
     for reward in (&mut reward).iter() {
         if !matches!(reward.state, RewardState::Pending) {
             continue;
         }
 
         reward.state = RewardState::Counted;
-        score.0 += reward.amount;
+        for score in (&mut score).iter() {
+            score.0 += reward.amount;
+        }
     }
 }
 

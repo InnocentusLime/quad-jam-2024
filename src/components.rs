@@ -1,5 +1,5 @@
 use macroquad::prelude::*;
-use shipyard::{Component, EntityId, Unique};
+use shipyard::{Component, EntityId};
 
 #[derive(Debug, Clone, Copy)]
 pub enum RewardState {
@@ -14,7 +14,7 @@ pub struct RewardInfo {
     pub amount: u32,
 }
 
-#[derive(Debug, Clone, Copy, Unique)]
+#[derive(Debug, Clone, Copy, Component)]
 pub struct PlayerScore(pub u32);
 
 #[derive(Debug, Clone, Copy, Component)]
