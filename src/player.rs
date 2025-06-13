@@ -11,11 +11,10 @@ pub const PLAYER_HIT_COOLDOWN: f32 = 2.0;
 pub const PLAYER_SIZE: f32 = 16.0;
 
 pub fn spawn_player(world: &mut World, pos: Vec2) {
-    world.add_unique(PlayerScore(0));
-
     world.add_entity((
         Transform::from_pos(pos),
         PlayerTag,
+        PlayerScore(0),
         Health(crate::player::PLAYER_SPAWN_HEALTH),
         PlayerDamageState::Hittable,
         KinematicControl::new(),
