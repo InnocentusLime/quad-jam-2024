@@ -209,6 +209,7 @@ impl App {
     }
 
     fn game_present<G: Game>(&mut self, real_dt: f32, game: &G) {
+        self.update_camera();
         self.sound.run(&self.world);
         self.render.new_frame();
         game.render_export(&self.state, &self.world, &mut self.render);
@@ -252,8 +253,6 @@ impl App {
             .run_with_data(PhysicsState::export_velocities, &mut self.physics);
 
         let new_state = game.update(GAME_TICKRATE, &mut self.world);
-
-        self.update_camera();
 
         self.world.clear_all_removed_and_deleted();
         new_state
