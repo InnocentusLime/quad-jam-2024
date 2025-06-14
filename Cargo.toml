@@ -11,9 +11,9 @@ macroquad = { workspace = true }
 macroquad-particles = { workspace = true }
 quad-dbg = { path = "./quad-dbg" }
 lib-game = { path = "./lib-game" }
-glam = { version = "0.27", features = ["serde"] }
 ron = "0.10.1"
 serde = { version = "1", features = ["derive"] }
+glam = { workspace = true }
 
 [profile.release]
 opt-level = 3
@@ -40,6 +40,7 @@ macroquad-particles = "0.2.1"
 anyhow = "1"
 # NOTE: keep the version matching the one macroquad is using
 hashbrown = "0.14.5"
+glam = { version = "0.27", features = ["serde"] }
 
 [patch.crates-io]
 macroquad-particles = { git = "https://github.com/InnocentusLime/macroquad.git", rev = "71372fdd14a348592142a91444ad4c4b6c7210b6" }
