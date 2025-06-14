@@ -461,7 +461,7 @@ impl PhysicsState {
                 entity,
                 info.shape,
                 info.kind,
-                info.groups,
+                info.groups.into_interaction_groups(),
                 info.mass,
             );
         }
@@ -539,7 +539,7 @@ impl PhysicsState {
 
             for col in body.colliders() {
                 let col = self.colliders.get_mut(*col).unwrap();
-                col.set_collision_groups(info.groups);
+                col.set_collision_groups(info.groups.into_interaction_groups());
             }
         }
 
@@ -612,7 +612,7 @@ impl PhysicsState {
 
     pub fn export_sensor_queries(&mut self, tf: View<Transform>, mut sens: ViewMut<OneSensorTag>) {
         for (tf, sens) in (&tf, &mut sens).iter() {
-            let res = self.any_collisions(*tf, sens.groups, sens.shape);
+            let res = self.any_collisions(*tf, sens.groups.into_interaction_groups(), sens.shape);
 
             sens.col = res;
         }
@@ -628,7 +628,7 @@ impl PhysicsState {
             beam.length = self
                 .cast_shape(
                     *tf,
-                    beam.cast_filter,
+                    beam.cast_filter.into_interaction_groups(),
                     dir,
                     ColliderTy::Box {
                         height: beam.width,
@@ -641,7 +641,7 @@ impl PhysicsState {
                     pos: tf.pos + dir * (beam.length / 2.0),
                     angle: tf.angle,
                 },
-                beam.overlap_filter,
+                beam.overlap_filter.into_interaction_groups(),
                 ColliderTy::Box {
                     height: beam.width,
                     width: beam.length,

@@ -12,6 +12,21 @@ pub const MAIN_CELL_TARGET_NUDGE: f32 = 64.0;
 pub const MAIN_CELL_WANDER_STEPS: u32 = 2;
 pub const MAIN_CELL_WANDER_TARGET_RADIUS: f32 = 32.0;
 
+pub const NPCS_GROUP: PhysicsGroup = PhysicsGroup {
+    npcs: true,
+    ..PhysicsGroup::empty()
+};
+pub const MAINCELL_GROUP: PhysicsGroup = PhysicsGroup {
+    maincell: true,
+    ..NPCS_GROUP
+};
+pub const NPCS_INTERACT: PhysicsGroup = PhysicsGroup {
+    projectiles: true,
+    npcs: true,
+    level: true,
+    ..PhysicsGroup::empty()
+};
+
 pub fn spawn_brute(world: &mut World, pos: Vec2) {
     let _brute = world.add_entity((
         Transform { pos, angle: 0.0 },
@@ -23,10 +38,7 @@ pub fn spawn_brute(world: &mut World, pos: Vec2) {
         EnemyState::Free,
         Health(BRUTE_SPAWN_HEALTH),
         BodyTag::new(
-            InteractionGroups {
-                memberships: groups::NPCS,
-                filter: groups::NPCS_INTERACT,
-            },
+            PhysicsFilter(NPCS_GROUP, NPCS_INTERACT),
             ColliderTy::Circle { radius: 6.0 },
             5.0,
             true,
@@ -51,10 +63,7 @@ pub fn spawn_stalker(world: &mut World, pos: Vec2) {
         EnemyState::Free,
         Health(BRUTE_SPAWN_HEALTH),
         BodyTag::new(
-            InteractionGroups {
-                memberships: groups::NPCS,
-                filter: groups::NPCS_INTERACT,
-            },
+            PhysicsFilter(NPCS_GROUP, NPCS_INTERACT),
             ColliderTy::Circle { radius: 6.0 },
             2.0,
             true,
@@ -82,10 +91,7 @@ pub fn spawn_main_cell(world: &mut World, pos: Vec2) {
         EnemyState::Free,
         Health(5),
         BodyTag::new(
-            InteractionGroups {
-                memberships: groups::NPCS.union(groups::MAINCELL),
-                filter: groups::NPCS_INTERACT,
-            },
+            PhysicsFilter(MAINCELL_GROUP, NPCS_INTERACT),
             ColliderTy::Circle { radius: 12.0 },
             1000.0,
             true,

@@ -2,20 +2,74 @@ use macroquad::prelude::*;
 use rapier2d::prelude::InteractionGroups;
 use shipyard::{Component, EntityId};
 
-pub mod groups {
-    use rapier2d::prelude::*;
+#[derive(Default, Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub struct PhysicsGroup {
+    pub level: bool,
+    pub npcs: bool,
+    pub player: bool,
+    pub projectiles: bool,
+    pub maincell: bool,
+    pub items: bool,
+}
 
-    pub const LEVEL: Group = Group::GROUP_1;
-    pub const NPCS: Group = Group::GROUP_2;
-    pub const PLAYER: Group = Group::GROUP_3;
-    pub const PROJECTILES: Group = Group::GROUP_4;
-    pub const MAINCELL: Group = Group::GROUP_5;
-    pub const ITEMS: Group = Group::GROUP_6;
+impl PhysicsGroup {
+    pub const fn empty() -> PhysicsGroup {
+        PhysicsGroup {
+            level: false,
+            npcs: false,
+            player: false,
+            projectiles: false,
+            maincell: false,
+            items: false,
+        }
+    }
+}
 
-    pub const LEVEL_INTERACT: Group = LEVEL.union(NPCS).union(PLAYER).union(PROJECTILES);
-    pub const PLAYER_INTERACT: Group = LEVEL.union(ITEMS);
-    pub const NPCS_INTERACT: Group = LEVEL.union(PROJECTILES).union(NPCS);
-    pub const PROJECTILES_INTERACT: Group = LEVEL;
+impl PhysicsGroup {
+    fn into_group(self) -> rapier2d::prelude::Group {
+        use rapier2d::prelude::*;
+
+        pub const LEVEL: Group = Group::GROUP_1;
+        pub const NPCS: Group = Group::GROUP_2;
+        pub const PLAYER: Group = Group::GROUP_3;
+        pub const PROJECTILES: Group = Group::GROUP_4;
+        pub const MAINCELL: Group = Group::GROUP_5;
+        pub const ITEMS: Group = Group::GROUP_6;
+
+        let mut filter = Group::NONE;
+        if self.level {
+            filter |= LEVEL;
+        }
+        if self.npcs {
+            filter |= NPCS;
+        }
+        if self.player {
+            filter |= PLAYER;
+        }
+        if self.projectiles {
+            filter |= PROJECTILES;
+        }
+        if self.maincell {
+            filter |= MAINCELL
+        }
+        if self.items {
+            filter |= ITEMS
+        }
+
+        filter
+    }
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub struct PhysicsFilter(pub PhysicsGroup, pub PhysicsGroup);
+
+impl PhysicsFilter {
+    pub(crate) fn into_interaction_groups(self) -> InteractionGroups {
+        InteractionGroups {
+            memberships: self.0.into_group(),
+            filter: self.1.into_group(),
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -28,17 +82,13 @@ pub enum ColliderTy {
 pub struct BeamTag {
     pub width: f32,
     pub length: f32,
-    pub cast_filter: InteractionGroups,
-    pub overlap_filter: InteractionGroups,
+    pub cast_filter: PhysicsFilter,
+    pub overlap_filter: PhysicsFilter,
     pub overlaps: Vec<EntityId>,
 }
 
 impl BeamTag {
-    pub fn new(
-        overlap_filter: InteractionGroups,
-        cast_filter: InteractionGroups,
-        width: f32,
-    ) -> Self {
+    pub fn new(overlap_filter: PhysicsFilter, cast_filter: PhysicsFilter, width: f32) -> Self {
         Self {
             width,
             length: 0.0f32,
@@ -52,12 +102,12 @@ impl BeamTag {
 #[derive(Clone, Debug, Component)]
 pub struct OneSensorTag {
     pub shape: ColliderTy,
-    pub groups: InteractionGroups,
+    pub groups: PhysicsFilter,
     pub col: Option<EntityId>,
 }
 
 impl OneSensorTag {
-    pub fn new(shape: ColliderTy, groups: InteractionGroups) -> Self {
+    pub fn new(shape: ColliderTy, groups: PhysicsFilter) -> Self {
         Self {
             shape,
             groups,
@@ -105,7 +155,7 @@ pub enum BodyKind {
 #[track(Deletion, Removal, Insertion)]
 pub struct BodyTag {
     pub enabled: bool,
-    pub groups: InteractionGroups,
+    pub groups: PhysicsFilter,
     pub(crate) shape: ColliderTy,
     pub(crate) mass: f32,
     pub(crate) kind: BodyKind,
@@ -113,7 +163,7 @@ pub struct BodyTag {
 
 impl BodyTag {
     pub fn new(
-        groups: InteractionGroups,
+        groups: PhysicsFilter,
         shape: ColliderTy,
         mass: f32,
         enabled: bool,
