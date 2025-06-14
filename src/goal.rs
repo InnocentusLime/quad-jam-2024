@@ -12,10 +12,16 @@ pub fn spawn_goal(world: &mut World, pos: Vec2) {
                 width: 16.0,
                 height: 16.0,
             },
-            InteractionGroups {
-                memberships: groups::ITEMS,
-                filter: groups::PLAYER,
-            },
+            PhysicsFilter(
+                PhysicsGroup {
+                    items: true,
+                    ..PhysicsGroup::empty()
+                },
+                PhysicsGroup {
+                    player: true,
+                    ..PhysicsGroup::empty()
+                },
+            ),
         ),
     ));
 }

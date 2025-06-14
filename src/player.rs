@@ -10,6 +10,20 @@ pub const PLAYER_SPAWN_HEALTH: i32 = 3;
 pub const PLAYER_HIT_COOLDOWN: f32 = 2.0;
 pub const PLAYER_SIZE: f32 = 16.0;
 
+pub const PLAYER_GROUP: PhysicsGroup = PhysicsGroup {
+    player: true,
+    ..PhysicsGroup::empty()
+};
+pub const PLAYER_INTERACT: PhysicsGroup = PhysicsGroup {
+    level: true,
+    items: true,
+    ..PhysicsGroup::empty()
+};
+pub const PLAYER_DMG_INTERACT: PhysicsGroup = PhysicsGroup {
+    npcs: true,
+    ..PhysicsGroup::empty()
+};
+
 pub fn spawn_player(world: &mut World, pos: Vec2) {
     world.add_entity((
         Transform::from_pos(pos),
@@ -19,10 +33,7 @@ pub fn spawn_player(world: &mut World, pos: Vec2) {
         PlayerDamageState::Hittable,
         KinematicControl::new(),
         BodyTag::new(
-            InteractionGroups {
-                memberships: groups::PLAYER,
-                filter: groups::PLAYER_INTERACT,
-            },
+            PhysicsFilter(PLAYER_GROUP, PLAYER_INTERACT),
             ColliderTy::Box {
                 width: PLAYER_SIZE,
                 height: PLAYER_SIZE,
@@ -43,10 +54,7 @@ pub fn spawn_player(world: &mut World, pos: Vec2) {
                 width: 16.0,
                 height: 16.0,
             },
-            InteractionGroups {
-                memberships: groups::LEVEL,
-                filter: groups::NPCS,
-            },
+            PhysicsFilter(PLAYER_GROUP, PLAYER_DMG_INTERACT),
         ),
         PlayerDamageSensorTag,
     ));

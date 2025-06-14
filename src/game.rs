@@ -10,6 +10,21 @@ use crate::components::*;
 use crate::level::LevelDef;
 use crate::player::spawn_player;
 
+pub const LEVEL_GROUP: PhysicsGroup = PhysicsGroup {
+    level: true,
+    ..PhysicsGroup::empty()
+};
+pub const PROJECTILES_GROUP: PhysicsGroup = PhysicsGroup {
+    projectiles: true,
+    ..PhysicsGroup::empty()
+};
+pub const LEVEL_INTERACT: PhysicsGroup = PhysicsGroup {
+    npcs: true,
+    player: true,
+    projectiles: true,
+    ..PhysicsGroup::empty()
+};
+
 fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut World) -> EntityId {
     assert_eq!(data.len(), width * height);
 
@@ -35,10 +50,7 @@ fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut Wor
             TileType::Wall => world.add_component(
                 tile,
                 (BodyTag::new(
-                    InteractionGroups {
-                        memberships: groups::LEVEL,
-                        filter: groups::LEVEL_INTERACT,
-                    },
+                    PhysicsFilter(LEVEL_GROUP, LEVEL_INTERACT),
                     ColliderTy::Box {
                         width: 32.0,
                         height: 32.0,
@@ -60,7 +72,7 @@ pub fn init_level(world: &mut World, level_def: LevelDef) {
         .map
         .tiles
         .into_iter()
-        .map(|x| match x {
+        .map(|x: crate::level::TileDef| match x {
             crate::level::TileDef::Wall => TileType::Wall,
             crate::level::TileDef::Ground => TileType::Ground,
         })
@@ -84,10 +96,7 @@ fn spawn_box(world: &mut World, pos: Vec2) {
         Transform::from_pos(pos),
         BoxTag,
         BodyTag::new(
-            InteractionGroups {
-                memberships: groups::LEVEL,
-                filter: groups::LEVEL_INTERACT,
-            },
+            PhysicsFilter(LEVEL_GROUP, LEVEL_INTERACT),
             ColliderTy::Box {
                 width: 32.0,
                 height: 32.0,
@@ -108,10 +117,13 @@ fn spawn_bullet(world: &mut World, pos: Vec2) {
                 width: 16.0,
                 height: 16.0,
             },
-            InteractionGroups {
-                memberships: groups::LEVEL,
-                filter: groups::PLAYER,
-            },
+            PhysicsFilter(
+                LEVEL_GROUP,
+                PhysicsGroup {
+                    player: true,
+                    ..PhysicsGroup::empty()
+                },
+            ),
         ),
     ));
     world.add_entity((
@@ -122,10 +134,13 @@ fn spawn_bullet(world: &mut World, pos: Vec2) {
                 width: 24.0,
                 height: 24.0,
             },
-            InteractionGroups {
-                memberships: groups::PROJECTILES,
-                filter: groups::MAINCELL,
-            },
+            PhysicsFilter(
+                PROJECTILES_GROUP,
+                PhysicsGroup {
+                    maincell: true,
+                    ..PhysicsGroup::empty()
+                },
+            ),
         ),
     ));
     world.add_entity((
@@ -136,10 +151,14 @@ fn spawn_bullet(world: &mut World, pos: Vec2) {
                 width: 16.0,
                 height: 16.0,
             },
-            InteractionGroups {
-                memberships: groups::PROJECTILES,
-                filter: groups::LEVEL.union(groups::NPCS),
-            },
+            PhysicsFilter(
+                PROJECTILES_GROUP,
+                PhysicsGroup {
+                    level: true,
+                    npcs: true,
+                    ..PhysicsGroup::empty()
+                },
+            ),
         ),
     ));
 }
