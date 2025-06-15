@@ -30,7 +30,7 @@ strip = true  # Strip all debugging information from the binary to reduce file s
 panic = "abort"
 
 [workspace]
-members = [ "lib-game", "quad-dbg" ]
+members = [ "lib-game", "quad-col", "quad-dbg" ]
 
 [workspace.dependencies]
 shipyard = "0.8"

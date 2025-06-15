@@ -1,0 +1,9 @@
+[package]
+name = "quad-col"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+shipyard = { workspace = true }
+hashbrown = { workspace = true }
+glam = { workspace = true }
