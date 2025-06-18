@@ -147,7 +147,6 @@ pub struct ImpulseApplier {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum BodyKind {
     Static,
-    Dynamic,
     Kinematic,
 }
 

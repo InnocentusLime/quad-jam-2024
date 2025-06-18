@@ -221,21 +221,11 @@ impl App {
             .run_with_data(PhysicsState::remove_dead_handles, &mut self.physics);
         self.world
             .run_with_data(PhysicsState::allocate_bodies, &mut self.physics);
-        self.world
-            .run_with_data(PhysicsState::reset_forces, &mut self.physics);
-        self.world
-            .run_with_data(PhysicsState::reset_impulses, &mut self.physics);
 
         game.input_phase(&input, GAME_TICKRATE, &mut self.world);
 
         self.world
             .run_with_data(PhysicsState::import_positions_and_info, &mut self.physics);
-        self.world
-            .run_with_data(PhysicsState::import_forces, &mut self.physics);
-        self.world
-            .run_with_data(PhysicsState::import_impulses, &mut self.physics);
-        self.world
-            .run_with_data(PhysicsState::import_velocities, &mut self.physics);
         self.world
             .run_with_data(PhysicsState::apply_kinematic_moves, &mut self.physics);
         self.world
