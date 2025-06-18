@@ -1,9 +1,7 @@
 use lib_game::*;
 use macroquad::prelude::*;
-use shipyard::{EntityId, IntoIter, View, ViewMut, World};
+use shipyard::{EntityId, IntoIter, View, World};
 
-use crate::enemy::spawn_brute;
-use crate::enemy::spawn_main_cell;
 use crate::goal::spawn_goal;
 
 use crate::components::*;
@@ -14,6 +12,7 @@ pub const LEVEL_GROUP: PhysicsGroup = PhysicsGroup {
     level: true,
     ..PhysicsGroup::empty()
 };
+#[allow(dead_code)]
 pub const PROJECTILES_GROUP: PhysicsGroup = PhysicsGroup {
     projectiles: true,
     ..PhysicsGroup::empty()
@@ -82,109 +81,7 @@ pub fn init_level(world: &mut World, level_def: LevelDef) {
     for entity in level_def.entities {
         match entity {
             crate::level::EntityDef::Player(pos) => spawn_player(world, pos),
-            crate::level::EntityDef::MainCell(pos) => spawn_main_cell(world, pos),
-            crate::level::EntityDef::Brute(pos) => spawn_brute(world, pos),
             crate::level::EntityDef::Goal(pos) => spawn_goal(world, pos),
-            crate::level::EntityDef::Box(pos) => spawn_box(world, pos),
-            crate::level::EntityDef::Bullet(pos) => spawn_bullet(world, pos),
-        }
-    }
-}
-
-fn spawn_box(world: &mut World, pos: Vec2) {
-    world.add_entity((
-        Transform::from_pos(pos),
-        BoxTag,
-        BodyTag::new(
-            PhysicsFilter(LEVEL_GROUP, LEVEL_INTERACT),
-            ColliderTy::Box {
-                width: 32.0,
-                height: 32.0,
-            },
-            1.0,
-            true,
-            BodyKind::Dynamic,
-        ),
-    ));
-}
-
-fn spawn_bullet(world: &mut World, pos: Vec2) {
-    world.add_entity((
-        Transform::from_pos(pos),
-        BulletTag::Dropped,
-        OneSensorTag::new(
-            ColliderTy::Box {
-                width: 16.0,
-                height: 16.0,
-            },
-            PhysicsFilter(
-                LEVEL_GROUP,
-                PhysicsGroup {
-                    player: true,
-                    ..PhysicsGroup::empty()
-                },
-            ),
-        ),
-    ));
-    world.add_entity((
-        Transform::from_pos(pos),
-        BulletHitterTag,
-        OneSensorTag::new(
-            ColliderTy::Box {
-                width: 24.0,
-                height: 24.0,
-            },
-            PhysicsFilter(
-                PROJECTILES_GROUP,
-                PhysicsGroup {
-                    maincell: true,
-                    ..PhysicsGroup::empty()
-                },
-            ),
-        ),
-    ));
-    world.add_entity((
-        Transform::from_pos(pos),
-        BulletWallHitterTag,
-        OneSensorTag::new(
-            ColliderTy::Box {
-                width: 16.0,
-                height: 16.0,
-            },
-            PhysicsFilter(
-                PROJECTILES_GROUP,
-                PhysicsGroup {
-                    level: true,
-                    npcs: true,
-                    ..PhysicsGroup::empty()
-                },
-            ),
-        ),
-    ));
-}
-
-pub fn reward_enemies(enemy: View<EnemyState>, mut reward: ViewMut<RewardInfo>) {
-    for (state, reward) in (&enemy, &mut reward).iter() {
-        if !matches!(
-            (state, reward.state),
-            (EnemyState::Dead, RewardState::Locked)
-        ) {
-            continue;
-        }
-
-        reward.state = RewardState::Pending;
-    }
-}
-
-pub fn count_rewards(mut reward: ViewMut<RewardInfo>, mut score: ViewMut<PlayerScore>) {
-    for reward in (&mut reward).iter() {
-        if !matches!(reward.state, RewardState::Pending) {
-            continue;
-        }
-
-        reward.state = RewardState::Counted;
-        for score in (&mut score).iter() {
-            score.0 += reward.amount;
         }
     }
 }

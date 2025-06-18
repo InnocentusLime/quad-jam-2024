@@ -63,7 +63,6 @@ fn draw_bodies(pos: View<Transform>, body_tag: View<BodyTag>) {
     for (tf, tag) in (&pos, &body_tag).iter() {
         let mut color = match tag.kind() {
             BodyKind::Static => DARKBLUE,
-            BodyKind::Dynamic => RED,
             BodyKind::Kinematic => YELLOW,
         };
         if !tag.enabled {

@@ -5,7 +5,7 @@ use nalgebra::Translation2;
 use rapier2d::{
     na::{Isometry2, UnitComplex, Vector2},
     parry::{
-        query::{DefaultQueryDispatcher, PersistentQueryDispatcher, ShapeCastOptions},
+        query::ShapeCastOptions,
         shape::{Ball, Cuboid},
     },
     prelude::*,
@@ -45,7 +45,6 @@ pub struct PhysicsState {
     mapping: HashMap<EntityId, RigidBodyHandle>,
     mapping_inv: HashMap<RigidBodyHandle, EntityId>,
     kinematic_cols: Vec<(Vector2<f32>, Isometry2<f32>, ShapeCastHit)>,
-    manifolds: Vec<ContactManifold>,
 }
 
 impl PhysicsState {
@@ -72,7 +71,6 @@ impl PhysicsState {
             mapping: HashMap::new(),
             mapping_inv: HashMap::new(),
             kinematic_cols: Vec::new(),
-            manifolds: Vec::new(),
         }
     }
 
@@ -87,7 +85,6 @@ impl PhysicsState {
         mass: f32,
     ) {
         let rap_ty = match kind {
-            BodyKind::Dynamic => RigidBodyType::Dynamic,
             BodyKind::Static => RigidBodyType::Fixed,
             BodyKind::Kinematic => RigidBodyType::KinematicPositionBased,
         };
@@ -170,83 +167,6 @@ impl PhysicsState {
         };
 
         trans - normal_part - penetration_part + *hit.normal1 * KINEMATIC_NORMAL_NUDGE
-    }
-
-    fn move_kinematic_pushes(&mut self, kin_shape: &dyn Shape, kin_groups: InteractionGroups) {
-        let dispatcher = DefaultQueryDispatcher;
-
-        for (rem, pos, hit) in &self.kinematic_cols {
-            let push = *hit.normal1 * rem.dot(&hit.normal1);
-            let char_box = kin_shape.compute_aabb(pos).loosened(PUSH_SKIN);
-
-            self.manifolds.clear();
-            self.query_pipeline
-                .colliders_with_aabb_intersecting_aabb(&char_box, |handle| {
-                    let Some(col) = self.colliders.get(*handle) else {
-                        return true;
-                    };
-                    let Some(bodh) = col.parent() else {
-                        return true;
-                    };
-                    let Some(bod) = self.bodies.get(bodh) else {
-                        return true;
-                    };
-                    if !bod.is_dynamic() {
-                        return true;
-                    }
-                    if !col.collision_groups().test(kin_groups) {
-                        return true;
-                    }
-
-                    self.manifolds.clear();
-                    let pos12 = pos.inv_mul(col.position());
-                    let _ = dispatcher.contact_manifolds(
-                        &pos12,
-                        &*kin_shape,
-                        col.shape(),
-                        PUSH_SKIN,
-                        &mut self.manifolds,
-                        &mut None,
-                    );
-
-                    for m in &mut self.manifolds {
-                        m.data.rigid_body2 = Some(bodh);
-                        m.data.normal = pos * m.local_n1;
-                    }
-
-                    true
-                });
-            let velocity_to_transfer = push * self.integration_parameters.dt.recip();
-            for manifold in &self.manifolds {
-                let body_handle = manifold.data.rigid_body2.unwrap();
-                let body = &mut self.bodies[body_handle];
-                // info!("CONT: {}", manifold.points.len());
-
-                for pt in &manifold.points {
-                    if pt.dist > PUSH_SKIN {
-                        continue;
-                    }
-
-                    let body_mass = body.mass();
-                    let contact_point = body.position() * pt.local_p2;
-                    let delta_vel_per_contact = (velocity_to_transfer
-                        - body.velocity_at_point(&contact_point))
-                    .dot(&manifold.data.normal);
-                    let char_mass = 1.0;
-                    let mass_ratio = body_mass * char_mass / (body_mass + char_mass);
-
-                    // info!("{:?}",
-                    //     manifold.data.normal * delta_vel_per_contact.max(0.0) * mass_ratio,
-                    // );
-
-                    body.apply_impulse_at_point(
-                        manifold.data.normal * delta_vel_per_contact.max(0.0) * mass_ratio,
-                        contact_point,
-                        true,
-                    );
-                }
-            }
-        }
     }
 
     fn cast_shape(
@@ -439,7 +359,6 @@ impl PhysicsState {
 
         let has_collided = !self.kinematic_cols.is_empty();
         let old_trans = kin_pos.translation.vector;
-        self.move_kinematic_pushes(&*kin_shape, groups);
 
         self.bodies
             .get_mut(rbh)
@@ -490,46 +409,6 @@ impl PhysicsState {
         }
     }
 
-    pub fn reset_forces(&mut self, mut force: ViewMut<ForceApplier>) {
-        for force in (&mut force).iter() {
-            force.force = Vec2::ZERO;
-        }
-    }
-
-    pub fn reset_impulses(&mut self, mut impulse: ViewMut<ImpulseApplier>) {
-        for impulse in (&mut impulse).iter() {
-            impulse.impulse = Vec2::ZERO;
-        }
-    }
-
-    pub fn import_forces(&mut self, body_tag: View<BodyTag>, force: View<ForceApplier>) {
-        for (ent, (body_tag, force)) in (&body_tag, &force).iter().with_id() {
-            if body_tag.kind != BodyKind::Dynamic {
-                warn!("Force applier attached to a non-dynamic body: {ent:?}");
-                continue;
-            }
-
-            let force = Self::world_to_phys(force.force);
-            let rbh = self.mapping[&ent];
-            let body = self.bodies.get_mut(rbh).unwrap();
-            body.add_force(nalgebra::vector![force.x, force.y], true);
-        }
-    }
-
-    pub fn import_impulses(&mut self, body_tag: View<BodyTag>, impulse: View<ImpulseApplier>) {
-        for (ent, (body_tag, impulse)) in (&body_tag, &impulse).iter().with_id() {
-            if body_tag.kind != BodyKind::Dynamic {
-                warn!("Impulse applier attached to a non-dynamic body: {ent:?}");
-                continue;
-            }
-
-            let impulse = Self::world_to_phys(impulse.impulse);
-            let rbh = self.mapping[&ent];
-            let body = self.bodies.get_mut(rbh).unwrap();
-            body.apply_impulse(nalgebra::vector![impulse.x, impulse.y], true);
-        }
-    }
-
     pub fn import_positions_and_info(&mut self, rbs: View<BodyTag>, pos: ViewMut<Transform>) {
         // Enable-disable
         for (ent, info) in rbs.iter().with_id() {
@@ -552,14 +431,6 @@ impl PhysicsState {
             if new_pos != *body.position() {
                 body.set_position(Self::world_tf_to_phys(*pos), true);
             }
-        }
-    }
-
-    pub fn import_velocities(&mut self, body_tag: View<BodyTag>, vel: View<VelocityProxy>) {
-        for (ent, (_, vel)) in (&body_tag, &vel).iter().with_id() {
-            let rb = &mut self.bodies[self.mapping[&ent]];
-            let v = Self::world_to_phys(vel.0);
-            rb.set_linvel(nalgebra::vector![v.x, v.y], true);
         }
     }
 

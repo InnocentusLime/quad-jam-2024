@@ -4,11 +4,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 pub enum EntityDef {
     Player(Vec2),
-    MainCell(Vec2),
-    Brute(Vec2),
     Goal(Vec2),
-    Box(Vec2),
-    Bullet(Vec2),
 }
 
 #[derive(Debug, Serialize, Deserialize)]

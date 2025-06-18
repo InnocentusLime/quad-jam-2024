@@ -6,14 +6,12 @@ use macroquad::prelude::*;
 use render::render_toplevel_ui;
 use shipyard::World;
 
-use crate::enemy::*;
 use crate::game::*;
 use crate::goal::*;
 use crate::player::*;
 use crate::tile::*;
 
 mod components;
-mod enemy;
 mod game;
 mod goal;
 mod level;
@@ -94,7 +92,6 @@ impl Game for Project {
         &[
             ("phys", draw_physics_debug),
             ("smell", debug_draw_tile_smell),
-            ("mainai", debug_draw_main_cell_ai),
         ]
     }
 
@@ -131,31 +128,14 @@ impl Game for Project {
 
     fn input_phase(&self, input: &lib_game::InputModel, dt: f32, world: &mut World) {
         world.run_with_data(player_controls, (input, dt));
-        world.run_with_data(player_throw, input);
-        if self.do_ai {
-            world.run(brute_ai);
-            world.run(stalker_ai);
-            world.run_with_data(main_cell_ai, dt);
-        }
+        if self.do_ai { /* No enemies yet */ }
     }
 
-    fn plan_physics_queries(&self, _dt: f32, world: &mut World) {
-        world.run(player_sensor_pose);
-        world.run(bullet_parts);
-    }
+    fn plan_physics_queries(&self, _dt: f32, _world: &mut World) {}
 
     fn update(&self, dt: f32, world: &mut World) -> Option<lib_game::AppState> {
         world.run_with_data(tick_smell, dt);
         world.run(player_step_smell);
-        world.run(player_ammo_pickup);
-        world.run(thrown_damage);
-        world.run_with_data(thrown_logic, dt);
-        world.run_with_data(enemy_states, dt);
-        world.run(cell_phys_data);
-        world.run(player_damage);
-        world.run_with_data(player_damage_state, dt);
-        world.run(reward_enemies);
-        world.run(count_rewards);
         world.run(check_goal);
 
         world.run(decide_next_state)
@@ -165,12 +145,7 @@ impl Game for Project {
         if app_state.is_presentable() {
             world.run_with_data(render::render_tiles, render);
             world.run_with_data(render::render_player, render);
-            world.run_with_data(render::render_brute, render);
-            world.run_with_data(render::render_main_cell, render);
-            world.run_with_data(render::render_stalker, render);
-            world.run_with_data(render::render_boxes, render);
             world.run_with_data(render::render_rays, render);
-            world.run_with_data(render::render_ammo, render);
             world.run_with_data(render::render_goal, render);
             world.run_with_data(render::render_game_ui, render);
         }
