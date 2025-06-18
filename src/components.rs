@@ -1,19 +1,6 @@
 use macroquad::prelude::*;
 use shipyard::{Component, EntityId};
 
-#[derive(Debug, Clone, Copy)]
-pub enum RewardState {
-    Locked,
-    Pending,
-    Counted,
-}
-
-#[derive(Debug, Clone, Copy, Component)]
-pub struct RewardInfo {
-    pub state: RewardState,
-    pub amount: u32,
-}
-
 #[derive(Debug, Clone, Copy, Component)]
 pub struct PlayerScore(pub u32);
 
@@ -22,38 +9,7 @@ pub struct PlayerScore(pub u32);
 pub struct Health(pub i32);
 
 #[derive(Debug, Clone, Copy, Component)]
-pub enum EnemyState {
-    Free,
-    Stunned { left: f32 },
-    Dead,
-}
-
-// TODO: this is a hack, because deleting entities
-// in shipyard is unreasonably difficult
-#[derive(Debug, Clone, Copy, Component)]
-pub enum BulletTag {
-    Dropped,
-    PickedUp,
-    Thrown { dir: Vec2 },
-}
-
-#[derive(Debug, Clone, Copy, Component)]
-pub struct BoxTag;
-
-#[derive(Debug, Clone, Copy, Component)]
 pub struct PlayerTag;
-
-#[derive(Debug, Clone, Copy, Component)]
-pub struct DamageTag;
-
-#[derive(Debug, Clone, Copy, Component)]
-pub struct PlayerDamageSensorTag;
-
-#[derive(Debug, Clone, Copy, Component)]
-pub struct BruteTag;
-
-#[derive(Debug, Clone, Copy, Component)]
-pub struct StalkerTag;
 
 #[derive(Debug, Clone, Copy, Component)]
 pub struct RayTag {
@@ -134,34 +90,9 @@ impl TileStorage {
 }
 
 #[derive(Debug, Clone, Copy, Component)]
-pub enum PlayerDamageState {
-    Hittable,
-    Cooldown(f32),
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum MainCellState {
-    Pounce { think: f32, dir: Vec2 },
-    Wander { target: Vec2, counter: u32 },
-    Wait { think: f32, counter: Option<u32> },
-}
-
-#[derive(Debug, Clone, Copy, Component)]
-pub struct MainCellTag {
-    pub state: MainCellState,
-    pub step: u32,
-}
-
-#[derive(Debug, Clone, Copy, Component)]
 pub struct TileSmell {
     pub time_left: f32,
 }
-
-#[derive(Debug, Clone, Copy, Component)]
-pub struct BulletHitterTag;
-
-#[derive(Debug, Clone, Copy, Component)]
-pub struct BulletWallHitterTag;
 
 #[derive(Debug, Clone, Copy, Component)]
 pub struct GoalTag {

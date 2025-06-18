@@ -57,12 +57,9 @@ pub fn render_player(
     render: &mut Render,
     pos: View<Transform>,
     player: View<PlayerTag>,
-    dmg: View<PlayerDamageState>,
 ) {
-    for (_, pos, dmg) in (&player, &pos, &dmg).iter() {
-        let is_flickering = matches!(dmg, PlayerDamageState::Cooldown(_));
-
-        let r_player = render.world.add_entity((
+    for (_, pos) in (&player, &pos).iter() {
+        render.world.add_entity((
             *pos,
             RectShape {
                 origin: vec2(0.5, 0.5),
@@ -70,101 +67,6 @@ pub fn render_player(
                 height: 16.0,
             },
             Tint(PURPLE),
-        ));
-
-        if is_flickering {
-            render.world.add_component(r_player, Flicker);
-        }
-    }
-}
-
-pub fn render_main_cell(
-    render: &mut Render,
-    pos: View<Transform>,
-    brute: View<MainCellTag>,
-    state: View<EnemyState>,
-    hp: View<Health>,
-) {
-    for (_, pos, state, hp) in (&brute, &pos, &state, &hp).iter() {
-        if matches!(state, EnemyState::Dead) {
-            continue;
-        }
-
-        let k = hp.0 as f32 / crate::enemy::BRUTE_SPAWN_HEALTH as f32;
-        let is_flickering = matches!(state, EnemyState::Stunned { .. });
-        let color = Color::new(RED.r * k, RED.g * k, RED.b * k, 1.0);
-
-        let r_enemy = render
-            .world
-            .add_entity((*pos, CircleShape { radius: 12.0 }, Tint(color)));
-
-        if is_flickering {
-            render.world.add_component(r_enemy, Flicker);
-        }
-    }
-}
-
-pub fn render_brute(
-    render: &mut Render,
-    pos: View<Transform>,
-    brute: View<BruteTag>,
-    state: View<EnemyState>,
-) {
-    for (_, pos, state) in (&brute, &pos, &state).iter() {
-        if matches!(state, EnemyState::Dead) {
-            continue;
-        }
-
-        let k = 0.4;
-        let is_flickering = matches!(state, EnemyState::Stunned { .. });
-        let color = Color::new(BLUE.r * k, BLUE.g * k, BLUE.b * k, 1.0);
-
-        let r_enemy = render
-            .world
-            .add_entity((*pos, CircleShape { radius: 6.0 }, Tint(color)));
-
-        if is_flickering {
-            render.world.add_component(r_enemy, Flicker);
-        }
-    }
-}
-
-pub fn render_stalker(
-    render: &mut Render,
-    pos: View<Transform>,
-    brute: View<StalkerTag>,
-    state: View<EnemyState>,
-    hp: View<Health>,
-) {
-    for (_, pos, state, hp) in (&brute, &pos, &state, &hp).iter() {
-        if matches!(state, EnemyState::Dead) {
-            continue;
-        }
-
-        let k = hp.0 as f32 / crate::enemy::BRUTE_SPAWN_HEALTH as f32;
-        let is_flickering = matches!(state, EnemyState::Stunned { .. });
-        let color = Color::new(BLUE.r * k, BLUE.g * k, BLUE.b * k, 1.0);
-
-        let r_enemy = render
-            .world
-            .add_entity((*pos, CircleShape { radius: 6.0 }, Tint(color)));
-
-        if is_flickering {
-            render.world.add_component(r_enemy, Flicker);
-        }
-    }
-}
-
-pub fn render_boxes(render: &mut Render, pos: View<Transform>, boxt: View<BoxTag>) {
-    for (_, pos) in (&boxt, &pos).iter() {
-        render.world.add_entity((
-            *pos,
-            RectShape {
-                origin: vec2(0.5, 0.5),
-                width: 32.0,
-                height: 32.0,
-            },
-            Tint(WALL_COLOR),
         ));
     }
 }
@@ -195,43 +97,18 @@ pub fn render_rays(
     }
 }
 
-pub fn render_ammo(render: &mut Render, pos: View<Transform>, bullet: View<BulletTag>) {
-    for (pos, bul) in (&pos, &bullet).iter() {
-        if matches!(bul, BulletTag::PickedUp) {
-            continue;
-        }
-
-        render.world.add_entity((
-            *pos,
-            Tint(YELLOW),
-            RectShape {
-                origin: vec2(0.5, 0.5),
-                width: 16.0,
-                height: 16.0,
-            },
-        ));
-    }
-}
-
 pub fn render_game_ui(
     render: &mut Render,
     score: View<PlayerScore>,
     health: View<Health>,
     player: View<PlayerTag>,
-    state: View<EnemyState>,
 ) {
     let font_size = 32;
     let off_y = 32.0;
     let ui_x = 536.0;
     let score = score.iter().next().unwrap().0;
     let player_health = (&player, &health).iter().next().unwrap().1 .0;
-    let alive_enemy_count = state
-        .iter()
-        .filter(|x| !matches!(x, EnemyState::Dead))
-        .count();
-    let (game_state, game_state_color) = if alive_enemy_count == 0 {
-        ("You win", GREEN)
-    } else if player_health <= 0 {
+    let (game_state, game_state_color) = if player_health <= 0 {
         ("You are dead", RED)
     } else {
         ("", BLANK)
