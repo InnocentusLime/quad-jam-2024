@@ -408,7 +408,7 @@ impl PhysicsState {
             );
         }
     }
-    
+
     pub fn import_positions_and_info(&mut self, rbs: View<BodyTag>, pos: ViewMut<Transform>) {
         // Enable-disable
         for (ent, info) in rbs.iter().with_id() {

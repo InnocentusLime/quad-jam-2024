@@ -128,13 +128,10 @@ impl Game for Project {
 
     fn input_phase(&self, input: &lib_game::InputModel, dt: f32, world: &mut World) {
         world.run_with_data(player_controls, (input, dt));
-        if self.do_ai {
-            /* No enemies yet */
-        }
+        if self.do_ai { /* No enemies yet */ }
     }
 
-    fn plan_physics_queries(&self, _dt: f32, _world: &mut World) {
-    }
+    fn plan_physics_queries(&self, _dt: f32, _world: &mut World) {}
 
     fn update(&self, dt: f32, world: &mut World) -> Option<lib_game::AppState> {
         world.run_with_data(tick_smell, dt);

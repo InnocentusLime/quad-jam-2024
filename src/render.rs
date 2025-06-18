@@ -53,11 +53,7 @@ pub fn render_tiles(render: &mut Render, tile_storage: View<TileStorage>, tiles:
     }
 }
 
-pub fn render_player(
-    render: &mut Render,
-    pos: View<Transform>,
-    player: View<PlayerTag>,
-) {
+pub fn render_player(render: &mut Render, pos: View<Transform>, player: View<PlayerTag>) {
     for (_, pos) in (&player, &pos).iter() {
         render.world.add_entity((
             *pos,
