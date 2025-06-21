@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use macroquad::prelude::*;
 use nalgebra::Translation2;
 use rapier2d::{
-    na::{Isometry2, UnitComplex, UnitVector2, Vector2},
+    na::{Isometry2, UnitComplex, Vector2},
     parry::{
         query::ShapeCastOptions,
         shape::{Ball, Cuboid},
@@ -273,27 +273,22 @@ impl PhysicsState {
     }
 
     fn move_kinematic(&mut self, rbh: RigidBodyHandle, dr: Vec2, slide: bool) -> bool {
-        let dr = Self::world_to_phys(dr);
-
-        let mut translation_current = rapier2d::na::Vector2::zeros();
-        let mut translation_remaining = rapier2d::na::Vector2::new(dr.x, dr.y);
-
+        let mut translation_remaining = Self::world_to_phys(dr);
+        let mut translation_current = Vec2::ZERO;
         let mut has_collided = false;
         for _ in 0..MOVE_KINEMATIC_MAX_ITERS {
-            let Some((off_dir, off_len)) =
-                UnitVector::try_new_and_get(translation_remaining, LENGTH_EPSILON)
-            else {
+            let off_len = translation_remaining.length();
+            let Some(off_dir) = translation_remaining.try_normalize() else {
                 break;
             };
             let Some(hit) = self.move_kinematic_cast(rbh, translation_current, off_dir, off_len)
             else {
                 translation_current += translation_remaining;
-                translation_remaining.fill(0.0);
                 break;
             };
 
             has_collided = true;
-            let translation_allowed = *off_dir * hit.time_of_impact;
+            let translation_allowed = off_dir * hit.time_of_impact;
             translation_current += translation_allowed;
             translation_remaining -= translation_allowed;
 
@@ -307,19 +302,21 @@ impl PhysicsState {
         has_collided
     }
 
-    fn get_slide_part(hit: &ShapeCastHit, trans: Vector2<f32>) -> Vector2<f32> {
-        let dist_to_surface = trans.dot(&hit.normal1);
+    fn get_slide_part(hit: &ShapeCastHit, translation: Vec2) -> Vec2 {
+        let hit_normal = vec2(hit.normal1.x, hit.normal1.y);
+        let dist_to_surface = translation.dot(hit_normal);
         let (normal_part, penetration_part) = if dist_to_surface < 0.0 {
-            (Vector2::zeros(), dist_to_surface * *hit.normal1)
+            (Vec2::ZERO, dist_to_surface * hit_normal)
         } else {
-            (dist_to_surface * *hit.normal1, Vector2::zeros())
+            (dist_to_surface * hit_normal, Vec2::ZERO)
         };
 
         // Add the normal to gently push the object out of collision
-        trans - normal_part - penetration_part + *hit.normal1 * KINEMATIC_NORMAL_NUDGE
+        translation - normal_part - penetration_part + hit_normal * KINEMATIC_NORMAL_NUDGE
     }
 
-    fn apply_kinematic_offset(&mut self, rbh: RigidBodyHandle, offset: Vector2<f32>) {
+    fn apply_kinematic_offset(&mut self, rbh: RigidBodyHandle, offset: Vec2) {
+        let offset = Vector::new(offset.x, offset.y);
         let old_trans = self.bodies.get(rbh).unwrap().position().translation.vector;
         self.bodies
             .get_mut(rbh)
@@ -330,10 +327,12 @@ impl PhysicsState {
     fn move_kinematic_cast(
         &mut self,
         rbh: RigidBodyHandle,
-        current_translation: Vector2<f32>,
-        off_dir: UnitVector2<f32>,
+        translation_current: Vec2,
+        off_dir: Vec2,
         off_len: f32,
     ) -> Option<ShapeCastHit> {
+        let translation_current = Vector2::new(translation_current.x, translation_current.y);
+        let off_dir = Vector2::new(off_dir.x, off_dir.y);
         let predicate = |_, col: &Collider| -> bool { col.is_enabled() && !col.is_sensor() };
         let rb = self.bodies.get(rbh).unwrap();
         let kin_pos = rb.position();
@@ -348,7 +347,7 @@ impl PhysicsState {
             .get(rb.colliders()[0])
             .unwrap()
             .collision_groups();
-        let shape_pos = Translation::from(current_translation) * kin_pos;
+        let shape_pos = Translation::from(translation_current) * kin_pos;
         let hit = self.query_pipeline.cast_shape(
             &self.bodies,
             &self.colliders,
