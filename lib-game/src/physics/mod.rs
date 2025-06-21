@@ -439,7 +439,6 @@ impl PhysicsState {
     }
 
     pub fn step(&mut self) {
-        // Step simulation
         self.query_pipeline.update(&self.colliders);
         self.pipeline.step(
             &self.gravity,
@@ -456,11 +455,6 @@ impl PhysicsState {
             &*self.hooks,
             &(),
         );
-
-        // Reset forces
-        for (_, body) in self.bodies.iter_mut() {
-            body.reset_forces(false);
-        }
     }
 
     pub fn apply_kinematic_moves(&mut self, mut kin: ViewMut<KinematicControl>) {
@@ -523,14 +517,6 @@ impl PhysicsState {
                 },
                 &mut beam.overlaps,
             );
-        }
-    }
-
-    pub fn export_velocities(&mut self, body_tag: View<BodyTag>, mut vel: ViewMut<VelocityProxy>) {
-        for (ent, (_, vel)) in (&body_tag, &mut vel).iter().with_id() {
-            let rb = &self.bodies[self.mapping[&ent]];
-            let v = rb.linvel();
-            vel.0 = Self::phys_to_world(vec2(v.x, v.y));
         }
     }
 }
