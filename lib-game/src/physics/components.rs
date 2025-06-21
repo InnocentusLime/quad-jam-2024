@@ -131,19 +131,6 @@ impl KinematicControl {
     }
 }
 
-#[derive(Clone, Copy, Debug, Component)]
-pub struct VelocityProxy(pub Vec2);
-
-#[derive(Clone, Copy, Debug, Component)]
-pub struct ForceApplier {
-    pub force: Vec2,
-}
-
-#[derive(Clone, Copy, Debug, Component)]
-pub struct ImpulseApplier {
-    pub impulse: Vec2,
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum BodyKind {
     Static,
