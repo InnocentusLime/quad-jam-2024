@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use macroquad::prelude::*;
 use nalgebra::Translation2;
 use rapier2d::{
-    na::{Isometry2, UnitComplex, Vector2},
+    na::{Isometry2, UnitComplex, UnitVector2, Vector2},
     parry::{
         query::ShapeCastOptions,
         shape::{Ball, Cuboid},
@@ -22,7 +22,7 @@ pub use debug::*;
 pub use rapier2d::prelude::InteractionGroups;
 
 pub const PIXEL_PER_METER: f32 = 32.0;
-pub const MAX_KINEMATICS_ITERS: i32 = 20;
+pub const MOVE_KINEMATIC_MAX_ITERS: i32 = 20;
 pub const KINEMATIC_SKIN: f32 = 0.001;
 pub const PUSH_SKIN: f32 = KINEMATIC_SKIN + 0.05;
 pub const KINEMATIC_NORMAL_NUDGE: f32 = 1.0e-4;
@@ -44,7 +44,6 @@ pub struct PhysicsState {
     hooks: Box<dyn PhysicsHooks + Send + Sync>,
     mapping: HashMap<EntityId, RigidBodyHandle>,
     mapping_inv: HashMap<RigidBodyHandle, EntityId>,
-    kinematic_cols: Vec<(Vector2<f32>, Isometry2<f32>, ShapeCastHit)>,
 }
 
 impl PhysicsState {
@@ -70,7 +69,6 @@ impl PhysicsState {
             hooks: Box::new(()),
             mapping: HashMap::new(),
             mapping_inv: HashMap::new(),
-            kinematic_cols: Vec::new(),
         }
     }
 
@@ -156,17 +154,6 @@ impl PhysicsState {
             rotation: UnitComplex::from_angle(ang),
             translation: Translation2::new(pos.x, pos.y),
         }
-    }
-
-    fn get_slide_part(hit: &ShapeCastHit, trans: Vector2<f32>) -> Vector2<f32> {
-        let dist_to_surface = trans.dot(&hit.normal1);
-        let (normal_part, penetration_part) = if dist_to_surface < 0.0 {
-            (Vector2::zeros(), dist_to_surface * *hit.normal1)
-        } else {
-            (dist_to_surface * *hit.normal1, Vector2::zeros())
-        };
-
-        trans - normal_part - penetration_part + *hit.normal1 * KINEMATIC_NORMAL_NUDGE
     }
 
     fn cast_shape(
@@ -286,86 +273,103 @@ impl PhysicsState {
     }
 
     fn move_kinematic(&mut self, rbh: RigidBodyHandle, dr: Vec2, slide: bool) -> bool {
-        let predicate = Some(
-            &|_, col: &Collider| -> bool { col.is_enabled() && !col.is_sensor() }
-                as &dyn Fn(ColliderHandle, &Collider) -> bool,
-        );
-        self.kinematic_cols.clear();
-
         let dr = Self::world_to_phys(dr);
+
+        let mut translation_current = rapier2d::na::Vector2::zeros();
+        let mut translation_remaining = rapier2d::na::Vector2::new(dr.x, dr.y);
+
+        let mut has_collided = false;
+        for _ in 0..MOVE_KINEMATIC_MAX_ITERS {
+            let Some((off_dir, off_len)) =
+                UnitVector::try_new_and_get(translation_remaining, LENGTH_EPSILON)
+            else {
+                break;
+            };
+            let Some(hit) = self.move_kinematic_cast(rbh, translation_current, off_dir, off_len)
+            else {
+                translation_current += translation_remaining;
+                translation_remaining.fill(0.0);
+                break;
+            };
+
+            has_collided = true;
+            let translation_allowed = *off_dir * hit.time_of_impact;
+            translation_current += translation_allowed;
+            translation_remaining -= translation_allowed;
+
+            // If sliding is enabled, realign the remaining translation, with the surface.
+            if slide {
+                translation_remaining = Self::get_slide_part(&hit, translation_remaining);
+            }
+        }
+
+        self.apply_kinematic_offset(rbh, translation_current);
+        has_collided
+    }
+
+    fn get_slide_part(hit: &ShapeCastHit, trans: Vector2<f32>) -> Vector2<f32> {
+        let dist_to_surface = trans.dot(&hit.normal1);
+        let (normal_part, penetration_part) = if dist_to_surface < 0.0 {
+            (Vector2::zeros(), dist_to_surface * *hit.normal1)
+        } else {
+            (dist_to_surface * *hit.normal1, Vector2::zeros())
+        };
+
+        // Add the normal to gently push the object out of collision
+        trans - normal_part - penetration_part + *hit.normal1 * KINEMATIC_NORMAL_NUDGE
+    }
+
+    fn apply_kinematic_offset(&mut self, rbh: RigidBodyHandle, offset: Vector2<f32>) {
+        let old_trans = self.bodies.get(rbh).unwrap().position().translation.vector;
+        self.bodies
+            .get_mut(rbh)
+            .unwrap()
+            .set_next_kinematic_translation((old_trans + offset).into());
+    }
+
+    fn move_kinematic_cast(
+        &mut self,
+        rbh: RigidBodyHandle,
+        current_translation: Vector2<f32>,
+        off_dir: UnitVector2<f32>,
+        off_len: f32,
+    ) -> Option<ShapeCastHit> {
+        let predicate = |_, col: &Collider| -> bool { col.is_enabled() && !col.is_sensor() };
         let rb = self.bodies.get(rbh).unwrap();
-        let (kin_pos, kin_shape) = (
-            rb.position(),
-            self.colliders
-                .get(rb.colliders()[0])
-                .unwrap()
-                .shared_shape()
-                .clone(),
-        );
+        let kin_pos = rb.position();
+        let kin_shape = self
+            .colliders
+            .get(rb.colliders()[0])
+            .unwrap()
+            .shared_shape()
+            .clone();
         let groups = self
             .colliders
             .get(rb.colliders()[0])
             .unwrap()
             .collision_groups();
+        let shape_pos = Translation::from(current_translation) * kin_pos;
+        let hit = self.query_pipeline.cast_shape(
+            &self.bodies,
+            &self.colliders,
+            &shape_pos,
+            &off_dir,
+            &*kin_shape.0,
+            ShapeCastOptions {
+                target_distance: KINEMATIC_SKIN,
+                max_time_of_impact: off_len,
+                stop_at_penetration: false,
+                compute_impact_geometry_on_penetration: true,
+            },
+            QueryFilter {
+                exclude_rigid_body: Some(rbh),
+                groups: Some(groups),
+                predicate: Some(&predicate),
+                ..QueryFilter::default()
+            },
+        );
 
-        let mut final_trans = rapier2d::na::Vector2::zeros();
-        let mut trans_rem = rapier2d::na::Vector2::new(dr.x, dr.y);
-
-        let mut max_iters = MAX_KINEMATICS_ITERS;
-        while let Some((off_dir, off_len)) = UnitVector::try_new_and_get(trans_rem, LENGTH_EPSILON)
-        {
-            if max_iters <= 0 {
-                break;
-            }
-            max_iters -= 1;
-
-            let shape_pos = Translation::from(final_trans) * kin_pos;
-            let Some((_handle, hit)) = self.query_pipeline.cast_shape(
-                &self.bodies,
-                &self.colliders,
-                &shape_pos,
-                &off_dir,
-                &*kin_shape.0,
-                ShapeCastOptions {
-                    target_distance: KINEMATIC_SKIN,
-                    max_time_of_impact: off_len,
-                    stop_at_penetration: false,
-                    compute_impact_geometry_on_penetration: true,
-                },
-                QueryFilter {
-                    exclude_rigid_body: Some(rbh),
-                    groups: Some(groups),
-                    predicate,
-                    ..QueryFilter::default()
-                },
-            ) else {
-                final_trans += trans_rem;
-                trans_rem.fill(0.0);
-                break;
-            };
-
-            let allowed_dist = hit.time_of_impact;
-            let allowed_trans = *off_dir * allowed_dist;
-
-            final_trans += allowed_trans;
-            trans_rem -= allowed_trans;
-
-            self.kinematic_cols.push((trans_rem, shape_pos, hit));
-
-            if slide {
-                trans_rem = Self::get_slide_part(&hit, trans_rem);
-            }
-        }
-
-        let has_collided = !self.kinematic_cols.is_empty();
-        let old_trans = kin_pos.translation.vector;
-
-        self.bodies
-            .get_mut(rbh)
-            .unwrap()
-            .set_next_kinematic_translation((old_trans + final_trans).into());
-
-        has_collided
+        hit.map(|(_, hit)| hit)
     }
 
     pub fn allocate_bodies(&mut self, info: ViewMut<BodyTag>, tf: View<Transform>) {
