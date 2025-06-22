@@ -672,10 +672,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "glam",
+ "hashbrown 0.14.5",
  "lib-game",
  "log",
  "macroquad",
  "macroquad-particles",
+ "quad-col",
  "quad-dbg",
  "ron",
  "serde",
