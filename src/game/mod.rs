@@ -156,7 +156,7 @@ impl Game for Project {
     }
 
     async fn next_level(
-        &self,
+        &mut self,
         prev: Option<&str>,
         app_state: &AppState,
         _world: &World,
@@ -179,21 +179,21 @@ impl Game for Project {
         }
     }
 
-    async fn init(&self, path: &str, world: &mut World) {
+    async fn init(&mut self, path: &str, world: &mut World) {
         let level_data = load_string(path).await.unwrap();
         let level = ron::from_str::<level::LevelDef>(level_data.as_str()).unwrap();
 
         init_level(world, level);
     }
 
-    fn input_phase(&self, input: &lib_game::InputModel, dt: f32, world: &mut World) {
+    fn input_phase(&mut self, input: &lib_game::InputModel, dt: f32, world: &mut World) {
         world.run_with_data(player::controls, (input, dt));
         if self.do_ai { /* No enemies yet */ }
     }
 
-    fn plan_physics_queries(&self, _dt: f32, _world: &mut World) {}
+    fn plan_physics_queries(&mut self, _dt: f32, _world: &mut World) {}
 
-    fn update(&self, dt: f32, world: &mut World) -> Option<lib_game::AppState> {
+    fn update(&mut self, dt: f32, world: &mut World) -> Option<lib_game::AppState> {
         world.run_with_data(tile::tick_smell, dt);
         world.run(tile::player_step_smell);
         world.run(goal::check);
