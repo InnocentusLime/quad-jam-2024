@@ -11,11 +11,6 @@ pub struct Health(pub i32);
 #[derive(Debug, Clone, Copy, Component)]
 pub struct PlayerTag;
 
-#[derive(Debug, Clone, Copy, Component)]
-pub struct RayTag {
-    pub shooting: bool,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Component)]
 pub enum TileType {
     Wall,

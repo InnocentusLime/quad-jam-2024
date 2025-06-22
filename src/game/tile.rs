@@ -1,7 +1,4 @@
-use crate::components::*;
-use lib_game::*;
-use macroquad::prelude::*;
-use shipyard::{Get, IntoIter, View, ViewMut, World};
+use super::prelude::*;
 
 pub const SMELL_AFTER_PLAYER: f32 = 4.0;
 
