@@ -48,3 +48,114 @@ impl Group {
         self.0 & target.0 == target.0
     }
 }
+
+#[cfg(test)]
+mod tests {
+    const GROUP_SAMPLE_COUNT: usize = 1_000_000;
+
+    use super::{GROUP_COUNT, Group};
+
+    use rand::random_range;
+
+    #[test]
+    fn identities() {
+        for _ in 0..GROUP_SAMPLE_COUNT {
+            let x = Group(random_range(0..std::u32::MAX));
+            assert!(x.includes(x));
+            assert_eq!(x.union(x), x);
+            assert_eq!(x.intersection(x), x);
+        }
+    }
+
+    #[test]
+    fn empty_is_empty() {
+        assert!(Group::empty().is_empty());
+    }
+
+    #[test]
+    fn is_empty_included() {
+        assert!(Group::empty().is_empty());
+        for _ in 0..GROUP_SAMPLE_COUNT {
+            let x = random_range(0..std::u32::MAX);
+            if x == 0 {
+                continue;
+            }
+            assert!(
+                Group(x).includes(Group::empty()),
+                "{x:b} must include empty"
+            );
+        }
+    }
+
+    #[test]
+    fn from_id_contains() {
+        for idx in 0..GROUP_COUNT {
+            let idx = idx as u32;
+            let g = Group::from_id(idx);
+            assert!(g.contains(idx), "{:b} must contain {idx}", g.0);
+        }
+    }
+
+    #[test]
+    fn from_id_disjoint() {
+        for idx in 0..GROUP_COUNT {
+            let g = Group::from_id(idx as u32);
+            for other_idx in 0..GROUP_COUNT {
+                if other_idx == idx {
+                    continue;
+                }
+                let other_g = Group::from_id(other_idx as u32);
+                assert_eq!(g.intersection(other_g), Group::empty());
+            }
+        }
+    }
+
+    #[test]
+    fn union_includes() {
+        for _ in 0..GROUP_SAMPLE_COUNT {
+            let x = Group(random_range(0..std::u32::MAX));
+            let y = Group(random_range(0..std::u32::MAX));
+            let union = x.union(y);
+            assert!(union.includes(x), "{:b} must include {:b}", union.0, x.0);
+            assert!(union.includes(y), "{:b} must include {:b}", union.0, y.0);
+        }
+    }
+
+    #[test]
+    fn intersection_includes() {
+        for _ in 0..GROUP_SAMPLE_COUNT {
+            let x = Group(random_range(0..std::u32::MAX));
+            let y = Group(random_range(0..std::u32::MAX));
+            let intersection = x.intersection(y);
+            assert!(
+                x.includes(intersection),
+                "{:b} must include {:b}",
+                x.0,
+                intersection.0
+            );
+            assert!(
+                y.includes(intersection),
+                "{:b} must include {:b}",
+                y.0,
+                intersection.0
+            );
+        }
+    }
+
+    #[test]
+    fn reassemble() {
+        for _ in 0..GROUP_SAMPLE_COUNT {
+            let sample = Group(random_range(0..std::u32::MAX));
+            let mut built = Group::empty();
+            for idx in 0..GROUP_COUNT {
+                let idx = idx as u32;
+                let bit = Group::from_id(idx);
+                if !sample.includes(bit) {
+                    continue;
+                }
+                built = built.union(bit);
+            }
+            assert_eq!(sample, built);
+        }
+    }
+}
