@@ -35,13 +35,13 @@ members = [ "lib-game", "quad-dbg" ]
 [workspace.dependencies]
 shipyard = "0.8"
 log = { version = "0.4.22", features = ["max_level_info", "release_max_level_info"] }
-macroquad = { version = "0.4.13", features = ["audio", "log-rs"] }
-macroquad-particles = "0.2.1"
+macroquad = { version = "0.4.14", features = ["audio", "log-rs"] }
+macroquad-particles = "0.2.2"
 anyhow = "1"
 # NOTE: keep the version matching the one macroquad is using
 hashbrown = "0.14.5"
-glam = { version = "0.27", features = ["serde"] }
+glam = { version = "0.30", features = ["serde"] }
 
 [patch.crates-io]
-macroquad-particles = { git = "https://github.com/InnocentusLime/macroquad.git", rev = "71372fdd14a348592142a91444ad4c4b6c7210b6" }
-macroquad = { git = "https://github.com/InnocentusLime/macroquad.git", rev = "71372fdd14a348592142a91444ad4c4b6c7210b6" }
+macroquad-particles = { git = "https://github.com/InnocentusLime/macroquad.git", rev = "6a61f666749871179e616c7dd5b5117fcb94616c" }
+macroquad = { git = "https://github.com/InnocentusLime/macroquad.git", rev = "6a61f666749871179e616c7dd5b5117fcb94616c" }
