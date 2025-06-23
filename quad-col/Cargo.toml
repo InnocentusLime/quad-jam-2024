@@ -7,3 +7,6 @@ edition = "2024"
 shipyard = { workspace = true }
 hashbrown = { workspace = true }
 glam = { workspace = true }
+
+[dev-dependencies]
+rand = "0.9.1"
