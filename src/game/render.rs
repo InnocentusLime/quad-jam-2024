@@ -1,10 +1,6 @@
+use super::prelude::*;
+
 use std::borrow::Cow;
-
-use macroquad::prelude::*;
-use shipyard::{Get, IntoIter, View};
-
-use crate::components::*;
-use lib_game::*;
 // use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 static WIN_TEXT: &'static str = "Congratulations!";
@@ -24,7 +20,7 @@ static START_TEXT_MOBILE: &'static str = "Tap to start";
 
 pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
 
-pub fn render_tiles(render: &mut Render, tile_storage: View<TileStorage>, tiles: View<TileType>) {
+pub fn tiles(render: &mut Render, tile_storage: View<TileStorage>, tiles: View<TileType>) {
     let Some(storage) = tile_storage.iter().next() else {
         return;
     };
@@ -53,7 +49,7 @@ pub fn render_tiles(render: &mut Render, tile_storage: View<TileStorage>, tiles:
     }
 }
 
-pub fn render_player(render: &mut Render, pos: View<Transform>, player: View<PlayerTag>) {
+pub fn player(render: &mut Render, pos: View<Transform>, player: View<PlayerTag>) {
     for (_, pos) in (&player, &pos).iter() {
         render.world.add_entity((
             *pos,
@@ -67,33 +63,7 @@ pub fn render_player(render: &mut Render, pos: View<Transform>, player: View<Pla
     }
 }
 
-pub fn render_rays(
-    render: &mut Render,
-    pos: View<Transform>,
-    ray: View<RayTag>,
-    beam: View<BeamTag>,
-) {
-    for (pos, ray, beam) in (&pos, &ray, &beam).iter() {
-        if !ray.shooting {
-            continue;
-        }
-
-        render.world.add_entity((
-            Tint(GREEN),
-            *pos,
-            RectShape {
-                origin: vec2(0.0, 0.5),
-                height: crate::player::PLAYER_RAY_WIDTH,
-                width: beam.length,
-            },
-            Scale(vec2(1.0, 1.0)),
-            Timed::new(crate::player::PLAYER_RAY_LINGER),
-            VertShrinkFadeoutAnim,
-        ));
-    }
-}
-
-pub fn render_game_ui(
+pub fn game_ui(
     render: &mut Render,
     score: View<PlayerScore>,
     health: View<Health>,
@@ -145,7 +115,7 @@ pub fn render_game_ui(
     ));
 }
 
-pub fn render_goal(render: &mut Render, pos: View<Transform>, goal: View<GoalTag>) {
+pub fn goal(render: &mut Render, pos: View<Transform>, goal: View<GoalTag>) {
     for (pos, _) in (&pos, &goal).iter() {
         render.world.add_entity((
             *pos,
@@ -159,7 +129,7 @@ pub fn render_goal(render: &mut Render, pos: View<Transform>, goal: View<GoalTag
     }
 }
 
-pub fn render_toplevel_ui(app_state: &AppState, render: &mut Render) {
+pub fn toplevel_ui(app_state: &AppState, render: &mut Render) {
     match app_state {
         AppState::Start => {
             render.world.add_entity(AnnouncementText {

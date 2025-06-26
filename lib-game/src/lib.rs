@@ -72,26 +72,30 @@ pub trait Game: 'static {
     /// Put all the appropriate data into the ECS World.
     /// The ECS world should be the only place where the state
     /// is located.
-    fn init(&self, data: &str, world: &mut World) -> impl std::future::Future<Output = ()> + Send;
+    fn init(
+        &mut self,
+        data: &str,
+        world: &mut World,
+    ) -> impl std::future::Future<Output = ()> + Send;
 
     /// Used by the app to consult what should be the next
     /// level to load. For now the data returned is just forwarded
     /// to `init`.
     fn next_level(
-        &self,
+        &mut self,
         prev: Option<&str>,
         app_state: &AppState,
         world: &World,
     ) -> impl std::future::Future<Output = NextState> + Send;
 
     /// Handle the user input. You also get the delta-time.
-    fn input_phase(&self, input: &InputModel, dt: f32, world: &mut World);
+    fn input_phase(&mut self, input: &InputModel, dt: f32, world: &mut World);
 
-    fn plan_physics_queries(&self, dt: f32, world: &mut World);
+    fn plan_physics_queries(&mut self, dt: f32, world: &mut World);
 
     /// Main update routine. You can request the App to transition
     /// into a new state by returning [Option::Some].
-    fn update(&self, dt: f32, world: &mut World) -> Option<AppState>;
+    fn update(&mut self, dt: f32, world: &mut World) -> Option<AppState>;
 
     /// Export the game world for rendering.
     fn render_export(&self, state: &AppState, world: &World, render: &mut Render);
@@ -216,7 +220,7 @@ impl App {
         self.render.render(&self.camera, !self.draw_world, real_dt);
     }
 
-    fn game_update<G: Game>(&mut self, input: &InputModel, game: &G) -> Option<AppState> {
+    fn game_update<G: Game>(&mut self, input: &InputModel, game: &mut G) -> Option<AppState> {
         self.world
             .run_with_data(PhysicsState::remove_dead_handles, &mut self.physics);
         self.world
@@ -287,7 +291,7 @@ impl App {
         &mut self,
         input: &InputModel,
         debug: &DebugStuff<G>,
-        game: &G,
+        game: &mut G,
     ) -> Option<NextState> {
         /* Debug freeze */
         if (debug.should_pause() || self.freeze)

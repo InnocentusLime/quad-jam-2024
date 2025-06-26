@@ -1,11 +1,6 @@
-use crate::components::*;
-use lib_game::*;
-use macroquad::prelude::*;
-use shipyard::{IntoIter, View, ViewMut, World};
+use super::prelude::*;
 
 pub const PLAYER_SPEED: f32 = 132.0;
-pub const PLAYER_RAY_LINGER: f32 = 2.0;
-pub const PLAYER_RAY_WIDTH: f32 = 3.0;
 pub const PLAYER_SPAWN_HEALTH: i32 = 3;
 #[allow(dead_code)]
 pub const PLAYER_HIT_COOLDOWN: f32 = 2.0;
@@ -21,12 +16,12 @@ pub const PLAYER_INTERACT: PhysicsGroup = PhysicsGroup {
     ..PhysicsGroup::empty()
 };
 
-pub fn spawn_player(world: &mut World, pos: Vec2) {
+pub fn spawn(world: &mut World, pos: Vec2) {
     world.add_entity((
         Transform::from_pos(pos),
         PlayerTag,
         PlayerScore(0),
-        Health(crate::player::PLAYER_SPAWN_HEALTH),
+        Health(PLAYER_SPAWN_HEALTH),
         KinematicControl::new(),
         BodyTag::new(
             PhysicsFilter(PLAYER_GROUP, PLAYER_INTERACT),
@@ -41,7 +36,7 @@ pub fn spawn_player(world: &mut World, pos: Vec2) {
     ));
 }
 
-pub fn player_controls(
+pub fn controls(
     (input, dt): (&InputModel, f32),
     player: View<PlayerTag>,
     mut control: ViewMut<KinematicControl>,
