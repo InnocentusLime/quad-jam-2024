@@ -156,6 +156,7 @@ impl PhysicsState {
         }
     }
 
+    #[allow(dead_code)]
     fn cast_shape(
         &mut self,
         tf: Transform,
