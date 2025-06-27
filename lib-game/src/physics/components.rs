@@ -79,27 +79,6 @@ pub enum ColliderTy {
 }
 
 #[derive(Clone, Debug, Component)]
-pub struct BeamTag {
-    pub width: f32,
-    pub length: f32,
-    pub cast_filter: PhysicsFilter,
-    pub overlap_filter: PhysicsFilter,
-    pub overlaps: Vec<EntityId>,
-}
-
-impl BeamTag {
-    pub fn new(overlap_filter: PhysicsFilter, cast_filter: PhysicsFilter, width: f32) -> Self {
-        Self {
-            width,
-            length: 0.0f32,
-            cast_filter,
-            overlap_filter,
-            overlaps: Vec::with_capacity(32),
-        }
-    }
-}
-
-#[derive(Clone, Debug, Component)]
 pub struct OneSensorTag {
     pub shape: ColliderTy,
     pub groups: PhysicsFilter,

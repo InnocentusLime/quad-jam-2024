@@ -485,37 +485,4 @@ impl PhysicsState {
             sens.col = res;
         }
     }
-
-    // NOTE: beams are expensive and slightly laggy
-    // as they are right now at least. Need a faster impl
-    pub fn export_beam_queries(&mut self, tf: View<Transform>, mut beam: ViewMut<BeamTag>) {
-        for (tf, beam) in (&tf, &mut beam).iter() {
-            let dir = Vec2::from_angle(tf.angle);
-
-            beam.overlaps.clear();
-            beam.length = self
-                .cast_shape(
-                    *tf,
-                    beam.cast_filter.into_interaction_groups(),
-                    dir,
-                    ColliderTy::Box {
-                        height: beam.width,
-                        width: 1.0,
-                    },
-                )
-                .unwrap_or(1000.0);
-            self.all_collisions(
-                Transform {
-                    pos: tf.pos + dir * (beam.length / 2.0),
-                    angle: tf.angle,
-                },
-                beam.overlap_filter.into_interaction_groups(),
-                ColliderTy::Box {
-                    height: beam.width,
-                    width: beam.length,
-                },
-                &mut beam.overlaps,
-            );
-        }
-    }
 }

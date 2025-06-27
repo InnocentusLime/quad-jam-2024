@@ -31,34 +31,6 @@ fn draw_one_sensors(pos: View<Transform>, sens_tag: View<OneSensorTag>) {
     }
 }
 
-fn draw_beams(pos: View<Transform>, beam_tag: View<BeamTag>) {
-    for (tf, tag) in (&pos, &beam_tag).iter() {
-        let color = GREEN;
-
-        draw_rectangle_lines_ex(
-            tf.pos.x,
-            tf.pos.y,
-            tag.length,
-            tag.width,
-            1.0,
-            DrawRectangleParams {
-                offset: vec2(0.0, 0.5),
-                rotation: tf.angle,
-                color,
-            },
-        );
-
-        // TODO: optimise the frequest allocation away
-        draw_text(
-            &format!("Cols {}", tag.overlaps.len()),
-            tf.pos.x,
-            tf.pos.y,
-            32.0,
-            color,
-        );
-    }
-}
-
 fn draw_bodies(pos: View<Transform>, body_tag: View<BodyTag>) {
     for (tf, tag) in (&pos, &body_tag).iter() {
         let mut color = match tag.kind() {
@@ -91,6 +63,5 @@ fn draw_bodies(pos: View<Transform>, body_tag: View<BodyTag>) {
 
 pub fn draw_physics_debug(world: &World) {
     world.run(draw_one_sensors);
-    world.run(draw_beams);
     world.run(draw_bodies);
 }

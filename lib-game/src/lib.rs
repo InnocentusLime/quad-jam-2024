@@ -240,8 +240,6 @@ impl App {
         game.plan_physics_queries(GAME_TICKRATE, &mut self.world);
 
         self.world
-            .run_with_data(PhysicsState::export_beam_queries, &mut self.physics);
-        self.world
             .run_with_data(PhysicsState::export_sensor_queries, &mut self.physics);
 
         let new_state = game.update(GAME_TICKRATE, &mut self.world);
