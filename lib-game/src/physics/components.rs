@@ -58,16 +58,11 @@ impl PhysicsGroup {
 
         filter
     }
-}
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-pub struct PhysicsFilter(pub PhysicsGroup, pub PhysicsGroup);
-
-impl PhysicsFilter {
     pub(crate) fn into_interaction_groups(self) -> InteractionGroups {
-        InteractionGroups {
-            memberships: self.0.into_group(),
-            filter: self.1.into_group(),
+        InteractionGroups { 
+            memberships: self.into_group(), 
+            filter: self.into_group(), 
         }
     }
 }
@@ -81,12 +76,12 @@ pub enum ColliderTy {
 #[derive(Clone, Debug, Component)]
 pub struct OneSensorTag {
     pub shape: ColliderTy,
-    pub groups: PhysicsFilter,
+    pub groups: PhysicsGroup,
     pub col: Option<EntityId>,
 }
 
 impl OneSensorTag {
-    pub fn new(shape: ColliderTy, groups: PhysicsFilter) -> Self {
+    pub fn new(shape: ColliderTy, groups: PhysicsGroup) -> Self {
         Self {
             shape,
             groups,
@@ -120,7 +115,7 @@ pub enum BodyKind {
 #[track(Deletion, Removal, Insertion)]
 pub struct BodyTag {
     pub enabled: bool,
-    pub groups: PhysicsFilter,
+    pub groups: PhysicsGroup,
     pub(crate) shape: ColliderTy,
     pub(crate) mass: f32,
     pub(crate) kind: BodyKind,
@@ -128,7 +123,7 @@ pub struct BodyTag {
 
 impl BodyTag {
     pub fn new(
-        groups: PhysicsFilter,
+        groups: PhysicsGroup,
         shape: ColliderTy,
         mass: f32,
         enabled: bool,

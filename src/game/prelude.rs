@@ -12,9 +12,3 @@ pub const PROJECTILES_GROUP: PhysicsGroup = PhysicsGroup {
     projectiles: true,
     ..PhysicsGroup::empty()
 };
-pub const LEVEL_INTERACT: PhysicsGroup = PhysicsGroup {
-    npcs: true,
-    player: true,
-    projectiles: true,
-    ..PhysicsGroup::empty()
-};

@@ -9,16 +9,10 @@ pub fn spawn(world: &mut World, pos: Vec2) {
                 width: 16.0,
                 height: 16.0,
             },
-            PhysicsFilter(
-                PhysicsGroup {
-                    items: true,
-                    ..PhysicsGroup::empty()
-                },
-                PhysicsGroup {
-                    player: true,
-                    ..PhysicsGroup::empty()
-                },
-            ),
+            PhysicsGroup {
+                player: true,
+                ..PhysicsGroup::empty()
+            },
         ),
     ));
 }
