@@ -3,15 +3,15 @@ use crate::physics::*;
 
 use shipyard::{IntoIter, View, World};
 
-fn draw_one_sensors(pos: View<Transform>, sens_tag: View<OneSensorTag>) {
-    for (tf, tag) in (&pos, &sens_tag).iter() {
-        let color = if tag.col.is_some() {
+fn draw_queries<const ID: usize>(pos: View<Transform>, query: View<CollisionQuery<ID>>) {
+    for (tf, query) in (&pos, &query).iter() {
+        let color = if query.has_collided() {
             Color::new(0.00, 0.93, 0.80, 1.00)
         } else {
             GREEN
         };
 
-        match tag.shape {
+        match query.collider {
             ColliderTy::Box { width, height } => draw_rectangle_lines_ex(
                 tf.pos.x,
                 tf.pos.y,
@@ -28,34 +28,6 @@ fn draw_one_sensors(pos: View<Transform>, sens_tag: View<OneSensorTag>) {
                 draw_circle_lines(tf.pos.x, tf.pos.y, radius, 1.0, color)
             }
         }
-    }
-}
-
-fn draw_beams(pos: View<Transform>, beam_tag: View<BeamTag>) {
-    for (tf, tag) in (&pos, &beam_tag).iter() {
-        let color = GREEN;
-
-        draw_rectangle_lines_ex(
-            tf.pos.x,
-            tf.pos.y,
-            tag.length,
-            tag.width,
-            1.0,
-            DrawRectangleParams {
-                offset: vec2(0.0, 0.5),
-                rotation: tf.angle,
-                color,
-            },
-        );
-
-        // TODO: optimise the frequest allocation away
-        draw_text(
-            &format!("Cols {}", tag.overlaps.len()),
-            tf.pos.x,
-            tf.pos.y,
-            32.0,
-            color,
-        );
     }
 }
 
@@ -90,7 +62,13 @@ fn draw_bodies(pos: View<Transform>, body_tag: View<BodyTag>) {
 }
 
 pub fn draw_physics_debug(world: &World) {
-    world.run(draw_one_sensors);
-    world.run(draw_beams);
     world.run(draw_bodies);
+    world.run(draw_queries::<0>);
+    world.run(draw_queries::<1>);
+    world.run(draw_queries::<2>);
+    world.run(draw_queries::<3>);
+    world.run(draw_queries::<4>);
+    world.run(draw_queries::<5>);
+    world.run(draw_queries::<6>);
+    world.run(draw_queries::<7>);
 }

@@ -6,16 +6,6 @@ pub const PLAYER_SPAWN_HEALTH: i32 = 3;
 pub const PLAYER_HIT_COOLDOWN: f32 = 2.0;
 pub const PLAYER_SIZE: f32 = 16.0;
 
-pub const PLAYER_GROUP: PhysicsGroup = PhysicsGroup {
-    player: true,
-    ..PhysicsGroup::empty()
-};
-pub const PLAYER_INTERACT: PhysicsGroup = PhysicsGroup {
-    level: true,
-    items: true,
-    ..PhysicsGroup::empty()
-};
-
 pub fn spawn(world: &mut World, pos: Vec2) {
     world.add_entity((
         Transform::from_pos(pos),
@@ -24,7 +14,10 @@ pub fn spawn(world: &mut World, pos: Vec2) {
         Health(PLAYER_SPAWN_HEALTH),
         KinematicControl::new(),
         BodyTag::new(
-            PhysicsFilter(PLAYER_GROUP, PLAYER_INTERACT),
+            PhysicsGroup {
+                player: true,
+                ..LEVEL_GROUP
+            },
             ColliderTy::Box {
                 width: PLAYER_SIZE,
                 height: PLAYER_SIZE,

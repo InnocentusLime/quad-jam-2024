@@ -33,7 +33,7 @@ fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut Wor
             TileType::Wall => world.add_component(
                 tile,
                 (BodyTag::new(
-                    PhysicsFilter(LEVEL_GROUP, LEVEL_INTERACT),
+                    LEVEL_GROUP,
                     ColliderTy::Box {
                         width: 32.0,
                         height: 32.0,
