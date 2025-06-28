@@ -8,6 +8,11 @@ pub struct Transform {
 }
 
 impl Transform {
+    pub const IDENTITY: Self = Self {
+        pos: Vec2::ZERO,
+        angle: 0.0,
+    };
+
     pub fn from_pos(pos: Vec2) -> Self {
         Self { pos, angle: 0.0 }
     }
