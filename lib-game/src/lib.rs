@@ -191,6 +191,7 @@ impl App {
                 match next_state {
                     NextState::AppState(next_state) => self.state = next_state,
                     NextState::Load(data) => {
+                        info!("Loading: {data}");
                         self.world.clear();
                         game.init(data.as_str(), &mut self.world).await;
                         self.state = AppState::Active { paused: false };
