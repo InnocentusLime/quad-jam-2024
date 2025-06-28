@@ -10,7 +10,7 @@ use rapier2d::{
     },
     prelude::*,
 };
-use shipyard::{EntityId, Get, IntoIter, View, ViewMut};
+use shipyard::{EntityId, Get, IntoIter, View, ViewMut, World};
 
 mod components;
 mod debug;
@@ -201,7 +201,7 @@ impl PhysicsState {
 
     fn all_collisions(
         &mut self,
-        tf: Transform,
+        shape_pos: Isometry2<f32>,
         groups: InteractionGroups,
         shape: ColliderTy,
         writeback: &mut Vec<EntityId>,
@@ -217,7 +217,6 @@ impl PhysicsState {
             )) as &dyn Shape,
             ColliderTy::Circle { radius } => &Ball::new(radius / PIXEL_PER_METER) as &dyn Shape,
         };
-        let shape_pos = Self::world_tf_to_phys(tf);
         self.query_pipeline.intersections_with_shape(
             &self.bodies,
             &self.colliders,
@@ -240,7 +239,7 @@ impl PhysicsState {
 
     fn any_collisions(
         &mut self,
-        tf: Transform,
+        shape_pos: Isometry2<f32>,
         groups: InteractionGroups,
         shape: ColliderTy,
     ) -> Option<EntityId> {
@@ -253,7 +252,6 @@ impl PhysicsState {
             )) as &dyn Shape,
             ColliderTy::Circle { radius } => &Ball::new(radius / PIXEL_PER_METER) as &dyn Shape,
         };
-        let shape_pos = Self::world_tf_to_phys(tf);
         let Some(handle) = self.query_pipeline.intersection_with_shape(
             &self.bodies,
             &self.colliders,
@@ -479,11 +477,42 @@ impl PhysicsState {
         }
     }
 
-    pub fn export_sensor_queries(&mut self, tf: View<Transform>, mut sens: ViewMut<OneSensorTag>) {
-        for (tf, sens) in (&tf, &mut sens).iter() {
-            let res = self.any_collisions(*tf, sens.groups.into_interaction_groups(), sens.shape);
-
-            sens.col = res;
+    pub fn export_collision_queries<const ID: usize>(
+        &mut self,
+        tf: View<Transform>,
+        mut query: ViewMut<CollisionQuery<ID>>,
+    ) {
+        for (tf, query) in (&tf, &mut query).iter() {
+            let shape_pos = Self::world_tf_to_phys(*tf) * Self::world_tf_to_phys(query.extra_tf);
+            match &mut query.collision_list {
+                CollisionList::One(one) => {
+                    let res = self.any_collisions(
+                        shape_pos,
+                        query.group.into_interaction_groups(),
+                        query.collider,
+                    );
+                    *one = res;
+                }
+                CollisionList::Many(list) => {
+                    self.all_collisions(
+                        shape_pos,
+                        query.group.into_interaction_groups(),
+                        query.collider,
+                        list,
+                    );
+                }
+            }
         }
+    }
+
+    pub fn export_all_queries(&mut self, world: &mut World) {
+        world.run_with_data(Self::export_collision_queries::<0>, self);
+        world.run_with_data(Self::export_collision_queries::<1>, self);
+        world.run_with_data(Self::export_collision_queries::<2>, self);
+        world.run_with_data(Self::export_collision_queries::<3>, self);
+        world.run_with_data(Self::export_collision_queries::<4>, self);
+        world.run_with_data(Self::export_collision_queries::<5>, self);
+        world.run_with_data(Self::export_collision_queries::<6>, self);
+        world.run_with_data(Self::export_collision_queries::<7>, self);
     }
 }

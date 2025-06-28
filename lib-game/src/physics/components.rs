@@ -2,6 +2,10 @@ use macroquad::prelude::*;
 use rapier2d::prelude::InteractionGroups;
 use shipyard::{Component, EntityId};
 
+use crate::Transform;
+
+pub const MAX_COLLISION_QUERIES: usize = 8;
+
 #[derive(Default, Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub struct PhysicsGroup {
     pub level: bool,
@@ -60,9 +64,9 @@ impl PhysicsGroup {
     }
 
     pub(crate) fn into_interaction_groups(self) -> InteractionGroups {
-        InteractionGroups { 
-            memberships: self.into_group(), 
-            filter: self.into_group(), 
+        InteractionGroups {
+            memberships: self.into_group(),
+            filter: self.into_group(),
         }
     }
 }
@@ -73,20 +77,88 @@ pub enum ColliderTy {
     Circle { radius: f32 },
 }
 
-#[derive(Clone, Debug, Component)]
-pub struct OneSensorTag {
-    pub shape: ColliderTy,
-    pub groups: PhysicsGroup,
-    pub col: Option<EntityId>,
+#[derive(Clone, Debug)]
+pub enum CollisionList {
+    One(Option<EntityId>),
+    Many(Vec<EntityId>),
 }
 
-impl OneSensorTag {
-    pub fn new(shape: ColliderTy, groups: PhysicsGroup) -> Self {
-        Self {
-            shape,
-            groups,
-            col: None,
+impl CollisionList {
+    pub fn one() -> Self {
+        CollisionList::One(None)
+    }
+
+    pub fn many() -> Self {
+        CollisionList::Many(Vec::new())
+    }
+
+    pub fn clear(&mut self) {
+        match self {
+            CollisionList::One(entity_id) => {
+                entity_id.take();
+            }
+            CollisionList::Many(entity_ids) => entity_ids.clear(),
         }
+    }
+
+    pub fn collisions(&self) -> &[EntityId] {
+        match self {
+            CollisionList::One(None) => &[],
+            CollisionList::One(Some(entity_id)) => std::slice::from_ref(entity_id),
+            CollisionList::Many(entity_ids) => &entity_ids,
+        }
+    }
+}
+
+impl Extend<EntityId> for CollisionList {
+    fn extend<I: IntoIterator<Item = EntityId>>(&mut self, iter: I) {
+        match self {
+            // We aren't required to consume all iterator items
+            CollisionList::One(entity_id) => *entity_id = iter.into_iter().next(),
+            CollisionList::Many(entity_ids) => entity_ids.extend(iter),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Component)]
+pub struct CollisionQuery<const ID: usize> {
+    /// The collision filter. Setting it to an empty group
+    /// will make the collision engine skip this query.
+    pub group: PhysicsGroup,
+    /// The buffer to put the collisions into.
+    pub collision_list: CollisionList,
+    /// The collider to use for the check.
+    pub collider: ColliderTy,
+    /// Extra transform for the query. Gets applied before
+    /// the transform of the containing entity: `entity_tf * extra_tf`.
+    pub extra_tf: Transform,
+}
+
+impl<const ID: usize> CollisionQuery<ID> {
+    pub fn new_one(collider: ColliderTy, group: PhysicsGroup) -> Self {
+        Self {
+            collider,
+            group,
+            collision_list: CollisionList::one(),
+            extra_tf: Transform::IDENTITY,
+        }
+    }
+
+    pub fn new_many(collider: ColliderTy, group: PhysicsGroup) -> Self {
+        Self {
+            collider,
+            group,
+            collision_list: CollisionList::many(),
+            extra_tf: Transform::IDENTITY,
+        }
+    }
+
+    pub fn collisions(&self) -> &[EntityId] {
+        self.collision_list.collisions()
+    }
+
+    pub fn has_collided(&self) -> bool {
+        !self.collisions().is_empty()
     }
 }
 
