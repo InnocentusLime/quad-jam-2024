@@ -5,6 +5,7 @@
 use glam::{Affine2, Vec2, Vec4, vec2};
 
 pub const MAX_AXIS_NORMALS: usize = 8;
+pub const SHAPE_TOI_EPSILON: f32 = std::f32::EPSILON * 100.0f32;
 pub static RECT_VERTICES: [Vec2; 4] = [
     vec2(-1.0, 1.0),
     vec2(1.0, 1.0),
@@ -111,6 +112,60 @@ impl Shape {
         //       *--------------*
         //       r_proj[0]      r_proj[1]
         l_proj[1] < r_proj[0]
+    }
+
+    /// Computes time of impact by using the separating axis theorem.
+    /// In addition provides the impact normal.
+    /// While this is implemented for circles, the result might not be
+    /// as precise as desired.
+    pub fn time_of_impact(
+        &self,
+        other: &Shape,
+        tf1: Affine2,
+        tf2: Affine2,
+        direction: Vec2,
+        t_max: f32,
+    ) -> Option<f32> {
+        let mut axis_buff = [Vec2::ZERO; MAX_AXIS_NORMALS * 2];
+        let n1 = self.separating_axes(tf1, 0, &mut axis_buff);
+        let n2 = other.separating_axes(tf2, n1, &mut axis_buff);
+
+        (0..n1 + n2)
+            .map(|idx| axis_buff[idx])
+            .filter_map(|axis_normal| {
+                self.candidate_time_of_impact(other, tf1, tf2, axis_normal, direction, t_max)
+            })
+            .max_by(f32::total_cmp)
+    }
+
+    /// Computes the time of impact for a fixed axis.
+    /// The axis is encoded with its normal: axis_normal.
+    /// `axis_normal` must be a normalized vector.
+    pub fn candidate_time_of_impact(
+        &self,
+        other: &Shape,
+        tf1: Affine2,
+        tf2: Affine2,
+        axis_normal: Vec2,
+        direction: Vec2,
+        t_max: f32,
+    ) -> Option<f32> {
+        let proj1 = self.project(tf1, axis_normal);
+        let proj2 = other.project(tf2, axis_normal);
+        let dproj = axis_normal.dot(direction);
+
+        // Do not process cases when movement is parallel to the
+        // separation axis.
+        if dproj <= SHAPE_TOI_EPSILON {
+            return None;
+        }
+
+        let t = if proj1[0] < proj2[0] {
+            (proj2[0] - proj1[1]) / dproj
+        } else {
+            (proj1[0] - proj2[1]) / dproj
+        };
+        if t <= 0.0 || t > t_max { None } else { Some(t) }
     }
 
     /// Provides potential separating axes for a shape.
