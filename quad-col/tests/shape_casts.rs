@@ -2,7 +2,7 @@ mod common;
 
 use common::{TestCase, draw_shape, draw_vector, run_tests};
 use glam::{Affine2, Vec2, vec2};
-use quad_col::Shape;
+use quad_col::{SHAPE_TOI_EPSILON, Shape};
 
 const TOI_ESTIMATE_EPSILON: f32 = 0.0001;
 
@@ -14,7 +14,7 @@ struct ShapeCastTest {
     tf2: Affine2,
     shape2: Shape,
     cast_dir: Vec2,
-    toi_estimate: Option<f32>,
+    toi_estimate: Option<(f32, Vec2)>,
     toi_max: f32,
 }
 
@@ -28,6 +28,9 @@ impl TestCase for ShapeCastTest {
             tf1: tf * self.tf1,
             tf2: tf * self.tf2,
             cast_dir: tf.transform_vector2(self.cast_dir),
+            toi_estimate: self
+                .toi_estimate
+                .map(|(toi, normal)| (toi, tf.transform_vector2(normal))),
             ..self
         }
     }
@@ -43,11 +46,20 @@ impl TestCase for ShapeCastTest {
         );
 
         match (res, self.toi_estimate) {
-            (Some(target), Some(result)) if (target - result).abs() < TOI_ESTIMATE_EPSILON => true,
-            (Some(target), Some(result)) => {
+            (Some((result_toi, result_normal)), Some((target_toi, target_normal)))
+                if (target_toi - result_toi).abs() < TOI_ESTIMATE_EPSILON
+                    && vecs_same_dir(result_normal, target_normal) =>
+            {
+                true
+            }
+            (Some((result_toi, result_normal)), Some((target_toi, target_normal))) => {
                 println!(
                     "Bad TOI! Expected result {} to be close to {}",
-                    result, target
+                    result_toi, target_toi,
+                );
+                println!(
+                    "Bad normal! Expected result {} have same direction as {}",
+                    result_normal, target_normal,
                 );
                 false
             }
@@ -68,6 +80,13 @@ impl TestCase for ShapeCastTest {
         draw_shape(canvas, image::Rgb([0, 255, 0]), self.shape2, self.tf2);
         draw_vector(canvas, image::Rgb([0, 0, 255]), self.cast_dir, self.tf1);
     }
+}
+
+/// Checks that the vectors are pointing in the same direction as follows:
+/// * l and r do not have an obtuse angle: `l.dot(r) >= 0`
+/// * l's perpendicular vector is also r's perpendicular vector: `l.perp().dot(r) <= eps`
+fn vecs_same_dir(l: Vec2, r: Vec2) -> bool {
+    l.perp().dot(r) <= SHAPE_TOI_EPSILON && l.dot(r) >= 0.0
 }
 
 #[test]
@@ -91,7 +110,7 @@ fn shape_cast_tests() -> impl IntoIterator<Item = ShapeCastTest> {
                 height: 8.0,
             },
             cast_dir: vec2(1.0, 0.0),
-            toi_estimate: Some(24.0),
+            toi_estimate: Some((24.0, vec2(-1.0, 0.0))),
             toi_max: 100.0,
         },
         ShapeCastTest {
@@ -107,7 +126,7 @@ fn shape_cast_tests() -> impl IntoIterator<Item = ShapeCastTest> {
                 height: 8.0,
             },
             cast_dir: vec2(-1.0, 0.0),
-            toi_estimate: Some(24.0),
+            toi_estimate: Some((24.0, vec2(1.0, 0.0))),
             toi_max: 100.0,
         },
         ShapeCastTest {
@@ -123,7 +142,7 @@ fn shape_cast_tests() -> impl IntoIterator<Item = ShapeCastTest> {
                 height: 8.0,
             },
             cast_dir: vec2(0.0, 1.0),
-            toi_estimate: Some(24.0),
+            toi_estimate: Some((24.0, vec2(0.0, -1.0))),
             toi_max: 100.0,
         },
         ShapeCastTest {
@@ -139,7 +158,7 @@ fn shape_cast_tests() -> impl IntoIterator<Item = ShapeCastTest> {
                 height: 8.0,
             },
             cast_dir: vec2(0.0, -1.0),
-            toi_estimate: Some(24.0),
+            toi_estimate: Some((24.0, vec2(0.0, 1.0))),
             toi_max: 100.0,
         },
         ShapeCastTest {
@@ -155,7 +174,10 @@ fn shape_cast_tests() -> impl IntoIterator<Item = ShapeCastTest> {
                 height: 8.0,
             },
             cast_dir: Vec2::from_angle((0.5f32).atan()),
-            toi_estimate: Some((8.0f32 * 8.0f32 + 16.0f32 * 16.0f32).sqrt()),
+            toi_estimate: Some((
+                (8.0f32 * 8.0f32 + 16.0f32 * 16.0f32).sqrt(),
+                vec2(-1.0, 0.0),
+            )),
             toi_max: 100.0,
         },
     ]

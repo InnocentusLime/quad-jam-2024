@@ -125,7 +125,7 @@ impl Shape {
         tf2: Affine2,
         direction: Vec2,
         t_max: f32,
-    ) -> Option<f32> {
+    ) -> Option<(f32, Vec2)> {
         let mut axis_buff = [Vec2::ZERO; MAX_AXIS_NORMALS * 2];
         let n1 = self.separating_axes(tf1, 0, &mut axis_buff);
         let n2 = other.separating_axes(tf2, n1, &mut axis_buff);
@@ -135,7 +135,7 @@ impl Shape {
             .filter_map(|axis_normal| {
                 self.candidate_time_of_impact(other, tf1, tf2, axis_normal, direction, t_max)
             })
-            .max_by(f32::total_cmp)
+            .max_by(|(t1, _), (t2, _)| f32::total_cmp(t1, t2))
     }
 
     /// Computes the time of impact for a fixed axis.
@@ -149,7 +149,7 @@ impl Shape {
         axis_normal: Vec2,
         direction: Vec2,
         t_max: f32,
-    ) -> Option<f32> {
+    ) -> Option<(f32, Vec2)> {
         let proj1 = self.project(tf1, axis_normal);
         let proj2 = other.project(tf2, axis_normal);
         let dproj = axis_normal.dot(direction);
@@ -165,7 +165,18 @@ impl Shape {
         } else {
             (proj1[0] - proj2[1]) / dproj
         };
-        if t <= 0.0 || t > t_max { None } else { Some(t) }
+
+        let push_normal = if dproj >= 0.0 {
+            -axis_normal
+        } else {
+            axis_normal
+        };
+
+        if t <= 0.0 || t > t_max {
+            None
+        } else {
+            Some((t, push_normal))
+        }
     }
 
     /// Provides potential separating axes for a shape.
