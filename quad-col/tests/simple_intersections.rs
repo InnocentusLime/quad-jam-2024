@@ -1,9 +1,12 @@
+mod common;
+
+use common::{TestCase, draw_shape, run_tests};
 use glam::{Affine2, Vec2, vec2};
 use imageproc::image;
 
-use quad_col::{Shape, rect_points};
+use quad_col::Shape;
 
-#[derive(Clone, Debug)]
+#[derive(Debug, Clone, Copy)]
 struct TwoShapesTest {
     name: &'static str,
     tf1: Affine2,
@@ -13,9 +16,39 @@ struct TwoShapesTest {
     expected_result: bool,
 }
 
-const TRANSFORM_COUNT: usize = 10;
-const OUT_IMG_WIDTH: u32 = 1024;
-const OUT_IMG_HEIGHT: u32 = 1024;
+impl TestCase for TwoShapesTest {
+    fn name(&self) -> &'static str {
+        self.name
+    }
+
+    fn transform(self, tf: Affine2) -> Self {
+        TwoShapesTest {
+            tf1: tf * self.tf1,
+            tf2: tf * self.tf2,
+            ..self
+        }
+    }
+
+    fn check(&self) -> bool {
+        let res = !Shape::is_separated(&self.shape1, &self.shape2, self.tf1, self.tf2);
+        if res != self.expected_result {
+            println!("Mismatch!");
+            false
+        } else {
+            true
+        }
+    }
+
+    fn draw(&self, canvas: &mut image::RgbImage) {
+        draw_shape(canvas, image::Rgb([255, 0, 0]), self.shape1, self.tf1);
+        draw_shape(canvas, image::Rgb([0, 255, 0]), self.shape2, self.tf2);
+    }
+}
+
+#[test]
+fn test_simple_intersections() {
+    run_tests(two_shapes_tests().into_iter().flat_map(swap_test));
+}
 
 fn two_shapes_tests() -> impl IntoIterator<Item = TwoShapesTest> {
     [
@@ -419,35 +452,6 @@ fn two_shapes_tests() -> impl IntoIterator<Item = TwoShapesTest> {
     ]
 }
 
-fn random_translation_and_angle() -> (Vec2, f32) {
-    let trans_x_increment = rand::random_range(-8..8);
-    let trans_y_increment = rand::random_range(-8..8);
-    let angle_increment = rand::random_range(-3..3);
-
-    let trans_x = trans_x_increment as f32 * 16.0;
-    let trans_y = trans_y_increment as f32 * 16.0;
-    let angle = std::f32::consts::FRAC_PI_2 / 2.0 * angle_increment as f32;
-
-    (vec2(trans_x, trans_y), angle)
-}
-
-/// The initial test cases are quite simple. We can catch a few more bugs by
-/// randomly offsetting and rotating the whole scene. Such transformation
-/// will not change the intersection result.
-fn transform_test(case: TwoShapesTest) -> impl IntoIterator<Item = TwoShapesTest> {
-    let original_case = case.clone();
-    let cases = std::iter::repeat_n(case, TRANSFORM_COUNT).map(|case| {
-        let (translation, angle) = random_translation_and_angle();
-        let scene_transform = Affine2::from_angle_translation(angle, translation);
-        TwoShapesTest {
-            tf1: scene_transform * case.tf1,
-            tf2: scene_transform * case.tf2,
-            ..case
-        }
-    });
-    std::iter::once(original_case).chain(cases)
-}
-
 /// Some collision tests have asymmetric logic. For better coverage, it
 /// is better to generate two tests, where the shapes are swapped for the
 /// intersection test function.
@@ -461,57 +465,4 @@ fn swap_test(case: TwoShapesTest) -> impl IntoIterator<Item = TwoShapesTest> {
     };
 
     [case, swapped_case]
-}
-
-fn draw_shape(canvas: &mut image::RgbImage, color: image::Rgb<u8>, shape: Shape, tf: Affine2) {
-    let tf = Affine2::from_translation(vec2(
-        OUT_IMG_WIDTH as f32 / 2.0,
-        OUT_IMG_HEIGHT as f32 / 2.0,
-    )) * Affine2::from_scale(Vec2::splat(4.0))
-        * tf;
-    match shape {
-        Shape::Rect { width, height } => {
-            let points = rect_points(vec2(width, height), tf);
-            let points = points.map(|v| imageproc::point::Point { x: v.x, y: v.y });
-            imageproc::drawing::draw_hollow_polygon_mut(canvas, &points, color);
-        }
-        Shape::Circle { radius } => {
-            let center = tf.transform_point2(Vec2::ZERO);
-            imageproc::drawing::draw_hollow_circle_mut(
-                canvas,
-                (center.x as i32, center.y as i32),
-                radius as i32,
-                color,
-            );
-        }
-    }
-}
-
-fn draw_test(case: &TwoShapesTest) {
-    let mut img = image::RgbImage::new(OUT_IMG_WIDTH, OUT_IMG_HEIGHT);
-    img.fill(0);
-    draw_shape(&mut img, image::Rgb([255, 0, 0]), case.shape1, case.tf1);
-    draw_shape(&mut img, image::Rgb([0, 255, 0]), case.shape2, case.tf2);
-    img.save_with_format("test-out.png", image::ImageFormat::Png)
-        .unwrap();
-}
-
-#[test]
-fn test_simple_intersections() {
-    let cases = two_shapes_tests()
-        .into_iter()
-        .flat_map(swap_test)
-        .flat_map(transform_test);
-    for case in cases {
-        let res = !Shape::is_separated(&case.shape1, &case.shape2, case.tf1, case.tf2);
-        // Dump a visual aid if the test is failing
-        if res != case.expected_result {
-            draw_test(&case);
-        }
-        assert_eq!(
-            res, case.expected_result,
-            "TEST: {:?}. Incorrect response for shape {:?} by {} and {:?} by {}",
-            case.name, case.shape1, case.tf1, case.shape2, case.tf2,
-        );
-    }
 }
