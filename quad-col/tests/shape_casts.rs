@@ -2,7 +2,7 @@ mod common;
 
 use common::{TestCase, draw_shape, draw_vector, run_tests};
 use glam::{Affine2, Vec2, vec2};
-use quad_col::{SHAPE_TOI_EPSILON, Shape};
+use quad_col::{SHAPE_TOI_EPSILON, Shape, conv};
 
 const TOI_ESTIMATE_EPSILON: f32 = 0.0001;
 
@@ -179,6 +179,52 @@ fn shape_cast_tests() -> impl IntoIterator<Item = ShapeCastTest> {
                 vec2(-1.0, 0.0),
             )),
             toi_max: 100.0,
+        },
+        // Fail rect-rect
+        ShapeCastTest {
+            name: "aabb (right cast) (fail)",
+            tf1: Affine2::IDENTITY,
+            shape1: Shape::Rect {
+                width: 8.0,
+                height: 8.0,
+            },
+            tf2: Affine2::from_translation(vec2(32.0, 0.0)),
+            shape2: Shape::Rect {
+                width: 8.0,
+                height: 8.0,
+            },
+            cast_dir: vec2(1.0, 0.0),
+            toi_estimate: None,
+            toi_max: 10.0,
+        },
+        ShapeCastTest {
+            name: "aabb (miss)",
+            tf1: Affine2::IDENTITY,
+            shape1: Shape::Rect {
+                width: 8.0,
+                height: 8.0,
+            },
+            tf2: Affine2::from_translation(vec2(32.0, 0.0)),
+            shape2: Shape::Rect {
+                width: 8.0,
+                height: 8.0,
+            },
+            cast_dir: vec2(0.0, 1.0),
+            toi_estimate: None,
+            toi_max: 100.0,
+        },
+        ShapeCastTest {
+            name: "character regression (miss)",
+            tf1: Affine2::from_translation(vec2(32.0, -16.0)),
+            shape1: Shape::Rect {
+                width: 32.0,
+                height: 16.0,
+            },
+            tf2: conv::topleft_corner_tf_to_crate(vec2(97.0, 128.0), 1.0471976),
+            shape2: Shape::Circle { radius: 32.0 },
+            cast_dir: vec2(-1.0, 0.0),
+            toi_estimate: None,
+            toi_max: 8.0,
         },
     ]
 }
