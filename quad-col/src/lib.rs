@@ -10,7 +10,7 @@ pub mod conv;
 mod group;
 mod shape;
 
-use glam::Affine2;
+use glam::{Affine2, Vec2};
 use shipyard::EntityId;
 
 pub use group::*;
@@ -74,5 +74,35 @@ impl CollisionSolver {
             .filter(move |group| query.group.includes(group.1))
             .flat_map(|group| group.0.iter())
             .filter(move |(_, col)| col.collides(&query))
+    }
+
+    pub fn query_shape_cast(
+        &self,
+        query: Collider,
+        direction: Vec2,
+        t_max: f32,
+    ) -> Option<(EntityId, f32, Vec2)> {
+        self.groups
+            .iter()
+            .filter(move |group| query.group.includes(group.1))
+            .flat_map(|group| group.0.iter())
+            .filter_map(move |(entity, collider)| {
+                Self::query_shape_cast_do_shapecast(*entity, collider, query, direction, t_max)
+            })
+            .min_by(|(_, toi1, _), (_, toi2, _)| f32::total_cmp(toi1, toi2))
+    }
+
+    fn query_shape_cast_do_shapecast(
+        entity: EntityId,
+        collider: &Collider,
+        query: Collider,
+        direction: Vec2,
+        t_max: f32,
+    ) -> Option<(EntityId, f32, Vec2)> {
+        let (toi, normal) =
+            query
+                .shape
+                .time_of_impact(&collider.shape, query.tf, collider.tf, direction, t_max)?;
+        Some((entity, toi, normal))
     }
 }
