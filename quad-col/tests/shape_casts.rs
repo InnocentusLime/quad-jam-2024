@@ -79,6 +79,13 @@ impl TestCase for ShapeCastTest {
         draw_shape(canvas, image::Rgb([255, 0, 0]), self.shape1, self.tf1);
         draw_shape(canvas, image::Rgb([0, 255, 0]), self.shape2, self.tf2);
         draw_vector(canvas, image::Rgb([0, 0, 255]), self.cast_dir, self.tf1);
+        if let Some((toi_estimate, _)) = self.toi_estimate {
+            let impact_tf = Affine2 {
+                translation: self.tf1.translation + toi_estimate * self.cast_dir,
+                ..self.tf1
+            };
+            draw_shape(canvas, image::Rgb([255, 255, 0]), self.shape1, impact_tf);
+        }
     }
 }
 
@@ -171,7 +178,7 @@ fn shape_cast_tests() -> impl IntoIterator<Item = ShapeCastTest> {
             tf2: Affine2::from_translation(vec2(24.0, 0.0)),
             shape2: Shape::Rect {
                 width: 8.0,
-                height: 8.0,
+                height: 10.0,
             },
             cast_dir: Vec2::from_angle((0.5f32).atan()),
             toi_estimate: Some((
