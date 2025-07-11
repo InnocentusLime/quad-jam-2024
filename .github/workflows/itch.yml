@@ -28,7 +28,7 @@ jobs:
           key: deploy-${{ runner.os }}-${{ vars.RUST_VERSION }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: deploy-${{ runner.os }}-${{ vars.RUST_VERSION }}-cargo-
       - name: Build
-        run: cargo build --target wasm32-unknown-unknown --profile wasm-release
+        run: cargo build --target wasm32-unknown-unknown --profile wasm-release --locked
       - name: Create dist dir
         run: mkdir dist
       - name: Acquire wasm build

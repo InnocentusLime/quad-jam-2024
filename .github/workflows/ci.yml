@@ -10,9 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
+      - uses: actions-rs/toolchain@v1
         with:
+          profile: minimal
           toolchain: ${{ vars.RUST_VERSION }}
+          override: true
           target: wasm32-unknown-unknown
           components: rustfmt
       - uses: actions/cache@v4
@@ -31,7 +33,7 @@ jobs:
       - name: CI for wasm
         run: cargo check --target wasm32-unknown-unknown
       - name: Run tests
-        run: cargo test --workspace --package "*" --exclude quad-jam-2024
+        run: cargo test --workspace --package "*" --exclude quad-jam-2024 --locked
   code-audit:
     runs-on: ubuntu-latest
     steps:
