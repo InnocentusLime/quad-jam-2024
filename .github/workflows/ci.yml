@@ -28,6 +28,10 @@ jobs:
             target/
           key: ci-${{ runner.os }}-${{ vars.RUST_VERSION }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ci-${{ runner.os }}-${{ vars.RUST_VERSION }}-cargo-
+      - shell: bash
+        run: >
+          sudo apt-get update &&
+          sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
       - name: Check everything
         run: cargo check --locked --all-targets
       - name: Run tests
