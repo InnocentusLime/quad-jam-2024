@@ -32,6 +32,8 @@ jobs:
         run: cargo check
       - name: CI for wasm
         run: cargo check --target wasm32-unknown-unknown
+      - name: Run tests
+        run: cargo test --workspace --package "*" --exclude quad-jam-2024
   code-audit:
     runs-on: ubuntu-latest
     steps:
