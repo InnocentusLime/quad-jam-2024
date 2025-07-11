@@ -12,20 +12,14 @@ pub fn spawn(world: &mut World, pos: Vec2) {
         PlayerTag,
         PlayerScore(0),
         Health(PLAYER_SPAWN_HEALTH),
-        KinematicControl::new(),
-        BodyTag::new(
-            PhysicsGroup {
-                player: true,
-                ..LEVEL_GROUP
-            },
-            ColliderTy::Box {
+        KinematicControl::new(col_group::LEVEL),
+        BodyTag {
+            groups: col_group::PLAYER,
+            shape: Shape::Rect {
                 width: PLAYER_SIZE,
                 height: PLAYER_SIZE,
             },
-            1.0,
-            true,
-            BodyKind::Kinematic,
-        ),
+        },
     ));
 }
 
@@ -49,7 +43,6 @@ pub fn controls(
     }
 
     for (control, _) in (&mut control, &player).iter() {
-        control.slide = true;
         control.dr = dir.normalize_or_zero() * dt * PLAYER_SPEED;
     }
 }

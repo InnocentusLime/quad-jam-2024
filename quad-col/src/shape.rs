@@ -130,12 +130,22 @@ impl Shape {
         let n1 = self.separating_axes(tf1, 0, &mut axis_buff);
         let n2 = other.separating_axes(tf2, n1, &mut axis_buff);
 
-        (0..n1 + n2)
+        let result = (0..n1 + n2)
             .map(|idx| axis_buff[idx])
             .filter_map(|axis_normal| {
                 self.candidate_time_of_impact(other, tf1, tf2, axis_normal, direction, t_max)
             })
-            .max_by(|(t1, _), (t2, _)| f32::total_cmp(t1, t2))
+            .max_by(|(t1, _), (t2, _)| f32::total_cmp(t1, t2));
+        let (toi, normal) = result?;
+        let tf1 = Affine2 {
+            translation: tf1.translation + (toi + SHAPE_TOI_EPSILON * 10.0) * direction,
+            ..tf1
+        };
+        if self.is_separated(other, tf1, tf2) {
+            None
+        } else {
+            Some((toi, normal))
+        }
     }
 
     /// Computes the time of impact for a fixed axis.
