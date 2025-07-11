@@ -13,19 +13,13 @@ pub fn spawn(world: &mut World, pos: Vec2) {
         PlayerScore(0),
         Health(PLAYER_SPAWN_HEALTH),
         KinematicControl::new(),
-        BodyTag::new(
-            PhysicsGroup {
-                player: true,
-                ..LEVEL_GROUP
-            },
-            ColliderTy::Box {
+        BodyTag {
+            groups: Group::union(col_group::PLAYER, col_group::LEVEL),
+            shape: Shape::Rect {
                 width: PLAYER_SIZE,
                 height: PLAYER_SIZE,
             },
-            1.0,
-            true,
-            BodyKind::Kinematic,
-        ),
+        },
     ));
 }
 

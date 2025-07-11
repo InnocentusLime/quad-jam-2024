@@ -5,14 +5,11 @@ pub fn spawn(world: &mut World, pos: Vec2) {
         Transform::from_pos(pos),
         GoalTag { achieved: false },
         col_query::Pickup::new_one(
-            ColliderTy::Box {
+            Shape::Rect {
                 width: 16.0,
                 height: 16.0,
             },
-            PhysicsGroup {
-                player: true,
-                ..PhysicsGroup::empty()
-            },
+            col_group::PLAYER,
         ),
     ));
 }

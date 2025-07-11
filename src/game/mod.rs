@@ -32,16 +32,13 @@ fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut Wor
         match ty {
             TileType::Wall => world.add_component(
                 tile,
-                (BodyTag::new(
-                    LEVEL_GROUP,
-                    ColliderTy::Box {
+                (BodyTag {
+                    groups: col_group::LEVEL,
+                    shape: Shape::Rect {
                         width: 32.0,
                         height: 32.0,
                     },
-                    1.0,
-                    true,
-                    BodyKind::Static,
-                ),),
+                },),
             ),
             TileType::Ground => world.add_component(tile, (TileSmell { time_left: 0.0 },)),
         }

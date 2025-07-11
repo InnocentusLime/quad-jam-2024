@@ -3,80 +3,9 @@ use shipyard::{Component, EntityId};
 
 use crate::Transform;
 
+pub use quad_col::{Group, Shape};
+
 pub const MAX_COLLISION_QUERIES: usize = 8;
-
-#[derive(Default, Clone, Copy, PartialEq, Eq, Hash, Debug)]
-pub struct PhysicsGroup {
-    pub level: bool,
-    pub npcs: bool,
-    pub player: bool,
-    pub projectiles: bool,
-    pub maincell: bool,
-    pub items: bool,
-}
-
-impl PhysicsGroup {
-    pub const fn empty() -> PhysicsGroup {
-        PhysicsGroup {
-            level: false,
-            npcs: false,
-            player: false,
-            projectiles: false,
-            maincell: false,
-            items: false,
-        }
-    }
-}
-
-impl PhysicsGroup {
-    pub(crate) fn into_group(self) -> quad_col::Group {
-        use quad_col::Group;
-
-        pub const LEVEL: Group = Group::from_id(0);
-        pub const NPCS: Group = Group::from_id(1);
-        pub const PLAYER: Group = Group::from_id(2);
-        pub const PROJECTILES: Group = Group::from_id(3);
-        pub const MAINCELL: Group = Group::from_id(4);
-        pub const ITEMS: Group = Group::from_id(5);
-
-        let mut filter = Group::empty();
-        if self.level {
-            filter = filter.union(LEVEL);
-        }
-        if self.npcs {
-            filter = filter.union(NPCS);
-        }
-        if self.player {
-            filter = filter.union(PLAYER);
-        }
-        if self.projectiles {
-            filter = filter.union(PROJECTILES);
-        }
-        if self.maincell {
-            filter = filter.union(MAINCELL);
-        }
-        if self.items {
-            filter = filter.union(ITEMS);
-        }
-
-        filter
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-pub enum ColliderTy {
-    Box { width: f32, height: f32 },
-    Circle { radius: f32 },
-}
-
-impl ColliderTy {
-    pub(crate) fn into_shape(self) -> quad_col::Shape {
-        match self {
-            ColliderTy::Box { width, height } => quad_col::Shape::Rect { width, height },
-            ColliderTy::Circle { radius } => quad_col::Shape::Circle { radius },
-        }
-    }
-}
 
 #[derive(Clone, Debug)]
 pub enum CollisionList {
@@ -89,8 +18,8 @@ impl CollisionList {
         CollisionList::One(None)
     }
 
-    pub fn many() -> Self {
-        CollisionList::Many(Vec::new())
+    pub fn many(capacity: usize) -> Self {
+        CollisionList::Many(Vec::with_capacity(capacity))
     }
 
     pub fn clear(&mut self) {
@@ -125,18 +54,18 @@ impl Extend<EntityId> for CollisionList {
 pub struct CollisionQuery<const ID: usize> {
     /// The collision filter. Setting it to an empty group
     /// will make the collision engine skip this query.
-    pub group: PhysicsGroup,
+    pub group: Group,
     /// The buffer to put the collisions into.
     pub collision_list: CollisionList,
     /// The collider to use for the check.
-    pub collider: ColliderTy,
+    pub collider: Shape,
     /// Extra transform for the query. Gets applied before
     /// the transform of the containing entity: `entity_tf * extra_tf`.
     pub extra_tf: Transform,
 }
 
 impl<const ID: usize> CollisionQuery<ID> {
-    pub fn new_one(collider: ColliderTy, group: PhysicsGroup) -> Self {
+    pub fn new_one(collider: Shape, group: Group) -> Self {
         Self {
             collider,
             group,
@@ -145,11 +74,11 @@ impl<const ID: usize> CollisionQuery<ID> {
         }
     }
 
-    pub fn new_many(collider: ColliderTy, group: PhysicsGroup) -> Self {
+    pub fn new_many(collider: Shape, group: Group, capacity: usize) -> Self {
         Self {
             collider,
             group,
-            collision_list: CollisionList::many(),
+            collision_list: CollisionList::many(capacity),
             extra_tf: Transform::IDENTITY,
         }
     }
@@ -178,44 +107,8 @@ impl KinematicControl {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub enum BodyKind {
-    Static,
-    Kinematic,
-}
-
 #[derive(Clone, Copy, Debug, Component)]
-#[track(Deletion, Removal, Insertion)]
 pub struct BodyTag {
-    pub enabled: bool,
-    pub groups: PhysicsGroup,
-    pub(crate) shape: ColliderTy,
-    pub(crate) _mass: f32,
-    pub(crate) kind: BodyKind,
-}
-
-impl BodyTag {
-    pub fn new(
-        groups: PhysicsGroup,
-        shape: ColliderTy,
-        mass: f32,
-        enabled: bool,
-        kind: BodyKind,
-    ) -> Self {
-        Self {
-            enabled,
-            groups,
-            _mass: mass,
-            shape,
-            kind,
-        }
-    }
-
-    pub fn shape(&self) -> &ColliderTy {
-        &self.shape
-    }
-
-    pub fn kind(&self) -> BodyKind {
-        self.kind
-    }
+    pub groups: Group,
+    pub shape: Shape,
 }

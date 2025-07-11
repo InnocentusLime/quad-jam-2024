@@ -3,15 +3,14 @@ pub use lib_game::*;
 pub use macroquad::prelude::*;
 pub use shipyard::{EntityId, Get, IntoIter, View, ViewMut, World};
 
-pub const LEVEL_GROUP: PhysicsGroup = PhysicsGroup {
-    level: true,
-    ..PhysicsGroup::empty()
-};
-#[allow(dead_code)]
-pub const PROJECTILES_GROUP: PhysicsGroup = PhysicsGroup {
-    projectiles: true,
-    ..PhysicsGroup::empty()
-};
+pub mod col_group {
+    use quad_col::Group;
+
+    pub const LEVEL: Group = Group::from_id(0);
+    pub const PLAYER: Group = Group::from_id(1);
+    #[allow(dead_code)]
+    pub const PROJECTILES: Group = Group::from_id(2);
+}
 
 pub mod col_query {
     pub const LEVEL: usize = 0;

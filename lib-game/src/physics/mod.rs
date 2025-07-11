@@ -12,7 +12,6 @@ pub use debug::*;
 const CHAR_MOVEMENT_ITERS: usize = 10;
 const CHAR_NORMAL_NUDGE: f32 = 0.001;
 const CHAR_SKIN: f32 = 0.01;
-pub const LENGTH_EPSILON: f32 = 1.0e-5;
 
 pub struct PhysicsState {
     solver: CollisionSolver,
@@ -101,16 +100,16 @@ fn get_query_collider<const ID: usize>(tf: &Transform, query: &CollisionQuery<ID
     let shape_pos = world_tf_to_phys(*tf) * world_tf_to_phys(query.extra_tf);
     Collider {
         tf: shape_pos,
-        shape: query.collider.into_shape(),
-        group: query.group.into_group(),
+        shape: query.collider,
+        group: query.group,
     }
 }
 
 fn get_entity_collider(tf: &Transform, info: &BodyTag) -> Collider {
     let col_tf = conv::topleft_corner_tf_to_crate(tf.pos, tf.angle);
     Collider {
-        shape: info.shape.into_shape(),
-        group: info.groups.into_group(),
+        shape: info.shape,
+        group: info.groups,
         tf: col_tf,
     }
 }
