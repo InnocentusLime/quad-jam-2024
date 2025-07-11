@@ -10,7 +10,7 @@ shipyard = { workspace = true }
 macroquad = { workspace = true }
 hashbrown = { workspace = true }
 quad-dbg = { path = "../quad-dbg" }
-rapier2d = { version = "0.24.0" }
+quad-col = { path = "../quad-col" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.sapp-jsutils]
 version = "^0.1"

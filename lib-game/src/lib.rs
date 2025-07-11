@@ -222,21 +222,12 @@ impl App {
     }
 
     fn game_update<G: Game>(&mut self, input: &InputModel, game: &mut G) -> Option<AppState> {
-        self.world
-            .run_with_data(PhysicsState::remove_dead_handles, &mut self.physics);
-        self.world
-            .run_with_data(PhysicsState::allocate_bodies, &mut self.physics);
-
         game.input_phase(&input, GAME_TICKRATE, &mut self.world);
 
         self.world
             .run_with_data(PhysicsState::import_positions_and_info, &mut self.physics);
         self.world
             .run_with_data(PhysicsState::apply_kinematic_moves, &mut self.physics);
-        self.world
-            .run_with_data(PhysicsState::step, &mut self.physics);
-        self.world
-            .run_with_data(PhysicsState::export_body_poses, &mut self.physics);
 
         game.plan_physics_queries(GAME_TICKRATE, &mut self.world);
 

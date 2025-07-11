@@ -1,5 +1,4 @@
 use macroquad::prelude::*;
-use rapier2d::prelude::InteractionGroups;
 use shipyard::{Component, EntityId};
 
 use crate::Transform;
@@ -30,44 +29,37 @@ impl PhysicsGroup {
 }
 
 impl PhysicsGroup {
-    fn into_group(self) -> rapier2d::prelude::Group {
-        use rapier2d::prelude::*;
+    pub(crate) fn into_group(self) -> quad_col::Group {
+        use quad_col::Group;
 
-        pub const LEVEL: Group = Group::GROUP_1;
-        pub const NPCS: Group = Group::GROUP_2;
-        pub const PLAYER: Group = Group::GROUP_3;
-        pub const PROJECTILES: Group = Group::GROUP_4;
-        pub const MAINCELL: Group = Group::GROUP_5;
-        pub const ITEMS: Group = Group::GROUP_6;
+        pub const LEVEL: Group = Group::from_id(0);
+        pub const NPCS: Group = Group::from_id(1);
+        pub const PLAYER: Group = Group::from_id(2);
+        pub const PROJECTILES: Group = Group::from_id(3);
+        pub const MAINCELL: Group = Group::from_id(4);
+        pub const ITEMS: Group = Group::from_id(5);
 
-        let mut filter = Group::NONE;
+        let mut filter = Group::empty();
         if self.level {
-            filter |= LEVEL;
+            filter = filter.union(LEVEL);
         }
         if self.npcs {
-            filter |= NPCS;
+            filter = filter.union(NPCS);
         }
         if self.player {
-            filter |= PLAYER;
+            filter = filter.union(PLAYER);
         }
         if self.projectiles {
-            filter |= PROJECTILES;
+            filter = filter.union(PROJECTILES);
         }
         if self.maincell {
-            filter |= MAINCELL
+            filter = filter.union(MAINCELL);
         }
         if self.items {
-            filter |= ITEMS
+            filter = filter.union(ITEMS);
         }
 
         filter
-    }
-
-    pub(crate) fn into_interaction_groups(self) -> InteractionGroups {
-        InteractionGroups {
-            memberships: self.into_group(),
-            filter: self.into_group(),
-        }
     }
 }
 
@@ -75,6 +67,15 @@ impl PhysicsGroup {
 pub enum ColliderTy {
     Box { width: f32, height: f32 },
     Circle { radius: f32 },
+}
+
+impl ColliderTy {
+    pub(crate) fn into_shape(self) -> quad_col::Shape {
+        match self {
+            ColliderTy::Box { width, height } => quad_col::Shape::Rect { width, height },
+            ColliderTy::Circle { radius } => quad_col::Shape::Circle { radius },
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -189,7 +190,7 @@ pub struct BodyTag {
     pub enabled: bool,
     pub groups: PhysicsGroup,
     pub(crate) shape: ColliderTy,
-    pub(crate) mass: f32,
+    pub(crate) _mass: f32,
     pub(crate) kind: BodyKind,
 }
 
@@ -204,7 +205,7 @@ impl BodyTag {
         Self {
             enabled,
             groups,
-            mass,
+            _mass: mass,
             shape,
             kind,
         }
