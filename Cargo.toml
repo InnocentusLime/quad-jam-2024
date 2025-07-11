@@ -35,7 +35,7 @@ panic = "abort"
 members = [ "lib-game", "quad-col", "quad-dbg" ]
 
 [workspace.dependencies]
-shipyard = "0.8"
+shipyard = { version = "0.8", default-features = false, features = ["proc", "std"] }
 log = { version = "0.4.22", features = ["max_level_info", "release_max_level_info"] }
 macroquad = { version = "0.4.14", features = ["audio", "log-rs"] }
 macroquad-particles = "0.2.2"
