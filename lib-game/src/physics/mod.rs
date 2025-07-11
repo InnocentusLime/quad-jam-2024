@@ -40,11 +40,12 @@ impl PhysicsState {
         mut kin: ViewMut<KinematicControl>,
     ) {
         for (tf, info, kin) in (&mut tf, &tag, &mut kin).iter() {
-            let character = get_entity_collider(tf, info);
+            let mut character = get_entity_collider(tf, info);
+            character.group = kin.collision;
+
             let dr = conv::topleft_corner_vector_to_crate(kin.dr);
             let new_tf = process_character_movement(&self.solver, dr, character);
             tf.pos = conv::crate_vector_to_topleft_corner(new_tf.translation);
-            kin.dr = Vec2::ZERO;
         }
     }
 

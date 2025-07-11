@@ -95,14 +95,16 @@ impl<const ID: usize> CollisionQuery<ID> {
 #[derive(Clone, Copy, Debug, Component)]
 pub struct KinematicControl {
     pub dr: Vec2,
-    pub slide: bool,
+    pub collision: Group,
 }
 
 impl KinematicControl {
-    pub fn new() -> Self {
+    /// Creates a new [KinematicControl].
+    /// * `collision` -- the layer which the body will collide against
+    pub fn new(collision: Group) -> Self {
         Self {
             dr: Vec2::ZERO,
-            slide: false,
+            collision,
         }
     }
 }

@@ -12,9 +12,9 @@ pub fn spawn(world: &mut World, pos: Vec2) {
         PlayerTag,
         PlayerScore(0),
         Health(PLAYER_SPAWN_HEALTH),
-        KinematicControl::new(),
+        KinematicControl::new(col_group::LEVEL),
         BodyTag {
-            groups: Group::union(col_group::PLAYER, col_group::LEVEL),
+            groups: col_group::PLAYER,
             shape: Shape::Rect {
                 width: PLAYER_SIZE,
                 height: PLAYER_SIZE,
@@ -43,7 +43,6 @@ pub fn controls(
     }
 
     for (control, _) in (&mut control, &player).iter() {
-        control.slide = true;
         control.dr = dir.normalize_or_zero() * dt * PLAYER_SPEED;
     }
 }
