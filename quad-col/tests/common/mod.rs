@@ -86,7 +86,7 @@ pub fn draw_shape(canvas: &mut image::RgbImage, color: image::Rgb<u8>, shape: Sh
     let tf = Affine2::from_translation(vec2(
         OUT_IMG_WIDTH as f32 / 2.0,
         OUT_IMG_HEIGHT as f32 / 2.0,
-    )) * Affine2::from_scale(Vec2::splat(4.0))
+    )) * Affine2::from_scale(vec2(4.0, -4.0))
         * tf;
     match shape {
         Shape::Rect { width, height } => {
