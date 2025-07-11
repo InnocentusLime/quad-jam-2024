@@ -1,6 +1,6 @@
 [package]
 name = "quad-col"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 
 [dependencies]
@@ -11,4 +11,4 @@ glam = { workspace = true }
 [dev-dependencies]
 rand = "0.9.1"
 imageproc = "0.25.0"
-image = { version = "0.25.0", features = ["png"] }
+image = { version = "0.25.0", default-features = false, features = ["png"] }

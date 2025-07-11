@@ -17,7 +17,7 @@ jobs:
           override: true
           target: wasm32-unknown-unknown
           components: rustfmt
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         continue-on-error: false
         with:
           path: |
@@ -28,10 +28,14 @@ jobs:
             target/
           key: ci-${{ runner.os }}-${{ vars.RUST_VERSION }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ci-${{ runner.os }}-${{ vars.RUST_VERSION }}-cargo-
-      - name: CI for native
-        run: cargo check
-      - name: CI for wasm
-        run: cargo check --target wasm32-unknown-unknown
+      - shell: bash
+        run: >
+          sudo apt-get update &&
+          sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
+      - name: Check everything
+        run: cargo check --locked --all-targets
+      - name: Run tests
+        run: cargo test --workspace --package "*" --exclude quad-jam-2024 --locked
   code-audit:
     runs-on: ubuntu-latest
     steps:
