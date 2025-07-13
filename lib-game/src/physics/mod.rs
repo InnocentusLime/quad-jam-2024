@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 use quad_col::*;
-use shipyard::{IntoIter, View, ViewMut, World};
+use shipyard::World;
 
 mod components;
 mod debug;
@@ -24,22 +24,21 @@ impl PhysicsState {
         }
     }
 
-    pub fn import_positions_and_info(&mut self, rbs: View<BodyTag>, pos: View<Transform>) {
+    pub fn import_positions_and_info(&mut self, world: &mut World) {
         self.solver.clear();
-        let cold = (&rbs, &pos)
+        let mut it = world.iter::<(&BodyTag, &Transform)>();
+        let cold = it
             .iter()
             .with_id()
             .map(|(ent, (info, tf))| (ent, get_entity_collider(tf, info)));
         self.solver.fill(cold);
     }
 
-    pub fn apply_kinematic_moves(
-        &mut self,
-        mut tf: ViewMut<Transform>,
-        tag: View<BodyTag>,
-        mut kin: ViewMut<KinematicControl>,
-    ) {
-        for (tf, info, kin) in (&mut tf, &tag, &mut kin).iter() {
+    pub fn apply_kinematic_moves(&mut self, world: &mut World) {
+        for (tf, info, kin) in world
+            .iter::<(&mut Transform, &BodyTag, &mut KinematicControl)>()
+            .iter()
+        {
             let mut character = get_entity_collider(tf, info);
             character.group = kin.collision;
 
@@ -49,12 +48,8 @@ impl PhysicsState {
         }
     }
 
-    pub fn export_collision_queries<const ID: usize>(
-        &mut self,
-        tf: View<Transform>,
-        mut query: ViewMut<CollisionQuery<ID>>,
-    ) {
-        for (tf, query) in (&tf, &mut query).iter() {
+    pub fn export_collision_queries<const ID: usize>(&mut self, world: &mut World) {
+        for (tf, query) in world.iter::<(&Transform, &mut CollisionQuery<ID>)>().iter() {
             let query_collider = get_query_collider(tf, query);
             query
                 .collision_list
@@ -63,14 +58,14 @@ impl PhysicsState {
     }
 
     pub fn export_all_queries(&mut self, world: &mut World) {
-        world.run_with_data(Self::export_collision_queries::<0>, self);
-        world.run_with_data(Self::export_collision_queries::<1>, self);
-        world.run_with_data(Self::export_collision_queries::<2>, self);
-        world.run_with_data(Self::export_collision_queries::<3>, self);
-        world.run_with_data(Self::export_collision_queries::<4>, self);
-        world.run_with_data(Self::export_collision_queries::<5>, self);
-        world.run_with_data(Self::export_collision_queries::<6>, self);
-        world.run_with_data(Self::export_collision_queries::<7>, self);
+        self.export_collision_queries::<0>(world);
+        self.export_collision_queries::<1>(world);
+        self.export_collision_queries::<2>(world);
+        self.export_collision_queries::<3>(world);
+        self.export_collision_queries::<4>(world);
+        self.export_collision_queries::<5>(world);
+        self.export_collision_queries::<6>(world);
+        self.export_collision_queries::<7>(world);
     }
 }
 

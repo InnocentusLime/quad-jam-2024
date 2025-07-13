@@ -20,13 +20,14 @@ static START_TEXT_MOBILE: &'static str = "Tap to start";
 
 pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
 
-pub fn tiles(render: &mut Render, tile_storage: View<TileStorage>, tiles: View<TileType>) {
-    let Some(storage) = tile_storage.iter().next() else {
+pub fn tiles(render: &mut Render, world: &World) {
+    let mut storage_it = world.iter::<&TileStorage>();
+    let Some(storage) = storage_it.iter().next() else {
         return;
     };
     let iter = storage
         .iter_poses()
-        .map(|(x, y, id)| (x, y, tiles.get(id).unwrap()));
+        .map(|(x, y, id)| (x, y, *world.get::<&TileType>(id).unwrap()));
 
     for (x, y, tile) in iter {
         match tile {
@@ -49,8 +50,8 @@ pub fn tiles(render: &mut Render, tile_storage: View<TileStorage>, tiles: View<T
     }
 }
 
-pub fn player(render: &mut Render, pos: View<Transform>, player: View<PlayerTag>) {
-    for (_, pos) in (&player, &pos).iter() {
+pub fn player(render: &mut Render, world: &World) {
+    for (_, pos) in world.iter::<(&PlayerTag, &Transform)>().iter() {
         render.world.add_entity((
             *pos,
             RectShape {
@@ -63,18 +64,14 @@ pub fn player(render: &mut Render, pos: View<Transform>, player: View<PlayerTag>
     }
 }
 
-pub fn game_ui(
-    render: &mut Render,
-    score: View<PlayerScore>,
-    health: View<Health>,
-    player: View<PlayerTag>,
-) {
+pub fn game_ui(render: &mut Render, world: &World) {
     let font_size = 32;
     let off_y = 32.0;
     let ui_x = 536.0;
-    let score = score.iter().next().unwrap().0;
-    let player_health = (&player, &health).iter().next().unwrap().1 .0;
-    let (game_state, game_state_color) = if player_health <= 0 {
+
+    let mut player_q = world.iter::<(&PlayerScore, &Health)>();
+    let (score, player_health) = player_q.iter().next().unwrap();
+    let (game_state, game_state_color) = if player_health.0 <= 0 {
         ("You are dead", RED)
     } else {
         ("", BLANK)
@@ -83,7 +80,7 @@ pub fn game_ui(
     render.world.add_entity((
         GlyphText {
             font: FontKey("oegnek"),
-            string: Cow::Owned(format!("Score:{score}")),
+            string: Cow::Owned(format!("Score:{}", score.0)),
             font_size,
             font_scale: 1.0,
             font_scale_aspect: 1.0,
@@ -94,7 +91,7 @@ pub fn game_ui(
     render.world.add_entity((
         GlyphText {
             font: FontKey("oegnek"),
-            string: Cow::Owned(format!("Health:{player_health}")),
+            string: Cow::Owned(format!("Health:{}", player_health.0)),
             font_size,
             font_scale: 1.0,
             font_scale_aspect: 1.0,
@@ -115,8 +112,8 @@ pub fn game_ui(
     ));
 }
 
-pub fn goal(render: &mut Render, pos: View<Transform>, goal: View<GoalTag>) {
-    for (pos, _) in (&pos, &goal).iter() {
+pub fn goal(render: &mut Render, world: &World) {
+    for (pos, _) in world.iter::<(&Transform, &GoalTag)>().iter() {
         render.world.add_entity((
             *pos,
             Tint(GREEN),
