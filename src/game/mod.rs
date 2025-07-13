@@ -8,43 +8,47 @@ mod tile;
 
 use prelude::*;
 
-fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut World) -> EntityId {
+fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut World) -> Entity {
     assert_eq!(data.len(), width * height);
 
     let storage = TileStorage::from_data(
         width,
         height,
-        data.into_iter().map(|ty| world.add_entity(ty)).collect(),
+        data.into_iter().map(|ty| world.spawn((ty,))).collect(),
     )
     .unwrap();
 
     for (x, y, tile) in storage.iter_poses() {
-        world.add_component(
-            tile,
-            Transform {
-                pos: vec2(x as f32 * 32.0 + 16.0, y as f32 * 32.0 + 16.0),
-                angle: 0.0,
-            },
-        );
+        world
+            .insert(
+                tile,
+                (Transform {
+                    pos: vec2(x as f32 * 32.0 + 16.0, y as f32 * 32.0 + 16.0),
+                    angle: 0.0,
+                },),
+            )
+            .unwrap();
 
-        let ty = **world.get::<&TileType>(tile).unwrap();
+        let ty = *world.get::<&TileType>(tile).unwrap();
 
         match ty {
-            TileType::Wall => world.add_component(
-                tile,
-                (BodyTag {
-                    groups: col_group::LEVEL,
-                    shape: Shape::Rect {
-                        width: 32.0,
-                        height: 32.0,
-                    },
-                },),
-            ),
-            TileType::Ground => world.add_component(tile, (TileSmell { time_left: 0.0 },)),
+            TileType::Wall => world
+                .insert(
+                    tile,
+                    (BodyTag {
+                        groups: col_group::LEVEL,
+                        shape: Shape::Rect {
+                            width: 32.0,
+                            height: 32.0,
+                        },
+                    },),
+                )
+                .unwrap(),
+            TileType::Ground => world.insert(tile, (TileSmell { time_left: 0.0 },)).unwrap(),
         }
     }
 
-    world.add_entity(storage)
+    world.spawn((storage,))
 }
 
 fn init_level(world: &mut World, level_def: level::LevelDef) {
@@ -68,10 +72,14 @@ fn init_level(world: &mut World, level_def: level::LevelDef) {
 }
 
 fn decide_next_state(world: &mut World) -> Option<AppState> {
-    let mut player_it = world.iter::<(&PlayerTag, &Health)>();
-    let mut goal_it = world.iter::<&GoalTag>();
-    let player_dead = player_it.iter().all(|(_, hp)| hp.0 <= 0);
-    let goal_achieved = goal_it.iter().any(|x| x.achieved);
+    let player_dead = world
+        .query_mut::<(&PlayerTag, &Health)>()
+        .into_iter()
+        .all(|(_, (_, hp))| hp.0 <= 0);
+    let goal_achieved = world
+        .query_mut::<&GoalTag>()
+        .into_iter()
+        .any(|(_, goal)| goal.achieved);
 
     if player_dead {
         return Some(AppState::GameOver);

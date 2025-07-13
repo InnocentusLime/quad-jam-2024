@@ -3,8 +3,8 @@ use super::prelude::*;
 pub const SMELL_AFTER_PLAYER: f32 = 4.0;
 
 pub fn debug_draw_tile_smell(world: &World) {
-    let mut storage_q = world.iter::<&TileStorage>();
-    let Some(storage) = storage_q.iter().next() else {
+    let mut storage_q = world.query::<&TileStorage>();
+    let Some((_, storage)) = storage_q.into_iter().next() else {
         return;
     };
     let iter = storage
@@ -23,19 +23,21 @@ pub fn debug_draw_tile_smell(world: &World) {
 }
 
 pub fn tick_smell(dt: f32, world: &mut World) {
-    for smell in world.iter::<&mut TileSmell>().iter() {
+    for (_, smell) in world.query_mut::<&mut TileSmell>() {
         smell.time_left = (smell.time_left - dt).max(0.0);
     }
 }
 
 pub fn player_step_smell(world: &mut World) {
-    let mut player_q = world.iter::<(&Transform, &PlayerTag)>();
-    let (player_tf, _) = player_q.iter().next().unwrap();
+    let mut player_q = world.query::<(&Transform, &PlayerTag)>();
+    let (_, (player_tf, _)) = player_q.into_iter().next().unwrap();
     let player_pos = player_tf.pos;
-    let mut storage_q = world.iter::<&TileStorage>();
-    let Some(storage) = storage_q.iter().next() else {
+
+    let mut storage_q = world.query::<&TileStorage>();
+    let Some((_, storage)) = storage_q.into_iter().next() else {
         return;
     };
+
     let px = ((player_pos.x) / 32.0) as usize;
     let py = ((player_pos.y) / 32.0) as usize;
 

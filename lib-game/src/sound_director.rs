@@ -1,5 +1,5 @@
+use hecs::World;
 use macroquad::audio::{Sound, load_sound};
-use shipyard::World;
 
 pub struct SoundDirector {
     _dead: Sound,
@@ -16,9 +16,5 @@ impl SoundDirector {
         })
     }
 
-    pub fn run(&mut self, world: &World) {
-        world.run_with_data(Self::direct_sounds, self);
-    }
-
-    fn direct_sounds(&mut self) {}
+    pub fn run(&mut self, _world: &World) {}
 }

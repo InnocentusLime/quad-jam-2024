@@ -1,10 +1,10 @@
 use crate::components::*;
 use crate::physics::*;
 
-use shipyard::{IntoIter, View, World};
+use hecs::World;
 
-fn draw_queries<const ID: usize>(pos: View<Transform>, query: View<CollisionQuery<ID>>) {
-    for (tf, query) in (&pos, &query).iter() {
+fn draw_queries<const ID: usize>(world: &World) {
+    for (_, (tf, query)) in &mut world.query::<(&Transform, &CollisionQuery<ID>)>() {
         let color = if query.has_collided() {
             Color::new(0.00, 0.93, 0.80, 1.00)
         } else {
@@ -29,8 +29,8 @@ fn draw_queries<const ID: usize>(pos: View<Transform>, query: View<CollisionQuer
     }
 }
 
-fn draw_bodies(pos: View<Transform>, body_tag: View<BodyTag>) {
-    for (tf, tag) in (&pos, &body_tag).iter() {
+fn draw_bodies(world: &World) {
+    for (_, (tf, tag)) in &mut world.query::<(&Transform, &BodyTag)>() {
         let color = DARKBLUE;
 
         match tag.shape {
@@ -51,13 +51,13 @@ fn draw_bodies(pos: View<Transform>, body_tag: View<BodyTag>) {
 }
 
 pub fn draw_physics_debug(world: &World) {
-    world.run(draw_bodies);
-    world.run(draw_queries::<0>);
-    world.run(draw_queries::<1>);
-    world.run(draw_queries::<2>);
-    world.run(draw_queries::<3>);
-    world.run(draw_queries::<4>);
-    world.run(draw_queries::<5>);
-    world.run(draw_queries::<6>);
-    world.run(draw_queries::<7>);
+    draw_bodies(world);
+    draw_queries::<0>(world);
+    draw_queries::<1>(world);
+    draw_queries::<2>(world);
+    draw_queries::<3>(world);
+    draw_queries::<4>(world);
+    draw_queries::<5>(world);
+    draw_queries::<6>(world);
+    draw_queries::<7>(world);
 }

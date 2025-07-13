@@ -1,7 +1,6 @@
 use macroquad::prelude::*;
-use shipyard::Component;
 
-#[derive(Debug, Clone, Copy, Component)]
+#[derive(Debug, Clone, Copy)]
 pub struct Transform {
     pub pos: Vec2,
     pub angle: f32,

@@ -1,31 +1,31 @@
+use hecs::Entity;
 use macroquad::prelude::*;
-use shipyard::{Component, EntityId};
 
-#[derive(Debug, Clone, Copy, Component)]
+#[derive(Debug, Clone, Copy)]
 pub struct PlayerScore(pub u32);
 
-#[derive(Debug, Clone, Copy, Component)]
+#[derive(Debug, Clone, Copy)]
 #[repr(transparent)]
 pub struct Health(pub i32);
 
-#[derive(Debug, Clone, Copy, Component)]
+#[derive(Debug, Clone, Copy)]
 pub struct PlayerTag;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Component)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TileType {
     Wall,
     Ground,
 }
 
-#[derive(Debug, Component)]
+#[derive(Debug)]
 pub struct TileStorage {
     width: usize,
     height: usize,
-    mem: Vec<EntityId>,
+    mem: Vec<Entity>,
 }
 
 impl TileStorage {
-    pub fn from_data(width: usize, height: usize, mem: Vec<EntityId>) -> Option<TileStorage> {
+    pub fn from_data(width: usize, height: usize, mem: Vec<Entity>) -> Option<TileStorage> {
         if mem.len() != width * height {
             return None;
         }
@@ -35,7 +35,7 @@ impl TileStorage {
 
     #[allow(dead_code)]
     pub fn new(width: usize, height: usize) -> TileStorage {
-        TileStorage::from_data(width, height, vec![EntityId::dead(); width * height]).unwrap()
+        TileStorage::from_data(width, height, vec![Entity::DANGLING; width * height]).unwrap()
     }
 
     #[allow(dead_code)]
@@ -48,7 +48,7 @@ impl TileStorage {
         self.height
     }
 
-    pub fn get(&self, x: usize, y: usize) -> Option<EntityId> {
+    pub fn get(&self, x: usize, y: usize) -> Option<Entity> {
         debug_assert!(self.mem.len() == self.width * self.height);
 
         if x >= self.width {
@@ -62,7 +62,7 @@ impl TileStorage {
     }
 
     #[allow(dead_code)]
-    pub fn set(&mut self, x: usize, y: usize, val: EntityId) {
+    pub fn set(&mut self, x: usize, y: usize, val: Entity) {
         debug_assert!(self.mem.len() < self.width * self.height);
 
         if x < self.width {
@@ -76,7 +76,7 @@ impl TileStorage {
     }
 
     /// Returns the iterator over elements of form (x, y, entity)
-    pub fn iter_poses(&'_ self) -> impl Iterator<Item = (usize, usize, EntityId)> + '_ {
+    pub fn iter_poses(&'_ self) -> impl Iterator<Item = (usize, usize, Entity)> + '_ {
         self.mem
             .iter()
             .enumerate()
@@ -84,12 +84,12 @@ impl TileStorage {
     }
 }
 
-#[derive(Debug, Clone, Copy, Component)]
+#[derive(Debug, Clone, Copy)]
 pub struct TileSmell {
     pub time_left: f32,
 }
 
-#[derive(Debug, Clone, Copy, Component)]
+#[derive(Debug, Clone, Copy)]
 pub struct GoalTag {
     pub achieved: bool,
 }

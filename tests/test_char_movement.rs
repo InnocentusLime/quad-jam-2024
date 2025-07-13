@@ -1,23 +1,21 @@
 use glam::{vec2, Vec2};
 use hashbrown::HashSet;
+use hecs::*;
 use lib_game::*;
 use macroquad::prelude::*;
 use quad_col::{
     conv::{crate_vector_to_topleft_corner, topleft_corner_vector_to_crate},
     *,
 };
-use shipyard::*;
 
 const CHAR_MOVEMENT_ITERS: usize = 10;
 const CHAR_NORMAL_NUDGE: f32 = 0.001;
 const CHAR_SKIN: f32 = 0.01;
 
-#[derive(Component)]
 struct ControlTag {
     pub dr: Vec2,
 }
 
-#[derive(Component)]
 struct EntityCollision {
     shape: Shape,
     group: Group,
@@ -25,9 +23,9 @@ struct EntityCollision {
 
 struct CollisionTestGame {
     solver: CollisionSolver,
-    collided: HashSet<EntityId>,
-    char_bump: HashSet<EntityId>,
-    colliders: Vec<(EntityId, Collider)>,
+    collided: HashSet<Entity>,
+    char_bump: HashSet<Entity>,
+    colliders: Vec<(Entity, Collider)>,
 }
 
 impl CollisionTestGame {
@@ -72,7 +70,7 @@ impl Game for CollisionTestGame {
 
     async fn init(&mut self, _data: &str, world: &mut World) {
         info!("Init");
-        world.add_entity((
+        world.spawn((
             ControlTag { dr: Vec2::ZERO },
             Transform {
                 pos: vec2(32.0, 16.0),
@@ -86,7 +84,7 @@ impl Game for CollisionTestGame {
                 },
             },
         ));
-        world.add_entity((
+        world.spawn((
             Transform {
                 pos: vec2(128.0, 60.0),
                 angle: std::f32::consts::FRAC_PI_6,
@@ -99,7 +97,7 @@ impl Game for CollisionTestGame {
                 },
             },
         ));
-        world.add_entity((
+        world.spawn((
             Transform {
                 pos: vec2(64.0, 128.0),
                 angle: std::f32::consts::FRAC_PI_3,
@@ -112,7 +110,7 @@ impl Game for CollisionTestGame {
                 },
             },
         ));
-        world.add_entity((
+        world.spawn((
             Transform {
                 pos: vec2(97.0, 128.0),
                 angle: std::f32::consts::FRAC_PI_3,
@@ -122,7 +120,7 @@ impl Game for CollisionTestGame {
                 shape: Shape::Circle { radius: 32.0 },
             },
         ));
-        world.add_entity((
+        world.spawn((
             Transform {
                 pos: vec2(256.0, 97.0),
                 angle: std::f32::consts::FRAC_PI_3,
@@ -132,7 +130,7 @@ impl Game for CollisionTestGame {
                 shape: Shape::Circle { radius: 128.0 },
             },
         ));
-        world.add_entity((
+        world.spawn((
             Transform {
                 pos: vec2(256.0, 256.0),
                 angle: 0.0,
@@ -145,7 +143,7 @@ impl Game for CollisionTestGame {
                 },
             },
         ));
-        world.add_entity((
+        world.spawn((
             Transform {
                 pos: vec2(256.0, 304.0),
                 angle: 0.0,
@@ -164,14 +162,14 @@ impl Game for CollisionTestGame {
         &mut self,
         _prev: Option<&str>,
         _app_state: &AppState,
-        _world: &shipyard::World,
+        _world: &World,
     ) -> NextState {
         info!("next state");
         NextState::Load("test".to_string())
     }
 
     fn input_phase(&mut self, input: &InputModel, dt: f32, world: &mut World) {
-        for con in world.iter::<&mut ControlTag>().into_iter() {
+        for (_, con) in world.query_mut::<&mut ControlTag>() {
             con.dr = Vec2::ZERO;
             let mut dir = Vec2::ZERO;
             if input.down_movement_down {
@@ -201,27 +199,20 @@ impl Game for CollisionTestGame {
         self.solver.clear();
         self.colliders.clear();
 
-        {
-            let mut query = world.iter::<(&mut EntityCollision, &Transform)>();
-            let cold = query
-                .into_iter()
-                .with_id()
-                .map(|(ent, (info, tf))| (ent, get_entity_collider(tf, info)));
-            self.solver.fill(cold);
-        }
-
-        {
-            let mut query = world.iter::<(&mut EntityCollision, &Transform)>();
-            let cold = query
-                .into_iter()
-                .with_id()
-                .map(|(ent, (info, tf))| (ent, get_entity_collider(tf, info)));
-            self.colliders.extend(cold);
-        }
-
-        for (tf, control, collider) in world
-            .iter::<(&mut Transform, &mut ControlTag, &EntityCollision)>()
+        let cold = world
+            .query_mut::<(&mut EntityCollision, &Transform)>()
             .into_iter()
+            .map(|(ent, (info, tf))| (ent, get_entity_collider(tf, info)));
+        self.solver.fill(cold);
+
+        let cold = world
+            .query_mut::<(&mut EntityCollision, &Transform)>()
+            .into_iter()
+            .map(|(ent, (info, tf))| (ent, get_entity_collider(tf, info)));
+        self.colliders.extend(cold);
+
+        for (_, (tf, control, collider)) in
+            world.query_mut::<(&mut Transform, &mut ControlTag, &EntityCollision)>()
         {
             let dr = topleft_corner_vector_to_crate(control.dr);
             let mut query = get_entity_collider(tf, collider);
@@ -230,10 +221,7 @@ impl Game for CollisionTestGame {
             tf.pos = crate_vector_to_topleft_corner(final_tf.translation);
         }
 
-        for (_, tf, info) in world
-            .iter::<(&ControlTag, &Transform, &EntityCollision)>()
-            .iter()
-        {
+        for (_, (_, tf, info)) in world.query_mut::<(&ControlTag, &Transform, &EntityCollision)>() {
             let query = get_entity_collider(tf, info);
             self.collided
                 .extend(self.solver.query_overlaps(query).map(|(ent, _)| *ent));
@@ -243,18 +231,14 @@ impl Game for CollisionTestGame {
     }
 
     fn render_export(&self, _state: &AppState, world: &World, render: &mut Render) {
-        for (ent, (tf, col)) in world
-            .iter::<(&Transform, &EntityCollision)>()
-            .into_iter()
-            .with_id()
-        {
+        for (ent, (tf, col)) in &mut world.query::<(&Transform, &EntityCollision)>() {
             let color = match (self.collided.contains(&ent), self.char_bump.contains(&ent)) {
                 (_, true) => BLUE,
                 (true, _) => RED,
                 _ => WHITE,
             };
             match col.shape {
-                Shape::Rect { width, height } => render.world.add_entity((
+                Shape::Rect { width, height } => render.world.spawn((
                     *tf,
                     RectShape {
                         width,
@@ -266,7 +250,7 @@ impl Game for CollisionTestGame {
                 Shape::Circle { radius } => {
                     render
                         .world
-                        .add_entity((*tf, CircleShape { radius }, Tint(color)))
+                        .spawn((*tf, CircleShape { radius }, Tint(color)))
                 }
             };
         }
@@ -290,7 +274,7 @@ fn process_character_movement(
     solver: &CollisionSolver,
     mut dr: Vec2,
     mut character: Collider,
-    touched: &mut HashSet<EntityId>,
+    touched: &mut HashSet<Entity>,
 ) -> Affine2 {
     touched.clear();
     for _ in 0..CHAR_MOVEMENT_ITERS {

@@ -1,11 +1,11 @@
 [package]
 name = "quad-jam-2024"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 
 [dependencies]
 anyhow = { workspace = true }
-shipyard = { workspace = true }
+hecs = { workspace = true }
 log = { workspace = true }
 macroquad = { workspace = true }
 macroquad-particles = { workspace = true }
@@ -35,7 +35,7 @@ panic = "abort"
 members = [ "lib-game", "quad-col", "quad-dbg" ]
 
 [workspace.dependencies]
-shipyard = { version = "0.8", default-features = false, features = ["proc", "std"] }
+hecs = "0.10.5"
 log = { version = "0.4.22", features = ["max_level_info", "release_max_level_info"] }
 macroquad = { version = "0.4.14", features = ["audio", "log-rs"] }
 macroquad-particles = "0.2.2"

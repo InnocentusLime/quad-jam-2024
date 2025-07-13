@@ -4,7 +4,7 @@ version = "0.2.1"
 edition = "2024"
 
 [dependencies]
-shipyard = { workspace = true }
+hecs = { workspace = true }
 hashbrown = { workspace = true }
 glam = { workspace = true }
 
