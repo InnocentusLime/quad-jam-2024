@@ -14,8 +14,8 @@ pub fn spawn(world: &mut World, pos: Vec2) {
     ));
 }
 
-pub fn check(mut goal: ViewMut<GoalTag>, sens: View<col_query::Pickup>) {
-    for (sens, goal) in (&sens, &mut goal).iter() {
+pub fn check(world: &mut World) {
+    for (sens, goal) in world.iter::<(&col_query::Pickup, &mut GoalTag)>().iter() {
         if !sens.has_collided() {
             continue;
         }

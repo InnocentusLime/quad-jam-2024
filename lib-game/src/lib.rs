@@ -224,10 +224,8 @@ impl App {
     fn game_update<G: Game>(&mut self, input: &InputModel, game: &mut G) -> Option<AppState> {
         game.input_phase(&input, GAME_TICKRATE, &mut self.world);
 
-        self.world
-            .run_with_data(PhysicsState::import_positions_and_info, &mut self.physics);
-        self.world
-            .run_with_data(PhysicsState::apply_kinematic_moves, &mut self.physics);
+        self.physics.import_positions_and_info(&mut self.world);
+        self.physics.apply_kinematic_moves(&mut self.world);
 
         game.plan_physics_queries(GAME_TICKRATE, &mut self.world);
 

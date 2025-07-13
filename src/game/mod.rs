@@ -67,13 +67,11 @@ fn init_level(world: &mut World, level_def: level::LevelDef) {
     }
 }
 
-fn decide_next_state(
-    player: View<PlayerTag>,
-    health: View<Health>,
-    goal: View<GoalTag>,
-) -> Option<AppState> {
-    let player_dead = (&player, &health).iter().all(|(_, hp)| hp.0 <= 0);
-    let goal_achieved = goal.iter().any(|x| x.achieved);
+fn decide_next_state(world: &mut World) -> Option<AppState> {
+    let mut player_it = world.iter::<(&PlayerTag, &Health)>();
+    let mut goal_it = world.iter::<&GoalTag>();
+    let player_dead = player_it.iter().all(|(_, hp)| hp.0 <= 0);
+    let goal_achieved = goal_it.iter().any(|x| x.achieved);
 
     if player_dead {
         return Some(AppState::GameOver);
@@ -184,26 +182,26 @@ impl Game for Project {
     }
 
     fn input_phase(&mut self, input: &lib_game::InputModel, dt: f32, world: &mut World) {
-        world.run_with_data(player::controls, (input, dt));
+        player::controls(input, dt, world);
         if self.do_ai { /* No enemies yet */ }
     }
 
     fn plan_physics_queries(&mut self, _dt: f32, _world: &mut World) {}
 
     fn update(&mut self, dt: f32, world: &mut World) -> Option<lib_game::AppState> {
-        world.run_with_data(tile::tick_smell, dt);
-        world.run(tile::player_step_smell);
-        world.run(goal::check);
+        tile::tick_smell(dt, world);
+        tile::player_step_smell(world);
+        goal::check(world);
 
-        world.run(decide_next_state)
+        decide_next_state(world)
     }
 
     fn render_export(&self, app_state: &AppState, world: &World, render: &mut Render) {
         if app_state.is_presentable() {
-            world.run_with_data(render::tiles, render);
-            world.run_with_data(render::player, render);
-            world.run_with_data(render::goal, render);
-            world.run_with_data(render::game_ui, render);
+            render::tiles(render, world);
+            render::player(render, world);
+            render::goal(render, world);
+            render::game_ui(render, world);
         }
 
         render::toplevel_ui(app_state, render);

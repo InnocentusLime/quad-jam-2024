@@ -23,11 +23,7 @@ pub fn spawn(world: &mut World, pos: Vec2) {
     ));
 }
 
-pub fn controls(
-    (input, dt): (&InputModel, f32),
-    player: View<PlayerTag>,
-    mut control: ViewMut<KinematicControl>,
-) {
+pub fn controls(input: &InputModel, dt: f32, world: &mut World) {
     let mut dir = Vec2::ZERO;
     if input.left_movement_down {
         dir += vec2(-1.0, 0.0);
@@ -42,7 +38,7 @@ pub fn controls(
         dir += vec2(0.0, 1.0);
     }
 
-    for (control, _) in (&mut control, &player).iter() {
+    for (control, _) in world.iter::<(&mut KinematicControl, &PlayerTag)>().iter() {
         control.dr = dir.normalize_or_zero() * dt * PLAYER_SPEED;
     }
 }
