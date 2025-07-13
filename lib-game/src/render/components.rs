@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 
 use macroquad::prelude::*;
-use shipyard::Component;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 #[repr(transparent)]
@@ -16,12 +15,12 @@ pub struct FontKey(pub &'static str);
 /// It is not overridden to 1, however.
 ///
 /// Requires [Tint] to work.
-#[derive(Clone, Copy, Component, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Flicker;
 
 /// Tags the entity to have a fixed lifetime. Once
 /// the timer stops ticking -- it will get freed.
-#[derive(Clone, Copy, Component, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Timed {
     pub time: f32,
     pub start: f32,
@@ -37,7 +36,7 @@ impl Timed {
 }
 
 /// Overrides the scaling of an entity.
-#[derive(Clone, Copy, Component, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Scale(pub Vec2);
 
 /// Tags the entity to be drawn as a sprite. To see
@@ -48,7 +47,7 @@ pub struct Scale(pub Vec2);
 /// Can read [Tint] and [Scale], but they are optional.
 /// * If no tint is specified, the sprite is drawn with a white tint
 /// * If no scale is specified, the sprite is drawn with `(1.0, 1.0)` scale
-#[derive(Clone, Copy, Component, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Sprite {
     pub origin: Vec2,
     pub texture: TextureKey,
@@ -61,7 +60,7 @@ pub struct Sprite {
 ///
 /// Can read [Tint], but it is optional.
 /// * If no tint is specified, the circle is drawn with a white tint
-#[derive(Clone, Copy, Component, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct CircleShape {
     pub radius: f32,
 }
@@ -74,7 +73,7 @@ pub struct CircleShape {
 /// * If no tint is specified, the rect is drawn with a white tint
 ///
 /// Can read [Scale], but it is optional.
-#[derive(Clone, Copy, Component, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct RectShape {
     pub origin: Vec2,
     pub width: f32,
@@ -82,7 +81,7 @@ pub struct RectShape {
 }
 
 /// Tags the entity to be drawn with a certain color.
-#[derive(Clone, Copy, Component, Debug)]
+#[derive(Clone, Copy, Debug)]
 #[repr(transparent)]
 pub struct Tint(pub Color);
 
@@ -93,7 +92,7 @@ pub struct Tint(pub Color);
 ///     (the original alpha value in [Tint] is overriden)
 ///
 /// Requires [crate::components::Transform], [Timed] and [Tint] to work.
-#[derive(Clone, Copy, Component, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct VertShrinkFadeoutAnim;
 
 /// Draws some text with glyphs.
@@ -102,7 +101,7 @@ pub struct VertShrinkFadeoutAnim;
 ///
 /// Can read [Tint], but it is optional. By default the text is
 /// drawn as white.
-#[derive(Clone, Component, Debug)]
+#[derive(Clone, Debug)]
 pub struct GlyphText {
     pub font: FontKey,
     pub string: Cow<'static, str>,
@@ -112,7 +111,7 @@ pub struct GlyphText {
 }
 
 /// Renders an announcement text with a background.
-#[derive(Clone, Copy, Component, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct AnnouncementText {
     pub heading: &'static str,
     pub body: Option<&'static str>,

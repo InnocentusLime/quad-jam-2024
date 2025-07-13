@@ -4,8 +4,8 @@ use hashbrown::HashMap;
 use quad_dbg::dump;
 
 pub use components::*;
+use hecs::{Entity, World};
 use macroquad::prelude::*;
-use shipyard::{EntitiesView, EntityId, Get, IntoIter, View, ViewMut, World};
 
 use crate::Transform;
 
@@ -30,7 +30,7 @@ pub struct Render {
     pub ui_font: FontKey,
     pub world: World,
 
-    to_delete: Vec<EntityId>,
+    to_delete: Vec<Entity>,
     time: f32,
 
     textures: HashMap<TextureKey, TextureVal>,
@@ -82,20 +82,23 @@ impl Render {
     }
 
     pub fn new_frame(&mut self) {
-        let _borrow_scope = {
-            let ents = self.world.borrow::<EntitiesView>().unwrap();
-            let timed = self.world.borrow::<View<Timed>>().unwrap();
+        dump!("Render entities: {}", self.world.iter().count());
 
-            dump!("Render entities: {}", ents.iter().count());
+        let it = self
+            .world
+            .iter()
+            .filter(|ent| {
+                let Some(timed) = ent.get::<&Timed>() else {
+                    return true;
+                };
 
-            self.to_delete.extend(
-                ents.iter()
-                    .filter(|e| Self::should_delete_timed(&timed, *e)),
-            );
-        };
+                Self::should_delete_timed(&timed)
+            })
+            .map(|x| x.entity());
+        self.to_delete.extend(it);
 
         for e in self.to_delete.drain(..) {
-            self.world.delete_entity(e);
+            let _ = self.world.despawn(e);
         }
     }
 
@@ -150,195 +153,180 @@ impl Render {
     }
 
     fn draw_announcement_text(&mut self) {
-        self.world.run(|announce: View<AnnouncementText>| {
-            for announce in announce.iter() {
-                let Some(font) = self.get_font(self.ui_font) else {
-                    warn!("No such font: {:?}", self.ui_font);
-                    continue;
-                };
+        for (_, announce) in self.world.query_mut::<&AnnouncementText>() {
+            let Some(font) = self.fonts.get(&self.ui_font) else {
+                warn!("No such font: {:?}", self.ui_font);
+                continue;
+            };
 
-                let view_rect = Self::ui_view_rect(font);
+            let view_rect = Self::ui_view_rect(font);
 
-                draw_rectangle(
-                    view_rect.x,
-                    view_rect.y,
-                    view_rect.w,
-                    view_rect.h,
-                    Color {
-                        r: 0.0,
-                        g: 0.0,
-                        b: 0.12,
-                        a: 0.5,
-                    },
-                );
+            draw_rectangle(
+                view_rect.x,
+                view_rect.y,
+                view_rect.w,
+                view_rect.h,
+                Color {
+                    r: 0.0,
+                    g: 0.0,
+                    b: 0.12,
+                    a: 0.5,
+                },
+            );
 
-                let center = get_text_center(
-                    announce.heading,
-                    Some(font),
-                    MAIN_FONT_SIZE,
-                    FONT_SCALE,
-                    0.0,
-                );
-                draw_text_ex(
-                    announce.heading,
-                    view_rect.left() + view_rect.w / 2.0 - center.x,
-                    view_rect.top() + view_rect.h / 2.0 - center.y,
-                    TextParams {
-                        font: Some(font),
-                        font_size: MAIN_FONT_SIZE,
-                        color: Color::from_hex(0xDDFBFF),
-                        font_scale: FONT_SCALE,
-                        ..Default::default()
-                    },
-                );
+            let center = get_text_center(
+                announce.heading,
+                Some(font),
+                MAIN_FONT_SIZE,
+                FONT_SCALE,
+                0.0,
+            );
+            draw_text_ex(
+                announce.heading,
+                view_rect.left() + view_rect.w / 2.0 - center.x,
+                view_rect.top() + view_rect.h / 2.0 - center.y,
+                TextParams {
+                    font: Some(font),
+                    font_size: MAIN_FONT_SIZE,
+                    color: Color::from_hex(0xDDFBFF),
+                    font_scale: FONT_SCALE,
+                    ..Default::default()
+                },
+            );
 
-                let Some(hint) = announce.body else {
-                    continue;
-                };
-                let center = get_text_center(
-                    Self::find_longest_line(hint),
-                    Some(font),
-                    HINT_FONT_SIZE,
-                    FONT_SCALE,
-                    0.0,
-                );
-                draw_multiline_text_ex(
-                    hint,
-                    view_rect.left() + view_rect.w / 2.0 - center.x,
-                    view_rect.top() + view_rect.h / 2.0 - center.y + (MAIN_FONT_SIZE as f32) * 1.5,
-                    None,
-                    TextParams {
-                        font: Some(font),
-                        font_size: HINT_FONT_SIZE,
-                        color: Color::from_hex(0xDDFBFF),
-                        font_scale: FONT_SCALE,
-                        ..Default::default()
-                    },
-                );
-            }
-        })
+            let Some(hint) = announce.body else {
+                continue;
+            };
+            let center = get_text_center(
+                Self::find_longest_line(hint),
+                Some(font),
+                HINT_FONT_SIZE,
+                FONT_SCALE,
+                0.0,
+            );
+            draw_multiline_text_ex(
+                hint,
+                view_rect.left() + view_rect.w / 2.0 - center.x,
+                view_rect.top() + view_rect.h / 2.0 - center.y + (MAIN_FONT_SIZE as f32) * 1.5,
+                None,
+                TextParams {
+                    font: Some(font),
+                    font_size: HINT_FONT_SIZE,
+                    color: Color::from_hex(0xDDFBFF),
+                    font_scale: FONT_SCALE,
+                    ..Default::default()
+                },
+            );
+        }
     }
 
     fn draw_rects(&mut self) {
-        self.world.run(
-            |rect: View<RectShape>, tint: View<Tint>, tf: View<Transform>, scale: View<Scale>| {
-                for (entity, (rect, tf)) in (&rect, &tf).iter().with_id() {
-                    let scale = scale.get(entity).map(|x| x.0).unwrap_or(vec2(1.0, 1.0));
-                    let tint = tint.get(entity).map(|x| x.0).unwrap_or(WHITE);
-                    draw_rectangle_ex(
-                        tf.pos.x,
-                        tf.pos.y,
-                        rect.width * scale.x,
-                        rect.height * scale.y,
-                        DrawRectangleParams {
-                            offset: rect.origin,
-                            rotation: tf.angle,
-                            color: tint,
-                        },
-                    );
-                }
-            },
-        )
+        for (_, (rect, tint, tf, scale)) in
+            self.world
+                .query_mut::<(&RectShape, Option<&Tint>, &Transform, Option<&Scale>)>()
+        {
+            let scale = scale.map(|x| x.0).unwrap_or(vec2(1.0, 1.0));
+            let tint = tint.map(|x| x.0).unwrap_or(WHITE);
+            draw_rectangle_ex(
+                tf.pos.x,
+                tf.pos.y,
+                rect.width * scale.x,
+                rect.height * scale.y,
+                DrawRectangleParams {
+                    offset: rect.origin,
+                    rotation: tf.angle,
+                    color: tint,
+                },
+            );
+        }
     }
 
     fn draw_circles(&mut self) {
-        self.world.run(
-            |circle: View<CircleShape>, tint: View<Tint>, tf: View<Transform>| {
-                for (entity, (circle, tf)) in (&circle, &tf).iter().with_id() {
-                    let tint = tint.get(entity).map(|x| x.0).unwrap_or(WHITE);
+        for (_, (circle, tint, tf)) in self
+            .world
+            .query_mut::<(&CircleShape, Option<&Tint>, &Transform)>()
+        {
+            let tint = tint.map(|x| x.0).unwrap_or(WHITE);
 
-                    draw_circle(tf.pos.x, tf.pos.y, circle.radius, tint);
-                }
-            },
-        )
+            draw_circle(tf.pos.x, tf.pos.y, circle.radius, tint);
+        }
     }
 
     fn draw_sprites(&mut self) {
-        self.world.run(
-            |sprite: View<Sprite>, tint: View<Tint>, tf: View<Transform>, scale: View<Scale>| {
-                for (entity, (sprite, tf)) in (&sprite, &tf).iter().with_id() {
-                    let scale = scale.get(entity).map(|x| x.0).unwrap_or(vec2(1.0, 1.0));
-                    let tint = tint.get(entity).map(|x| x.0).unwrap_or(WHITE);
-                    let Some(TextureVal {
-                        texture,
-                        texture_rect: rect,
-                    }) = self.textures.get(&sprite.texture)
-                    else {
-                        warn!("No texture {:?}", sprite.texture.0);
-                        continue;
-                    };
+        for (_, (sprite, tint, tf, scale)) in
+            self.world
+                .query_mut::<(&Sprite, Option<&Tint>, &Transform, Option<&Scale>)>()
+        {
+            let scale = scale.map(|x| x.0).unwrap_or(vec2(1.0, 1.0));
+            let tint = tint.map(|x| x.0).unwrap_or(WHITE);
+            let Some(TextureVal {
+                texture,
+                texture_rect: rect,
+            }) = self.textures.get(&sprite.texture)
+            else {
+                warn!("No texture {:?}", sprite.texture.0);
+                continue;
+            };
 
-                    draw_texture_ex(
-                        texture,
-                        tf.pos.x,
-                        tf.pos.y,
-                        tint,
-                        DrawTextureParams {
-                            dest_size: Some(rect.size() * scale),
-                            source: Some(*rect),
-                            rotation: tf.angle,
-                            flip_x: false,
-                            flip_y: false,
-                            pivot: Some(sprite.origin),
-                        },
-                    );
-                }
-            },
-        )
+            draw_texture_ex(
+                texture,
+                tf.pos.x,
+                tf.pos.y,
+                tint,
+                DrawTextureParams {
+                    dest_size: Some(rect.size() * scale),
+                    source: Some(*rect),
+                    rotation: tf.angle,
+                    flip_x: false,
+                    flip_y: false,
+                    pivot: Some(sprite.origin),
+                },
+            );
+        }
     }
 
     fn draw_texts(&mut self) {
-        self.world.run(
-            |text: View<GlyphText>, tf: View<Transform>, tint: View<Tint>| {
-                for (entity, (text, tf)) in (&text, &tf).iter().with_id() {
-                    let tint = tint.get(entity).map(|x| x.0).unwrap_or(WHITE);
-                    let Some(font) = self.fonts.get(&text.font) else {
-                        warn!("No font {:?}", text.font.0);
-                        continue;
-                    };
+        for (_, (text, tf, tint)) in self
+            .world
+            .query_mut::<(&GlyphText, &Transform, Option<&Tint>)>()
+        {
+            let tint = tint.map(|x| x.0).unwrap_or(WHITE);
+            let Some(font) = self.fonts.get(&text.font) else {
+                warn!("No font {:?}", text.font.0);
+                continue;
+            };
 
-                    draw_text_ex(
-                        &text.string,
-                        tf.pos.x,
-                        tf.pos.y,
-                        TextParams {
-                            font: Some(font),
-                            font_size: text.font_size,
-                            font_scale: text.font_scale,
-                            font_scale_aspect: text.font_scale_aspect,
-                            rotation: tf.angle,
-                            color: tint,
-                        },
-                    );
-                }
-            },
-        )
+            draw_text_ex(
+                &text.string,
+                tf.pos.x,
+                tf.pos.y,
+                TextParams {
+                    font: Some(font),
+                    font_size: text.font_size,
+                    font_scale: text.font_scale,
+                    font_scale_aspect: text.font_scale_aspect,
+                    rotation: tf.angle,
+                    color: tint,
+                },
+            );
+        }
     }
 
     fn anim_vert_shrink_fadeout(&mut self) {
-        self.world.run(
-            |timed: View<Timed>,
-             mut tint: ViewMut<Tint>,
-             mut scale: ViewMut<Scale>,
-             tag: View<VertShrinkFadeoutAnim>| {
-                for (timed, tint, scale, _) in (&timed, &mut tint, &mut scale, &tag).iter() {
-                    let k = timed.time / timed.start;
+        for (_, (timed, tint, scale)) in self.world.query_mut::<(&Timed, &mut Tint, &mut Scale)>() {
+            let k = timed.time / timed.start;
 
-                    tint.0.a = (2.0 * k).clamp(0.0, 1.0);
-                    scale.0.y = k.powf(4.0);
-                }
-            },
-        );
+            tint.0.a = (2.0 * k).clamp(0.0, 1.0);
+            scale.0.y = k.powf(4.0);
+        }
     }
 
     fn update_time(&mut self, dt: f32) {
         self.time += dt;
 
-        self.world.run(|mut timed: ViewMut<Timed>| {
-            for timed in (&mut timed).iter() {
-                timed.time -= dt;
-            }
-        })
+        for (_, timed) in self.world.query_mut::<&mut Timed>() {
+            timed.time -= dt;
+        }
     }
 
     fn update_flickers(&mut self) {
@@ -347,19 +335,12 @@ impl Render {
             return;
         }
 
-        self.world
-            .run(|flicker: View<Flicker>, mut tint: ViewMut<Tint>| {
-                for (_, tint) in (&flicker, &mut tint).iter() {
-                    tint.0.a = 0.0;
-                }
-            });
+        for (_, (_flicker, tint)) in self.world.query_mut::<(&Flicker, &mut Tint)>() {
+            tint.0.a = 0.0;
+        }
     }
 
-    fn should_delete_timed(timed: &View<Timed>, entity: EntityId) -> bool {
-        let Ok(timed) = timed.get(entity) else {
-            return true;
-        };
-
+    fn should_delete_timed(timed: &Timed) -> bool {
         timed.time <= 0.0
     }
 

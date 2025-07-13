@@ -1,6 +1,6 @@
+use hecs::World;
 use macroquad::prelude::*;
 use quad_col::*;
-use shipyard::World;
 
 mod components;
 mod debug;
@@ -26,18 +26,16 @@ impl PhysicsState {
 
     pub fn import_positions_and_info(&mut self, world: &mut World) {
         self.solver.clear();
-        let mut it = world.iter::<(&BodyTag, &Transform)>();
+        let it = world.query_mut::<(&BodyTag, &Transform)>();
         let cold = it
-            .iter()
-            .with_id()
+            .into_iter()
             .map(|(ent, (info, tf))| (ent, get_entity_collider(tf, info)));
         self.solver.fill(cold);
     }
 
     pub fn apply_kinematic_moves(&mut self, world: &mut World) {
-        for (tf, info, kin) in world
-            .iter::<(&mut Transform, &BodyTag, &mut KinematicControl)>()
-            .iter()
+        for (_, (tf, info, kin)) in
+            &mut world.query::<(&mut Transform, &BodyTag, &mut KinematicControl)>()
         {
             let mut character = get_entity_collider(tf, info);
             character.group = kin.collision;
@@ -49,7 +47,7 @@ impl PhysicsState {
     }
 
     pub fn export_collision_queries<const ID: usize>(&mut self, world: &mut World) {
-        for (tf, query) in world.iter::<(&Transform, &mut CollisionQuery<ID>)>().iter() {
+        for (_, (tf, query)) in &mut world.query::<(&Transform, &mut CollisionQuery<ID>)>() {
             let query_collider = get_query_collider(tf, query);
             query
                 .collision_list

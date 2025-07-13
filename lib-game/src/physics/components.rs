@@ -1,5 +1,5 @@
+use hecs::Entity;
 use macroquad::prelude::*;
-use shipyard::{Component, EntityId};
 
 use crate::Transform;
 
@@ -9,8 +9,8 @@ pub const MAX_COLLISION_QUERIES: usize = 8;
 
 #[derive(Clone, Debug)]
 pub enum CollisionList {
-    One(Option<EntityId>),
-    Many(Vec<EntityId>),
+    One(Option<Entity>),
+    Many(Vec<Entity>),
 }
 
 impl CollisionList {
@@ -31,7 +31,7 @@ impl CollisionList {
         }
     }
 
-    pub fn collisions(&self) -> &[EntityId] {
+    pub fn collisions(&self) -> &[Entity] {
         match self {
             CollisionList::One(None) => &[],
             CollisionList::One(Some(entity_id)) => std::slice::from_ref(entity_id),
@@ -40,8 +40,8 @@ impl CollisionList {
     }
 }
 
-impl Extend<EntityId> for CollisionList {
-    fn extend<I: IntoIterator<Item = EntityId>>(&mut self, iter: I) {
+impl Extend<Entity> for CollisionList {
+    fn extend<I: IntoIterator<Item = Entity>>(&mut self, iter: I) {
         match self {
             // We aren't required to consume all iterator items
             CollisionList::One(entity_id) => *entity_id = iter.into_iter().next(),
@@ -50,7 +50,7 @@ impl Extend<EntityId> for CollisionList {
     }
 }
 
-#[derive(Clone, Debug, Component)]
+#[derive(Clone, Debug)]
 pub struct CollisionQuery<const ID: usize> {
     /// The collision filter. Setting it to an empty group
     /// will make the collision engine skip this query.
@@ -83,7 +83,7 @@ impl<const ID: usize> CollisionQuery<ID> {
         }
     }
 
-    pub fn collisions(&self) -> &[EntityId] {
+    pub fn collisions(&self) -> &[Entity] {
         self.collision_list.collisions()
     }
 
@@ -92,7 +92,7 @@ impl<const ID: usize> CollisionQuery<ID> {
     }
 }
 
-#[derive(Clone, Copy, Debug, Component)]
+#[derive(Clone, Copy, Debug)]
 pub struct KinematicControl {
     pub dr: Vec2,
     pub collision: Group,
@@ -109,7 +109,7 @@ impl KinematicControl {
     }
 }
 
-#[derive(Clone, Copy, Debug, Component)]
+#[derive(Clone, Copy, Debug)]
 pub struct BodyTag {
     pub groups: Group,
     pub shape: Shape,

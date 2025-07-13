@@ -1,7 +1,7 @@
 pub use super::components::*;
+pub use hecs::{Entity, World};
 pub use lib_game::*;
 pub use macroquad::prelude::*;
-pub use shipyard::{EntityId, Get, IntoIter, World};
 
 pub mod col_group {
     use quad_col::Group;

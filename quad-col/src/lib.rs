@@ -11,7 +11,7 @@ mod group;
 mod shape;
 
 use glam::{Affine2, Vec2};
-use shipyard::EntityId;
+use hecs::Entity;
 
 pub use group::*;
 pub use shape::*;
@@ -33,7 +33,7 @@ impl Collider {
     }
 }
 
-struct GroupRefs(Vec<(EntityId, Collider)>, Group);
+struct GroupRefs(Vec<(Entity, Collider)>, Group);
 
 pub struct CollisionSolver {
     groups: [GroupRefs; GROUP_COUNT],
@@ -53,7 +53,7 @@ impl CollisionSolver {
         self.groups.iter_mut().for_each(|x| x.0.clear());
     }
 
-    pub fn fill(&mut self, entities: impl IntoIterator<Item = (EntityId, Collider)>) {
+    pub fn fill(&mut self, entities: impl IntoIterator<Item = (Entity, Collider)>) {
         for (ent, collider) in entities {
             let matches = self
                 .groups
@@ -65,10 +65,7 @@ impl CollisionSolver {
         }
     }
 
-    pub fn query_overlaps(
-        &self,
-        query: Collider,
-    ) -> impl Iterator<Item = &'_ (EntityId, Collider)> {
+    pub fn query_overlaps(&self, query: Collider) -> impl Iterator<Item = &'_ (Entity, Collider)> {
         self.groups
             .iter()
             .filter(move |group| query.group.includes(group.1))
@@ -81,7 +78,7 @@ impl CollisionSolver {
         query: Collider,
         direction: Vec2,
         t_max: f32,
-    ) -> Option<(EntityId, f32, Vec2)> {
+    ) -> Option<(Entity, f32, Vec2)> {
         self.groups
             .iter()
             .filter(move |group| query.group.includes(group.1))
@@ -93,12 +90,12 @@ impl CollisionSolver {
     }
 
     fn query_shape_cast_do_shapecast(
-        entity: EntityId,
+        entity: Entity,
         collider: &Collider,
         query: Collider,
         direction: Vec2,
         t_max: f32,
-    ) -> Option<(EntityId, f32, Vec2)> {
+    ) -> Option<(Entity, f32, Vec2)> {
         let (toi, normal) =
             query
                 .shape

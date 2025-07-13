@@ -14,8 +14,8 @@ pub use physics::*;
 pub use render::*;
 pub use sound_director::*;
 
+use hecs::World;
 use macroquad::prelude::*;
-use shipyard::{EntitiesView, World};
 
 use quad_dbg::*;
 
@@ -233,7 +233,8 @@ impl App {
 
         let new_state = game.update(GAME_TICKRATE, &mut self.world);
 
-        self.world.clear_all_removed_and_deleted();
+        self.world.flush();
+
         new_state
     }
 
@@ -267,7 +268,7 @@ impl App {
     }
 
     fn debug_info(&mut self) {
-        let ent_count = self.world.borrow::<EntitiesView>().unwrap().iter().count();
+        let ent_count = self.world.iter().count();
 
         dump!("{}", self.accumelated_time);
         dump!("FPS: {:?}", get_fps());

@@ -1,7 +1,7 @@
 use super::prelude::*;
 
 pub fn spawn(world: &mut World, pos: Vec2) {
-    world.add_entity((
+    world.spawn((
         Transform::from_pos(pos),
         GoalTag { achieved: false },
         col_query::Pickup::new_one(
@@ -15,7 +15,7 @@ pub fn spawn(world: &mut World, pos: Vec2) {
 }
 
 pub fn check(world: &mut World) {
-    for (sens, goal) in world.iter::<(&col_query::Pickup, &mut GoalTag)>().iter() {
+    for (_, (sens, goal)) in world.query_mut::<(&col_query::Pickup, &mut GoalTag)>() {
         if !sens.has_collided() {
             continue;
         }

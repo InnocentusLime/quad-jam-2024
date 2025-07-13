@@ -7,7 +7,7 @@ pub const PLAYER_HIT_COOLDOWN: f32 = 2.0;
 pub const PLAYER_SIZE: f32 = 16.0;
 
 pub fn spawn(world: &mut World, pos: Vec2) {
-    world.add_entity((
+    world.spawn((
         Transform::from_pos(pos),
         PlayerTag,
         PlayerScore(0),
@@ -38,7 +38,7 @@ pub fn controls(input: &InputModel, dt: f32, world: &mut World) {
         dir += vec2(0.0, 1.0);
     }
 
-    for (control, _) in world.iter::<(&mut KinematicControl, &PlayerTag)>().iter() {
+    for (_, (control, _)) in world.query_mut::<(&mut KinematicControl, &PlayerTag)>() {
         control.dr = dir.normalize_or_zero() * dt * PLAYER_SPEED;
     }
 }

@@ -21,8 +21,8 @@ static START_TEXT_MOBILE: &'static str = "Tap to start";
 pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
 
 pub fn tiles(render: &mut Render, world: &World) {
-    let mut storage_it = world.iter::<&TileStorage>();
-    let Some(storage) = storage_it.iter().next() else {
+    let mut storage_it = world.query::<&TileStorage>();
+    let Some((_, storage)) = storage_it.into_iter().next() else {
         return;
     };
     let iter = storage
@@ -32,7 +32,7 @@ pub fn tiles(render: &mut Render, world: &World) {
     for (x, y, tile) in iter {
         match tile {
             TileType::Wall => {
-                render.world.add_entity((
+                render.world.spawn((
                     Tint(WALL_COLOR),
                     Scale(vec2(2.0, 2.0)),
                     Sprite {
@@ -51,8 +51,8 @@ pub fn tiles(render: &mut Render, world: &World) {
 }
 
 pub fn player(render: &mut Render, world: &World) {
-    for (_, pos) in world.iter::<(&PlayerTag, &Transform)>().iter() {
-        render.world.add_entity((
+    for (_, (_, pos)) in &mut world.query::<(&PlayerTag, &Transform)>() {
+        render.world.spawn((
             *pos,
             RectShape {
                 origin: vec2(0.5, 0.5),
@@ -69,15 +69,15 @@ pub fn game_ui(render: &mut Render, world: &World) {
     let off_y = 32.0;
     let ui_x = 536.0;
 
-    let mut player_q = world.iter::<(&PlayerScore, &Health)>();
-    let (score, player_health) = player_q.iter().next().unwrap();
+    let mut player_q = world.query::<(&PlayerScore, &Health)>();
+    let (_, (score, player_health)) = player_q.into_iter().next().unwrap();
     let (game_state, game_state_color) = if player_health.0 <= 0 {
         ("You are dead", RED)
     } else {
         ("", BLANK)
     };
 
-    render.world.add_entity((
+    render.world.spawn((
         GlyphText {
             font: FontKey("oegnek"),
             string: Cow::Owned(format!("Score:{}", score.0)),
@@ -88,7 +88,7 @@ pub fn game_ui(render: &mut Render, world: &World) {
         Tint(YELLOW),
         Transform::from_xy(ui_x, off_y * 1.0),
     ));
-    render.world.add_entity((
+    render.world.spawn((
         GlyphText {
             font: FontKey("oegnek"),
             string: Cow::Owned(format!("Health:{}", player_health.0)),
@@ -99,7 +99,7 @@ pub fn game_ui(render: &mut Render, world: &World) {
         Tint(YELLOW),
         Transform::from_xy(ui_x, off_y * 2.0),
     ));
-    render.world.add_entity((
+    render.world.spawn((
         GlyphText {
             font: FontKey("oegnek"),
             string: Cow::Borrowed(game_state),
@@ -113,8 +113,8 @@ pub fn game_ui(render: &mut Render, world: &World) {
 }
 
 pub fn goal(render: &mut Render, world: &World) {
-    for (pos, _) in world.iter::<(&Transform, &GoalTag)>().iter() {
-        render.world.add_entity((
+    for (_, (pos, _)) in &mut world.query::<(&Transform, &GoalTag)>() {
+        render.world.spawn((
             *pos,
             Tint(GREEN),
             RectShape {
@@ -129,40 +129,40 @@ pub fn goal(render: &mut Render, world: &World) {
 pub fn toplevel_ui(app_state: &AppState, render: &mut Render) {
     match app_state {
         AppState::Start => {
-            render.world.add_entity(AnnouncementText {
+            render.world.spawn((AnnouncementText {
                 heading: start_text(),
                 body: Some(START_HINT),
-            });
+            },));
         }
         AppState::GameOver => {
-            render.world.add_entity(AnnouncementText {
+            render.world.spawn((AnnouncementText {
                 heading: GAMEOVER_TEXT,
                 body: Some(game_restart_hint()),
-            });
+            },));
         }
         AppState::Win => {
-            render.world.add_entity(AnnouncementText {
+            render.world.spawn((AnnouncementText {
                 heading: WIN_TEXT,
                 body: Some(game_continue_hint()),
-            });
+            },));
         }
         AppState::Active { paused: true } => {
-            render.world.add_entity(AnnouncementText {
+            render.world.spawn((AnnouncementText {
                 heading: PAUSE_TEXT,
                 body: Some(PAUSE_HINT),
-            });
+            },));
         }
         AppState::PleaseRotate => {
-            render.world.add_entity(AnnouncementText {
+            render.world.spawn((AnnouncementText {
                 heading: ORIENTATION_TEXT,
                 body: Some(ORIENTATION_HINT),
-            });
+            },));
         }
         AppState::GameDone => {
-            render.world.add_entity(AnnouncementText {
+            render.world.spawn((AnnouncementText {
                 heading: COMPLETE_TEXT,
                 body: Some(game_restart_hint()),
-            });
+            },));
         }
         _ => (),
     }
