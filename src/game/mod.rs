@@ -1,4 +1,5 @@
 mod components;
+mod damager;
 mod goal;
 mod health;
 mod level;
@@ -68,6 +69,7 @@ fn init_level(world: &mut World, level_def: level::LevelDef) {
         match entity {
             level::EntityDef::Player(pos) => player::spawn(world, pos),
             level::EntityDef::Goal(pos) => goal::spawn(world, pos),
+            level::EntityDef::Damager(pos) => damager::spawn(world, pos),
         }
     }
 }
