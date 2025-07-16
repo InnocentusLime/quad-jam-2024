@@ -71,7 +71,7 @@ pub fn game_ui(render: &mut Render, world: &World) {
 
     let mut player_q = world.query::<(&PlayerScore, &Health)>();
     let (_, (score, player_health)) = player_q.into_iter().next().unwrap();
-    let (game_state, game_state_color) = if player_health.0 <= 0 {
+    let (game_state, game_state_color) = if player_health.value <= 0 {
         ("You are dead", RED)
     } else {
         ("", BLANK)
@@ -91,7 +91,7 @@ pub fn game_ui(render: &mut Render, world: &World) {
     render.world.spawn((
         GlyphText {
             font: FontKey("oegnek"),
-            string: Cow::Owned(format!("Health:{}", player_health.0)),
+            string: Cow::Owned(format!("Health:{}", player_health.value)),
             font_size,
             font_scale: 1.0,
             font_scale_aspect: 1.0,
