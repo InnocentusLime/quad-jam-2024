@@ -2,8 +2,7 @@ use super::prelude::*;
 
 pub const PLAYER_SPEED: f32 = 132.0;
 pub const PLAYER_SPAWN_HEALTH: i32 = 3;
-#[allow(dead_code)]
-pub const PLAYER_HIT_COOLDOWN: f32 = 2.0;
+pub const PLAYER_HIT_COOLDOWN: f32 = 1.0;
 pub const PLAYER_SIZE: f32 = 16.0;
 
 pub fn spawn(world: &mut World, pos: Vec2) {
@@ -11,10 +10,11 @@ pub fn spawn(world: &mut World, pos: Vec2) {
         Transform::from_pos(pos),
         PlayerTag,
         PlayerScore(0),
-        Health(PLAYER_SPAWN_HEALTH),
+        Health::new(PLAYER_SPAWN_HEALTH),
+        DamageCooldown::new(PLAYER_HIT_COOLDOWN),
         KinematicControl::new(col_group::LEVEL),
         BodyTag {
-            groups: col_group::PLAYER,
+            groups: col_group::PLAYER.union(col_group::HITTABLE),
             shape: Shape::Rect {
                 width: PLAYER_SIZE,
                 height: PLAYER_SIZE,

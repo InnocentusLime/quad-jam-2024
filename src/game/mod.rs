@@ -1,5 +1,6 @@
 mod components;
 mod goal;
+mod health;
 mod level;
 mod player;
 mod prelude;
@@ -75,7 +76,7 @@ fn decide_next_state(world: &mut World) -> Option<AppState> {
     let player_dead = world
         .query_mut::<(&PlayerTag, &Health)>()
         .into_iter()
-        .all(|(_, (_, hp))| hp.0 <= 0);
+        .all(|(_, (_, hp))| hp.value <= 0);
     let goal_achieved = world
         .query_mut::<&GoalTag>()
         .into_iter()
@@ -200,6 +201,9 @@ impl Game for Project {
         tile::tick_smell(dt, world);
         tile::player_step_smell(world);
         goal::check(world);
+        health::collect_damage(world);
+        health::update_cooldown(dt, world);
+        health::apply_damage(world);
 
         decide_next_state(world)
     }
