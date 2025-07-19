@@ -1,5 +1,7 @@
 mod components;
+mod damager;
 mod goal;
+mod health;
 mod level;
 mod player;
 mod prelude;
@@ -67,15 +69,17 @@ fn init_level(world: &mut World, level_def: level::LevelDef) {
         match entity {
             level::EntityDef::Player(pos) => player::spawn(world, pos),
             level::EntityDef::Goal(pos) => goal::spawn(world, pos),
+            level::EntityDef::Damager(pos) => damager::spawn(world, pos),
         }
     }
 }
 
 fn decide_next_state(world: &mut World) -> Option<AppState> {
     let player_dead = world
-        .query_mut::<(&PlayerTag, &Health)>()
+        .query_mut::<&Health>()
+        .with::<&PlayerTag>()
         .into_iter()
-        .all(|(_, (_, hp))| hp.0 <= 0);
+        .all(|(_, hp)| hp.value <= 0);
     let goal_achieved = world
         .query_mut::<&GoalTag>()
         .into_iter()
@@ -200,6 +204,9 @@ impl Game for Project {
         tile::tick_smell(dt, world);
         tile::player_step_smell(world);
         goal::check(world);
+        health::collect_damage(world);
+        health::update_cooldown(dt, world);
+        health::apply_damage(world);
 
         decide_next_state(world)
     }
