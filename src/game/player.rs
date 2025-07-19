@@ -38,7 +38,10 @@ pub fn controls(input: &InputModel, dt: f32, world: &mut World) {
         dir += vec2(0.0, 1.0);
     }
 
-    for (_, (control, _)) in world.query_mut::<(&mut KinematicControl, &PlayerTag)>() {
+    for (_, control) in world
+        .query_mut::<&mut KinematicControl>()
+        .with::<&PlayerTag>()
+    {
         control.dr = dir.normalize_or_zero() * dt * PLAYER_SPEED;
     }
 }

@@ -29,8 +29,12 @@ pub fn tick_smell(dt: f32, world: &mut World) {
 }
 
 pub fn player_step_smell(world: &mut World) {
-    let mut player_q = world.query::<(&Transform, &PlayerTag)>();
-    let (_, (player_tf, _)) = player_q.into_iter().next().unwrap();
+    let (_, player_tf) = world
+        .query_mut::<&Transform>()
+        .with::<&PlayerTag>()
+        .into_iter()
+        .next()
+        .unwrap();
     let player_pos = player_tf.pos;
 
     let mut storage_q = world.query::<&TileStorage>();
