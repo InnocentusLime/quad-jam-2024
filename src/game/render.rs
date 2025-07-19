@@ -51,7 +51,7 @@ pub fn tiles(render: &mut Render, world: &World) {
 }
 
 pub fn player(render: &mut Render, world: &World) {
-    for (_, (_, pos)) in &mut world.query::<(&PlayerTag, &Transform)>() {
+    for (_, pos) in &mut world.query::<&Transform>().with::<&PlayerTag>() {
         render.world.spawn((
             *pos,
             RectShape {
@@ -113,7 +113,7 @@ pub fn game_ui(render: &mut Render, world: &World) {
 }
 
 pub fn goal(render: &mut Render, world: &World) {
-    for (_, (pos, _)) in &mut world.query::<(&Transform, &GoalTag)>() {
+    for (_, pos) in &mut world.query::<&Transform>().with::<&GoalTag>() {
         render.world.spawn((
             *pos,
             Tint(GREEN),

@@ -76,9 +76,10 @@ fn init_level(world: &mut World, level_def: level::LevelDef) {
 
 fn decide_next_state(world: &mut World) -> Option<AppState> {
     let player_dead = world
-        .query_mut::<(&PlayerTag, &Health)>()
+        .query_mut::<&Health>()
+        .with::<&PlayerTag>()
         .into_iter()
-        .all(|(_, (_, hp))| hp.value <= 0);
+        .all(|(_, hp)| hp.value <= 0);
     let goal_achieved = world
         .query_mut::<&GoalTag>()
         .into_iter()
