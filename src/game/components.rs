@@ -45,8 +45,49 @@ impl DamageCooldown {
     }
 }
 
+#[derive(Default, Debug, Clone, Copy)]
+pub enum PlayerAction {
+    #[default]
+    None,
+    Move {
+        look_direction: Vec2,
+        walk_direction: Option<Vec2>,
+    },
+    Attack,
+}
+
 #[derive(Debug, Clone, Copy)]
-pub struct PlayerTag;
+pub enum PlayerState {
+    Idle {
+        look_direction: Vec2,
+    },
+    Walking {
+        look_direction: Vec2,
+        walk_direction: Vec2,
+    },
+    Attacking {
+        time_left: f32,
+        direction: Vec2,
+        attack_entity: Entity,
+    },
+}
+
+impl Default for PlayerState {
+    fn default() -> Self {
+        PlayerState::Idle {
+            look_direction: Vec2::from_angle(0.0),
+        }
+    }
+}
+
+#[derive(Default, Debug, Clone, Copy)]
+pub struct PlayerTag {
+    pub action: PlayerAction,
+    pub state: PlayerState,
+}
+
+#[derive(Default, Debug, Clone, Copy)]
+pub struct PlayerAttackTag;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TileType {

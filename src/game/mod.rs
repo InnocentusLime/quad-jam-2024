@@ -193,12 +193,14 @@ impl Game for Project {
         init_level(world, level);
     }
 
-    fn input_phase(&mut self, input: &lib_game::InputModel, dt: f32, world: &mut World) {
-        player::controls(input, dt, world);
+    fn input_phase(&mut self, input: &lib_game::InputModel, _dt: f32, world: &mut World) {
+        player::controls(input, world);
         if self.do_ai { /* No enemies yet */ }
     }
 
-    fn plan_physics_queries(&mut self, _dt: f32, _world: &mut World, _cmds: &mut CommandBuffer) {}
+    fn plan_physics_queries(&mut self, dt: f32, world: &mut World, cmds: &mut CommandBuffer) {
+        player::update(dt, world, cmds);
+    }
 
     fn update(
         &mut self,

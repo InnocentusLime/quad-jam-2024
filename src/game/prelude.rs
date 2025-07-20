@@ -8,7 +8,7 @@ pub mod col_group {
 
     pub const LEVEL: Group = Group::from_id(0);
     pub const PLAYER: Group = Group::from_id(1);
-    pub const HITTABLE: Group = Group::from_id(2);
+    pub const ENEMY: Group = Group::from_id(2);
 }
 
 pub mod col_query {
