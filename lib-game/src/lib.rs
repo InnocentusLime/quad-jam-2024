@@ -91,10 +91,16 @@ pub trait Game: 'static {
     /// Handle the user input. You also get the delta-time.
     fn input_phase(&mut self, input: &InputModel, dt: f32, world: &mut World);
 
+    /// Set up all physics queries. This can be considered as a sort of
+    /// pre-update phase.
+    /// This phase accepts a command buffer. The commands get executed right
+    /// after the this phase.
     fn plan_physics_queries(&mut self, dt: f32, world: &mut World, cmds: &mut CommandBuffer);
 
     /// Main update routine. You can request the App to transition
     /// into a new state by returning [Option::Some].
+    /// This phase accepts a command buffer. The commands get executed right
+    /// after the this phase.
     fn update(&mut self, dt: f32, world: &mut World, cmds: &mut CommandBuffer) -> Option<AppState>;
 
     /// Export the game world for rendering.
