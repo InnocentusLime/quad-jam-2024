@@ -1,5 +1,5 @@
 pub use super::components::*;
-pub use hecs::{Entity, World};
+pub use hecs::{CommandBuffer, Entity, World};
 pub use lib_game::*;
 pub use macroquad::prelude::*;
 

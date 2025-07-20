@@ -198,9 +198,14 @@ impl Game for Project {
         if self.do_ai { /* No enemies yet */ }
     }
 
-    fn plan_physics_queries(&mut self, _dt: f32, _world: &mut World) {}
+    fn plan_physics_queries(&mut self, _dt: f32, _world: &mut World, _cmds: &mut CommandBuffer) {}
 
-    fn update(&mut self, dt: f32, world: &mut World) -> Option<lib_game::AppState> {
+    fn update(
+        &mut self,
+        dt: f32,
+        world: &mut World,
+        _cmds: &mut CommandBuffer,
+    ) -> Option<lib_game::AppState> {
         tile::tick_smell(dt, world);
         tile::player_step_smell(world);
         goal::check(world);

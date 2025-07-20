@@ -1,6 +1,6 @@
 use glam::{vec2, Vec2};
 use hashbrown::HashSet;
-use hecs::{Entity, World};
+use hecs::*;
 use lib_game::*;
 use macroquad::prelude::*;
 use quad_col::*;
@@ -155,11 +155,16 @@ impl Game for CollisionTestGame {
         }
     }
 
-    fn plan_physics_queries(&mut self, _dt: f32, _world: &mut World) {
+    fn plan_physics_queries(&mut self, _dt: f32, _world: &mut World, _cmds: &mut CommandBuffer) {
         /* NOOP */
     }
 
-    fn update(&mut self, _dt: f32, world: &mut World) -> Option<AppState> {
+    fn update(
+        &mut self,
+        _dt: f32,
+        world: &mut World,
+        _cmds: &mut CommandBuffer,
+    ) -> Option<AppState> {
         self.collided.clear();
         self.solver.clear();
         self.colliders.clear();

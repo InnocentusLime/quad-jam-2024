@@ -14,7 +14,7 @@ pub use physics::*;
 pub use render::*;
 pub use sound_director::*;
 
-use hecs::World;
+use hecs::{CommandBuffer, World};
 use macroquad::prelude::*;
 
 use quad_dbg::*;
@@ -91,11 +91,11 @@ pub trait Game: 'static {
     /// Handle the user input. You also get the delta-time.
     fn input_phase(&mut self, input: &InputModel, dt: f32, world: &mut World);
 
-    fn plan_physics_queries(&mut self, dt: f32, world: &mut World);
+    fn plan_physics_queries(&mut self, dt: f32, world: &mut World, cmds: &mut CommandBuffer);
 
     /// Main update routine. You can request the App to transition
     /// into a new state by returning [Option::Some].
-    fn update(&mut self, dt: f32, world: &mut World) -> Option<AppState>;
+    fn update(&mut self, dt: f32, world: &mut World, cmds: &mut CommandBuffer) -> Option<AppState>;
 
     /// Export the game world for rendering.
     fn render_export(&self, state: &AppState, world: &World, render: &mut Render);
@@ -137,6 +137,7 @@ pub struct App {
     sound: SoundDirector,
     physics: PhysicsState,
     world: World,
+    cmds: CommandBuffer,
 
     draw_world: bool,
     freeze: bool,
@@ -157,6 +158,7 @@ impl App {
             sound: SoundDirector::new().await?,
             physics: PhysicsState::new(),
             world: World::new(),
+            cmds: CommandBuffer::new(),
 
             draw_world: true,
             freeze: false,
@@ -227,11 +229,13 @@ impl App {
         self.physics.import_positions_and_info(&mut self.world);
         self.physics.apply_kinematic_moves(&mut self.world);
 
-        game.plan_physics_queries(GAME_TICKRATE, &mut self.world);
+        game.plan_physics_queries(GAME_TICKRATE, &mut self.world, &mut self.cmds);
+        self.cmds.run_on(&mut self.world);
 
         self.physics.export_all_queries(&mut self.world);
 
-        let new_state = game.update(GAME_TICKRATE, &mut self.world);
+        let new_state = game.update(GAME_TICKRATE, &mut self.world, &mut self.cmds);
+        self.cmds.run_on(&mut self.world);
 
         self.world.flush();
 

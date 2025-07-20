@@ -190,11 +190,16 @@ impl Game for CollisionTestGame {
         }
     }
 
-    fn plan_physics_queries(&mut self, _dt: f32, _world: &mut World) {
+    fn plan_physics_queries(&mut self, _dt: f32, _world: &mut World, _cmds: &mut CommandBuffer) {
         /* NOOP */
     }
 
-    fn update(&mut self, _dt: f32, world: &mut World) -> Option<AppState> {
+    fn update(
+        &mut self,
+        _dt: f32,
+        world: &mut World,
+        _cmds: &mut CommandBuffer,
+    ) -> Option<AppState> {
         self.collided.clear();
         self.solver.clear();
         self.colliders.clear();
