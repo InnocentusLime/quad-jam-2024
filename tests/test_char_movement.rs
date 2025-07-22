@@ -1,4 +1,4 @@
-use glam::{vec2, Vec2};
+use glam::{Vec2, vec2};
 use hashbrown::HashSet;
 use hecs::*;
 use lib_game::*;
