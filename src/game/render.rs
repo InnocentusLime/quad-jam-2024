@@ -51,16 +51,29 @@ pub fn tiles(render: &mut Render, world: &World) {
 }
 
 pub fn player(render: &mut Render, world: &World) {
-    for (_, pos) in &mut world.query::<&Transform>().with::<&PlayerTag>() {
-        render.world.spawn((
-            *pos,
-            RectShape {
-                origin: vec2(0.5, 0.5),
-                width: 16.0,
-                height: 16.0,
-            },
-            Tint(PURPLE),
-        ));
+    for (_, (pos, hp)) in &mut world.query::<(&Transform, &Health)>().with::<&PlayerTag>() {
+        if hp.block_damage {
+            render.world.spawn((
+                *pos,
+                RectShape {
+                    origin: vec2(0.5, 0.5),
+                    width: 16.0,
+                    height: 16.0,
+                },
+                Tint(PURPLE),
+                Flicker,
+            ));
+        } else {
+            render.world.spawn((
+                *pos,
+                RectShape {
+                    origin: vec2(0.5, 0.5),
+                    width: 16.0,
+                    height: 16.0,
+                },
+                Tint(PURPLE),
+            ));
+        }
     }
 }
 
