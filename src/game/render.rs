@@ -64,6 +64,20 @@ pub fn player(render: &mut Render, world: &World) {
     }
 }
 
+pub fn player_attack(render: &mut Render, world: &World) {
+    for (_, pos) in &mut world.query::<&Transform>().with::<&PlayerAttackTag>() {
+        render.world.spawn((
+            *pos,
+            RectShape {
+                origin: vec2(0.5, 0.5),
+                width: 64.0,
+                height: 8.0,
+            },
+            Tint(RED),
+        ));
+    }
+}
+
 pub fn game_ui(render: &mut Render, world: &World) {
     let font_size = 32;
     let off_y = 32.0;

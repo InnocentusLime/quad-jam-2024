@@ -222,6 +222,7 @@ impl Game for Project {
         if app_state.is_presentable() {
             render::tiles(render, world);
             render::player(render, world);
+            render::player_attack(render, world);
             render::goal(render, world);
             render::game_ui(render, world);
         }
