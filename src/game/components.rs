@@ -4,12 +4,90 @@ use macroquad::prelude::*;
 #[derive(Debug, Clone, Copy)]
 pub struct PlayerScore(pub u32);
 
+/// [Health] component stores entity's health.
+/// Normally, to do damage, you should just put it into the `damage` field.
+/// `damage` is zeroed every frame and is substracted to `value`.
+/// When the `block_damage` flag is raised, `damage` is ignored this frame.
 #[derive(Debug, Clone, Copy)]
-#[repr(transparent)]
-pub struct Health(pub i32);
+pub struct Health {
+    pub value: i32,
+    pub damage: i32,
+    pub block_damage: bool,
+}
+
+impl Health {
+    pub fn new(value: i32) -> Self {
+        Self {
+            value,
+            damage: 0,
+            block_damage: false,
+        }
+    }
+}
+
+/// [DamageCooldown] enables cooldown on damage.
+/// When [Health] contains more than zero damage and the entity
+/// has [DamageCooldown] component, the game will raise the `block_damage`
+/// flag. It will remain raised for the duration of `max_value`.
+/// `remaining` is used to track the remaining invulnerability time.
+#[derive(Debug, Clone, Copy)]
+pub struct DamageCooldown {
+    pub remaining: f32,
+    pub max_value: f32,
+}
+
+impl DamageCooldown {
+    pub fn new(max_value: f32) -> Self {
+        Self {
+            max_value,
+            remaining: 0.0,
+        }
+    }
+}
+
+#[derive(Default, Debug, Clone, Copy)]
+pub enum PlayerAction {
+    #[default]
+    None,
+    Move {
+        look_direction: Vec2,
+        walk_direction: Option<Vec2>,
+    },
+    Attack,
+}
 
 #[derive(Debug, Clone, Copy)]
-pub struct PlayerTag;
+pub enum PlayerState {
+    Idle {
+        look_direction: Vec2,
+    },
+    Walking {
+        look_direction: Vec2,
+        walk_direction: Vec2,
+    },
+    Attacking {
+        time_left: f32,
+        direction: Vec2,
+        attack_entity: Entity,
+    },
+}
+
+impl Default for PlayerState {
+    fn default() -> Self {
+        PlayerState::Idle {
+            look_direction: Vec2::from_angle(0.0),
+        }
+    }
+}
+
+#[derive(Default, Debug, Clone, Copy)]
+pub struct PlayerTag {
+    pub action: PlayerAction,
+    pub state: PlayerState,
+}
+
+#[derive(Default, Debug, Clone, Copy)]
+pub struct PlayerAttackTag;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TileType {

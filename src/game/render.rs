@@ -51,15 +51,42 @@ pub fn tiles(render: &mut Render, world: &World) {
 }
 
 pub fn player(render: &mut Render, world: &World) {
-    for (_, (_, pos)) in &mut world.query::<(&PlayerTag, &Transform)>() {
+    for (_, (pos, hp)) in &mut world.query::<(&Transform, &Health)>().with::<&PlayerTag>() {
+        if hp.block_damage {
+            render.world.spawn((
+                *pos,
+                RectShape {
+                    origin: vec2(0.5, 0.5),
+                    width: 16.0,
+                    height: 16.0,
+                },
+                Tint(PURPLE),
+                Flicker,
+            ));
+        } else {
+            render.world.spawn((
+                *pos,
+                RectShape {
+                    origin: vec2(0.5, 0.5),
+                    width: 16.0,
+                    height: 16.0,
+                },
+                Tint(PURPLE),
+            ));
+        }
+    }
+}
+
+pub fn player_attack(render: &mut Render, world: &World) {
+    for (_, pos) in &mut world.query::<&Transform>().with::<&PlayerAttackTag>() {
         render.world.spawn((
             *pos,
             RectShape {
                 origin: vec2(0.5, 0.5),
-                width: 16.0,
-                height: 16.0,
+                width: 64.0,
+                height: 8.0,
             },
-            Tint(PURPLE),
+            Tint(RED),
         ));
     }
 }
@@ -71,7 +98,7 @@ pub fn game_ui(render: &mut Render, world: &World) {
 
     let mut player_q = world.query::<(&PlayerScore, &Health)>();
     let (_, (score, player_health)) = player_q.into_iter().next().unwrap();
-    let (game_state, game_state_color) = if player_health.0 <= 0 {
+    let (game_state, game_state_color) = if player_health.value <= 0 {
         ("You are dead", RED)
     } else {
         ("", BLANK)
@@ -91,7 +118,7 @@ pub fn game_ui(render: &mut Render, world: &World) {
     render.world.spawn((
         GlyphText {
             font: FontKey("oegnek"),
-            string: Cow::Owned(format!("Health:{}", player_health.0)),
+            string: Cow::Owned(format!("Health:{}", player_health.value)),
             font_size,
             font_scale: 1.0,
             font_scale_aspect: 1.0,
@@ -113,7 +140,7 @@ pub fn game_ui(render: &mut Render, world: &World) {
 }
 
 pub fn goal(render: &mut Render, world: &World) {
-    for (_, (pos, _)) in &mut world.query::<(&Transform, &GoalTag)>() {
+    for (_, pos) in &mut world.query::<&Transform>().with::<&GoalTag>() {
         render.world.spawn((
             *pos,
             Tint(GREEN),

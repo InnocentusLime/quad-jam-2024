@@ -1,5 +1,7 @@
 mod components;
+mod damager;
 mod goal;
+mod health;
 mod level;
 mod player;
 mod prelude;
@@ -67,15 +69,17 @@ fn init_level(world: &mut World, level_def: level::LevelDef) {
         match entity {
             level::EntityDef::Player(pos) => player::spawn(world, pos),
             level::EntityDef::Goal(pos) => goal::spawn(world, pos),
+            level::EntityDef::Damager(pos) => damager::spawn(world, pos),
         }
     }
 }
 
 fn decide_next_state(world: &mut World) -> Option<AppState> {
     let player_dead = world
-        .query_mut::<(&PlayerTag, &Health)>()
+        .query_mut::<&Health>()
+        .with::<&PlayerTag>()
         .into_iter()
-        .all(|(_, (_, hp))| hp.0 <= 0);
+        .all(|(_, hp)| hp.value <= 0);
     let goal_achieved = world
         .query_mut::<&GoalTag>()
         .into_iter()
@@ -189,17 +193,27 @@ impl Game for Project {
         init_level(world, level);
     }
 
-    fn input_phase(&mut self, input: &lib_game::InputModel, dt: f32, world: &mut World) {
-        player::controls(input, dt, world);
+    fn input_phase(&mut self, input: &lib_game::InputModel, _dt: f32, world: &mut World) {
+        player::controls(input, world);
         if self.do_ai { /* No enemies yet */ }
     }
 
-    fn plan_physics_queries(&mut self, _dt: f32, _world: &mut World) {}
+    fn plan_physics_queries(&mut self, dt: f32, world: &mut World, cmds: &mut CommandBuffer) {
+        player::update(dt, world, cmds);
+    }
 
-    fn update(&mut self, dt: f32, world: &mut World) -> Option<lib_game::AppState> {
+    fn update(
+        &mut self,
+        dt: f32,
+        world: &mut World,
+        _cmds: &mut CommandBuffer,
+    ) -> Option<lib_game::AppState> {
         tile::tick_smell(dt, world);
         tile::player_step_smell(world);
         goal::check(world);
+        health::collect_damage(world);
+        health::update_cooldown(dt, world);
+        health::apply_damage(world);
 
         decide_next_state(world)
     }
@@ -208,6 +222,7 @@ impl Game for Project {
         if app_state.is_presentable() {
             render::tiles(render, world);
             render::player(render, world);
+            render::player_attack(render, world);
             render::goal(render, world);
             render::game_ui(render, world);
         }

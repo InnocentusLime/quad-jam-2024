@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 pub enum EntityDef {
     Player(Vec2),
     Goal(Vec2),
+    Damager(Vec2),
 }
 
 #[derive(Debug, Serialize, Deserialize)]
