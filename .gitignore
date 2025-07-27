@@ -2,3 +2,4 @@
 /static/game.wasm
 /static/assets/
 */test-out.png
+tiled_project/*.tiled-session
