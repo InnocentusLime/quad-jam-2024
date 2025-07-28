@@ -1,7 +1,6 @@
 use super::prelude::*;
 
 use std::borrow::Cow;
-// use macroquad_particles::{self as particles, BlendMode, ColorCurve, EmitterConfig};
 
 static WIN_TEXT: &'static str = "Congratulations!";
 static GAMEOVER_TEXT: &'static str = "Game Over";
@@ -218,77 +217,3 @@ fn game_continue_hint() -> &'static str {
         CONTINUE_HINT_DESK
     }
 }
-
-// fn trail() -> particles::EmitterConfig {
-//     particles::EmitterConfig {
-//         emitting: true,
-//         lifetime: 1.2,
-//         lifetime_randomness: 0.7,
-//         explosiveness: 0.01,
-//         amount: 15,
-//         initial_direction_spread: 0.4 * std::f32::consts::PI,
-//         initial_velocity: 100.0,
-//         size: 1.0,
-//         gravity: vec2(0.0, 1000.0),
-//         blend_mode: BlendMode::Alpha,
-//         emission_shape: macroquad_particles::EmissionShape::Sphere { radius: BALL_RADIUS },
-//         colors_curve: ColorCurve {
-//             start: Color::from_hex(0xDDFBFF),
-//             mid: BLANK,
-//             end: BLANK,
-//         },
-//         ..Default::default()
-//     }
-// }
-
-// fn explosion() -> particles::EmitterConfig {
-//     particles::EmitterConfig {
-//         one_shot: true,
-//         emitting: false,
-//         lifetime: 0.3,
-//         lifetime_randomness: 0.7,
-//         explosiveness: 0.99,
-//         amount: 30,
-//         initial_direction_spread: 2.0 * std::f32::consts::PI,
-//         initial_velocity: 200.0,
-//         size: 1.5,
-//         gravity: vec2(0.0, 1000.0),
-//         blend_mode: BlendMode::Alpha,
-//         emission_shape: macroquad_particles::EmissionShape::Rect {
-//             width: BOX_WIDTH,
-//             height: BOX_HEIGHT,
-//         },
-//         colors_curve: ColorCurve {
-//             start: Color::from_hex(0x333354),
-//             mid: Color::from_hex(0x333354),
-//             end: BLACK,
-//         },
-//         ..Default::default()
-//     }
-// }
-
-// fn ball_explosion() -> particles::EmitterConfig {
-//     particles::EmitterConfig {
-//         one_shot: true,
-//         emitting: false,
-//         lifetime: 1.0,
-//         lifetime_randomness: 0.7,
-//         explosiveness: 0.99,
-//         amount: 10,
-//         initial_direction_spread: 2.0 * std::f32::consts::PI,
-//         initial_velocity: 100.0,
-//         size: 20.0,
-//         gravity: vec2(0.0, -1000.0),
-//         blend_mode: BlendMode::Alpha,
-//         emission_shape: macroquad_particles::EmissionShape::Sphere { radius: BALL_RADIUS * 4.0 },
-//         initial_angular_velocity: 5.0,
-//         angular_accel: 0.0,
-//         angular_damping: 0.01,
-//         colors_curve: ColorCurve {
-//             start: Color::from_hex(0xDDFBFF),
-//             mid: Color { r: 1.0, g: 0.0, b: 0.0, a: 0.0, },
-//             end: BLANK,
-//         },
-//         ..Default::default()
-//     }
-// }
