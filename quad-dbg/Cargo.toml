@@ -6,4 +6,3 @@ edition = "2024"
 [dependencies]
 log = { workspace = true }
 macroquad = { workspace = true }
-macroquad-particles = { workspace = true }

@@ -676,14 +676,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "macroquad-particles"
-version = "0.2.2"
-source = "git+https://github.com/InnocentusLime/macroquad.git?rev=6a61f666749871179e616c7dd5b5117fcb94616c#6a61f666749871179e616c7dd5b5117fcb94616c"
-dependencies = [
- "macroquad",
-]
-
-[[package]]
 name = "macroquad_macro"
 version = "0.1.8"
 source = "git+https://github.com/InnocentusLime/macroquad.git?rev=6a61f666749871179e616c7dd5b5117fcb94616c#6a61f666749871179e616c7dd5b5117fcb94616c"
@@ -1016,7 +1008,6 @@ version = "0.1.0"
 dependencies = [
  "log",
  "macroquad",
- "macroquad-particles",
 ]
 
 [[package]]
@@ -1030,7 +1021,6 @@ dependencies = [
  "lib-game",
  "log",
  "macroquad",
- "macroquad-particles",
  "quad-col",
  "quad-dbg",
  "ron",
