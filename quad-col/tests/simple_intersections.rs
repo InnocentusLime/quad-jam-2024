@@ -1,6 +1,6 @@
 mod common;
 
-use common::{TestCase, draw_shape, run_tests};
+use common::{FuzzableTestCase, TestCase, draw_shape, run_tests};
 use glam::{Affine2, Vec2, vec2};
 use imageproc::image;
 
@@ -21,14 +21,6 @@ impl TestCase for TwoShapesTest {
         self.name
     }
 
-    fn transform(self, tf: Affine2) -> Self {
-        TwoShapesTest {
-            tf1: tf * self.tf1,
-            tf2: tf * self.tf2,
-            ..self
-        }
-    }
-
     fn check(&self) -> bool {
         let res = !Shape::is_separated(&self.shape1, &self.shape2, self.tf1, self.tf2);
         if res != self.expected_result {
@@ -42,6 +34,16 @@ impl TestCase for TwoShapesTest {
     fn draw(&self, canvas: &mut image::RgbImage) {
         draw_shape(canvas, image::Rgb([255, 0, 0]), self.shape1, self.tf1);
         draw_shape(canvas, image::Rgb([0, 255, 0]), self.shape2, self.tf2);
+    }
+}
+
+impl FuzzableTestCase for TwoShapesTest {
+    fn transform(self, tf: Affine2) -> Self {
+        TwoShapesTest {
+            tf1: tf * self.tf1,
+            tf2: tf * self.tf2,
+            ..self
+        }
     }
 }
 

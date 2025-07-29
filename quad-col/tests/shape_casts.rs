@@ -1,6 +1,6 @@
 mod common;
 
-use common::{TestCase, draw_shape, draw_vector, run_tests};
+use common::{FuzzableTestCase, TestCase, draw_shape, draw_vector, run_tests};
 use glam::{Affine2, Vec2, vec2};
 use quad_col::{SHAPE_TOI_EPSILON, Shape, conv};
 
@@ -21,18 +21,6 @@ struct ShapeCastTest {
 impl TestCase for ShapeCastTest {
     fn name(&self) -> &'static str {
         self.name
-    }
-
-    fn transform(self, tf: Affine2) -> Self {
-        ShapeCastTest {
-            tf1: tf * self.tf1,
-            tf2: tf * self.tf2,
-            cast_dir: tf.transform_vector2(self.cast_dir),
-            toi_estimate: self
-                .toi_estimate
-                .map(|(toi, normal)| (toi, tf.transform_vector2(normal))),
-            ..self
-        }
     }
 
     fn check(&self) -> bool {
@@ -85,6 +73,20 @@ impl TestCase for ShapeCastTest {
                 ..self.tf1
             };
             draw_shape(canvas, image::Rgb([255, 255, 0]), self.shape1, impact_tf);
+        }
+    }
+}
+
+impl FuzzableTestCase for ShapeCastTest {
+    fn transform(self, tf: Affine2) -> Self {
+        ShapeCastTest {
+            tf1: tf * self.tf1,
+            tf2: tf * self.tf2,
+            cast_dir: tf.transform_vector2(self.cast_dir),
+            toi_estimate: self
+                .toi_estimate
+                .map(|(toi, normal)| (toi, tf.transform_vector2(normal))),
+            ..self
         }
     }
 }
