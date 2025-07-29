@@ -8,7 +8,7 @@ pub fn spawn(world: &mut World, pos: Vec2) {
                 width: 32.0,
                 height: 32.0,
             },
-            col_group::ENEMY,
+            col_group::DAMAGABLE,
             col_group::NONE,
         ),
     ));
