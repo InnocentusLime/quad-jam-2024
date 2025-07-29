@@ -31,7 +31,7 @@ strip = true  # Strip all debugging information from the binary to reduce file s
 panic = "abort"
 
 [workspace]
-members = [ "lib-game", "quad-col", "quad-dbg" ]
+members = [ "lib-game", "lib-level", "quad-col", "quad-dbg" ]
 
 [workspace.dependencies]
 hecs = "0.10.5"
