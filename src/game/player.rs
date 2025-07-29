@@ -14,7 +14,7 @@ pub fn spawn(world: &mut World, pos: Vec2) {
         DamageCooldown::new(PLAYER_HIT_COOLDOWN),
         KinematicControl::new(col_group::LEVEL),
         BodyTag {
-            groups: col_group::PLAYER,
+            groups: col_group::PLAYER.union(col_group::DAMAGABLE),
             shape: Shape::Rect {
                 width: PLAYER_SIZE,
                 height: PLAYER_SIZE,
@@ -188,8 +188,8 @@ fn spawn_attack(
                 width: 64.0,
                 height: 8.0,
             },
+            col_group::DAMAGABLE,
             col_group::ENEMY,
-            col_group::NONE,
             5,
         ),
         PlayerAttackTag,
