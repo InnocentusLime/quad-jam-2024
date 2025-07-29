@@ -198,7 +198,7 @@ impl Game for Project {
         if self.do_ai { /* No enemies yet */ }
     }
 
-    fn plan_physics_queries(&mut self, dt: f32, world: &mut World, cmds: &mut CommandBuffer) {
+    fn plan_collision_queries(&mut self, dt: f32, world: &mut World, cmds: &mut CommandBuffer) {
         player::update(dt, world, cmds);
     }
 

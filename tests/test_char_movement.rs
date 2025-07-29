@@ -190,7 +190,7 @@ impl Game for CollisionTestGame {
         }
     }
 
-    fn plan_physics_queries(&mut self, _dt: f32, _world: &mut World, _cmds: &mut CommandBuffer) {
+    fn plan_collision_queries(&mut self, _dt: f32, _world: &mut World, _cmds: &mut CommandBuffer) {
         /* NOOP */
     }
 

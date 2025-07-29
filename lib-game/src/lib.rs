@@ -1,16 +1,16 @@
+mod collisions;
 mod components;
 mod dbg;
 mod input;
-mod physics;
 mod render;
 mod sound_director;
 
 pub mod sys;
 
+pub use collisions::*;
 pub use components::*;
 use dbg::DebugStuff;
 pub use input::*;
-pub use physics::*;
 pub use render::*;
 pub use sound_director::*;
 
@@ -95,7 +95,7 @@ pub trait Game: 'static {
     /// pre-update phase.
     /// This phase accepts a command buffer. The commands get executed right
     /// after the this phase.
-    fn plan_physics_queries(&mut self, dt: f32, world: &mut World, cmds: &mut CommandBuffer);
+    fn plan_collision_queries(&mut self, dt: f32, world: &mut World, cmds: &mut CommandBuffer);
 
     /// Main update routine. You can request the App to transition
     /// into a new state by returning [Option::Some].
@@ -235,7 +235,7 @@ impl App {
         self.physics.import_positions_and_info(&mut self.world);
         self.physics.apply_kinematic_moves(&mut self.world);
 
-        game.plan_physics_queries(GAME_TICKRATE, &mut self.world, &mut self.cmds);
+        game.plan_collision_queries(GAME_TICKRATE, &mut self.world, &mut self.cmds);
         self.cmds.run_on(&mut self.world);
 
         self.physics.export_all_queries(&mut self.world);
