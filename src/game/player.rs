@@ -183,14 +183,14 @@ fn spawn_attack(
             pos: 32.0 * attack_direction + tf.pos,
             angle: attack_direction.to_angle(),
         },
-        col_query::Damage {
-            group: col_group::ENEMY,
-            collision_list: CollisionList::many(5),
-            collider: Shape::Rect {
+        col_query::Damage::new_many(
+            Shape::Rect {
                 width: 64.0,
                 height: 8.0,
             },
-        },
+            col_group::ENEMY,
+            5,
+        ),
         PlayerAttackTag,
     );
     cmds.insert(damage_entity, components);
