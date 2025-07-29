@@ -31,6 +31,32 @@ static CIRCLE_MATRIX: [Collider; CIRCLE_COUNT] = [
         group: Group::from_id(2),
     },
 ];
+static CIRCLE_MATRIX_HARD: [Collider; CIRCLE_COUNT] = [
+    Collider {
+        shape: CIRCLE,
+        tf: Affine2 {
+            translation: vec2(0.0, 1.5),
+            matrix2: Mat2::IDENTITY,
+        },
+        group: Group::from_id(1).union(Group::from_id(2)),
+    },
+    Collider {
+        shape: CIRCLE,
+        tf: Affine2 {
+            translation: vec2(1.0, -1.0),
+            matrix2: Mat2::IDENTITY,
+        },
+        group: Group::from_id(0).union(Group::from_id(2)),
+    },
+    Collider {
+        shape: CIRCLE,
+        tf: Affine2 {
+            translation: vec2(-1.0, -1.0),
+            matrix2: Mat2::IDENTITY,
+        },
+        group: Group::from_id(0).union(Group::from_id(1)),
+    },
+];
 static QUERY_MATRIX: [Collider; CIRCLE_COUNT] = [
     Collider {
         group: Group::from_id(1).union(Group::from_id(2)),
@@ -44,6 +70,11 @@ static QUERY_MATRIX: [Collider; CIRCLE_COUNT] = [
         group: Group::from_id(0).union(Group::from_id(1)),
         ..CIRCLE_MATRIX[2]
     },
+];
+static FILTER_MATRIX: [Group; CIRCLE_COUNT] = [
+    Group::from_id(1).union(Group::from_id(2)),
+    Group::from_id(0).union(Group::from_id(2)),
+    Group::from_id(0).union(Group::from_id(1)),
 ];
 
 #[repr(transparent)]
@@ -99,6 +130,38 @@ fn test_world_simple() {
         let expected = &expected[idx];
         let (got_ent, _) = solver
             .query_overlaps(query, Group::empty())
+            .map(|(e, c)| (*e, *c))
+            .collect::<(HashSet<_>, Vec<_>)>();
+        assert_eq!(&got_ent, expected);
+    }
+}
+
+#[test]
+fn test_world_with_filters() {
+    let mut world = World::new();
+    let spawned = CIRCLE_MATRIX_HARD
+        .into_iter()
+        .map(ColliderComponent)
+        .map(|c| world.spawn((c,)))
+        .collect::<Vec<_>>();
+    let expected = [
+        HashSet::from_iter([spawned[0]]),
+        HashSet::from_iter([spawned[1]]),
+        HashSet::from_iter([spawned[2]]),
+    ];
+    assert_eq!(expected.len(), CIRCLE_COUNT);
+    let mut solver = CollisionSolver::new();
+    let it = world.query_mut::<&ColliderComponent>();
+    solver.fill(
+        it.into_iter()
+            .map(|(entity, component)| (entity, component.0)),
+    );
+
+    for (idx, query) in QUERY_MATRIX.into_iter().enumerate() {
+        let filter = FILTER_MATRIX[idx];
+        let expected = &expected[idx];
+        let (got_ent, _) = solver
+            .query_overlaps(query, filter)
             .map(|(e, c)| (*e, *c))
             .collect::<(HashSet<_>, Vec<_>)>();
         assert_eq!(&got_ent, expected);
