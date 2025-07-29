@@ -611,7 +611,7 @@ dependencies = [
 
 [[package]]
 name = "lib-game"
-version = "0.8.0"
+version = "0.9.0"
 dependencies = [
  "anyhow",
  "hashbrown 0.14.5",
@@ -992,7 +992,7 @@ dependencies = [
 
 [[package]]
 name = "quad-col"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "glam",
  "hashbrown 0.14.5",
@@ -1012,7 +1012,7 @@ dependencies = [
 
 [[package]]
 name = "quad-jam-2024"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "anyhow",
  "glam",
