@@ -50,9 +50,17 @@ impl Extend<Entity> for CollisionList {
 
 #[derive(Clone, Debug)]
 pub struct CollisionQuery<const ID: usize> {
-    /// The collision filter. Setting it to an empty group
-    /// will make the collision engine skip this query.
+    /// The group membership.
+    /// The engine will pick all entities with
+    /// their group intersecting with this field.
+    ///
+    /// Setting it to an empty group will make the
+    /// collision engine skip this query.
     pub group: Group,
+    /// The group filter.
+    /// The engine will pick all entities inside
+    /// that group.
+    pub filter: Group,
     /// The buffer to put the collisions into.
     pub collision_list: CollisionList,
     /// The collider to use for the check.
@@ -60,18 +68,20 @@ pub struct CollisionQuery<const ID: usize> {
 }
 
 impl<const ID: usize> CollisionQuery<ID> {
-    pub fn new_one(collider: Shape, group: Group) -> Self {
+    pub fn new_one(collider: Shape, group: Group, filter: Group) -> Self {
         Self {
             collider,
             group,
+            filter,
             collision_list: CollisionList::one(),
         }
     }
 
-    pub fn new_many(collider: Shape, group: Group, capacity: usize) -> Self {
+    pub fn new_many(collider: Shape, group: Group, filter: Group, capacity: usize) -> Self {
         Self {
             collider,
             group,
+            filter,
             collision_list: CollisionList::many(capacity),
         }
     }

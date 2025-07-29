@@ -189,6 +189,7 @@ fn spawn_attack(
                 height: 8.0,
             },
             col_group::ENEMY,
+            col_group::NONE,
             5,
         ),
         PlayerAttackTag,

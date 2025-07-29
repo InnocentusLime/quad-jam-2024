@@ -6,6 +6,7 @@ pub use macroquad::prelude::*;
 pub mod col_group {
     use quad_col::Group;
 
+    pub const NONE: Group = Group::empty();
     pub const LEVEL: Group = Group::from_id(0);
     pub const PLAYER: Group = Group::from_id(1);
     pub const ENEMY: Group = Group::from_id(2);

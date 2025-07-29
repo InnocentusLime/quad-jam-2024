@@ -31,6 +31,10 @@ impl Collider {
 
         !self.shape.is_separated(&other.shape, self.tf, other.tf)
     }
+
+    pub fn satisfies_filter(&self, filter: Group) -> bool {
+        self.group.includes(filter)
+    }
 }
 
 struct GroupRefs(Vec<(Entity, Collider)>, Group);
@@ -65,11 +69,16 @@ impl CollisionSolver {
         }
     }
 
-    pub fn query_overlaps(&self, query: Collider) -> impl Iterator<Item = &'_ (Entity, Collider)> {
+    pub fn query_overlaps(
+        &self,
+        query: Collider,
+        filter: Group,
+    ) -> impl Iterator<Item = &'_ (Entity, Collider)> {
         self.groups
             .iter()
             .filter(move |group| query.group.includes(group.1))
             .flat_map(|group| group.0.iter())
+            .filter(move |(_, col)| col.satisfies_filter(filter))
             .filter(move |(_, col)| col.collides(&query))
     }
 
