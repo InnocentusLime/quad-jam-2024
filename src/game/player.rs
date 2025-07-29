@@ -190,7 +190,6 @@ fn spawn_attack(
                 width: 64.0,
                 height: 8.0,
             },
-            extra_tf: Transform::from_pos(vec2(0.0, 0.0)),
         },
         PlayerAttackTag,
     );

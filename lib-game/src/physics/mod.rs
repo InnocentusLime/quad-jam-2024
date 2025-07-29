@@ -92,7 +92,7 @@ fn process_character_movement(
 }
 
 fn get_query_collider<const ID: usize>(tf: &Transform, query: &CollisionQuery<ID>) -> Collider {
-    let shape_pos = world_tf_to_phys(*tf) * world_tf_to_phys(query.extra_tf);
+    let shape_pos = world_tf_to_phys(*tf);
     Collider {
         tf: shape_pos,
         shape: query.collider,
