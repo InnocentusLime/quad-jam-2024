@@ -1,5 +1,5 @@
+use crate::collisions::*;
 use crate::components::*;
-use crate::physics::*;
 
 use hecs::World;
 
