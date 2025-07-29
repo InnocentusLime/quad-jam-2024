@@ -13,9 +13,6 @@ pub trait TestCase: Copy {
     /// The name of the test to use in the test report.
     fn name(&self) -> &'static str;
 
-    /// Apply the transform on the test.
-    fn transform(self, tf: Affine2) -> Self;
-
     /// Run the test and return success of failure.
     /// If you have a super helpful problem to report that
     /// the calling code can't see -- print it to stdout.
@@ -25,7 +22,24 @@ pub trait TestCase: Copy {
     fn draw(&self, canvas: &mut image::RgbImage);
 }
 
-pub fn run_tests<T: TestCase>(tests: impl IntoIterator<Item = T>) {
+pub trait FuzzableTestCase: TestCase + Copy {
+    /// Apply the transform on the test.
+    fn transform(self, tf: Affine2) -> Self;
+}
+
+#[allow(dead_code)]
+pub fn run_tests_no_fuzz<T: TestCase>(tests: impl IntoIterator<Item = T>) {
+    for case in tests.into_iter() {
+        println!("Running {:?}", case.name());
+        if !case.check() {
+            draw_test(&case);
+            panic!("Test {:?} failed. Visual aid dumped.", case.name());
+        }
+    }
+}
+
+#[allow(dead_code)]
+pub fn run_tests<T: FuzzableTestCase>(tests: impl IntoIterator<Item = T>) {
     let extended = tests.into_iter().flat_map(transform_test);
     for case in extended {
         println!("Running {:?}", case.name());
@@ -38,7 +52,7 @@ pub fn run_tests<T: TestCase>(tests: impl IntoIterator<Item = T>) {
 
 /// Generates a few copies of the same test, but applies a random transform
 /// to each one.
-fn transform_test<T: TestCase>(case: T) -> impl IntoIterator<Item = T> {
+fn transform_test<T: FuzzableTestCase>(case: T) -> impl IntoIterator<Item = T> {
     let original_case = case;
     let cases = std::iter::repeat_n(case, TRANSFORM_COUNT).map(|case| {
         let (translation, angle) = random_translation_and_angle();
