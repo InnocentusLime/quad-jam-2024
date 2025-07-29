@@ -1,8 +1,6 @@
 use hecs::Entity;
 use macroquad::prelude::*;
 
-use crate::Transform;
-
 pub use quad_col::{Group, Shape};
 
 pub const MAX_COLLISION_QUERIES: usize = 8;
@@ -59,9 +57,6 @@ pub struct CollisionQuery<const ID: usize> {
     pub collision_list: CollisionList,
     /// The collider to use for the check.
     pub collider: Shape,
-    /// Extra transform for the query. Gets applied before
-    /// the transform of the containing entity: `entity_tf * extra_tf`.
-    pub extra_tf: Transform,
 }
 
 impl<const ID: usize> CollisionQuery<ID> {
@@ -70,7 +65,6 @@ impl<const ID: usize> CollisionQuery<ID> {
             collider,
             group,
             collision_list: CollisionList::one(),
-            extra_tf: Transform::IDENTITY,
         }
     }
 
@@ -79,7 +73,6 @@ impl<const ID: usize> CollisionQuery<ID> {
             collider,
             group,
             collision_list: CollisionList::many(capacity),
-            extra_tf: Transform::IDENTITY,
         }
     }
 
