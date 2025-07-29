@@ -228,8 +228,11 @@ impl Game for CollisionTestGame {
 
         for (_, (_, tf, info)) in world.query_mut::<(&ControlTag, &Transform, &EntityCollision)>() {
             let query = get_entity_collider(tf, info);
-            self.collided
-                .extend(self.solver.query_overlaps(query).map(|(ent, _)| *ent));
+            self.collided.extend(
+                self.solver
+                    .query_overlaps(query, Group::empty())
+                    .map(|(ent, _)| *ent),
+            );
         }
 
         None

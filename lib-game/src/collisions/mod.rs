@@ -50,9 +50,11 @@ impl PhysicsState {
         for (_, (tf, query)) in &mut world.query::<(&Transform, &mut CollisionQuery<ID>)>() {
             let query_collider = get_query_collider(tf, query);
             query.collision_list.clear();
-            query
-                .collision_list
-                .extend(self.solver.query_overlaps(query_collider).map(|(e, _)| *e));
+            query.collision_list.extend(
+                self.solver
+                    .query_overlaps(query_collider, query.filter)
+                    .map(|(e, _)| *e),
+            );
         }
     }
 

@@ -10,6 +10,7 @@ pub fn spawn(world: &mut World, pos: Vec2) {
                 height: 16.0,
             },
             col_group::PLAYER,
+            col_group::NONE,
         ),
     ));
 }

@@ -62,11 +62,14 @@ fn test_world_empty() {
             .map(|(entity, component)| (entity, component.0)),
     );
     let overlaps = solver
-        .query_overlaps(Collider {
-            tf: Affine2::IDENTITY,
-            shape: Shape::Circle { radius: 64.0 },
-            group: Group::empty(),
-        })
+        .query_overlaps(
+            Collider {
+                tf: Affine2::IDENTITY,
+                shape: Shape::Circle { radius: 64.0 },
+                group: Group::empty(),
+            },
+            Group::empty(),
+        )
         .collect::<Vec<_>>();
     assert!(overlaps.is_empty())
 }
@@ -95,7 +98,7 @@ fn test_world_simple() {
     for (idx, query) in QUERY_MATRIX.into_iter().enumerate() {
         let expected = &expected[idx];
         let (got_ent, _) = solver
-            .query_overlaps(query)
+            .query_overlaps(query, Group::empty())
             .map(|(e, c)| (*e, *c))
             .collect::<(HashSet<_>, Vec<_>)>();
         assert_eq!(&got_ent, expected);
