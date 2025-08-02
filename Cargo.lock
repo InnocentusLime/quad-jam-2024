@@ -431,6 +431,7 @@ checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
 dependencies = [
  "ahash",
  "allocator-api2",
+ "serde",
 ]
 
 [[package]]
@@ -626,6 +627,13 @@ dependencies = [
 [[package]]
 name = "lib-level"
 version = "0.1.0"
+dependencies = [
+ "hashbrown 0.14.5",
+ "log",
+ "serde",
+ "thiserror",
+ "tiled",
+]
 
 [[package]]
 name = "libc"
@@ -1402,6 +1410,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "tiled"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "963ef63fa3552ead705617d9f42de2b076c48a15f780e4d1c95dd52e9362a700"
+dependencies = [
+ "base64",
+ "flate2",
+ "xml-rs",
+]
+
+[[package]]
 name = "toml"
 version = "0.8.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1610,6 +1629,12 @@ checksum = "6f42320e61fe2cfd34354ecb597f86f413484a798ba44a8ca1165c58d42da6c1"
 dependencies = [
  "bitflags 2.9.1",
 ]
+
+[[package]]
+name = "xml-rs"
+version = "0.8.27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6fd8403733700263c6eb89f192880191f1b83e332f7a20371ddcf421c4a337c7"
 
 [[package]]
 name = "zerocopy"
