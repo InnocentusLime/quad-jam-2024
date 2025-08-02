@@ -4,3 +4,10 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+log = { workspace = true }
+hashbrown = { workspace = true, features = ["serde"] }
+serde = { version = "1", features = ["derive"] }
+# TODO: desktop (dev-only) dependencies
+tiled = { version = "0.14.0", default-features = false, features = [] }
+thiserror = "2"
+postcard = "1"
