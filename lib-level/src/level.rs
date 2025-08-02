@@ -23,6 +23,8 @@
 //! * All data-containing enums must be internally tagged
 //! * If there are shorter, easier to grasp variant names than the ones
 //!   used in code -- use `serde(rename)`
+//! * Less nesting! If the code really need some nested types,
+//!   consider using `#[serde(flatten)]`
 //!
 //! ## Convergence
 //! All level data should leave in a single type.
