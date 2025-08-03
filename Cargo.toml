@@ -9,8 +9,8 @@ hecs = { workspace = true }
 log = { workspace = true }
 macroquad = { workspace = true }
 quad-dbg = { path = "./quad-dbg" }
+lib-level = { path = "./lib-level" }
 lib-game = { path = "./lib-game" }
-ron = "0.10.1"
 serde = { version = "1", features = ["derive"] }
 glam = { workspace = true }
 quad-col = { path = "./quad-col"}
