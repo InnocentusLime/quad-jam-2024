@@ -2,7 +2,6 @@ mod components;
 mod damager;
 mod goal;
 mod health;
-mod level;
 mod player;
 mod prelude;
 mod render;
@@ -53,23 +52,33 @@ fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut Wor
     world.spawn((storage,))
 }
 
-fn init_level(world: &mut World, level_def: level::LevelDef) {
+fn init_level(world: &mut World, level_def: lib_level::LevelDef) {
     let tile_data = level_def
         .map
-        .tiles
+        .tilemap
         .into_iter()
-        .map(|x: level::TileDef| match x {
-            level::TileDef::Wall => TileType::Wall,
-            level::TileDef::Ground => TileType::Ground,
+        .map(|idx| level_def.map.tiles[&idx])
+        .map(|tile| match tile.ty {
+            lib_level::TileTy::Ground => TileType::Ground,
+            lib_level::TileTy::Wall => TileType::Wall,
         })
         .collect::<Vec<_>>();
 
-    spawn_tiles(level_def.map.width, level_def.map.height, tile_data, world);
+    spawn_tiles(
+        level_def.map.width as usize,
+        level_def.map.height as usize,
+        tile_data,
+        world,
+    );
     for entity in level_def.entities {
-        match entity {
-            level::EntityDef::Player(pos) => player::spawn(world, pos),
-            level::EntityDef::Goal(pos) => goal::spawn(world, pos),
-            level::EntityDef::Damager(pos) => damager::spawn(world, pos),
+        let pos = vec2(
+            entity.tf.pos.x * 2.0 + entity.width,
+            entity.tf.pos.y * 2.0 + entity.height,
+        );
+        match entity.info {
+            lib_level::EntityInfo::Player {} => player::spawn(world, pos),
+            lib_level::EntityInfo::Goal {} => goal::spawn(world, pos),
+            lib_level::EntityInfo::Damager {} => damager::spawn(world, pos),
         }
     }
 }
@@ -176,21 +185,15 @@ impl Game for Project {
             return NextState::Load(prev.to_string());
         }
 
-        // FIXME: do not crash
-        let prev_level = load_string(prev).await.unwrap();
-        let level = ron::from_str::<level::LevelDef>(prev_level.as_str()).unwrap();
-
-        match level.next_level {
-            Some(x) => NextState::Load(x),
-            None => NextState::AppState(AppState::GameDone),
-        }
+        NextState::AppState(AppState::GameDone)
     }
 
-    async fn init(&mut self, path: &str, world: &mut World) {
-        let level_data = load_string(path).await.unwrap();
-        let level = ron::from_str::<level::LevelDef>(level_data.as_str()).unwrap();
+    async fn init(&mut self, _path: &str, world: &mut World) {
+        let level_data = lib_level::load_level("test_room").unwrap();
+        // let level_data = load_string(path).await.unwrap();
+        // let level = ron::from_str::<level::LevelDef>(level_data.as_str()).unwrap();
 
-        init_level(world, level);
+        init_level(world, level_data);
     }
 
     fn input_phase(&mut self, input: &lib_game::InputModel, _dt: f32, world: &mut World) {

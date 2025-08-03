@@ -168,9 +168,6 @@ name = "bitflags"
 version = "2.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b8e56985ec62d17e9c1001dc89c88ecd7dc08e47eba5ec7c29c7b5eeecde967"
-dependencies = [
- "serde",
-]
 
 [[package]]
 name = "bitstream-io"
@@ -1100,11 +1097,11 @@ dependencies = [
  "hashbrown 0.14.5",
  "hecs",
  "lib-game",
+ "lib-level",
  "log",
  "macroquad",
  "quad-col",
  "quad-dbg",
- "ron",
  "serde",
 ]
 
@@ -1298,19 +1295,6 @@ name = "rgb"
 version = "0.8.50"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57397d16646700483b67d2dd6511d79318f9d057fdbd21a4066aeac8b41d310a"
-
-[[package]]
-name = "ron"
-version = "0.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "beceb6f7bf81c73e73aeef6dd1356d9a1b2b4909e1f0fc3e59b034f9572d7b7f"
-dependencies = [
- "base64",
- "bitflags 2.9.1",
- "serde",
- "serde_derive",
- "unicode-ident",
-]
 
 [[package]]
 name = "rustc_version"
