@@ -6,8 +6,8 @@ use std::ops::Deref;
 use hashbrown::HashMap;
 use thiserror::Error;
 
+use super::tiled_props_des::{DeserializerError, from_properties};
 use crate::level::{EntityDef, LevelDef, MapDef, Tile, Transform};
-use crate::tiled_props_des::{DeserializerError, from_properties};
 
 const TILE_SIDE: u32 = 16;
 static REQUIRED_TILED_VERSION: &'static str = "1.10";

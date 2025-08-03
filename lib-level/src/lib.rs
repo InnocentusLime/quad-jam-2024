@@ -1,28 +1,28 @@
+pub mod binary_io;
 mod level;
-mod tiled_decode;
-mod tiled_props_des;
+#[cfg(not(target_family = "wasm"))]
+pub mod tiled_load;
 
 pub use level::*;
 use thiserror::Error;
 
 use std::error::Error as StdError;
 
-pub fn load_level(name: &str) -> Result<LevelDef, LoadLevelError> {
-    load_level_from_tiled(name)
+pub async fn load_level(name: &str) -> Result<LevelDef, LoadLevelError> {
+    #[cfg(not(target_family = "wasm"))]
+    return tiled_load::load_level_by_name(name);
+    #[cfg(target_family = "wasm")]
+    return load_level_release(name).await;
 }
 
-fn load_level_from_tiled(name: &str) -> Result<LevelDef, LoadLevelError> {
-    let path = format!("./tiled_project/{name}.tmx");
-    let mut loader = tiled::Loader::new();
-    let map = loader
-        .load_tmx_map(path)
+#[cfg(target_family = "wasm")]
+async fn load_level_release(name: &str) -> Result<LevelDef, LoadLevelError> {
+    use macroquad::prelude::*;
+    let data = load_file(&format!("levels/{name}.bin"))
+        .await
         .map_err(|e| Box::new(e) as Box<dyn StdError>)
         .map_err(LoadLevelError::Loading)?;
-    let level = tiled_decode::load_level_from_map(&map)
-        .map_err(|e| Box::new(e) as Box<dyn StdError>)
-        .map_err(LoadLevelError::Decoding)?;
-
-    Ok(level)
+    binary_io::load_from_memory(&data)
 }
 
 #[derive(Debug, Error)]

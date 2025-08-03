@@ -7,7 +7,13 @@ edition = "2024"
 log = { workspace = true }
 hashbrown = { workspace = true, features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
-# TODO: desktop (dev-only) dependencies
-tiled = { version = "0.14.0", default-features = false, features = [] }
 thiserror = "2"
+
+[target.'cfg(target_family = "wasm")'.dependencies]
 postcard = "1"
+macroquad = { workspace = true }
+
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+postcard = { version = "1", features = ["use-std"] }
+clap = { version = "4", features = ["derive"] }
+tiled = { version = "0.14.0", default-features = false, features = [] }
