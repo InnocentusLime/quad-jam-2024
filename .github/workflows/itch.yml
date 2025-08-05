@@ -27,10 +27,16 @@ jobs:
             target/
           key: deploy-${{ runner.os }}-${{ vars.RUST_VERSION }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: deploy-${{ runner.os }}-${{ vars.RUST_VERSION }}-cargo-
+      - name: Build level-compiler
+        run: cargo build -p lib-level
       - name: Build
         run: cargo build --target wasm32-unknown-unknown --profile wasm-release --locked
       - name: Create dist dir
         run: mkdir dist
+      - name: Create levels dir
+        run: mkdir ./dist/levels
+      - name: Build all maps
+        run: ./target/debug/lib-level compile-dir -d ./tiled_project -o ./dist/levels
       - name: Acquire wasm build
         run: cp ./target/wasm32-unknown-unknown/wasm-release/${{ github.event.repository.name }}.wasm ./dist/game.wasm
       - name: Copy assets
