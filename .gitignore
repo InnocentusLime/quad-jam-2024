@@ -4,3 +4,4 @@
 */test-out.png
 tiled_project/*.tiled-session
 /levels
+*.bin

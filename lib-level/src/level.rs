@@ -38,14 +38,14 @@
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct LevelDef {
     pub next_level: Option<String>,
     pub map: MapDef,
     pub entities: Vec<EntityDef>,
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub struct EntityDef {
     pub tf: Transform,
     pub width: f32,
@@ -53,14 +53,14 @@ pub struct EntityDef {
     pub info: EntityInfo,
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub enum EntityInfo {
     Player {},
     Goal {},
     Damager {},
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct MapDef {
     /// Map width
     pub width: u32,
@@ -72,7 +72,7 @@ pub struct MapDef {
     pub tilemap: Vec<u32>,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub struct Tile {
     #[serde(default)]
     pub ty: TileTy,
@@ -85,7 +85,7 @@ pub enum TileTy {
     Wall,
 }
 
-#[derive(Default, Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Default, Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Transform {
     /// Rotation angle in degrees
     pub angle: f32,
@@ -93,7 +93,7 @@ pub struct Transform {
     pub pos: Position,
 }
 
-#[derive(Default, Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Default, Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Position {
     pub x: f32,
     pub y: f32,
