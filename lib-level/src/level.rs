@@ -38,21 +38,37 @@
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 
+/// The root of level's definition. This type contains all information
+/// required for loadin a level.
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct LevelDef {
+    /// Next level to load after it is complete.
     pub next_level: Option<String>,
+    /// The level's map definition. A map is a bunch
+    /// of tiles with custom data.
     pub map: MapDef,
+    /// The entities placed on the map.
     pub entities: Vec<EntityDef>,
 }
 
+/// Entity data. Currently, all entities are represented as squares.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub struct EntityDef {
+    /// Entity's transform
     pub tf: Transform,
+    /// Entity's width
     pub width: f32,
+    /// Entity's height
     pub height: f32,
+    /// Entity's manifest
     pub info: EntityInfo,
 }
 
+/// The enum containing all possible entity types for a level.
+/// Your tiled project must have custom class types with their
+/// names matching the variants of that type. For instance,
+/// for variant [EntityInfo::Player] there must be a class
+/// called `Player`, that has all corresponding fields.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub enum EntityInfo {
     Player {},
@@ -60,6 +76,8 @@ pub enum EntityInfo {
     Damager {},
 }
 
+/// The definition of a map. Contains the tilemap
+/// tiles and tile data.
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct MapDef {
     /// Map width
@@ -68,16 +86,22 @@ pub struct MapDef {
     pub height: u32,
     /// Tile manifests
     pub tiles: HashMap<u32, Tile>,
-    /// Map tiled in row-major order
+    /// Map's tiles in row-major order.
+    /// Each index refers to an entry in `tiles`.
     pub tilemap: Vec<u32>,
 }
 
+/// Tile data. Your tiled project should have a custom class
+/// called `Tile`. It must have the `ty` field of type `TileTy`.
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub struct Tile {
     #[serde(default)]
     pub ty: TileTy,
 }
 
+/// Tile type. Your tiled project should have a custom enum
+/// called `TileTy` with the variants corresponding to this
+/// type's variants. The default value must be `Ground`.
 #[derive(Default, Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum TileTy {
     #[default]
@@ -85,6 +109,7 @@ pub enum TileTy {
     Wall,
 }
 
+/// A library-agnostic transform representation.
 #[derive(Default, Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Transform {
     /// Rotation angle in degrees
@@ -93,6 +118,7 @@ pub struct Transform {
     pub pos: Position,
 }
 
+/// A library-agnostic position representation.
 #[derive(Default, Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub struct Position {
     pub x: f32,
