@@ -8,6 +8,8 @@ use thiserror::Error;
 
 use std::error::Error as StdError;
 
+/// Loads a level by name. This is the public API for use inside the
+/// game.
 pub async fn load_level(name: &str) -> Result<LevelDef, LoadLevelError> {
     #[cfg(not(target_family = "wasm"))]
     return tiled_load::load_level_by_name(name);
