@@ -2,7 +2,7 @@ use std::fs;
 
 #[test]
 fn test_all_maps() {
-    let dir = fs::read_dir("../tiled_project").unwrap();
+    let dir = fs::read_dir("../tiled-project").unwrap();
     for file in dir {
         let file = file.unwrap();
         let file = file.path();
@@ -21,7 +21,7 @@ fn test_all_maps() {
 
 #[test]
 fn test_all_maps_sanity() {
-    let dir = fs::read_dir("../tiled_project").unwrap();
+    let dir = fs::read_dir("../tiled-project").unwrap();
     for file in dir {
         let file = file.unwrap();
         let file = file.path();
