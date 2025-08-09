@@ -1,7 +1,7 @@
 mod components;
 
 use hashbrown::HashMap;
-use quad_dbg::dump;
+use lib_dbg::dump;
 
 pub use components::*;
 use hecs::{Entity, World};

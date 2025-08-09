@@ -8,7 +8,7 @@ anyhow = { workspace = true }
 hecs = { workspace = true }
 log = { workspace = true }
 macroquad = { workspace = true }
-quad-dbg = { path = "./quad-dbg" }
+lib-dbg = { path = "./lib-dbg" }
 lib-level = { path = "./lib-level" }
 lib-game = { path = "./lib-game" }
 serde = { version = "1", features = ["derive"] }
@@ -31,7 +31,7 @@ strip = true  # Strip all debugging information from the binary to reduce file s
 panic = "abort"
 
 [workspace]
-members = [ "lib-game", "lib-level", "lib-col", "quad-dbg" ]
+members = [ "lib-game", "lib-level", "lib-col", "lib-dbg" ]
 
 [workspace.dependencies]
 hecs = "0.10.5"
