@@ -13,7 +13,7 @@ lib-level = { path = "./lib-level" }
 lib-game = { path = "./lib-game" }
 serde = { version = "1", features = ["derive"] }
 glam = { workspace = true }
-quad-col = { path = "./quad-col"}
+lib-col = { path = "./lib-col"}
 hashbrown = { workspace = true }
 
 [profile.release]
@@ -31,7 +31,7 @@ strip = true  # Strip all debugging information from the binary to reduce file s
 panic = "abort"
 
 [workspace]
-members = [ "lib-game", "lib-level", "quad-col", "quad-dbg" ]
+members = [ "lib-game", "lib-level", "lib-col", "quad-dbg" ]
 
 [workspace.dependencies]
 hecs = "0.10.5"

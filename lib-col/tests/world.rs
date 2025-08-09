@@ -4,7 +4,7 @@ use common::{TestCase, draw_shape, run_tests_no_fuzz};
 use glam::{Affine2, Mat2, vec2};
 use hashbrown::HashSet;
 use hecs::{Entity, World};
-use quad_col::{Collider, CollisionSolver, Group, Shape};
+use lib_col::{Collider, CollisionSolver, Group, Shape};
 
 #[derive(Debug, Clone, Copy)]
 struct WorldTest {

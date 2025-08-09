@@ -10,7 +10,7 @@ hecs = { workspace = true }
 macroquad = { workspace = true }
 hashbrown = { workspace = true }
 quad-dbg = { path = "../quad-dbg" }
-quad-col = { path = "../quad-col" }
+lib-col = { path = "../lib-col" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.sapp-jsutils]
 version = "^0.1"

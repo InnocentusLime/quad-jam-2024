@@ -769,15 +769,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "lib-col"
+version = "0.3.0"
+dependencies = [
+ "glam",
+ "hashbrown 0.14.5",
+ "hecs",
+ "image 0.25.6",
+ "imageproc",
+ "rand 0.9.1",
+]
+
+[[package]]
 name = "lib-game"
 version = "0.9.0"
 dependencies = [
  "anyhow",
  "hashbrown 0.14.5",
  "hecs",
+ "lib-col",
  "log",
  "macroquad",
- "quad-col",
  "quad-dbg",
  "sapp-jsutils",
 ]
@@ -1193,18 +1205,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "quad-col"
-version = "0.3.0"
-dependencies = [
- "glam",
- "hashbrown 0.14.5",
- "hecs",
- "image 0.25.6",
- "imageproc",
- "rand 0.9.1",
-]
-
-[[package]]
 name = "quad-dbg"
 version = "0.1.0"
 dependencies = [
@@ -1220,11 +1220,11 @@ dependencies = [
  "glam",
  "hashbrown 0.14.5",
  "hecs",
+ "lib-col",
  "lib-game",
  "lib-level",
  "log",
  "macroquad",
- "quad-col",
  "quad-dbg",
  "serde",
 ]

@@ -4,7 +4,7 @@ use common::{FuzzableTestCase, TestCase, draw_shape, run_tests};
 use glam::{Affine2, Vec2, vec2};
 use imageproc::image;
 
-use quad_col::Shape;
+use lib_col::Shape;
 
 #[derive(Debug, Clone, Copy)]
 struct TwoShapesTest {
