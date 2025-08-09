@@ -781,6 +781,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "lib-dbg"
+version = "0.1.0"
+dependencies = [
+ "log",
+ "macroquad",
+]
+
+[[package]]
 name = "lib-game"
 version = "0.9.0"
 dependencies = [
@@ -788,9 +796,9 @@ dependencies = [
  "hashbrown 0.14.5",
  "hecs",
  "lib-col",
+ "lib-dbg",
  "log",
  "macroquad",
- "quad-dbg",
  "sapp-jsutils",
 ]
 
@@ -1205,14 +1213,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "quad-dbg"
-version = "0.1.0"
-dependencies = [
- "log",
- "macroquad",
-]
-
-[[package]]
 name = "quad-jam-2024"
 version = "0.2.0"
 dependencies = [
@@ -1221,11 +1221,11 @@ dependencies = [
  "hashbrown 0.14.5",
  "hecs",
  "lib-col",
+ "lib-dbg",
  "lib-game",
  "lib-level",
  "log",
  "macroquad",
- "quad-dbg",
  "serde",
 ]
 

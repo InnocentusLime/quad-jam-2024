@@ -17,7 +17,7 @@ pub use sound_director::*;
 use hecs::{CommandBuffer, World};
 use macroquad::prelude::*;
 
-use quad_dbg::*;
+use lib_dbg::*;
 
 const GAME_TICKRATE: f32 = 1.0 / 60.0;
 
