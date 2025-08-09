@@ -3,18 +3,34 @@ name = "quad-jam-2024"
 version = "0.2.0"
 edition = "2024"
 
+[workspace]
+members = [ "lib-col", "lib-dbg", "lib-game", "lib-level" ]
+
 [dependencies]
+# Workspace deps
 anyhow = { workspace = true }
 hecs = { workspace = true }
 log = { workspace = true }
 macroquad = { workspace = true }
-lib-dbg = { path = "./lib-dbg" }
-lib-level = { path = "./lib-level" }
-lib-game = { path = "./lib-game" }
-serde = { version = "1", features = ["derive"] }
-glam = { workspace = true }
-lib-col = { path = "./lib-col"}
 hashbrown = { workspace = true }
+glam = { workspace = true }
+# Internal deps
+lib-col = { path = "./lib-col"}
+lib-dbg = { path = "./lib-dbg" }
+lib-game = { path = "./lib-game" }
+lib-level = { path = "./lib-level" }
+
+[workspace.dependencies]
+hecs = "0.10.5"
+log = { version = "0.4.22", features = ["max_level_info", "release_max_level_info"] }
+macroquad = { version = "0.4.14", features = ["audio", "log-rs"] }
+anyhow = "1"
+# NOTE: keep the version matching the one macroquad is using
+hashbrown = "0.14.5"
+glam = { version = "0.30", features = ["serde"] }
+
+[patch.crates-io]
+macroquad = { git = "https://github.com/InnocentusLime/macroquad.git", rev = "6a61f666749871179e616c7dd5b5117fcb94616c" }
 
 [profile.release]
 opt-level = 3
@@ -29,18 +45,3 @@ inherits = "release" # Use release profile as default values.
 opt-level = "z"      # Optimize with size in mind (also try "s", sometimes it is better).
 strip = true  # Strip all debugging information from the binary to reduce file size.
 panic = "abort"
-
-[workspace]
-members = [ "lib-game", "lib-level", "lib-col", "lib-dbg" ]
-
-[workspace.dependencies]
-hecs = "0.10.5"
-log = { version = "0.4.22", features = ["max_level_info", "release_max_level_info"] }
-macroquad = { version = "0.4.14", features = ["audio", "log-rs"] }
-anyhow = "1"
-# NOTE: keep the version matching the one macroquad is using
-hashbrown = "0.14.5"
-glam = { version = "0.30", features = ["serde"] }
-
-[patch.crates-io]
-macroquad = { git = "https://github.com/InnocentusLime/macroquad.git", rev = "6a61f666749871179e616c7dd5b5117fcb94616c" }
