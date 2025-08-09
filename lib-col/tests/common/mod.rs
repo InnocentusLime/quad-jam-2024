@@ -6,9 +6,7 @@ const TRANSFORM_COUNT: usize = 10;
 const OUT_IMG_WIDTH: u32 = 1024;
 const OUT_IMG_HEIGHT: u32 = 1024;
 
-/// An interface for a test case. All tests in this crate have one
-/// thing in common. Their result must be the same if the scene gets
-/// rotated or moved by some offset.
+/// An interface for a test case for removing some boilerplate.
 pub trait TestCase: Copy {
     /// The name of the test to use in the test report.
     fn name(&self) -> &'static str;
@@ -22,6 +20,8 @@ pub trait TestCase: Copy {
     fn draw(&self, canvas: &mut image::RgbImage);
 }
 
+/// Additional API when your test in invariant against
+/// various transformations.
 pub trait FuzzableTestCase: TestCase + Copy {
     /// Apply the transform on the test.
     fn transform(self, tf: Affine2) -> Self;
