@@ -1,8 +1,11 @@
+# Ignored formats
+*.wasm
+*.bin
+*.tiled-session
+# Ignored directories
 /target
 /dist
-/static/game.wasm
-/static/assets/
-*/test-out.png
-*.tiled-session
 /levels
-*.bin
+/static/assets/
+# Ignored files
+*/test-out.png
