@@ -1,12 +1,12 @@
 use glam::{Vec2, vec2};
 use hashbrown::HashSet;
 use hecs::*;
-use lib_game::*;
-use macroquad::prelude::*;
-use quad_col::{
+use lib_col::{
     conv::{crate_vector_to_topleft_corner, topleft_corner_vector_to_crate},
     *,
 };
+use lib_game::*;
+use macroquad::prelude::*;
 
 const CHAR_MOVEMENT_ITERS: usize = 10;
 const CHAR_NORMAL_NUDGE: f32 = 0.001;

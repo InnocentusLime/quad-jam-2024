@@ -1,7 +1,7 @@
 use hecs::Entity;
 use macroquad::prelude::*;
 
-pub use quad_col::{Group, Shape};
+pub use lib_col::{Group, Shape};
 
 pub const MAX_COLLISION_QUERIES: usize = 8;
 

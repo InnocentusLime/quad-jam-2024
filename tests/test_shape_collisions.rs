@@ -1,9 +1,9 @@
 use glam::{Vec2, vec2};
 use hashbrown::HashSet;
 use hecs::*;
+use lib_col::*;
 use lib_game::*;
 use macroquad::prelude::*;
-use quad_col::*;
 
 struct ControlTag;
 

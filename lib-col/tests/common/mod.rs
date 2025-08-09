@@ -1,6 +1,6 @@
 use glam::{Affine2, Vec2, vec2};
 use imageproc::drawing;
-use quad_col::{Shape, rect_points};
+use lib_col::{Shape, rect_points};
 
 const TRANSFORM_COUNT: usize = 10;
 const OUT_IMG_WIDTH: u32 = 1024;

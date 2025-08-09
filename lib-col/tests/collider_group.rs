@@ -3,7 +3,7 @@ mod common;
 use common::{TestCase, draw_shape, run_tests_no_fuzz};
 use glam::{Affine2, Mat2, vec2};
 use hashbrown::HashSet;
-use quad_col::{Collider, Group, Shape};
+use lib_col::{Collider, Group, Shape};
 
 #[derive(Debug, Clone, Copy)]
 struct GroupTest {

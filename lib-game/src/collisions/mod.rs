@@ -1,6 +1,6 @@
 use hecs::World;
+use lib_col::*;
 use macroquad::prelude::*;
-use quad_col::*;
 
 mod components;
 mod debug;
