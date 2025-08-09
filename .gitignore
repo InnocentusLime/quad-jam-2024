@@ -1,4 +1,5 @@
 /target
+/dist
 /static/game.wasm
 /static/assets/
 */test-out.png
