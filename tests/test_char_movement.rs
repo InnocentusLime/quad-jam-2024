@@ -68,7 +68,7 @@ impl Game for CollisionTestGame {
         &[]
     }
 
-    async fn init(&mut self, _data: &str, world: &mut World) {
+    async fn init(&mut self, _data: &str, world: &mut World, _render: &mut Render) {
         info!("Init");
         world.spawn((
             ControlTag { dr: Vec2::ZERO },

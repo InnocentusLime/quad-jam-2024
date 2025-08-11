@@ -188,7 +188,7 @@ impl Game for Project {
         NextState::AppState(AppState::GameDone)
     }
 
-    async fn init(&mut self, _path: &str, world: &mut World) {
+    async fn init(&mut self, _path: &str, world: &mut World, _render: &mut Render) {
         let level_data = lib_level::load_level("test_room").await.unwrap();
         // let level_data = load_string(path).await.unwrap();
         // let level = ron::from_str::<level::LevelDef>(level_data.as_str()).unwrap();

@@ -76,6 +76,7 @@ pub trait Game: 'static {
         &mut self,
         data: &str,
         world: &mut World,
+        render: &mut Render,
     ) -> impl std::future::Future<Output = ()> + Send;
 
     /// Used by the app to consult what should be the next
@@ -201,7 +202,8 @@ impl App {
                     NextState::Load(data) => {
                         info!("Loading: {data}");
                         self.world.clear();
-                        game.init(data.as_str(), &mut self.world).await;
+                        game.init(data.as_str(), &mut self.world, &mut self.render)
+                            .await;
                         self.state = AppState::Active { paused: false };
                         self.loaded_level = Some(data);
                     }
