@@ -38,6 +38,8 @@
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 
+pub const TILE_SIDE: u32 = 16;
+
 /// The root of level's definition. This type contains all information
 /// required for loadin a level.
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
@@ -55,7 +57,7 @@ pub struct LevelDef {
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub struct EntityDef {
     /// Entity's transform
-    pub tf: Transform,
+    pub tf: EntityPosition,
     /// Entity's width
     pub width: f32,
     /// Entity's height
@@ -89,6 +91,15 @@ pub struct MapDef {
     /// Map's tiles in row-major order.
     /// Each index refers to an entry in `tiles`.
     pub tilemap: Vec<u32>,
+    /// Path to the tilemap atlas. The path is
+    /// relative to the `assets` folder and is
+    /// always written in Unix style (with the "/" slash)
+    /// as a UTF8 string.
+    pub atlas_path: String,
+    /// Atlas margin
+    pub atlas_margin: u32,
+    /// Atlas spacing between tiles
+    pub atlas_spacing: u32,
 }
 
 /// Tile data. Your tiled project should have a custom class
@@ -111,7 +122,7 @@ pub enum TileTy {
 
 /// A library-agnostic transform representation.
 #[derive(Default, Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
-pub struct Transform {
+pub struct EntityPosition {
     /// Rotation angle in degrees
     pub angle: f32,
     /// Position in level units

@@ -1,15 +1,18 @@
 //! This module contains logic for decoding [LevelDef] from a `Tiled`
 //! map file.
 
-use std::ops::Deref;
+use std::{
+    fs, io,
+    ops::Deref,
+    path::{Path, PathBuf},
+};
 
 use hashbrown::HashMap;
 use thiserror::Error;
 
 use super::tiled_props_des::{DeserializerError, from_properties};
-use crate::level::{EntityDef, LevelDef, MapDef, Tile, Transform};
+use crate::level::*;
 
-const TILE_SIDE: u32 = 16;
 static REQUIRED_TILED_VERSION: &'static str = "1.10";
 static OBJECT_LAYER: &'static str = "Actors";
 static WORLD_LAYER: &'static str = "World";
@@ -43,13 +46,24 @@ pub enum LoadFromTiledError {
     UnexpectedTilesetAmount(usize),
     #[error("Image collection based tilesets are not supported")]
     MapTilesetIrregular,
-    #[error(
-        "Tileset {tileset:?}, tile {tile_idx:}: expected class to be {TILE_CLASS:?}, found {found:?}"
-    )]
-    UnknownTileClass {
+    #[error("Tileset {tileset:?}: path {path:?} is not in assets directory ({assets:?})")]
+    TilesetImageNotInAssets {
         tileset: String,
-        tile_idx: u32,
-        found: String,
+        path: PathBuf,
+        assets: PathBuf,
+    },
+    #[error("Tileset {tileset:?}: path {path:?} can't be resolved")]
+    TilesetImageNotCanonizable {
+        tileset: String,
+        path: PathBuf,
+        #[source]
+        reason: io::Error,
+    },
+    #[error("Could not canonalize asset directory path {path:?}")]
+    AssetsDirectoryNotCanonizable {
+        path: PathBuf,
+        #[source]
+        reason: io::Error,
     },
     #[error("Tileset {tileset:?}, tile {tile_idx:}: failed to deserialize properties")]
     TileDeserError {
@@ -72,7 +86,10 @@ pub enum LoadFromTiledError {
     NonSquareObject { obj_idx: u32 },
 }
 
-pub fn load_level_from_map(map: &tiled::Map) -> Result<LevelDef, LoadFromTiledError> {
+pub fn load_level_from_map(
+    assets_directory: impl AsRef<Path>,
+    map: &tiled::Map,
+) -> Result<LevelDef, LoadFromTiledError> {
     if map.version() != REQUIRED_TILED_VERSION {
         return Err(LoadFromTiledError::UnsupportedVersion(
             map.version().to_string(),
@@ -88,9 +105,6 @@ pub fn load_level_from_map(map: &tiled::Map) -> Result<LevelDef, LoadFromTiledEr
         return Err(LoadFromTiledError::UnexpectedTilesetAmount(
             map.tilesets().len(),
         ));
-    }
-    if map.tilesets()[0].image.is_none() {
-        return Err(LoadFromTiledError::MapTilesetIrregular);
     }
 
     let width = map.width;
@@ -111,7 +125,7 @@ pub fn load_level_from_map(map: &tiled::Map) -> Result<LevelDef, LoadFromTiledEr
     let Some(mapdef_layer) = layers_by_name.get(WORLD_LAYER) else {
         return Err(LoadFromTiledError::WorldLayerAbsent);
     };
-    let map = load_mapdef_from_layer(mapdef_layer, width, height)?;
+    let map = load_mapdef_from_layer(&assets_directory, mapdef_layer, width, height)?;
 
     let Some(entitydefs_layer) = layers_by_name.get(OBJECT_LAYER) else {
         return Err(LoadFromTiledError::ObjectLayerAbsent);
@@ -126,6 +140,7 @@ pub fn load_level_from_map(map: &tiled::Map) -> Result<LevelDef, LoadFromTiledEr
 }
 
 fn load_mapdef_from_layer(
+    assets_directory: impl AsRef<Path>,
     layer: &tiled::Layer,
     map_width: u32,
     map_height: u32,
@@ -155,14 +170,6 @@ fn load_mapdef_from_layer(
     let tileset = layer.map().tilesets()[0].deref();
     let mut tiles = HashMap::<u32, Tile>::new();
     for (tile_idx, tile_data) in tileset.tiles() {
-        let class = tile_data.user_type.as_deref().unwrap_or("");
-        if class != TILE_CLASS {
-            return Err(LoadFromTiledError::UnknownTileClass {
-                tileset: tileset.name.clone(),
-                tile_idx,
-                found: class.to_string(),
-            });
-        }
         let tile = from_properties(TILE_CLASS, &tile_data.properties).map_err(|reason| {
             LoadFromTiledError::TileDeserError {
                 tileset: tileset.name.clone(),
@@ -173,6 +180,10 @@ fn load_mapdef_from_layer(
 
         tiles.insert(tile_idx, tile);
     }
+    let Some(tileset_atlas) = tileset.image.as_ref() else {
+        return Err(LoadFromTiledError::MapTilesetIrregular);
+    };
+    let atlas_path = resolve_atlas_path(&tileset.name, &assets_directory, &tileset_atlas.source)?;
 
     let mut tilemap = Vec::<u32>::with_capacity((layer_width * layer_height) as usize);
     for y in 0..layer_height {
@@ -187,6 +198,9 @@ fn load_mapdef_from_layer(
         height: layer_height,
         tiles,
         tilemap,
+        atlas_path,
+        atlas_margin: tileset.margin,
+        atlas_spacing: tileset.spacing,
     })
 }
 
@@ -220,8 +234,8 @@ fn load_entity_defs_from_object_layer(
         };
 
         entities.push(EntityDef {
-            tf: Transform {
-                pos: crate::Position {
+            tf: EntityPosition {
+                pos: Position {
                     x: object.x,
                     y: object.y,
                 },
@@ -234,4 +248,37 @@ fn load_entity_defs_from_object_layer(
     }
 
     Ok(entities)
+}
+
+fn resolve_atlas_path(
+    tileset: &str,
+    assets_directory: impl AsRef<Path>,
+    atlas_path: impl AsRef<Path>,
+) -> Result<String, LoadFromTiledError> {
+    let assets_directory = fs::canonicalize(assets_directory.as_ref()).map_err(|reason| {
+        LoadFromTiledError::AssetsDirectoryNotCanonizable {
+            path: assets_directory.as_ref().to_path_buf(),
+            reason,
+        }
+    })?;
+    let atlas_path = fs::canonicalize(atlas_path.as_ref()).map_err(|reason| {
+        LoadFromTiledError::TilesetImageNotCanonizable {
+            tileset: tileset.to_string(),
+            path: atlas_path.as_ref().to_path_buf(),
+            reason,
+        }
+    })?;
+    let path = atlas_path.strip_prefix(&assets_directory).map_err(|_| {
+        LoadFromTiledError::TilesetImageNotInAssets {
+            tileset: tileset.to_string(),
+            path: atlas_path.clone(),
+            assets: assets_directory,
+        }
+    })?;
+
+    let components = path
+        .components()
+        .map(|x| x.as_os_str().to_str().unwrap())
+        .collect::<Vec<_>>();
+    Ok(components.join("/"))
 }
