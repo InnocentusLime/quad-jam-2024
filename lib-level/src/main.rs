@@ -2,18 +2,20 @@
 
 use std::error::Error as StdError;
 use std::fs;
+use std::str::FromStr;
 use std::{path::PathBuf, process::ExitCode};
 
 use clap::{Parser, Subcommand};
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
+    let assets_directory = cli.assets.unwrap_or(PathBuf::from_str("./").unwrap());
 
     let result = match cli.command {
-        Commands::CheckMap { map } => check_map(map),
-        Commands::CompileMap { map, out } => compile_map(map, out),
+        Commands::CheckMap { map } => check_map(assets_directory, map),
+        Commands::CompileMap { map, out } => compile_map(&assets_directory, map, out),
         Commands::DumpMap { map } => dump_map(map),
-        Commands::CompileDir { dir, out } => compile_dir(dir, out),
+        Commands::CompileDir { dir, out } => compile_dir(assets_directory, dir, out),
     };
 
     match result {
@@ -25,17 +27,21 @@ fn main() -> ExitCode {
     }
 }
 
-fn check_map(map: PathBuf) -> Result<(), Box<dyn StdError>> {
+fn check_map(assets_directory: PathBuf, map: PathBuf) -> Result<(), Box<dyn StdError>> {
     println!("Checking {map:?}");
 
-    lib_level::tiled_load::load_level(map)?;
+    lib_level::tiled_load::load_level(assets_directory, map)?;
     Ok(())
 }
 
-fn compile_map(map: PathBuf, out: PathBuf) -> Result<(), Box<dyn StdError>> {
+fn compile_map(
+    assets_directory: &PathBuf,
+    map: PathBuf,
+    out: PathBuf,
+) -> Result<(), Box<dyn StdError>> {
     println!("Compiling {map:?} into {out:?}");
 
-    let level = lib_level::tiled_load::load_level(map)?;
+    let level = lib_level::tiled_load::load_level(assets_directory, map)?;
     let out = fs::File::create(out)?;
     lib_level::binary_io::compile::write_level(&level, out)
 }
@@ -47,7 +53,11 @@ fn dump_map(map: PathBuf) -> Result<(), Box<dyn StdError>> {
     Ok(())
 }
 
-fn compile_dir(dir: PathBuf, out: PathBuf) -> Result<(), Box<dyn StdError>> {
+fn compile_dir(
+    assets_directory: PathBuf,
+    dir: PathBuf,
+    out: PathBuf,
+) -> Result<(), Box<dyn StdError>> {
     let dir = fs::read_dir(dir)?;
     for file in dir {
         let file = file?.path();
@@ -62,7 +72,7 @@ fn compile_dir(dir: PathBuf, out: PathBuf) -> Result<(), Box<dyn StdError>> {
         let mut buff = out.clone();
         buff.push(name);
         buff.set_extension("bin");
-        compile_map(file, buff)?;
+        compile_map(&assets_directory, file, buff)?;
     }
     Ok(())
 }
@@ -71,6 +81,9 @@ fn compile_dir(dir: PathBuf, out: PathBuf) -> Result<(), Box<dyn StdError>> {
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Cli {
+    /// The location of the assets directory
+    #[arg(long, value_name = "DIR")]
+    assets: Option<PathBuf>,
     #[command(subcommand)]
     command: Commands,
 }

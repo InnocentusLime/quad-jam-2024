@@ -11,17 +11,20 @@ use std::path::Path;
 /// use only.
 pub fn load_level_by_name(name: &str) -> Result<LevelDef, LoadLevelError> {
     let path = format!("./tiled_project/{name}.tmx");
-    load_level(path)
+    load_level("./assets", path)
 }
 
 /// Load a level by path through tield. For internal use only.
-pub fn load_level(path: impl AsRef<Path>) -> Result<LevelDef, LoadLevelError> {
+pub fn load_level(
+    assets_directory: impl AsRef<Path>,
+    path: impl AsRef<Path>,
+) -> Result<LevelDef, LoadLevelError> {
     let mut loader = tiled::Loader::new();
     let map = loader
         .load_tmx_map(path)
         .map_err(|e| Box::new(e) as Box<dyn StdError>)
         .map_err(LoadLevelError::Loading)?;
-    let level = tiled_decode::load_level_from_map(&map)
+    let level = tiled_decode::load_level_from_map(assets_directory, &map)
         .map_err(|e| Box::new(e) as Box<dyn StdError>)
         .map_err(LoadLevelError::Decoding)?;
 

@@ -15,7 +15,7 @@ fn test_all_maps() {
         };
 
         println!("Checking {file:?}");
-        lib_level::tiled_load::load_level(&file).unwrap();
+        lib_level::tiled_load::load_level("../assets", &file).unwrap();
     }
 }
 
@@ -34,7 +34,7 @@ fn test_all_maps_sanity() {
         };
 
         println!("Checking {file:?}");
-        let level = lib_level::tiled_load::load_level(&file).unwrap();
+        let level = lib_level::tiled_load::load_level("../assets", &file).unwrap();
 
         let mut out = file.clone();
         out.set_extension("bin");
