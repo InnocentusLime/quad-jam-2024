@@ -17,38 +17,6 @@ static START_TEXT_DESK: &'static str = "Controls";
 static START_HINT: &'static str = "Move: WASD\nShoot: Mouse + Left Button\nYou get extra score for hitting multiple enemies at once\nPRESS SPACE TO START\nGet ready to run!";
 static START_TEXT_MOBILE: &'static str = "Tap to start";
 
-pub const WALL_COLOR: Color = Color::from_rgba(51, 51, 84, 255);
-
-pub fn tiles(render: &mut Render, world: &World) {
-    let mut storage_it = world.query::<&TileStorage>();
-    let Some((_, storage)) = storage_it.into_iter().next() else {
-        return;
-    };
-    let iter = storage
-        .iter_poses()
-        .map(|(x, y, id)| (x, y, *world.get::<&TileType>(id).unwrap()));
-
-    for (x, y, tile) in iter {
-        match tile {
-            TileType::Wall => {
-                render.world.spawn((
-                    Tint(WALL_COLOR),
-                    Scale(vec2(2.0, 2.0)),
-                    Sprite {
-                        origin: vec2(0.5, 0.5),
-                        texture: TextureKey("wall"),
-                    },
-                    Transform {
-                        pos: vec2(32.0 * x as f32, 32.0 * y as f32),
-                        angle: 0.0,
-                    },
-                ));
-            }
-            TileType::Ground => (),
-        }
-    }
-}
-
 pub fn player(render: &mut Render, world: &World) {
     for (_, (pos, hp)) in &mut world.query::<(&Transform, &Health)>().with::<&PlayerTag>() {
         if hp.block_damage {
@@ -77,13 +45,14 @@ pub fn player(render: &mut Render, world: &World) {
 }
 
 pub fn player_attack(render: &mut Render, world: &World) {
+    use super::player::{PLAYER_ATTACK_LENGTH, PLAYER_ATTACK_WIDTH};
     for (_, pos) in &mut world.query::<&Transform>().with::<&PlayerAttackTag>() {
         render.world.spawn((
             *pos,
             RectShape {
                 origin: vec2(0.5, 0.5),
-                width: 64.0,
-                height: 8.0,
+                width: PLAYER_ATTACK_LENGTH,
+                height: PLAYER_ATTACK_WIDTH,
             },
             Tint(RED),
         ));
@@ -91,9 +60,10 @@ pub fn player_attack(render: &mut Render, world: &World) {
 }
 
 pub fn game_ui(render: &mut Render, world: &World) {
-    let font_size = 32;
-    let off_y = 32.0;
-    let ui_x = 536.0;
+    let world_font_size = 16f32;
+    let off_y = world_font_size as f32;
+    let ui_x = TILE_SIDE_F32 * 16.0;
+    let (font_size, font_scale, font_scale_aspect) = camera_font_scale(world_font_size);
 
     let mut player_q = world.query::<(&PlayerScore, &Health)>();
     let (_, (score, player_health)) = player_q.into_iter().next().unwrap();
@@ -108,8 +78,8 @@ pub fn game_ui(render: &mut Render, world: &World) {
             font: FontKey("oegnek"),
             string: Cow::Owned(format!("Score:{}", score.0)),
             font_size,
-            font_scale: 1.0,
-            font_scale_aspect: 1.0,
+            font_scale,
+            font_scale_aspect,
         },
         Tint(YELLOW),
         Transform::from_xy(ui_x, off_y * 1.0),
@@ -119,8 +89,8 @@ pub fn game_ui(render: &mut Render, world: &World) {
             font: FontKey("oegnek"),
             string: Cow::Owned(format!("Health:{}", player_health.value)),
             font_size,
-            font_scale: 1.0,
-            font_scale_aspect: 1.0,
+            font_scale,
+            font_scale_aspect,
         },
         Tint(YELLOW),
         Transform::from_xy(ui_x, off_y * 2.0),
@@ -129,9 +99,9 @@ pub fn game_ui(render: &mut Render, world: &World) {
         GlyphText {
             font: FontKey("oegnek"),
             string: Cow::Borrowed(game_state),
-            font_size: 64,
-            font_scale: 1.0,
-            font_scale_aspect: 1.0,
+            font_size,
+            font_scale,
+            font_scale_aspect,
         },
         Tint(game_state_color),
         Transform::from_xy(ui_x, off_y * 5.0),

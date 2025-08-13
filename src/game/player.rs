@@ -4,6 +4,8 @@ pub const PLAYER_SPEED: f32 = 132.0;
 pub const PLAYER_SPAWN_HEALTH: i32 = 3;
 pub const PLAYER_HIT_COOLDOWN: f32 = 1.0;
 pub const PLAYER_SIZE: f32 = 16.0;
+pub const PLAYER_ATTACK_LENGTH: f32 = TILE_SIDE_F32 * 3.0;
+pub const PLAYER_ATTACK_WIDTH: f32 = 8.0;
 
 pub fn spawn(world: &mut World, pos: Vec2) {
     world.spawn((
@@ -180,13 +182,13 @@ fn spawn_attack(
     let damage_entity = world.reserve_entity();
     let components = (
         Transform {
-            pos: 32.0 * attack_direction + tf.pos,
+            pos: (PLAYER_ATTACK_LENGTH * 0.5 - TILE_SIDE_F32 * 0.5) * attack_direction + tf.pos,
             angle: attack_direction.to_angle(),
         },
         col_query::Damage::new_many(
             Shape::Rect {
-                width: 64.0,
-                height: 8.0,
+                width: PLAYER_ATTACK_LENGTH,
+                height: PLAYER_ATTACK_WIDTH,
             },
             col_group::DAMAGABLE,
             col_group::ENEMY,

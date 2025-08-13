@@ -11,6 +11,10 @@ macroquad = { workspace = true }
 hashbrown = { workspace = true }
 lib-dbg = { path = "../lib-dbg" }
 lib-col = { path = "../lib-col" }
+lib-level = { path = "../lib-level" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 sapp-jsutils = { version = "^0.1" }
+
+[dev-dependencies]
+rand = "0.9.1"

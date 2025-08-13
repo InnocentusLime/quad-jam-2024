@@ -11,6 +11,7 @@ pub use collisions::*;
 pub use components::*;
 use dbg::DebugStuff;
 pub use input::*;
+use lib_level::TILE_SIDE;
 pub use render::*;
 pub use sound_director::*;
 
@@ -327,8 +328,8 @@ impl App {
     }
 
     fn update_camera(&mut self) {
-        let view_height = 19.0 * 32.0;
-        let view_width = (screen_width() / screen_height()) * view_height;
+        let view_height = 17.0 * TILE_SIDE as f32;
+        let view_width = ((screen_width() / screen_height()) * view_height).floor();
         self.camera = Camera2D::from_display_rect(Rect {
             x: 0.0,
             y: 0.0,
@@ -338,6 +339,9 @@ impl App {
         self.camera.zoom.y *= -1.0;
 
         // FIXME: magic numbers!
-        self.camera.target = vec2((0.5 * 32.0) * 16.0, (0.5 * 32.0) * 16.0);
+        self.camera.target = vec2(
+            (0.5 * TILE_SIDE as f32) * 16.0,
+            (0.5 * TILE_SIDE as f32) * 17.0,
+        );
     }
 }

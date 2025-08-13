@@ -20,13 +20,13 @@ fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut Wor
     .unwrap();
 
     for (x, y, tile) in storage.iter_poses() {
+        let xy = vec2(x as f32, y as f32);
         world
             .insert(
                 tile,
-                (Transform {
-                    pos: vec2(x as f32 * 32.0 + 16.0, y as f32 * 32.0 + 16.0),
-                    angle: 0.0,
-                },),
+                (Transform::from_pos(
+                    xy * TILE_SIDE_F32 + Vec2::splat(TILE_SIDE_F32 / 2.0),
+                ),),
             )
             .unwrap();
 
@@ -39,8 +39,8 @@ fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut Wor
                     (BodyTag {
                         groups: col_group::LEVEL,
                         shape: Shape::Rect {
-                            width: 32.0,
-                            height: 32.0,
+                            width: TILE_SIDE_F32,
+                            height: TILE_SIDE_F32,
                         },
                     },),
                 )
@@ -72,8 +72,8 @@ fn init_level(world: &mut World, level_def: lib_level::LevelDef) {
     );
     for entity in level_def.entities {
         let pos = vec2(
-            entity.tf.pos.x * 2.0 + entity.width,
-            entity.tf.pos.y * 2.0 + entity.height,
+            entity.tf.pos.x + entity.width / 2.0,
+            entity.tf.pos.y + entity.height / 2.0,
         );
         match entity.info {
             lib_level::EntityInfo::Player {} => player::spawn(world, pos),
@@ -107,18 +107,6 @@ fn decide_next_state(world: &mut World) -> Option<AppState> {
 
 async fn load_graphics(render: &mut Render) -> anyhow::Result<()> {
     set_default_filter_mode(FilterMode::Nearest);
-
-    let tiles = load_texture("assets/tiles.png").await?;
-    render.add_texture(
-        TextureKey("wall"),
-        &tiles,
-        Some(Rect {
-            x: 232.0,
-            y: 304.0,
-            w: 16.0,
-            h: 16.0,
-        }),
-    );
 
     render.add_font(
         FontKey("oegnek"),
@@ -188,10 +176,19 @@ impl Game for Project {
         NextState::AppState(AppState::GameDone)
     }
 
-    async fn init(&mut self, _path: &str, world: &mut World, _render: &mut Render) {
+    async fn init(&mut self, _path: &str, world: &mut World, render: &mut Render) {
         let level_data = lib_level::load_level("test_room").await.unwrap();
-        // let level_data = load_string(path).await.unwrap();
-        // let level = ron::from_str::<level::LevelDef>(level_data.as_str()).unwrap();
+        let atlas_path = "./assets/".to_owned() + &level_data.map.atlas_path;
+        render.add_texture(
+            TextureKey("atlas"),
+            &load_texture(&atlas_path).await.unwrap(),
+        );
+        render.set_atlas(
+            TextureKey("atlas"),
+            level_data.map.atlas_margin,
+            level_data.map.atlas_spacing,
+        );
+        render.set_tilemap(&level_data);
 
         init_level(world, level_data);
     }
@@ -223,7 +220,6 @@ impl Game for Project {
 
     fn render_export(&self, app_state: &AppState, world: &World, render: &mut Render) {
         if app_state.is_presentable() {
-            render::tiles(render, world);
             render::player(render, world);
             render::player_attack(render, world);
             render::goal(render, world);
