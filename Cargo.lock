@@ -797,8 +797,10 @@ dependencies = [
  "hecs",
  "lib-col",
  "lib-dbg",
+ "lib-level",
  "log",
  "macroquad",
+ "rand 0.9.1",
  "sapp-jsutils",
 ]
 

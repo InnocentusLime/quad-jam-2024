@@ -3,6 +3,8 @@ pub use hecs::{CommandBuffer, Entity, World};
 pub use lib_game::*;
 pub use macroquad::prelude::*;
 
+pub const TILE_SIDE_F32: f32 = lib_level::TILE_SIDE as f32;
+
 pub mod col_group {
     use lib_col::Group;
 
