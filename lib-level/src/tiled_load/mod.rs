@@ -10,7 +10,7 @@ use std::path::Path;
 /// Load a level by name but always do it through tiled. For internal
 /// use only.
 pub fn load_level_by_name(name: &str) -> Result<LevelDef, LoadLevelError> {
-    let path = format!("./tiled_project/{name}.tmx");
+    let path = format!("./tiled-project/{name}.tmx");
     load_level("./assets", path)
 }
 
