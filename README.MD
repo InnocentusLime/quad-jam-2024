@@ -62,7 +62,7 @@ cargo build -p lib-level
 
 4. Build all maps. 
 ```
-./target/debug/lib-level compile-dir -d ./tiled_project -o ./dist/levels
+./target/debug/lib-level --assets ./assets compile-dir -d ./tiled_project -o ./dist/levels
 ```
 
 5. Build the game under the wasm release profile for wasm.
