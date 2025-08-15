@@ -17,9 +17,6 @@ pub async fn load_level(name: &str) -> anyhow::Result<LevelDef> {
 #[cfg(target_family = "wasm")]
 async fn load_level_release(name: &str) -> anyhow::Result<LevelDef> {
     use macroquad::prelude::*;
-    let data = load_file(&format!("levels/{name}.bin"))
-        .await
-        .map_err(|e| Box::new(e) as Box<dyn StdError>)
-        .map_err(LoadLevelError::Loading)?;
-    binary_io::load_from_memory(&data)
+    let data = load_file(&format!("levels/{name}.bin")).await?;
+    binary_io::load_from_memory(&data).map_err(Into::into)
 }
