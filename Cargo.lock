@@ -808,6 +808,7 @@ dependencies = [
 name = "lib-level"
 version = "0.2.0"
 dependencies = [
+ "anyhow",
  "clap",
  "hashbrown 0.14.5",
  "macroquad",

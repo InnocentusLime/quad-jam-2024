@@ -1,6 +1,5 @@
 #![cfg(not(target_family = "wasm"))]
 
-use std::error::Error as StdError;
 use std::fs;
 use std::str::FromStr;
 use std::{path::PathBuf, process::ExitCode};
@@ -21,24 +20,20 @@ fn main() -> ExitCode {
     match result {
         Ok(_) => ExitCode::SUCCESS,
         Err(e) => {
-            eprintln!("{e}");
+            eprintln!("{e:#}");
             ExitCode::FAILURE
         }
     }
 }
 
-fn check_map(assets_directory: PathBuf, map: PathBuf) -> Result<(), Box<dyn StdError>> {
+fn check_map(assets_directory: PathBuf, map: PathBuf) -> anyhow::Result<()> {
     println!("Checking {map:?}");
 
     lib_level::tiled_load::load_level(assets_directory, map)?;
     Ok(())
 }
 
-fn compile_map(
-    assets_directory: &PathBuf,
-    map: PathBuf,
-    out: PathBuf,
-) -> Result<(), Box<dyn StdError>> {
+fn compile_map(assets_directory: &PathBuf, map: PathBuf, out: PathBuf) -> anyhow::Result<()> {
     println!("Compiling {map:?} into {out:?}");
 
     let level = lib_level::tiled_load::load_level(assets_directory, map)?;
@@ -46,18 +41,14 @@ fn compile_map(
     lib_level::binary_io::compile::write_level(&level, out)
 }
 
-fn dump_map(map: PathBuf) -> Result<(), Box<dyn StdError>> {
+fn dump_map(map: PathBuf) -> anyhow::Result<()> {
     let level_data = fs::read(map)?;
     let level = lib_level::binary_io::load_from_memory(&level_data)?;
     println!("{:?}", level);
     Ok(())
 }
 
-fn compile_dir(
-    assets_directory: PathBuf,
-    dir: PathBuf,
-    out: PathBuf,
-) -> Result<(), Box<dyn StdError>> {
+fn compile_dir(assets_directory: PathBuf, dir: PathBuf, out: PathBuf) -> anyhow::Result<()> {
     let dir = fs::read_dir(dir)?;
     for file in dir {
         let file = file?.path();
