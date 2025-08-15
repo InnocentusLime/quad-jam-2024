@@ -36,7 +36,7 @@ jobs:
       - name: Create levels dir
         run: mkdir ./dist/levels
       - name: Build all maps
-        run: ./target/debug/lib-level compile-dir -d ./tiled-project -o ./dist/levels
+        run: ./target/debug/lib-level --assets ./assets compile-dir -d ./tiled-project -o ./dist/levels
       - name: Acquire wasm build
         run: cp ./target/wasm32-unknown-unknown/wasm-release/${{ github.event.repository.name }}.wasm ./dist/game.wasm
       - name: Copy assets
