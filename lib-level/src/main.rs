@@ -72,7 +72,8 @@ fn compile_dir(assets_directory: PathBuf, dir: PathBuf, out: PathBuf) -> anyhow:
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Cli {
-    /// The location of the assets directory
+    /// The path to the assets directory. By default,
+    /// the current working directory is used.
     #[arg(long, value_name = "DIR")]
     assets: Option<PathBuf>,
     #[command(subcommand)]
