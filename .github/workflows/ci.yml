@@ -32,8 +32,10 @@ jobs:
         run: >
           sudo apt-get update &&
           sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
-      - name: Check everything
+      - name: Check everything for desktop
         run: cargo check --locked --all-targets
+      - name: Check WASM
+        run: cargo check --locked --target wasm32-unknown-unknown
       - name: Run tests
         run: cargo test --workspace --package "*" --exclude quad-jam-2024 --locked
   code-audit:
