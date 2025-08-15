@@ -3,12 +3,15 @@ mod tiled_props_des;
 
 use crate::level::LevelDef;
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 /// Load a level by name but always do it through tiled. For internal
 /// use only.
 pub fn load_level_by_name(name: &str) -> anyhow::Result<LevelDef> {
-    let path = format!("./tiled-project/{name}.tmx");
+    let mut path = PathBuf::new();
+    path.push("tiled-project");
+    path.push(name);
+    path.set_extension("tmx");
     load_level("./assets", path)
 }
 
