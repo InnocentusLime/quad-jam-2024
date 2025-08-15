@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <tileset version="1.10" tiledversion="1.10.2" name="world" tilewidth="16" tileheight="16" spacing="1" margin="1" tilecount="30" columns="30">
  <image source="../assets/world.png" width="512" height="18"/>
- <tile id="0" type="Tile"/>
+ <tile id="0" type="Tile">
+  <properties>
+   <property name="description" value="Represents an absent tile. You do not have to use it to represent an absent tile. You can freely just erase the tiles instead. This tile exists to uphold a convention with the rendering engine"/>
+  </properties>
+ </tile>
  <tile id="1" type="Tile"/>
  <tile id="2" type="Tile"/>
  <tile id="3" type="Tile"/>

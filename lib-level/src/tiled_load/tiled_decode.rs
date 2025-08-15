@@ -65,6 +65,8 @@ pub enum LoadFromTiledError {
         #[source]
         reason: io::Error,
     },
+    #[error("Tileset {tileset:?}, tile {tile_idx:}: unknown tile")]
+    UnknownTile { tileset: String, tile_idx: u32 },
     #[error("Tileset {tileset:?}, tile {tile_idx:}: failed to deserialize properties")]
     TileDeserError {
         tileset: String,
@@ -168,8 +170,13 @@ fn load_mapdef_from_layer(
     }
 
     let tileset = layer.map().tilesets()[0].deref();
-    let mut tiles = HashMap::<u32, Tile>::new();
+    let mut tiles = HashMap::<_, Tile>::new();
     for (tile_idx, tile_data) in tileset.tiles() {
+        let parsed_tile_idx =
+            TileIdx::from_repr(tile_idx).ok_or_else(|| LoadFromTiledError::UnknownTile {
+                tileset: tileset.name.clone(),
+                tile_idx,
+            })?;
         let tile = from_properties(TILE_CLASS, &tile_data.properties).map_err(|reason| {
             LoadFromTiledError::TileDeserError {
                 tileset: tileset.name.clone(),
@@ -178,18 +185,26 @@ fn load_mapdef_from_layer(
             }
         })?;
 
-        tiles.insert(tile_idx, tile);
+        tiles.insert(parsed_tile_idx, tile);
     }
     let Some(tileset_atlas) = tileset.image.as_ref() else {
         return Err(LoadFromTiledError::MapTilesetIrregular);
     };
     let atlas_path = resolve_atlas_path(&tileset.name, &assets_directory, &tileset_atlas.source)?;
 
-    let mut tilemap = Vec::<u32>::with_capacity((layer_width * layer_height) as usize);
+    let mut tilemap = Vec::with_capacity((layer_width * layer_height) as usize);
     for y in 0..layer_height {
         for x in 0..layer_width {
-            let tile_instance = tile_layer.get_tile(x as i32, y as i32).unwrap();
-            tilemap.push(tile_instance.id());
+            let tile_idx = match tile_layer.get_tile(x as i32, y as i32) {
+                None => TileIdx::Empty,
+                Some(t) => {
+                    TileIdx::from_repr(t.id()).ok_or_else(|| LoadFromTiledError::UnknownTile {
+                        tileset: tileset.name.clone(),
+                        tile_idx: t.id(),
+                    })?
+                }
+            };
+            tilemap.push(tile_idx);
         }
     }
 

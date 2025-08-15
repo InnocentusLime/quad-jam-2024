@@ -87,10 +87,10 @@ pub struct MapDef {
     /// Map height
     pub height: u32,
     /// Tile manifests
-    pub tiles: HashMap<u32, Tile>,
+    pub tiles: HashMap<TileIdx, Tile>,
     /// Map's tiles in row-major order.
     /// Each index refers to an entry in `tiles`.
-    pub tilemap: Vec<u32>,
+    pub tilemap: Vec<TileIdx>,
     /// Path to the tilemap atlas. The path is
     /// relative to the `assets` folder and is
     /// always written in Unix style (with the "/" slash)
@@ -118,6 +118,54 @@ pub enum TileTy {
     #[default]
     Ground,
     Wall,
+}
+
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    Hash,
+    Serialize,
+    Deserialize,
+    strum::VariantNames,
+    strum::FromRepr,
+)]
+#[repr(u32)]
+pub enum TileIdx {
+    #[default]
+    Empty = 0,
+    Unused0 = 1,
+    Unused1 = 2,
+    Unused2 = 3,
+    Unused3 = 4,
+    Unused4 = 5,
+    Unused5 = 6,
+    Unused6 = 7,
+    Unused7 = 8,
+    Unused8 = 9,
+    Unused9 = 10,
+    Unused10 = 11,
+    Unused11 = 12,
+    Unused12 = 13,
+    GrassDense = 14,
+    GrassSparse = 15,
+    Unused13 = 16,
+    BrickWallTop = 17,
+    BrickWallBot = 18,
+    BrickWallRight = 19,
+    BrickWallLeft = 20,
+    BrickWallBLCorner = 21,
+    BrickWallBRCorner = 22,
+    BrickWallBLCornerBot = 23,
+    BrickWallBRCornerBot = 24,
+    BrickWallRTCorner = 25,
+    BrickWallLTCorner = 26,
+    Unused14 = 27,
+    Unused15 = 28,
+    Unused16 = 29,
 }
 
 /// A library-agnostic transform representation.
