@@ -13,7 +13,7 @@ pub fn debug_draw_tile_smell(world: &World) {
 
     for (x, y, tile) in iter {
         draw_text(
-            &format!("{:.2}", tile.time_left),
+            format!("{:.2}", tile.time_left),
             x as f32 * 32.0 + 8.0,
             y as f32 * 32.0 + 16.0,
             10.0,

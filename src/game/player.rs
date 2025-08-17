@@ -138,9 +138,8 @@ fn do_move(
     use PlayerState as State;
 
     // Do not let him walk if he is attacking
-    match state {
-        State::Attacking { .. } => return None,
-        _ => (),
+    if let State::Attacking { .. } = state {
+        return None;
     };
     let new_state = match walk_direction {
         Some(walk_direction) => State::Walking {
