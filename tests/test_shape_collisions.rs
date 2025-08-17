@@ -223,7 +223,7 @@ impl Game for CollisionTestGame {
 #[macroquad::test]
 async fn test_shape_collisions() {
     let mut app = lib_game::App::new(&Conf::default()).await.unwrap();
-    let font_bytes = include_bytes!("../assets/oegnek.ttf");
+    let font_bytes = include_bytes!("../assets/quaver.ttf");
     let font = load_ttf_font_from_bytes(font_bytes).unwrap();
     app.render.add_font(FontKey("undefined"), &font);
     let mut game = CollisionTestGame::new();
