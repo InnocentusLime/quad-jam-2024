@@ -2,20 +2,20 @@ use super::prelude::*;
 
 use std::borrow::Cow;
 
-static WIN_TEXT: &'static str = "Congratulations!";
-static GAMEOVER_TEXT: &'static str = "Game Over";
-static COMPLETE_TEXT: &'static str = "Congratulations! You beat the game!";
-static PAUSE_TEXT: &'static str = "Paused";
-static PAUSE_HINT: &'static str = "Move: WASD\nShoot: Mouse + Left Button\nYou get extra score for hitting multiple enemies at once\nPress escape to resume";
+static WIN_TEXT: &str = "Congratulations!";
+static GAMEOVER_TEXT: &str = "Game Over";
+static COMPLETE_TEXT: &str = "Congratulations! You beat the game!";
+static PAUSE_TEXT: &str = "Paused";
+static PAUSE_HINT: &str = "Move: WASD\nShoot: Mouse + Left Button\nYou get extra score for hitting multiple enemies at once\nPress escape to resume";
 
-static RESTART_HINT_DESK: &'static str = "Press Space to restart";
-static RESTART_HINT_MOBILE: &'static str = "Tap the screen to restart";
-static CONTINUE_HINT_DESK: &'static str = "Press Space to continue";
-static CONTINUE_HINT_MOBILE: &'static str = "Tap the screen to continue";
+static RESTART_HINT_DESK: &str = "Press Space to restart";
+static RESTART_HINT_MOBILE: &str = "Tap the screen to restart";
+static CONTINUE_HINT_DESK: &str = "Press Space to continue";
+static CONTINUE_HINT_MOBILE: &str = "Tap the screen to continue";
 
-static START_TEXT_DESK: &'static str = "Controls";
-static START_HINT: &'static str = "Move: WASD\nShoot: Mouse + Left Button\nYou get extra score for hitting multiple enemies at once\nPRESS SPACE TO START\nGet ready to run!";
-static START_TEXT_MOBILE: &'static str = "Tap to start";
+static START_TEXT_DESK: &str = "Controls";
+static START_HINT: &str = "Move: WASD\nShoot: Mouse + Left Button\nYou get extra score for hitting multiple enemies at once\nPRESS SPACE TO START\nGet ready to run!";
+static START_TEXT_MOBILE: &str = "Tap to start";
 
 pub fn player(render: &mut Render, world: &World) {
     for (_, (pos, hp)) in &mut world.query::<(&Transform, &Health)>().with::<&PlayerTag>() {
@@ -61,7 +61,7 @@ pub fn player_attack(render: &mut Render, world: &World) {
 
 pub fn game_ui(render: &mut Render, world: &World) {
     let world_font_size = 16f32;
-    let off_y = world_font_size as f32;
+    let off_y = world_font_size;
     let ui_x = TILE_SIDE_F32 * 16.0;
     let (font_size, font_scale, font_scale_aspect) = camera_font_scale(world_font_size);
 

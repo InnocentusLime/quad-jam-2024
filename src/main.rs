@@ -18,7 +18,7 @@ fn window_conf() -> Conf {
 async fn main() {
     let hook = std::panic::take_hook();
     std::panic::set_hook(Box::new(move |info| {
-        lib_game::sys::panic_screen(&format!("Driver panicked:\n{}", info));
+        lib_game::sys::panic_screen(&format!("Driver panicked:\n{info}"));
         hook(info);
     }));
 
