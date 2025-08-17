@@ -109,10 +109,10 @@ async fn load_graphics(render: &mut Render) -> anyhow::Result<()> {
     set_default_filter_mode(FilterMode::Nearest);
 
     render.add_font(
-        FontKey("oegnek"),
-        &load_ttf_font("assets/oegnek.ttf").await?,
+        FontKey("quaver"),
+        &load_ttf_font("assets/quaver.ttf").await?,
     );
-    render.ui_font = FontKey("oegnek");
+    render.ui_font = FontKey("quaver");
 
     build_textures_atlas();
 

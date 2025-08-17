@@ -94,5 +94,5 @@ cp ./static/* ./dist
 
 ## Credits
 
-* Font "oegnek". It can be downloaded from [the itch.io page](https://sonyplaytation.itch.io/oegnec-font) (Unfortunately the link is dead)
+* Font "quaver". Can be downloaded from [the itch.io page](https://caffinate.itch.io/quaver)
 * Tileset by piixl. Can be found on [the itch.io page](https://piiixl.itch.io/1-bit-patterns-and-tiles)
