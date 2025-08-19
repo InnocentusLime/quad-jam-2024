@@ -4,6 +4,7 @@ use std::fs;
 use std::str::FromStr;
 use std::{path::PathBuf, process::ExitCode};
 
+use anyhow::Context;
 use clap::{Parser, Subcommand};
 
 fn main() -> ExitCode {
@@ -36,9 +37,9 @@ fn check_map(assets_directory: PathBuf, map: PathBuf) -> anyhow::Result<()> {
 fn compile_map(assets_directory: &PathBuf, map: PathBuf, out: PathBuf) -> anyhow::Result<()> {
     println!("Compiling {map:?} into {out:?}");
 
-    let level = lib_level::tiled_load::load_level(assets_directory, map)?;
-    let out = fs::File::create(out)?;
-    lib_level::binary_io::compile::write_level(&level, out)
+    let level = lib_level::tiled_load::load_level(assets_directory, map).context("loading map")?;
+    let out = fs::File::create(out).context("opening the output")?;
+    lib_level::binary_io::compile::write_level(&level, out).context("writing the level")
 }
 
 fn dump_map(map: PathBuf) -> anyhow::Result<()> {
