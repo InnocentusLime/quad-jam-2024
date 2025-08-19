@@ -1,0 +1,7 @@
+target/
+levels/
+.git/
+.github/
+LICENSE
+README.MD
+.gitignore
