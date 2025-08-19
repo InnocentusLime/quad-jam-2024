@@ -9,56 +9,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: ${{ vars.RUST_VERSION }}
-          target: wasm32-unknown-unknown
-          components: rustfmt
-      - name: Set up cargo cache
-        uses: actions/cache@v4
-        continue-on-error: false
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: deploy-${{ runner.os }}-${{ vars.RUST_VERSION }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: deploy-${{ runner.os }}-${{ vars.RUST_VERSION }}-cargo-
-      - name: Build level-compiler
-        run: cargo build -p lib-level
-      - name: Build
-        run: cargo build --target wasm32-unknown-unknown --profile wasm-release --locked
-      - name: Create dist dir
-        run: mkdir dist
-      - name: Create levels dir
-        run: mkdir ./dist/levels
-      - name: Build all maps
-        run: ./target/debug/lib-level --assets ./assets compile-dir -d ./tiled-project -o ./dist/levels
-      - name: Acquire wasm build
-        run: cp ./target/wasm32-unknown-unknown/wasm-release/${{ github.event.repository.name }}.wasm ./dist/game.wasm
-      - name: Copy assets
-        run: cp -rf ./assets ./dist/
-      - name: Copy static
-        run: cp ./static/* ./dist
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: web-dist
-          path: ./dist
-  deploy-to-itch:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Create artifact dir
-        run: mkdir ./dist
-      - name: Acquire artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: web-dist
-          path: ./dist
+        uses: actions/checkout@v5
+      - name: Build image
+        run: docker build -t quad-jam .
+      - name: Instantiate image
+        run: docker create --name quad-jam quad-jam
+      - name: Extract artifact
+        run: docker cp quad-jam:/usr/local/apache2/htdocs/ ./dist 
       - name: Push HTML5 version to itch.io
         uses: manleydev/butler-publish-itchio-action@v1.0.3
         env:

@@ -8,50 +8,35 @@ env:
 jobs:
   ci-check:
     runs-on: ubuntu-latest
+    container: rust:1.88.0-bookworm 
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: ${{ vars.RUST_VERSION }}
-          override: true
-          target: wasm32-unknown-unknown
-          components: rustfmt
+      - uses: actions/checkout@v5
       - uses: actions/cache@v4
         continue-on-error: false
         with:
           path: |
             ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
+            ~/.cargo/registry/
+            ~/.cargo/git/
             target/
-          key: ci-${{ runner.os }}-${{ vars.RUST_VERSION }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ci-${{ runner.os }}-${{ vars.RUST_VERSION }}-cargo-
+          key: ci-bookworm-1.88-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ci-bookworm-1.88-cargo-
       - shell: bash
         run: >
-          sudo apt-get update &&
-          sudo apt-get install --no-install-recommends libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
+          apt-get update &&
+          apt-get install -y --no-install-recommends libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev &&
+          rustup target add wasm32-unknown-unknown &&
+          rustup component add rustfmt
       - name: Check everything for desktop
-        run: cargo check --locked --all-targets
+        run: cargo build --locked --all-targets
       - name: Check WASM
-        run: cargo check --locked --target wasm32-unknown-unknown
+        run: cargo build --locked --target wasm32-unknown-unknown
       - name: Run tests
         run: cargo test --workspace --package "*" --exclude quad-jam-2024 --locked
-  code-audit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: List FIXME
-        run: grep -Iirn "FIXME" . --exclude-dir .github --exclude-dir target --exclude-dir assets --exclude "*.lock" --exclude-dir static --exclude-dir .git
-  cargo-fmt:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: ${{ vars.RUST_VERSION }}
-          override: true
-          components: rustfmt
       - run: cargo fmt --all -- --check
+  deploy-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build image
+        run: docker build -t quad-jam .
