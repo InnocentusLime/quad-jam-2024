@@ -64,6 +64,7 @@ pub fn game_ui(render: &mut Render, world: &World) {
     let off_y = world_font_size;
     let ui_x = TILE_SIDE_F32 * 16.0;
     let (font_size, font_scale, font_scale_aspect) = camera_font_scale(world_font_size);
+    let font = FontKey("quaver");
 
     let mut player_q = world.query::<(&PlayerScore, &Health)>();
     let (_, (score, player_health)) = player_q.into_iter().next().unwrap();
@@ -75,7 +76,7 @@ pub fn game_ui(render: &mut Render, world: &World) {
 
     render.world.spawn((
         GlyphText {
-            font: FontKey("oegnek"),
+            font,
             string: Cow::Owned(format!("Score:{}", score.0)),
             font_size,
             font_scale,
@@ -86,7 +87,7 @@ pub fn game_ui(render: &mut Render, world: &World) {
     ));
     render.world.spawn((
         GlyphText {
-            font: FontKey("oegnek"),
+            font,
             string: Cow::Owned(format!("Health:{}", player_health.value)),
             font_size,
             font_scale,
@@ -97,7 +98,7 @@ pub fn game_ui(render: &mut Render, world: &World) {
     ));
     render.world.spawn((
         GlyphText {
-            font: FontKey("oegnek"),
+            font,
             string: Cow::Borrowed(game_state),
             font_size,
             font_scale,
