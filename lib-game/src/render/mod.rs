@@ -36,7 +36,7 @@ pub struct Render {
     tilemap_width: usize,
     tilemap_height: usize,
 
-    sprite_buffer: Vec<SpriteData>,
+    pub sprite_buffer: Vec<SpriteData>,
 
     to_delete: Vec<Entity>,
     time: f32,
@@ -444,14 +444,14 @@ impl Render {
 }
 
 #[derive(Debug, Clone, Copy)]
-struct SpriteData {
-    layer: u32,
-    tf: Transform,
-    texture: TextureKey,
-    rect: Rect,
-    origin: Vec2,
-    color: Color,
-    sort_offset: f32,
+pub struct SpriteData {
+    pub layer: u32,
+    pub tf: Transform,
+    pub texture: TextureKey,
+    pub rect: Rect,
+    pub origin: Vec2,
+    pub color: Color,
+    pub sort_offset: f32,
 }
 
 fn get_tile_count_in_atlas(
