@@ -1,4 +1,5 @@
 use hecs::Entity;
+use lib_anim::AnimationId;
 use macroquad::prelude::*;
 
 #[derive(Debug, Clone, Copy)]
@@ -170,4 +171,10 @@ pub struct TileSmell {
 #[derive(Debug, Clone, Copy)]
 pub struct GoalTag {
     pub achieved: bool,
+}
+
+pub struct AnimationPlay {
+    pub animation: AnimationId,
+    pub total_dt: f32,
+    pub cursor: u32,
 }

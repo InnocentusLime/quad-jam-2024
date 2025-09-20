@@ -1,3 +1,6 @@
+use hashbrown::HashMap;
+use lib_anim::{Animation, AnimationId, ClipAction};
+
 use super::prelude::*;
 
 use std::borrow::Cow;
@@ -17,29 +20,41 @@ static START_TEXT_DESK: &str = "Controls";
 static START_HINT: &str = "Move: WASD\nShoot: Mouse + Left Button\nYou get extra score for hitting multiple enemies at once\nPRESS SPACE TO START\nGet ready to run!";
 static START_TEXT_MOBILE: &str = "Tap to start";
 
-pub fn player(render: &mut Render, world: &World) {
-    for (_, (pos, hp)) in &mut world.query::<(&Transform, &Health)>().with::<&PlayerTag>() {
-        if hp.block_damage {
-            render.world.spawn((
-                *pos,
-                RectShape {
-                    origin: vec2(0.5, 0.5),
-                    width: 16.0,
-                    height: 16.0,
-                },
-                Tint(PURPLE),
-                Flicker,
-            ));
-        } else {
-            render.world.spawn((
-                *pos,
-                RectShape {
-                    origin: vec2(0.5, 0.5),
-                    width: 16.0,
-                    height: 16.0,
-                },
-                Tint(PURPLE),
-            ));
+pub fn anims(world: &World, render: &mut Render, animations: &HashMap<AnimationId, Animation>) {
+    for (_, (tf, play)) in world.query::<(&Transform, &mut AnimationPlay)>().iter() {
+        let Some(anim) = animations.get(&play.animation) else {
+            warn!("No such anim: {:?}", play.animation);
+            continue;
+        };
+        let matching_clips = anim
+            .clips
+            .iter()
+            .filter(|x| x.start <= play.cursor && play.cursor < x.start + x.len);
+        for clip in matching_clips {
+            match &clip.action {
+                ClipAction::DrawSprite {
+                    layer,
+                    local_pos,
+                    local_rotation: _,
+                    texture: _,
+                    rect,
+                    origin,
+                    sort_offset,
+                } => render.sprite_buffer.push(SpriteData {
+                    layer: *layer,
+                    tf: Transform::from_pos(tf.pos + vec2(local_pos.x, local_pos.y)),
+                    texture: TextureKey("bnuuy"),
+                    rect: Rect {
+                        x: rect.x as f32,
+                        y: rect.y as f32,
+                        w: rect.w as f32,
+                        h: rect.h as f32,
+                    },
+                    origin: vec2(origin.x, origin.y),
+                    color: WHITE,
+                    sort_offset: *sort_offset,
+                }),
+            }
         }
     }
 }
