@@ -1,3 +1,5 @@
+use lib_anim::AnimationId;
+
 use super::prelude::*;
 
 pub const PLAYER_SPEED: f32 = 132.0;
@@ -21,6 +23,11 @@ pub fn spawn(world: &mut World, pos: Vec2) {
                 width: PLAYER_SIZE,
                 height: PLAYER_SIZE,
             },
+        },
+        AnimationPlay {
+            animation: AnimationId::BunnyWalkD,
+            total_dt: 0.0,
+            cursor: 0,
         },
     ));
 }
