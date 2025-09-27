@@ -4,7 +4,7 @@ version = "0.2.0"
 edition = "2024"
 
 [workspace]
-members = [ "lib-col", "lib-dbg", "lib-game", "lib-level" ]
+members = [ "lib-anim", "lib-col", "lib-dbg", "lib-game", "lib-level" ]
 
 [dependencies]
 # Workspace deps
@@ -19,6 +19,7 @@ lib-col = { path = "./lib-col"}
 lib-dbg = { path = "./lib-dbg" }
 lib-game = { path = "./lib-game" }
 lib-level = { path = "./lib-level" }
+lib-anim = { path = "./lib-anim" }
 
 [workspace.dependencies]
 strum = { version = "0.27.2", features = ["derive"] }
