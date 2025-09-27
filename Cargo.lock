@@ -726,6 +726,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "itoa"
+version = "1.0.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
+
+[[package]]
 name = "jobserver"
 version = "0.1.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -766,6 +772,21 @@ dependencies = [
  "byteorder",
  "ogg",
  "smallvec 0.6.14",
+]
+
+[[package]]
+name = "lib-anim"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "hashbrown 0.14.5",
+ "macroquad",
+ "postcard",
+ "serde",
+ "serde_json",
+ "strum",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
@@ -1223,6 +1244,7 @@ dependencies = [
  "glam",
  "hashbrown 0.14.5",
  "hecs",
+ "lib-anim",
  "lib-col",
  "lib-dbg",
  "lib-game",
@@ -1438,6 +1460,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a0d197bd2c9dc6e53b84da9556a69ba4cdfab8619eb41a8bd1cc2027a0f6b1d"
 
 [[package]]
+name = "ryu"
+version = "1.0.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "28d3b2b1366ec20994f1fd18c3c594f05c5dd4bc44d8bb0c1c632c8d6829481f"
+
+[[package]]
 name = "safe_arch"
 version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1482,6 +1510,18 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "serde_json"
+version = "1.0.143"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d401abef1d108fbd9cbaebc3e46611f4b1021f714a0597a71f41ee463f5f4a5a"
+dependencies = [
+ "itoa",
+ "memchr",
+ "ryu",
+ "serde",
 ]
 
 [[package]]
