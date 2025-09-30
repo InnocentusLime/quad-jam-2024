@@ -90,7 +90,7 @@ fn init_level(world: &mut World, level_def: lib_level::LevelDef) {
 fn decide_next_state(world: &mut World) -> Option<AppState> {
     let player_dead = world
         .query_mut::<&Health>()
-        .with::<&PlayerTag>()
+        .with::<&PlayerData>()
         .into_iter()
         .all(|(_, hp)| hp.value <= 0);
     let goal_achieved = world
@@ -175,6 +175,7 @@ impl Game for Project {
         &[
             ("phys", draw_physics_debug),
             ("smell", tile::debug_draw_tile_smell),
+            ("pl", player::draw_player_state),
         ]
     }
 
@@ -212,13 +213,15 @@ impl Game for Project {
         init_level(world, level_data);
     }
 
-    fn input_phase(&mut self, input: &lib_game::InputModel, _dt: f32, world: &mut World) {
-        player::controls(input, world);
+    fn input_phase(&mut self, input: &lib_game::InputModel, dt: f32, world: &mut World) {
+        player::auto_state_transition(world, &self.animations);
+        player::controls(dt, input, world, &self.animations);
         if self.do_ai { /* No enemies yet */ }
     }
 
-    fn plan_collision_queries(&mut self, dt: f32, world: &mut World, cmds: &mut CommandBuffer) {
-        player::update(dt, world, cmds);
+    fn plan_collision_queries(&mut self, dt: f32, world: &mut World, _cmds: &mut CommandBuffer) {
+        player::state_to_anim(world);
+        update_anims(dt, world, &self.animations);
     }
 
     fn update(
@@ -227,7 +230,6 @@ impl Game for Project {
         world: &mut World,
         _cmds: &mut CommandBuffer,
     ) -> Option<lib_game::AppState> {
-        update_anims(dt, world, &self.animations);
         tile::tick_smell(dt, world);
         tile::player_step_smell(world);
         goal::check(world);

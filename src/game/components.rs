@@ -1,5 +1,5 @@
 use hecs::Entity;
-use lib_anim::AnimationId;
+use lib_anim::{Animation, AnimationId};
 use macroquad::prelude::*;
 
 #[derive(Debug, Clone, Copy)]
@@ -46,45 +46,17 @@ impl DamageCooldown {
     }
 }
 
-#[derive(Default, Debug, Clone, Copy)]
-pub enum PlayerAction {
-    #[default]
-    None,
-    Move {
-        look_direction: Vec2,
-        walk_direction: Option<Vec2>,
-    },
-    Attack,
+#[derive(Debug, Clone, Copy)]
+pub struct PlayerData {
+    pub look_direction: Vec2,
+    pub state: PlayerState,
 }
 
 #[derive(Debug, Clone, Copy)]
 pub enum PlayerState {
-    Idle {
-        look_direction: Vec2,
-    },
-    Walking {
-        look_direction: Vec2,
-        walk_direction: Vec2,
-    },
-    Attacking {
-        time_left: f32,
-        direction: Vec2,
-        attack_entity: Entity,
-    },
-}
-
-impl Default for PlayerState {
-    fn default() -> Self {
-        PlayerState::Idle {
-            look_direction: Vec2::from_angle(0.0),
-        }
-    }
-}
-
-#[derive(Default, Debug, Clone, Copy)]
-pub struct PlayerTag {
-    pub action: PlayerAction,
-    pub state: PlayerState,
+    Idle = 0,
+    Walking = 1,
+    Attacking = 2,
 }
 
 #[derive(Default, Debug, Clone, Copy)]
@@ -177,4 +149,13 @@ pub struct AnimationPlay {
     pub animation: AnimationId,
     pub total_dt: f32,
     pub cursor: u32,
+}
+
+impl AnimationPlay {
+    pub fn is_done(&self, animation: &Animation) -> bool {
+        if animation.is_looping {
+            return false;
+        }
+        self.cursor == animation.max_pos()
+    }
 }

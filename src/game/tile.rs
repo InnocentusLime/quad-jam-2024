@@ -31,7 +31,7 @@ pub fn tick_smell(dt: f32, world: &mut World) {
 pub fn player_step_smell(world: &mut World) {
     let (_, player_tf) = world
         .query_mut::<&Transform>()
-        .with::<&PlayerTag>()
+        .with::<&PlayerData>()
         .into_iter()
         .next()
         .unwrap();
