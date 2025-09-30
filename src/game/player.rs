@@ -1,18 +1,94 @@
-use lib_anim::AnimationId;
+use hashbrown::HashMap;
+use lib_anim::{Animation, AnimationId};
 
 use super::prelude::*;
 
-pub const PLAYER_SPEED: f32 = 132.0;
+pub const PLAYER_SPEED: f32 = 48.0;
 pub const PLAYER_SPAWN_HEALTH: i32 = 3;
 pub const PLAYER_HIT_COOLDOWN: f32 = 1.0;
 pub const PLAYER_SIZE: f32 = 16.0;
 pub const PLAYER_ATTACK_LENGTH: f32 = TILE_SIDE_F32 * 3.0;
 pub const PLAYER_ATTACK_WIDTH: f32 = 8.0;
 
+struct PlayerContext<'a> {
+    kinematic: &'a mut KinematicControl,
+    play: &'a mut AnimationPlay,
+    animation: &'a Animation,
+    data: &'a mut PlayerData,
+}
+
+impl<'a> PlayerContext<'a> {
+    fn set_state(&mut self, new_state: PlayerState) {
+        self.data.state = new_state;
+        self.play.cursor = 0;
+        self.play.total_dt = 0.0f32;
+    }
+
+    fn set_look_direction(&mut self, dir: Vec2) {
+        self.data.look_direction = dir;
+    }
+
+    fn set_walk_step(&mut self, step: Vec2) {
+        self.kinematic.dr = step;
+    }
+
+    fn do_auto_state_transition(&mut self) {
+        match self.data.state {
+            PlayerState::Attacking if self.is_anim_done() => {
+                self.set_state(PlayerState::Idle);
+            }
+            _ => (),
+        }
+    }
+
+    fn current_state(&self) -> PlayerState {
+        self.data.state
+    }
+
+    fn is_anim_done(&self) -> bool {
+        self.play.is_done(self.animation)
+    }
+}
+
+pub fn draw_player_state(world: &World) {
+    for (_, (tf, kinematic, play, data)) in world
+        .query::<(
+            &Transform,
+            &mut KinematicControl,
+            &mut AnimationPlay,
+            &mut PlayerData,
+        )>()
+        .iter()
+    {
+        let debug_texts = [
+            format!("{:?}", data.state),
+            format!("{:?}", play.animation),
+            format!("cursor (ms): {}", play.cursor),
+            format!("look: {}", data.look_direction),
+            format!("dr: {}", kinematic.dr),
+        ];
+
+        let pos = tf.pos + vec2(8.0, 0.0);
+        let debug_text_size = 8.0;
+        for (idx, text) in debug_texts.into_iter().enumerate() {
+            draw_text(
+                &text,
+                pos.x,
+                pos.y + (idx as f32) * debug_text_size,
+                debug_text_size,
+                YELLOW,
+            );
+        }
+    }
+}
+
 pub fn spawn(world: &mut World, pos: Vec2) {
     world.spawn((
         Transform::from_pos(pos),
-        PlayerTag::default(),
+        PlayerData {
+            look_direction: Vec2::Y,
+            state: PlayerState::Idle,
+        },
         PlayerScore(0),
         Health::new(PLAYER_SPAWN_HEALTH),
         DamageCooldown::new(PLAYER_HIT_COOLDOWN),
@@ -32,176 +108,99 @@ pub fn spawn(world: &mut World, pos: Vec2) {
     ));
 }
 
-pub fn controls(input: &InputModel, world: &mut World) {
-    for (_, (tf, tag)) in world.query_mut::<(&Transform, &mut PlayerTag)>() {
-        if input.attack_down {
-            tag.action = PlayerAction::Attack;
+pub fn auto_state_transition(world: &mut World, animations: &HashMap<AnimationId, Animation>) {
+    for (_, (data, play, kinematic)) in
+        world.query_mut::<(&mut PlayerData, &mut AnimationPlay, &mut KinematicControl)>()
+    {
+        let Some(animation) = animations.get(&play.animation) else {
+            warn!("Animation {:?} is not loaded", play.animation);
             continue;
-        }
+        };
+        let mut ctx = PlayerContext {
+            animation,
+            play,
+            kinematic,
+            data,
+        };
+        ctx.do_auto_state_transition();
+    }
+}
 
+pub fn controls(
+    dt: f32,
+    input: &InputModel,
+    world: &mut World,
+    animations: &HashMap<AnimationId, Animation>,
+) {
+    for (_, (tf, data, play, kinematic)) in world.query_mut::<(
+        &Transform,
+        &mut PlayerData,
+        &mut AnimationPlay,
+        &mut KinematicControl,
+    )>() {
+        let look_dir = (input.aim - tf.pos).normalize_or(vec2(0.0, 1.0));
+        let mut walk_dir = Vec2::ZERO;
         let mut do_walk = false;
-        let mut walk_direction = Vec2::ZERO;
         if input.left_movement_down {
-            walk_direction += vec2(-1.0, 0.0);
+            walk_dir += vec2(-1.0, 0.0);
             do_walk = true;
         }
         if input.up_movement_down {
-            walk_direction += vec2(0.0, -1.0);
+            walk_dir += vec2(0.0, -1.0);
             do_walk = true;
         }
         if input.right_movement_down {
-            walk_direction += vec2(1.0, 0.0);
+            walk_dir += vec2(1.0, 0.0);
             do_walk = true;
         }
         if input.down_movement_down {
-            walk_direction += vec2(0.0, 1.0);
+            walk_dir += vec2(0.0, 1.0);
             do_walk = true;
         }
+        walk_dir = walk_dir.normalize_or_zero();
 
-        tag.action = PlayerAction::Move {
-            look_direction: (input.aim - tf.pos).normalize_or(vec2(0.0, 1.0)),
-            walk_direction: do_walk.then_some(walk_direction),
+        let Some(animation) = animations.get(&play.animation) else {
+            warn!("Animation {:?} is not loaded", play.animation);
+            continue;
         };
-    }
-}
-
-pub fn update(dt: f32, world: &mut World, cmds: &mut CommandBuffer) {
-    use PlayerAction as Action;
-    use PlayerState as State;
-
-    // TODO: implement action queueing, because player
-    // may press something on the last frame.
-    for (_, (tf, tag)) in &mut world.query::<(&Transform, &mut PlayerTag)>() {
-        let action = std::mem::replace(&mut tag.action, Action::None);
-        let new_state = match action {
-            Action::None => continue,
-            Action::Move {
-                look_direction,
-                walk_direction,
-            } => do_move(tag.state, look_direction, walk_direction),
-            Action::Attack => do_attack(tag.state, *tf, world, cmds),
+        let mut ctx = PlayerContext {
+            animation,
+            play,
+            kinematic,
+            data,
+        };
+        let new_state = match ctx.current_state() {
+            PlayerState::Idle if input.attack_down => Some(PlayerState::Attacking),
+            PlayerState::Idle if do_walk => Some(PlayerState::Walking),
+            PlayerState::Walking if input.attack_down => Some(PlayerState::Attacking),
+            PlayerState::Walking if !do_walk => Some(PlayerState::Idle),
+            _ => None,
         };
         if let Some(new_state) = new_state {
-            tag.state = new_state;
+            ctx.set_state(new_state);
         }
-    }
 
-    for (_, (tag, control)) in world.query_mut::<(&mut PlayerTag, &mut KinematicControl)>() {
-        control.dr = Vec2::ZERO;
-        let new_state = match &mut tag.state {
-            State::Idle { .. } => continue,
-            State::Walking {
-                walk_direction,
-                look_direction,
-            } => update_walking(dt, control, *walk_direction, *look_direction),
-            State::Attacking {
-                time_left,
-                direction,
-                attack_entity,
-            } => update_attacking(dt, time_left, *direction, *attack_entity, cmds),
-        };
-        if let Some(new_state) = new_state {
-            tag.state = new_state;
+        if matches!(ctx.current_state(), PlayerState::Walking) {
+            ctx.set_walk_step(walk_dir * PLAYER_SPEED * dt);
+        } else {
+            ctx.set_walk_step(Vec2::ZERO);
+        }
+        if matches!(
+            ctx.current_state(),
+            PlayerState::Walking | PlayerState::Idle
+        ) {
+            ctx.set_look_direction(look_dir);
         }
     }
 }
 
-fn update_walking(
-    dt: f32,
-    control: &mut KinematicControl,
-    walk_direction: Vec2,
-    look_direction: Vec2,
-) -> Option<PlayerState> {
-    use PlayerState as State;
-
-    control.dr = walk_direction * PLAYER_SPEED * dt;
-    Some(State::Idle { look_direction })
-}
-
-fn update_attacking(
-    dt: f32,
-    time_left: &mut f32,
-    direction: Vec2,
-    attack_entity: Entity,
-    cmds: &mut CommandBuffer,
-) -> Option<PlayerState> {
-    use PlayerState as State;
-
-    if *time_left > 0.0f32 {
-        *time_left -= dt;
-        return None;
+pub fn state_to_anim(world: &mut World) {
+    for (_, (data, play)) in world.query_mut::<(&PlayerData, &mut AnimationPlay)>() {
+        let animation = match data.state {
+            PlayerState::Idle => AnimationId::BunnyIdleD,
+            PlayerState::Walking => AnimationId::BunnyWalkD,
+            PlayerState::Attacking => AnimationId::BunnyAttackD,
+        };
+        play.animation = animation;
     }
-    cmds.despawn(attack_entity);
-    Some(State::Idle {
-        look_direction: direction,
-    })
-}
-
-fn do_move(
-    state: PlayerState,
-    look_direction: Vec2,
-    walk_direction: Option<Vec2>,
-) -> Option<PlayerState> {
-    use PlayerState as State;
-
-    // Do not let him walk if he is attacking
-    if let State::Attacking { .. } = state {
-        return None;
-    };
-    let new_state = match walk_direction {
-        Some(walk_direction) => State::Walking {
-            look_direction,
-            walk_direction,
-        },
-        None => State::Idle { look_direction },
-    };
-    Some(new_state)
-}
-
-fn do_attack(
-    state: PlayerState,
-    tf: Transform,
-    world: &World,
-    cmds: &mut CommandBuffer,
-) -> Option<PlayerState> {
-    use PlayerState as State;
-
-    // Do not let him attack if he is already attacking
-    let attack_direction = match state {
-        State::Attacking { .. } => return None,
-        State::Idle { look_direction } | State::Walking { look_direction, .. } => look_direction,
-    };
-    let attack_entity = spawn_attack(tf, attack_direction, world, cmds);
-    Some(State::Attacking {
-        time_left: 0.5,
-        direction: attack_direction,
-        attack_entity,
-    })
-}
-
-fn spawn_attack(
-    tf: Transform,
-    attack_direction: Vec2,
-    world: &World,
-    cmds: &mut CommandBuffer,
-) -> Entity {
-    let damage_entity = world.reserve_entity();
-    let components = (
-        Transform {
-            pos: (PLAYER_ATTACK_LENGTH * 0.5 - TILE_SIDE_F32 * 0.5) * attack_direction + tf.pos,
-            angle: attack_direction.to_angle(),
-        },
-        col_query::Damage::new_many(
-            Shape::Rect {
-                width: PLAYER_ATTACK_LENGTH,
-                height: PLAYER_ATTACK_WIDTH,
-            },
-            col_group::DAMAGABLE,
-            col_group::ENEMY,
-            5,
-        ),
-        PlayerAttackTag,
-    );
-    cmds.insert(damage_entity, components);
-    damage_entity
 }
