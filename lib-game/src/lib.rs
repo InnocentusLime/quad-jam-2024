@@ -211,6 +211,7 @@ impl App {
                 }
             }
 
+            dump!("game state: {:?}", self.state);
             if matches!(self.state, AppState::Active { paused: false }) && do_tick {
                 if let Some(next_state) = self.game_update(&input, game) {
                     self.state = next_state;
@@ -269,7 +270,10 @@ impl App {
     fn update_ticking(&mut self, real_dt: f32) -> bool {
         self.accumelated_time += real_dt;
         if self.accumelated_time >= 2.0 * GAME_TICKRATE {
-            warn!("LAG");
+            warn!(
+                "LAG by {:.2}ms",
+                (self.accumelated_time - 2.0 * GAME_TICKRATE) * 1000.0
+            );
             self.accumelated_time = 0.0;
             false
         } else if self.accumelated_time >= GAME_TICKRATE {
