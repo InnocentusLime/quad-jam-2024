@@ -14,6 +14,7 @@ ADD . /project/
 RUN <<EOF
     cd /project &&\
     cargo build --locked --package lib-level &&\
+    cargo build --locked --package lib-anim &&\
     cargo build --target wasm32-unknown-unknown --profile wasm-release --locked
 EOF
 # Put all files
@@ -26,6 +27,11 @@ RUN mkdir /dist/levels && \
         compile-dir \
             -d /project/tiled-project \
             -o /dist/levels
+RUN mkdir /dist/animations && \
+    /project/target/debug/lib-anim \
+        compile-dir \
+            -d /project/art-project \
+            -o /dist/animations
 
 FROM httpd:trixie 
 COPY --from=build /dist /usr/local/apache2/htdocs/ 
