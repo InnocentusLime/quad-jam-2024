@@ -6,7 +6,7 @@ use lib_dbg::dump;
 pub use components::*;
 use hecs::{Entity, World};
 use lib_level::{LevelDef, TILE_SIDE, TileIdx};
-use lib_asset::TextureId;
+use lib_asset::{FontId, TextureId};
 use macroquad::prelude::*;
 
 use crate::Transform;
@@ -28,7 +28,7 @@ struct TextureVal {
 /// It also provides a simple asset storage for quick access
 /// for the rendering code callers.
 pub struct Render {
-    pub ui_font: FontKey,
+    pub ui_font: FontId,
     pub world: World,
 
     tilemap_atlas: TextureId,
@@ -43,7 +43,7 @@ pub struct Render {
     time: f32,
 
     textures: HashMap<TextureId, TextureVal>,
-    fonts: HashMap<FontKey, Font>,
+    fonts: HashMap<FontId, Font>,
 }
 
 impl Render {
@@ -51,7 +51,7 @@ impl Render {
         let world = World::new();
 
         Self {
-            ui_font: FontKey("undefined"),
+            ui_font: FontId::Quaver,
             tilemap_atlas: TextureId::WorldAtlas,
             tilemap_tiles: Vec::new(),
             tilemap_data: Vec::new(),
@@ -75,11 +75,11 @@ impl Render {
         );
     }
 
-    pub fn add_font(&mut self, key: FontKey, font: &Font) {
+    pub fn add_font(&mut self, key: FontId, font: &Font) {
         self.fonts.insert(key, font.clone());
     }
 
-    pub fn get_font(&self, key: FontKey) -> Option<&Font> {
+    pub fn get_font(&self, key: FontId) -> Option<&Font> {
         self.fonts.get(&key)
     }
 
@@ -357,7 +357,7 @@ impl Render {
         {
             let tint = tint.map(|x| x.0).unwrap_or(WHITE);
             let Some(font) = self.fonts.get(&text.font) else {
-                warn!("No font {:?}", text.font.0);
+                warn!("No font {:?}", text.font);
                 continue;
             };
 

@@ -1,6 +1,6 @@
 use hashbrown::HashMap;
 use lib_anim::{Animation, AnimationId, ClipAction};
-use lib_asset::TextureId;
+use lib_asset::{FontId, TextureId};
 
 use super::prelude::*;
 
@@ -80,7 +80,7 @@ pub fn game_ui(render: &mut Render, world: &World) {
     let off_y = world_font_size;
     let ui_x = TILE_SIDE_F32 * 16.0;
     let (font_size, font_scale, font_scale_aspect) = camera_font_scale(world_font_size);
-    let font = FontKey("quaver");
+    let font = FontId::Quaver;
 
     let mut player_q = world.query::<(&PlayerScore, &Health)>();
     let (_, (score, player_health)) = player_q.into_iter().next().unwrap();

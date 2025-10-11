@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-use lib_asset::TextureId;
+use lib_asset::{FontId, TextureId};
 use macroquad::prelude::*;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
@@ -100,7 +100,7 @@ pub struct VertShrinkFadeoutAnim;
 /// drawn as white.
 #[derive(Clone, Debug)]
 pub struct GlyphText {
-    pub font: FontKey,
+    pub font: FontId,
     pub string: Cow<'static, str>,
     pub font_size: u16,
     pub font_scale: f32,
