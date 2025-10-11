@@ -5,6 +5,7 @@ use lib_dbg::dump;
 
 pub use components::*;
 use hecs::{Entity, World};
+use lib_asset::{FontId, TextureId};
 use lib_level::{LevelDef, TILE_SIDE, TileIdx};
 use macroquad::prelude::*;
 
@@ -27,10 +28,10 @@ struct TextureVal {
 /// It also provides a simple asset storage for quick access
 /// for the rendering code callers.
 pub struct Render {
-    pub ui_font: FontKey,
+    pub ui_font: FontId,
     pub world: World,
 
-    tilemap_atlas: TextureKey,
+    tilemap_atlas: TextureId,
     tilemap_tiles: Vec<Rect>,
     tilemap_data: Vec<TileIdx>,
     tilemap_width: usize,
@@ -41,8 +42,8 @@ pub struct Render {
     to_delete: Vec<Entity>,
     time: f32,
 
-    textures: HashMap<TextureKey, TextureVal>,
-    fonts: HashMap<FontKey, Font>,
+    textures: HashMap<TextureId, TextureVal>,
+    fonts: HashMap<FontId, Font>,
 }
 
 impl Render {
@@ -50,8 +51,8 @@ impl Render {
         let world = World::new();
 
         Self {
-            ui_font: FontKey("undefined"),
-            tilemap_atlas: TextureKey("undefined"),
+            ui_font: FontId::Quaver,
+            tilemap_atlas: TextureId::WorldAtlas,
             tilemap_tiles: Vec::new(),
             tilemap_data: Vec::new(),
             tilemap_width: 0,
@@ -65,7 +66,7 @@ impl Render {
         }
     }
 
-    pub fn add_texture(&mut self, key: TextureKey, texture: &Texture2D) {
+    pub fn add_texture(&mut self, key: TextureId, texture: &Texture2D) {
         self.textures.insert(
             key,
             TextureVal {
@@ -74,18 +75,18 @@ impl Render {
         );
     }
 
-    pub fn add_font(&mut self, key: FontKey, font: &Font) {
+    pub fn add_font(&mut self, key: FontId, font: &Font) {
         self.fonts.insert(key, font.clone());
     }
 
-    pub fn get_font(&self, key: FontKey) -> Option<&Font> {
+    pub fn get_font(&self, key: FontId) -> Option<&Font> {
         self.fonts.get(&key)
     }
 
     /// * `atlas`: the atlas texture key
     /// * `atlas_margin`: space around the whole tileset
     /// * `atlas_spacing`: space between tiles
-    pub fn set_atlas(&mut self, atlas: TextureKey, atlas_margin: u32, atlas_spacing: u32) {
+    pub fn set_atlas(&mut self, atlas: TextureId, atlas_margin: u32, atlas_spacing: u32) {
         let Some(atlas_texture) = self.textures.get(&atlas) else {
             warn!("No such texture: {atlas:?}");
             return;
@@ -329,7 +330,7 @@ impl Render {
 
         for sprite in self.sprite_buffer.iter() {
             let Some(TextureVal { texture, .. }) = self.textures.get(&sprite.texture) else {
-                warn!("No texture {:?}", sprite.texture.0);
+                warn!("No texture {:?}", sprite.texture);
                 continue;
             };
             draw_texture_ex(
@@ -356,7 +357,7 @@ impl Render {
         {
             let tint = tint.map(|x| x.0).unwrap_or(WHITE);
             let Some(font) = self.fonts.get(&text.font) else {
-                warn!("No font {:?}", text.font.0);
+                warn!("No font {:?}", text.font);
                 continue;
             };
 
@@ -447,7 +448,7 @@ impl Render {
 pub struct SpriteData {
     pub layer: u32,
     pub tf: Transform,
-    pub texture: TextureKey,
+    pub texture: TextureId,
     pub rect: Rect,
     pub origin: Vec2,
     pub color: Color,
