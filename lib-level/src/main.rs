@@ -1,21 +1,24 @@
 #![cfg(not(target_family = "wasm"))]
 
 use std::fs;
-use std::str::FromStr;
 use std::{path::PathBuf, process::ExitCode};
 
 use anyhow::Context;
 use clap::{Parser, Subcommand};
+use lib_asset::FsResolver;
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
-    let assets_directory = cli.assets.unwrap_or(PathBuf::from_str("./").unwrap());
+    let mut resolver = FsResolver::new();
+    if let Some(asset_dir) = cli.assets {
+        resolver.set_assets_dir(asset_dir).unwrap();
+    }
 
     let result = match cli.command {
-        Commands::CheckMap { map } => check_map(assets_directory, map),
-        Commands::CompileMap { map, out } => compile_map(&assets_directory, map, out),
+        Commands::CheckMap { map } => check_map(&resolver, map),
+        Commands::CompileMap { map, out } => compile_map(&resolver, map, out),
         Commands::DumpMap { map } => dump_map(map),
-        Commands::CompileDir { dir, out } => compile_dir(assets_directory, dir, out),
+        Commands::CompileDir { dir, out } => compile_dir(&resolver, dir, out),
     };
 
     match result {
@@ -27,17 +30,17 @@ fn main() -> ExitCode {
     }
 }
 
-fn check_map(assets_directory: PathBuf, map: PathBuf) -> anyhow::Result<()> {
+fn check_map(resolver: &FsResolver, map: PathBuf) -> anyhow::Result<()> {
     println!("Checking {map:?}");
 
-    lib_level::tiled_load::load_level(assets_directory, map)?;
+    lib_level::tiled_load::load_level(resolver, map)?;
     Ok(())
 }
 
-fn compile_map(assets_directory: &PathBuf, map: PathBuf, out: PathBuf) -> anyhow::Result<()> {
+fn compile_map(resolver: &FsResolver, map: PathBuf, out: PathBuf) -> anyhow::Result<()> {
     println!("Compiling {map:?} into {out:?}");
 
-    let level = lib_level::tiled_load::load_level(assets_directory, map).context("loading map")?;
+    let level = lib_level::tiled_load::load_level(resolver, map).context("loading map")?;
     let out = fs::File::create(out).context("opening the output")?;
     lib_level::binary_io::compile::write_level(&level, out).context("writing the level")
 }
@@ -49,7 +52,7 @@ fn dump_map(map: PathBuf) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn compile_dir(assets_directory: PathBuf, dir: PathBuf, out: PathBuf) -> anyhow::Result<()> {
+fn compile_dir(resolver: &FsResolver, dir: PathBuf, out: PathBuf) -> anyhow::Result<()> {
     let dir = fs::read_dir(dir)?;
     for file in dir {
         let file = file?.path();
@@ -64,7 +67,7 @@ fn compile_dir(assets_directory: PathBuf, dir: PathBuf, out: PathBuf) -> anyhow:
         let mut buff = out.clone();
         buff.push(name);
         buff.set_extension("bin");
-        compile_map(&assets_directory, file, buff)?;
+        compile_map(resolver, file, buff)?;
     }
     Ok(())
 }

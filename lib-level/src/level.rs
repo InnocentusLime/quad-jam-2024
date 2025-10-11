@@ -36,6 +36,7 @@
 //! game code minus the `&mut World` argument.
 
 use hashbrown::HashMap;
+use lib_asset::TextureId;
 use serde::{Deserialize, Serialize};
 
 pub const TILE_SIDE: u32 = 16;
@@ -91,11 +92,8 @@ pub struct MapDef {
     /// Map's tiles in row-major order.
     /// Each index refers to an entry in `tiles`.
     pub tilemap: Vec<TileIdx>,
-    /// Path to the tilemap atlas. The path is
-    /// relative to the `assets` folder and is
-    /// always written in Unix style (with the "/" slash)
-    /// as a UTF8 string.
-    pub atlas_path: String,
+    /// The asset id of the atlas
+    pub atlas: TextureId,
     /// Atlas margin
     pub atlas_margin: u32,
     /// Atlas spacing between tiles

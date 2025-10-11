@@ -194,11 +194,11 @@ impl Game for Project {
     }
 
     async fn init(&mut self, _path: &str, world: &mut World, render: &mut Render) {
-        let level_data = lib_level::load_level("test_room").await.unwrap();
-        let atlas_path = "./assets/".to_owned() + &level_data.map.atlas_path;
+        let resolver = FsResolver::new();
+        let level_data = lib_level::load_level(&resolver, "test_room").await.unwrap();
         render.add_texture(
             TextureId::WorldAtlas,
-            &load_texture(&atlas_path).await.unwrap(),
+            &level_data.map.atlas.load_texture(&resolver).await.unwrap(),
         );
         render.set_atlas(
             TextureId::WorldAtlas,
