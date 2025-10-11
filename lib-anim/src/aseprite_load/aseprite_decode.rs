@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use hashbrown::HashMap;
+use lib_asset::{FsResolver, TextureId};
 use serde::Deserialize;
 use thiserror::Error;
 
@@ -68,6 +69,7 @@ pub struct SheetTag {
 }
 
 pub fn load_clips_from_aseprite(
+    resolver: &FsResolver,
     sheet: &Sheet,
 ) -> Result<HashMap<AnimationId, (Vec<Clip>, bool)>, LoadFromAsepriteError> {
     let version_prefix = String::from(REQUIRED_ASEPRITE_VERSION) + ".";
@@ -138,14 +140,16 @@ pub fn load_clips_from_aseprite(
                 w: frame.frame.w,
                 h: frame.frame.h,
             };
+            let sprite_path = resolver.asset_path(&sheet.meta.image);
+            let texture_id = TextureId::inverse_resolve(resolver, &sprite_path).unwrap();
             let action = ClipAction::DrawSprite {
                 layer: 1,
+                texture_id,
                 local_pos: Position {
                     x: -(frame.frame.w as f32) * 0.5,
                     y: -(frame.frame.h as f32) * 0.5,
                 },
                 local_rotation: 0.0,
-                texture: sheet.meta.image.clone().into(),
                 rect,
                 origin: Position { x: 0.0, y: 0.0 },
                 sort_offset: 0.0f32,
@@ -168,9 +172,10 @@ pub fn load_clips_from_aseprite(
 }
 
 pub fn load_animations_from_aseprite(
+    resolver: &FsResolver,
     sheet: &Sheet,
 ) -> Result<HashMap<AnimationId, Animation>, LoadFromAsepriteError> {
-    let res = load_clips_from_aseprite(sheet)?
+    let res = load_clips_from_aseprite(resolver, sheet)?
         .into_iter()
         .map(|(name, (clips, is_looping))| (name, Animation { clips, is_looping }))
         .collect();
