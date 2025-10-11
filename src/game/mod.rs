@@ -8,6 +8,7 @@ mod render;
 
 use hashbrown::HashMap;
 use lib_anim::{Animation, AnimationId};
+use lib_asset::{FontId, FsResolver, TextureId};
 use prelude::*;
 
 pub const ANIMATION_TIME_UNIT: f32 = 1.0 / 1000.0;
@@ -109,17 +110,15 @@ fn decide_next_state(world: &mut World) -> Option<AppState> {
 }
 
 async fn load_graphics(render: &mut Render) -> anyhow::Result<()> {
+    let resolver = FsResolver::new();
     set_default_filter_mode(FilterMode::Nearest);
 
-    render.add_font(
-        FontKey("quaver"),
-        &load_ttf_font("assets/quaver.ttf").await?,
-    );
-    render.ui_font = FontKey("quaver");
+    render.add_font(FontId::Quaver, &FontId::Quaver.load_font(&resolver).await?);
+    render.ui_font = FontId::Quaver;
 
     render.add_texture(
-        TextureKey("bnuuy"),
-        &load_texture("assets/bnuuy.png").await?,
+        TextureId::BunnyAtlas,
+        &TextureId::BunnyAtlas.load_texture(&resolver).await.unwrap(),
     );
 
     build_textures_atlas();
@@ -198,11 +197,11 @@ impl Game for Project {
         let level_data = lib_level::load_level("test_room").await.unwrap();
         let atlas_path = "./assets/".to_owned() + &level_data.map.atlas_path;
         render.add_texture(
-            TextureKey("atlas"),
+            TextureId::WorldAtlas,
             &load_texture(&atlas_path).await.unwrap(),
         );
         render.set_atlas(
-            TextureKey("atlas"),
+            TextureId::WorldAtlas,
             level_data.map.atlas_margin,
             level_data.map.atlas_spacing,
         );
