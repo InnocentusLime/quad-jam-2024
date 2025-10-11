@@ -8,6 +8,7 @@ anyhow = { workspace = true }
 strum = { workspace = true }
 hashbrown = { workspace = true, features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
+lib-asset = { path = "../lib-asset" }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 postcard = "1"

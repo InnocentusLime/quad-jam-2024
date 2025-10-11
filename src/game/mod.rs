@@ -134,7 +134,11 @@ pub struct Project {
 impl Project {
     pub async fn new(app: &mut App) -> Project {
         load_graphics(&mut app.render).await.unwrap();
-        let mut animations = lib_anim::load_animation_pack("bnuuy-anims").await.unwrap();
+        let resolver = FsResolver::new();
+        let mut animations = lib_anim::AnimationPackId::Bunny
+            .load_animation_pack(&resolver)
+            .await
+            .unwrap();
 
         // There is no way to specify offsets right now.
         // So we patch them in

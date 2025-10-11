@@ -1,5 +1,4 @@
-use std::path::PathBuf;
-
+use lib_asset::TextureId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -30,9 +29,9 @@ pub struct Clip {
 pub enum ClipAction {
     DrawSprite {
         layer: u32,
+        texture_id: TextureId,
         local_pos: Position,
         local_rotation: f32,
-        texture: PathBuf,
         rect: ImgRect,
         origin: Position,
         sort_offset: f32,
@@ -53,6 +52,7 @@ pub struct ImgRect {
     pub h: u32,
 }
 
+// TODO: macro for generating this id AND mapping from pack to ids
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, strum::EnumString, PartialEq, Eq, Hash)]
 pub enum AnimationId {
     BunnyIdleD,

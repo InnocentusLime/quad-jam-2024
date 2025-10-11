@@ -1,6 +1,6 @@
 use hashbrown::HashMap;
 use lib_anim::{Animation, AnimationId, ClipAction};
-use lib_asset::{FontId, TextureId};
+use lib_asset::FontId;
 
 use super::prelude::*;
 
@@ -35,16 +35,16 @@ pub fn anims(world: &World, render: &mut Render, animations: &HashMap<AnimationI
             match &clip.action {
                 ClipAction::DrawSprite {
                     layer,
+                    texture_id,
                     local_pos,
                     local_rotation: _,
-                    texture: _,
                     rect,
                     origin,
                     sort_offset,
                 } => render.sprite_buffer.push(SpriteData {
                     layer: *layer,
                     tf: Transform::from_pos(tf.pos + vec2(local_pos.x, local_pos.y)),
-                    texture: TextureId::BunnyAtlas,
+                    texture: *texture_id,
                     rect: Rect {
                         x: rect.x as f32,
                         y: rect.y as f32,

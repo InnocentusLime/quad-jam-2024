@@ -5,15 +5,22 @@ use std::{path::PathBuf, process::ExitCode};
 
 use anyhow::Context;
 use clap::{Parser, Subcommand};
+use lib_asset::FsResolver;
 
 fn main() -> ExitCode {
     let cli = Cli::parse();
+    let mut resolver = FsResolver::new();
+    if let Some(asset_dir) = cli.assets {
+        resolver.set_assets_dir(asset_dir).unwrap();
+    }
 
     let result = match cli.command {
-        Commands::CheckAnims { animations } => check_animations(animations),
-        Commands::CompileAnims { animations, out } => compile_animations(animations, out),
+        Commands::CheckAnims { animations } => check_animations(&resolver, animations),
+        Commands::CompileAnims { animations, out } => {
+            compile_animations(&resolver, animations, out)
+        }
         Commands::DumpAnims { animations } => dump_animations(animations),
-        Commands::CompileDir { dir, out } => compile_dir(dir, out),
+        Commands::CompileDir { dir, out } => compile_dir(&resolver, dir, out),
     };
 
     match result {
@@ -25,17 +32,22 @@ fn main() -> ExitCode {
     }
 }
 
-fn check_animations(animations: PathBuf) -> anyhow::Result<()> {
+fn check_animations(resolver: &FsResolver, animations: PathBuf) -> anyhow::Result<()> {
     println!("Checking {animations:?}");
 
-    lib_anim::aseprite_load::load_animations(animations)?;
+    lib_anim::aseprite_load::load_animations(resolver, animations)?;
     Ok(())
 }
 
-fn compile_animations(animations: PathBuf, out: PathBuf) -> anyhow::Result<()> {
+fn compile_animations(
+    resolver: &FsResolver,
+    animations: PathBuf,
+    out: PathBuf,
+) -> anyhow::Result<()> {
     println!("Compiling {animations:?} into {out:?}");
 
-    let anims = lib_anim::aseprite_load::load_animations(animations).context("loading package")?;
+    let anims = lib_anim::aseprite_load::load_animations(resolver, animations)
+        .context("loading package")?;
     let out = fs::File::create(out).context("opening the output")?;
     lib_anim::binary_io::compile::write_animation_pack(&anims, out).context("writing the package")
 }
@@ -47,7 +59,7 @@ fn dump_animations(animations: PathBuf) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn compile_dir(dir: PathBuf, out: PathBuf) -> anyhow::Result<()> {
+fn compile_dir(resolver: &FsResolver, dir: PathBuf, out: PathBuf) -> anyhow::Result<()> {
     let dir = fs::read_dir(dir)?;
     for file in dir {
         let file = file?.path();
@@ -62,7 +74,7 @@ fn compile_dir(dir: PathBuf, out: PathBuf) -> anyhow::Result<()> {
         let mut buff = out.clone();
         buff.push(name);
         buff.set_extension("bin");
-        compile_animations(file, buff)?;
+        compile_animations(resolver, file, buff)?;
     }
     Ok(())
 }
@@ -71,6 +83,10 @@ fn compile_dir(dir: PathBuf, out: PathBuf) -> anyhow::Result<()> {
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Cli {
+    /// The path to the assets directory. By default,
+    /// the current working directory is used.
+    #[arg(long, value_name = "DIR")]
+    assets: Option<PathBuf>,
     #[command(subcommand)]
     command: Commands,
 }
