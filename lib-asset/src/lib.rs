@@ -1,10 +1,17 @@
-use std::{ffi::OsStr, fmt::Debug, path::{absolute, Path, PathBuf}};
+use std::{ffi::OsStr, fmt::Debug, path::{Path, PathBuf}};
 
 use macroquad::{text::{load_ttf_font, Font}, texture::{load_texture, Texture2D}};
 use serde::{Deserialize, Serialize};
 
+
+#[cfg(not(target_family = "wasm"))]
 fn asset_root() -> PathBuf {
-    absolute("./assets").unwrap()
+    std::path::absolute("./assets").unwrap()
+}
+
+#[cfg(target_family = "wasm")]
+fn asset_root() -> PathBuf {
+    PathBuf::from("assets")
 }
 
 fn path_to_id<T: Copy>(files: &[(T, &'static str)], path: &Path) -> anyhow::Result<T> {
