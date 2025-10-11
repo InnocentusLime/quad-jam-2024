@@ -790,6 +790,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "lib-asset"
+version = "0.1.0"
+
+[[package]]
 name = "lib-col"
 version = "0.3.0"
 dependencies = [
