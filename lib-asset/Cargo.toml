@@ -4,3 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+anyhow = { workspace = true }
+hashbrown = { workspace = true, features = ["serde"] }
+serde = { version = "1", features = ["derive"] }
+macroquad = { workspace = true }
