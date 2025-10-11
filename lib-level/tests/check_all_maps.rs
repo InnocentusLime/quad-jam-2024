@@ -1,7 +1,12 @@
 use std::fs;
 
+use lib_asset::FsResolver;
+
 #[test]
 fn test_all_maps() {
+    let mut resolver = FsResolver::new();
+    resolver.set_assets_dir("../assets").unwrap();
+
     let dir = fs::read_dir("../project-tiled").unwrap();
     for file in dir {
         let file = file.unwrap();
@@ -15,12 +20,15 @@ fn test_all_maps() {
         };
 
         println!("Checking {file:?}");
-        lib_level::tiled_load::load_level("../assets", &file).unwrap();
+        lib_level::tiled_load::load_level(&resolver, &file).unwrap();
     }
 }
 
 #[test]
 fn test_all_maps_sanity() {
+    let mut resolver = FsResolver::new();
+    resolver.set_assets_dir("../assets").unwrap();
+
     let dir = fs::read_dir("../project-tiled").unwrap();
     for file in dir {
         let file = file.unwrap();
@@ -34,7 +42,7 @@ fn test_all_maps_sanity() {
         };
 
         println!("Checking {file:?}");
-        let level = lib_level::tiled_load::load_level("../assets", &file).unwrap();
+        let level = lib_level::tiled_load::load_level(&resolver, &file).unwrap();
 
         let mut out = file.clone();
         out.set_extension("bin");
