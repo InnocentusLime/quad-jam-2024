@@ -8,6 +8,7 @@ use std::{
 };
 
 use hashbrown::HashMap;
+use lib_asset::TextureId;
 use thiserror::Error;
 
 use super::tiled_props_des::{DeserializerError, from_properties};
@@ -190,7 +191,7 @@ fn load_mapdef_from_layer(
     let Some(tileset_atlas) = tileset.image.as_ref() else {
         return Err(LoadFromTiledError::MapTilesetIrregular);
     };
-    let atlas_path = resolve_atlas_path(&tileset.name, &assets_directory, &tileset_atlas.source)?;
+    let atlas = resolve_atlas(&tileset.name, &tileset_atlas.source)?;
 
     let mut tilemap = Vec::with_capacity((layer_width * layer_height) as usize);
     for y in 0..layer_height {
@@ -213,7 +214,7 @@ fn load_mapdef_from_layer(
         height: layer_height,
         tiles,
         tilemap,
-        atlas_path,
+        atlas,
         atlas_margin: tileset.margin,
         atlas_spacing: tileset.spacing,
     })
@@ -265,35 +266,18 @@ fn load_entity_defs_from_object_layer(
     Ok(entities)
 }
 
-fn resolve_atlas_path(
-    tileset: &str,
-    assets_directory: impl AsRef<Path>,
+fn resolve_atlas(
+    tileset: &str, 
     atlas_path: impl AsRef<Path>,
-) -> Result<String, LoadFromTiledError> {
-    let assets_directory = fs::canonicalize(assets_directory.as_ref()).map_err(|reason| {
-        LoadFromTiledError::AssetsDirectoryNotCanonizable {
-            path: assets_directory.as_ref().to_path_buf(),
-            reason,
-        }
-    })?;
+) -> Result<TextureId, LoadFromTiledError> {
     let atlas_path = fs::canonicalize(atlas_path.as_ref()).map_err(|reason| {
-        LoadFromTiledError::TilesetImageNotCanonizable {
-            tileset: tileset.to_string(),
-            path: atlas_path.as_ref().to_path_buf(),
-            reason,
+        LoadFromTiledError::TilesetImageNotCanonizable { 
+            tileset: tileset.to_string(), 
+            path: atlas_path.as_ref().into(), 
+            reason, 
         }
     })?;
-    let path = atlas_path.strip_prefix(&assets_directory).map_err(|_| {
-        LoadFromTiledError::TilesetImageNotInAssets {
-            tileset: tileset.to_string(),
-            path: atlas_path.clone(),
-            assets: assets_directory,
-        }
-    })?;
+    let id = TextureId::inverse_resolve(&atlas_path).unwrap();
 
-    let components = path
-        .components()
-        .map(|x| x.as_os_str().to_str().unwrap())
-        .collect::<Vec<_>>();
-    Ok(components.join("/"))
+    Ok(id)
 }

@@ -1,12 +1,13 @@
 use std::{ffi::OsStr, fmt::Debug, path::{Path, PathBuf}};
 
+use anyhow::Context;
 use macroquad::{text::{load_ttf_font, Font}, texture::{load_texture, Texture2D}};
 use serde::{Deserialize, Serialize};
 
 
 #[cfg(not(target_family = "wasm"))]
 fn asset_root() -> PathBuf {
-    std::path::absolute("./assets").unwrap()
+    std::fs::canonicalize("./assets").unwrap()
 }
 
 #[cfg(target_family = "wasm")]
@@ -16,7 +17,8 @@ fn asset_root() -> PathBuf {
 
 fn path_to_id<T: Copy>(files: &[(T, &'static str)], path: &Path) -> anyhow::Result<T> {
     let root = asset_root();
-    let got_file = path.strip_prefix(root).unwrap();
+    let got_file = path.strip_prefix(&root)
+        .context(format!("Resolving {path:?} against {root:?}"))?;
     let item = files.iter()
         .find(|(_, file)| got_file.as_os_str() == OsStr::new(file));
 
