@@ -781,12 +781,23 @@ dependencies = [
  "anyhow",
  "clap",
  "hashbrown 0.14.5",
+ "lib-asset",
  "macroquad",
  "postcard",
  "serde",
  "serde_json",
  "strum",
  "thiserror 2.0.12",
+]
+
+[[package]]
+name = "lib-asset"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "hashbrown 0.14.5",
+ "macroquad",
+ "serde",
 ]
 
 [[package]]
@@ -816,6 +827,7 @@ dependencies = [
  "anyhow",
  "hashbrown 0.14.5",
  "hecs",
+ "lib-asset",
  "lib-col",
  "lib-dbg",
  "lib-level",
@@ -832,6 +844,7 @@ dependencies = [
  "anyhow",
  "clap",
  "hashbrown 0.14.5",
+ "lib-asset",
  "macroquad",
  "postcard",
  "serde",
@@ -1245,6 +1258,7 @@ dependencies = [
  "hashbrown 0.14.5",
  "hecs",
  "lib-anim",
+ "lib-asset",
  "lib-col",
  "lib-dbg",
  "lib-game",
