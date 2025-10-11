@@ -20,6 +20,7 @@ lib-dbg = { path = "./lib-dbg" }
 lib-game = { path = "./lib-game" }
 lib-level = { path = "./lib-level" }
 lib-anim = { path = "./lib-anim" }
+lib-asset = { path = "./lib-asset" }
 
 [workspace.dependencies]
 strum = { version = "0.27.2", features = ["derive"] }

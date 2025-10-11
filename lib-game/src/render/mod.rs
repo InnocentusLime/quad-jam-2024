@@ -6,6 +6,7 @@ use lib_dbg::dump;
 pub use components::*;
 use hecs::{Entity, World};
 use lib_level::{LevelDef, TILE_SIDE, TileIdx};
+use lib_asset::TextureId;
 use macroquad::prelude::*;
 
 use crate::Transform;
@@ -30,7 +31,7 @@ pub struct Render {
     pub ui_font: FontKey,
     pub world: World,
 
-    tilemap_atlas: TextureKey,
+    tilemap_atlas: TextureId,
     tilemap_tiles: Vec<Rect>,
     tilemap_data: Vec<TileIdx>,
     tilemap_width: usize,
@@ -41,7 +42,7 @@ pub struct Render {
     to_delete: Vec<Entity>,
     time: f32,
 
-    textures: HashMap<TextureKey, TextureVal>,
+    textures: HashMap<TextureId, TextureVal>,
     fonts: HashMap<FontKey, Font>,
 }
 
@@ -51,7 +52,7 @@ impl Render {
 
         Self {
             ui_font: FontKey("undefined"),
-            tilemap_atlas: TextureKey("undefined"),
+            tilemap_atlas: TextureId::WorldAtlas,
             tilemap_tiles: Vec::new(),
             tilemap_data: Vec::new(),
             tilemap_width: 0,
@@ -65,7 +66,7 @@ impl Render {
         }
     }
 
-    pub fn add_texture(&mut self, key: TextureKey, texture: &Texture2D) {
+    pub fn add_texture(&mut self, key: TextureId, texture: &Texture2D) {
         self.textures.insert(
             key,
             TextureVal {
@@ -85,7 +86,7 @@ impl Render {
     /// * `atlas`: the atlas texture key
     /// * `atlas_margin`: space around the whole tileset
     /// * `atlas_spacing`: space between tiles
-    pub fn set_atlas(&mut self, atlas: TextureKey, atlas_margin: u32, atlas_spacing: u32) {
+    pub fn set_atlas(&mut self, atlas: TextureId, atlas_margin: u32, atlas_spacing: u32) {
         let Some(atlas_texture) = self.textures.get(&atlas) else {
             warn!("No such texture: {atlas:?}");
             return;
@@ -329,7 +330,7 @@ impl Render {
 
         for sprite in self.sprite_buffer.iter() {
             let Some(TextureVal { texture, .. }) = self.textures.get(&sprite.texture) else {
-                warn!("No texture {:?}", sprite.texture.0);
+                warn!("No texture {:?}", sprite.texture);
                 continue;
             };
             draw_texture_ex(
@@ -447,7 +448,7 @@ impl Render {
 pub struct SpriteData {
     pub layer: u32,
     pub tf: Transform,
-    pub texture: TextureKey,
+    pub texture: TextureId,
     pub rect: Rect,
     pub origin: Vec2,
     pub color: Color,
