@@ -9,7 +9,7 @@ mod tile;
 
 use hashbrown::HashMap;
 use lib_anim::{Animation, AnimationId};
-use lib_asset::TextureId;
+use lib_asset::{FontId, TextureId};
 use prelude::*;
 
 pub const ANIMATION_TIME_UNIT: f32 = 1.0 / 1000.0;
@@ -114,10 +114,10 @@ async fn load_graphics(render: &mut Render) -> anyhow::Result<()> {
     set_default_filter_mode(FilterMode::Nearest);
 
     render.add_font(
-        FontKey("quaver"),
-        &load_ttf_font("assets/quaver.ttf").await?,
+        FontId::Quaver,
+        &FontId::Quaver.load_font().await?,
     );
-    render.ui_font = FontKey("quaver");
+    render.ui_font = FontId::Quaver;
 
     render.add_texture(
         TextureId::BunnyAtlas,
