@@ -8,6 +8,7 @@ mod render;
 
 use hashbrown::HashMap;
 use lib_anim::{Animation, AnimationId};
+use lib_asset::TextureId;
 use prelude::*;
 
 pub const ANIMATION_TIME_UNIT: f32 = 1.0 / 1000.0;
@@ -118,8 +119,8 @@ async fn load_graphics(render: &mut Render) -> anyhow::Result<()> {
     render.ui_font = FontKey("quaver");
 
     render.add_texture(
-        TextureKey("bnuuy"),
-        &load_texture("assets/bnuuy.png").await?,
+        TextureId::BunnyAtlas,
+        &TextureId::BunnyAtlas.load_texture().await.unwrap(),
     );
 
     build_textures_atlas();
@@ -197,11 +198,11 @@ impl Game for Project {
     async fn init(&mut self, _path: &str, world: &mut World, render: &mut Render) {
         let level_data = lib_level::load_level("test_room").await.unwrap();
         render.add_texture(
-            TextureKey("atlas"),
+            TextureId::WorldAtlas,
             &level_data.map.atlas.load_texture().await.unwrap(),
         );
         render.set_atlas(
-            TextureKey("atlas"),
+            TextureId::WorldAtlas,
             level_data.map.atlas_margin,
             level_data.map.atlas_spacing,
         );

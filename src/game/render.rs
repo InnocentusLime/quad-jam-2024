@@ -1,5 +1,6 @@
 use hashbrown::HashMap;
 use lib_anim::{Animation, AnimationId, ClipAction};
+use lib_asset::TextureId;
 
 use super::prelude::*;
 
@@ -43,7 +44,7 @@ pub fn anims(world: &World, render: &mut Render, animations: &HashMap<AnimationI
                 } => render.sprite_buffer.push(SpriteData {
                     layer: *layer,
                     tf: Transform::from_pos(tf.pos + vec2(local_pos.x, local_pos.y)),
-                    texture: TextureKey("bnuuy"),
+                    texture: TextureId::BunnyAtlas,
                     rect: Rect {
                         x: rect.x as f32,
                         y: rect.y as f32,
