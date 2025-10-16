@@ -5,7 +5,6 @@ mod health;
 mod player;
 mod prelude;
 mod render;
-mod tile;
 
 use hashbrown::HashMap;
 use lib_anim::{Animation, AnimationId};
@@ -49,7 +48,7 @@ fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut Wor
                     },),
                 )
                 .unwrap(),
-            TileType::Ground => world.insert(tile, (TileSmell { time_left: 0.0 },)).unwrap(),
+            TileType::Ground => (),
         }
     }
 
@@ -174,7 +173,6 @@ impl Game for Project {
     fn debug_draws(&self) -> &[(&'static str, fn(&World))] {
         &[
             ("phys", draw_physics_debug),
-            ("smell", tile::debug_draw_tile_smell),
             ("pl", player::draw_player_state),
         ]
     }
@@ -230,8 +228,6 @@ impl Game for Project {
         world: &mut World,
         _cmds: &mut CommandBuffer,
     ) -> Option<lib_game::AppState> {
-        tile::tick_smell(dt, world);
-        tile::player_step_smell(world);
         goal::check(world);
         health::collect_damage(world);
         health::update_cooldown(dt, world);
