@@ -1,5 +1,4 @@
 use hecs::World;
-use lib_col::*;
 use macroquad::prelude::*;
 
 mod components;
@@ -13,18 +12,18 @@ const CHAR_MOVEMENT_ITERS: usize = 10;
 const CHAR_NORMAL_NUDGE: f32 = 0.001;
 const CHAR_SKIN: f32 = 0.01;
 
-pub struct PhysicsState {
-    solver: CollisionSolver,
+pub struct CollisionSolver {
+    solver: lib_col::CollisionSolver,
 }
 
-impl PhysicsState {
+impl CollisionSolver {
     pub fn new() -> Self {
         Self {
-            solver: CollisionSolver::new(),
+            solver: lib_col::CollisionSolver::new(),
         }
     }
 
-    pub fn import_positions_and_info(&mut self, world: &mut World) {
+    pub fn import_colliders(&mut self, world: &mut World) {
         self.solver.clear();
         let it = world.query_mut::<(&BodyTag, &Transform)>();
         let cold = it
@@ -33,16 +32,16 @@ impl PhysicsState {
         self.solver.fill(cold);
     }
 
-    pub fn apply_kinematic_moves(&mut self, world: &mut World) {
+    pub fn export_kinematic_moves(&mut self, world: &mut World) {
         for (_, (tf, info, kin)) in
             &mut world.query::<(&mut Transform, &BodyTag, &mut KinematicControl)>()
         {
             let mut character = get_entity_collider(tf, info);
             character.group = kin.collision;
 
-            let dr = conv::topleft_corner_vector_to_crate(kin.dr);
+            let dr = lib_col::conv::topleft_corner_vector_to_crate(kin.dr);
             let new_tf = process_character_movement(&self.solver, dr, character);
-            tf.pos = conv::crate_vector_to_topleft_corner(new_tf.translation);
+            tf.pos = lib_col::conv::crate_vector_to_topleft_corner(new_tf.translation);
         }
     }
 
@@ -58,7 +57,7 @@ impl PhysicsState {
         }
     }
 
-    pub fn export_all_queries(&mut self, world: &mut World) {
+    pub fn export_queries(&mut self, world: &mut World) {
         self.export_collision_queries::<0>(world);
         self.export_collision_queries::<1>(world);
         self.export_collision_queries::<2>(world);
@@ -71,9 +70,9 @@ impl PhysicsState {
 }
 
 fn process_character_movement(
-    solver: &CollisionSolver,
+    solver: &lib_col::CollisionSolver,
     mut dr: Vec2,
-    mut character: Collider,
+    mut character: lib_col::Collider,
 ) -> Affine2 {
     for _ in 0..CHAR_MOVEMENT_ITERS {
         let offlen = dr.length();
@@ -93,18 +92,21 @@ fn process_character_movement(
     character.tf
 }
 
-fn get_query_collider<const ID: usize>(tf: &Transform, query: &CollisionQuery<ID>) -> Collider {
+fn get_query_collider<const ID: usize>(
+    tf: &Transform,
+    query: &CollisionQuery<ID>,
+) -> lib_col::Collider {
     let shape_pos = world_tf_to_phys(*tf);
-    Collider {
+    lib_col::Collider {
         tf: shape_pos,
         shape: query.collider,
         group: query.group,
     }
 }
 
-fn get_entity_collider(tf: &Transform, info: &BodyTag) -> Collider {
-    let col_tf = conv::topleft_corner_tf_to_crate(tf.pos, tf.angle);
-    Collider {
+fn get_entity_collider(tf: &Transform, info: &BodyTag) -> lib_col::Collider {
+    let col_tf = lib_col::conv::topleft_corner_tf_to_crate(tf.pos, tf.angle);
+    lib_col::Collider {
         shape: info.shape,
         group: info.groups,
         tf: col_tf,
@@ -112,5 +114,5 @@ fn get_entity_collider(tf: &Transform, info: &BodyTag) -> Collider {
 }
 
 fn world_tf_to_phys(tf: Transform) -> Affine2 {
-    conv::topleft_corner_tf_to_crate(tf.pos, tf.angle)
+    lib_col::conv::topleft_corner_tf_to_crate(tf.pos, tf.angle)
 }

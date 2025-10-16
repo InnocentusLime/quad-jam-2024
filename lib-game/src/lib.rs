@@ -143,7 +143,7 @@ pub struct App {
     camera: Camera2D,
     pub render: Render,
     sound: SoundDirector,
-    physics: PhysicsState,
+    collisions: CollisionSolver,
     world: World,
     cmds: CommandBuffer,
 
@@ -164,7 +164,7 @@ impl App {
             camera: Camera2D::default(),
             render: Render::new(),
             sound: SoundDirector::new().await?,
-            physics: PhysicsState::new(),
+            collisions: CollisionSolver::new(),
             world: World::new(),
             cmds: CommandBuffer::new(),
 
@@ -236,13 +236,13 @@ impl App {
     fn game_update<G: Game>(&mut self, input: &InputModel, game: &mut G) -> Option<AppState> {
         game.input_phase(&input, GAME_TICKRATE, &mut self.world);
 
-        self.physics.import_positions_and_info(&mut self.world);
-        self.physics.apply_kinematic_moves(&mut self.world);
+        self.collisions.import_colliders(&mut self.world);
+        self.collisions.export_kinematic_moves(&mut self.world);
 
         game.plan_collision_queries(GAME_TICKRATE, &mut self.world, &mut self.cmds);
         self.cmds.run_on(&mut self.world);
 
-        self.physics.export_all_queries(&mut self.world);
+        self.collisions.export_queries(&mut self.world);
 
         let new_state = game.update(GAME_TICKRATE, &mut self.world, &mut self.cmds);
         self.cmds.run_on(&mut self.world);
