@@ -99,6 +99,7 @@ impl TileStorage {
         self.height
     }
 
+    #[allow(dead_code)]
     pub fn get(&self, x: usize, y: usize) -> Option<Entity> {
         debug_assert!(self.mem.len() == self.width * self.height);
 
@@ -133,11 +134,6 @@ impl TileStorage {
             .enumerate()
             .map(|(idx, val)| (idx % self.width, idx / self.width, *val))
     }
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct TileSmell {
-    pub time_left: f32,
 }
 
 #[derive(Debug, Clone, Copy)]
