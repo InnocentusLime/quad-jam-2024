@@ -1,10 +1,6 @@
 use glam::{Vec2, vec2};
 use hashbrown::HashSet;
 use hecs::*;
-use lib_col::{
-    conv::{crate_vector_to_topleft_corner, topleft_corner_vector_to_crate},
-    *,
-};
 use lib_game::*;
 use macroquad::prelude::*;
 
@@ -22,16 +18,16 @@ struct EntityCollision {
 }
 
 struct CollisionTestGame {
-    solver: CollisionSolver,
+    solver: lib_col::CollisionSolver,
     collided: HashSet<Entity>,
     char_bump: HashSet<Entity>,
-    colliders: Vec<(Entity, Collider)>,
+    colliders: Vec<(Entity, lib_col::Collider)>,
 }
 
 impl CollisionTestGame {
     pub fn new() -> Self {
         Self {
-            solver: CollisionSolver::new(),
+            solver: lib_col::CollisionSolver::new(),
             collided: HashSet::new(),
             char_bump: HashSet::new(),
             colliders: Vec::new(),
@@ -219,11 +215,11 @@ impl Game for CollisionTestGame {
         for (_, (tf, control, collider)) in
             world.query_mut::<(&mut Transform, &mut ControlTag, &EntityCollision)>()
         {
-            let dr = topleft_corner_vector_to_crate(control.dr);
+            let dr = lib_col::conv::topleft_corner_vector_to_crate(control.dr);
             let mut query = get_entity_collider(tf, collider);
             query.group = Group::from_id(1);
             let final_tf = process_character_movement(&self.solver, dr, query, &mut self.char_bump);
-            tf.pos = crate_vector_to_topleft_corner(final_tf.translation);
+            tf.pos = lib_col::conv::crate_vector_to_topleft_corner(final_tf.translation);
         }
 
         for (_, (_, tf, info)) in world.query_mut::<(&ControlTag, &Transform, &EntityCollision)>() {
@@ -279,9 +275,9 @@ async fn test_shape_collisions() {
 }
 
 fn process_character_movement(
-    solver: &CollisionSolver,
+    solver: &lib_col::CollisionSolver,
     mut dr: Vec2,
-    mut character: Collider,
+    mut character: lib_col::Collider,
     touched: &mut HashSet<Entity>,
 ) -> Affine2 {
     touched.clear();
@@ -304,9 +300,9 @@ fn process_character_movement(
     character.tf
 }
 
-fn get_entity_collider(tf: &Transform, info: &EntityCollision) -> Collider {
-    let col_tf = conv::topleft_corner_tf_to_crate(tf.pos, tf.angle);
-    Collider {
+fn get_entity_collider(tf: &Transform, info: &EntityCollision) -> lib_col::Collider {
+    let col_tf = lib_col::conv::topleft_corner_tf_to_crate(tf.pos, tf.angle);
+    lib_col::Collider {
         shape: info.shape,
         group: info.group,
         tf: col_tf,

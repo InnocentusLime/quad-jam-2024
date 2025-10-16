@@ -1,7 +1,6 @@
 use glam::{Vec2, vec2};
 use hashbrown::HashSet;
 use hecs::*;
-use lib_col::*;
 use lib_game::*;
 use macroquad::prelude::*;
 
@@ -13,15 +12,15 @@ struct EntityCollision {
 }
 
 struct CollisionTestGame {
-    solver: CollisionSolver,
+    solver: lib_col::CollisionSolver,
     collided: HashSet<Entity>,
-    colliders: Vec<(Entity, Collider)>,
+    colliders: Vec<(Entity, lib_col::Collider)>,
 }
 
 impl CollisionTestGame {
     pub fn new() -> Self {
         Self {
-            solver: CollisionSolver::new(),
+            solver: lib_col::CollisionSolver::new(),
             collided: HashSet::new(),
             colliders: Vec::new(),
         }
@@ -233,9 +232,9 @@ async fn test_shape_collisions() {
     app.run(&mut game).await;
 }
 
-fn get_entity_collider(tf: &Transform, info: &EntityCollision) -> Collider {
-    let col_tf = conv::topleft_corner_tf_to_crate(tf.pos, tf.angle);
-    Collider {
+fn get_entity_collider(tf: &Transform, info: &EntityCollision) -> lib_col::Collider {
+    let col_tf = lib_col::conv::topleft_corner_tf_to_crate(tf.pos, tf.angle);
+    lib_col::Collider {
         shape: info.shape,
         group: info.group,
         tf: col_tf,
