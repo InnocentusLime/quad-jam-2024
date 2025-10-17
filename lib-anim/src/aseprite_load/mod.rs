@@ -8,7 +8,7 @@ use crate::{Animation, AnimationId};
 mod aseprite_decode;
 
 pub fn load_animations_by_name(name: &str) -> anyhow::Result<HashMap<AnimationId, Animation>> {
-    let path = format!("art-project/{}.json", name);
+    let path = format!("project-aseprite/{}.json", name);
     load_animations(path)
 }
 

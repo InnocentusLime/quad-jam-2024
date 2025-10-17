@@ -23,14 +23,14 @@ COPY /static/* /dist
 RUN cp /project/target/wasm32-unknown-unknown/wasm-release/quad-jam-2024.wasm /dist/game.wasm
 RUN mkdir /dist/levels && \
     /project/target/debug/lib-level \
-        --assets /project/assets \ 
+        --assets /project/assets \
         compile-dir \
-            -d /project/tiled-project \
+            -d /project/project-tiled \
             -o /dist/levels
 RUN mkdir /dist/animations && \
     /project/target/debug/lib-anim \
         compile-dir \
-            -d /project/art-project \
+            -d /project/project-aseprite \
             -o /dist/animations
 
 FROM httpd:trixie 
