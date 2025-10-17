@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 /// use only.
 pub fn load_level_by_name(name: &str) -> anyhow::Result<LevelDef> {
     let mut path = PathBuf::new();
-    path.push("tiled-project");
+    path.push("project-tiled");
     path.push(name);
     path.set_extension("tmx");
     load_level("./assets", path)
