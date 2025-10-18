@@ -1,0 +1,13 @@
+name: Image Health
+
+on: 
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  img-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build image
+        run: docker build -t quad-jam .
