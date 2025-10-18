@@ -1,6 +1,11 @@
 use glam::{Vec2, vec2};
 use hashbrown::HashSet;
 use hecs::*;
+use lib_asset::FontId;
+use lib_col::{
+    conv::{crate_vector_to_topleft_corner, topleft_corner_vector_to_crate},
+    *,
+};
 use lib_game::*;
 use macroquad::prelude::*;
 
@@ -266,7 +271,7 @@ async fn test_shape_collisions() {
     let mut app = lib_game::App::new(&Conf::default()).await.unwrap();
     let font_bytes = include_bytes!("../assets/quaver.ttf");
     let font = load_ttf_font_from_bytes(font_bytes).unwrap();
-    app.render.add_font(FontKey("undefined"), &font);
+    app.render.add_font(FontId::Quaver, &font);
     let mut game = CollisionTestGame::new();
 
     set_max_level(STATIC_MAX_LEVEL);

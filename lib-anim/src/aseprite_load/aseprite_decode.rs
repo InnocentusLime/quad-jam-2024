@@ -1,6 +1,7 @@
-use std::str::FromStr;
+use std::{fs, path::PathBuf, str::FromStr};
 
 use hashbrown::HashMap;
+use lib_asset::TextureId;
 use serde::Deserialize;
 use thiserror::Error;
 
@@ -138,14 +139,17 @@ pub fn load_clips_from_aseprite(
                 w: frame.frame.w,
                 h: frame.frame.h,
             };
+            let sprite_path = PathBuf::from_iter(["assets", &sheet.meta.image]);
+            let sprite_path = fs::canonicalize(sprite_path).unwrap();
+            let texture_id = TextureId::inverse_resolve(&sprite_path).unwrap();
             let action = ClipAction::DrawSprite {
                 layer: 1,
+                texture_id,
                 local_pos: Position {
                     x: -(frame.frame.w as f32) * 0.5,
                     y: -(frame.frame.h as f32) * 0.5,
                 },
                 local_rotation: 0.0,
-                texture: sheet.meta.image.clone().into(),
                 rect,
                 origin: Position { x: 0.0, y: 0.0 },
                 sort_offset: 0.0f32,
