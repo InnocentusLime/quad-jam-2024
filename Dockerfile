@@ -29,6 +29,7 @@ RUN mkdir /dist/levels && \
             -o /dist/levels
 RUN mkdir /dist/animations && \
     /project/target/debug/lib-anim \
+        --assets /project/assets \
         compile-dir \
             -d /project/project-aseprite \
             -o /dist/animations
