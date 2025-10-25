@@ -56,12 +56,12 @@ fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut Wor
     world.spawn((storage,))
 }
 
-fn init_level(world: &mut World, level_def: lib_level::LevelDef) {
+fn init_level(world: &mut World, level_def: &lib_level::LevelDef) {
     let tile_data = level_def
         .map
         .tilemap
-        .into_iter()
-        .map(|idx| level_def.map.tiles[&idx])
+        .iter()
+        .map(|idx| level_def.map.tiles[idx])
         .map(|tile| match tile.ty {
             lib_level::TileTy::Ground => TileType::Ground,
             lib_level::TileTy::Wall => TileType::Wall,
@@ -74,7 +74,7 @@ fn init_level(world: &mut World, level_def: lib_level::LevelDef) {
         tile_data,
         world,
     );
-    for entity in level_def.entities {
+    for entity in level_def.entities.iter() {
         let pos = vec2(
             entity.tf.pos.x + entity.width / 2.0,
             entity.tf.pos.y + entity.height / 2.0,
@@ -180,38 +180,15 @@ impl Game for Project {
         ]
     }
 
-    async fn next_level(
+    async fn init(
         &mut self,
-        prev: Option<&str>,
-        app_state: &AppState,
-        _world: &World,
-    ) -> NextState {
-        let Some(prev) = prev else {
-            return NextState::Load("assets/levels/level1.ron".to_string());
-        };
-
-        if *app_state == AppState::GameOver {
-            return NextState::Load(prev.to_string());
+        resources: &lib_game::Resources,
+        world: &mut World,
+        _render: &mut Render,
+    ) {
+        if let Some(level_data) = &resources.level {
+            init_level(world, level_data);
         }
-
-        NextState::AppState(AppState::GameDone)
-    }
-
-    async fn init(&mut self, _path: &str, world: &mut World, render: &mut Render) {
-        let resolver = FsResolver::new();
-        let level_data = lib_level::load_level(&resolver, "test_room").await.unwrap();
-        render.add_texture(
-            TextureId::WorldAtlas,
-            &level_data.map.atlas.load_texture(&resolver).await.unwrap(),
-        );
-        render.set_atlas(
-            TextureId::WorldAtlas,
-            level_data.map.atlas_margin,
-            level_data.map.atlas_spacing,
-        );
-        render.set_tilemap(&level_data);
-
-        init_level(world, level_data);
     }
 
     fn input_phase(&mut self, input: &lib_game::InputModel, dt: f32, world: &mut World) {
