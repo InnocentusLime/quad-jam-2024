@@ -197,6 +197,14 @@ impl App {
             self.fullscreen_toggles(&input);
             debug.input(&input, &mut self, game);
 
+            // NOTE: this is a simple demo to show egui working
+            #[cfg(not(target_family = "wasm"))]
+            egui_macroquad::ui(|egui_ctx| {
+                egui::Window::new("egui ❤ macroquad").show(egui_ctx, |ui| {
+                    ui.label("Test");
+                });
+            });
+
             if let Some(next_state) = self.next_state(&input, &debug, game).await {
                 match next_state {
                     NextState::AppState(next_state) => self.state = next_state,
@@ -231,6 +239,9 @@ impl App {
         self.render.new_frame();
         game.render_export(&self.state, &self.world, &mut self.render);
         self.render.render(&self.camera, !self.draw_world, real_dt);
+
+        #[cfg(not(target_family = "wasm"))]
+        egui_macroquad::draw();
     }
 
     fn game_update<G: Game>(&mut self, input: &InputModel, game: &mut G) -> Option<AppState> {
