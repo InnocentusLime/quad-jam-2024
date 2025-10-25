@@ -7,7 +7,7 @@ use macroquad::{camera::Camera, input::get_char_pressed};
 use crate::{App, AppState, InputModel, Render};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum ConsoleMode {
+pub enum ConsoleMode {
     Hidden,
     Dump,
     Console,
@@ -23,7 +23,7 @@ impl ConsoleMode {
     }
 }
 
-struct DebugState {
+pub(crate) struct DebugState {
     debug_draws: HashMap<String, fn(&World)>,
     enabled_debug_draws: HashSet<String>,
 }
