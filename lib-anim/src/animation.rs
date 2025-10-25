@@ -1,10 +1,11 @@
 use lib_asset::TextureId;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Animation {
     pub is_looping: bool,
     pub clips: Vec<Clip>,
+    pub tracks: Vec<Track>,
 }
 
 impl Animation {
@@ -17,15 +18,16 @@ impl Animation {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Clip {
     pub id: u32,
+    pub track_id: u32,
     pub start: u32,
     pub len: u32,
     pub action: ClipAction,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, strum::IntoStaticStr)]
 pub enum ClipAction {
     DrawSprite {
         layer: u32,
@@ -36,6 +38,12 @@ pub enum ClipAction {
         origin: Position,
         sort_offset: f32,
     },
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Track {
+    pub name: String,
+    pub id: u32,
 }
 
 #[derive(Default, Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
@@ -53,7 +61,19 @@ pub struct ImgRect {
 }
 
 // TODO: macro for generating this id AND mapping from pack to ids
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, strum::EnumString, PartialEq, Eq, Hash)]
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    Serialize,
+    Deserialize,
+    strum::EnumString,
+    strum::VariantArray,
+    strum::IntoStaticStr,
+    PartialEq,
+    Eq,
+    Hash,
+)]
 pub enum AnimationId {
     BunnyIdleD,
     BunnyWalkD,

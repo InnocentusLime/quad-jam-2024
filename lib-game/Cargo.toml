@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 log = { workspace = true }
 anyhow = { workspace = true }
+strum = { workspace = true }
 hecs = { workspace = true }
 macroquad = { workspace = true }
 hashbrown = { workspace = true }
@@ -21,6 +22,8 @@ sapp-jsutils = { version = "^0.1" }
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
 egui-macroquad = { workspace = true }
 egui = { workspace = true }
+rfd = { version = "0.15.4" }
+serde_json = "1"
 
 [dev-dependencies]
 rand = "0.9.1"

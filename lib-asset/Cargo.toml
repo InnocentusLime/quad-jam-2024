@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 anyhow = { workspace = true }
+strum = { workspace = true }
 hashbrown = { workspace = true, features = ["serde"] }
 serde = { version = "1", features = ["derive"] }
 macroquad = { workspace = true }

@@ -26,6 +26,9 @@ use lib_dbg::*;
 
 use crate::animations::update_anims;
 
+#[cfg(not(target_family = "wasm"))]
+use dbg::AnimationEdit;
+
 const GAME_TICKRATE: f32 = 1.0 / 60.0;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -202,6 +205,8 @@ impl App {
                 .map(|(name, payload)| (name.to_string(), *payload)),
             game.debug_commands().iter().map(|(x, y, z)| (*x, *y, *z)),
         );
+        #[cfg(not(target_family = "wasm"))]
+        let mut anim_edit = AnimationEdit::new();
 
         sys::done_loading();
 
@@ -233,8 +238,13 @@ impl App {
             // NOTE: this is a simple demo to show egui working
             #[cfg(not(target_family = "wasm"))]
             egui_macroquad::ui(|egui_ctx| {
-                egui::Window::new("egui ❤ macroquad").show(egui_ctx, |ui| {
-                    ui.label("Test");
+                egui::Window::new("animation_edit").show(egui_ctx, |ui| {
+                    anim_edit.ui(
+                        &self.resources.resolver,
+                        ui,
+                        &mut self.resources.animations,
+                        &mut self.world,
+                    );
                 });
             });
 
@@ -299,6 +309,7 @@ impl App {
         game.input_phase(&input, GAME_TICKRATE, &self.resources, &mut self.world);
 
         update_anims(GAME_TICKRATE, &mut self.world, &self.resources.animations);
+
         self.collisions.import_colliders(&mut self.world);
         self.collisions.export_kinematic_moves(&mut self.world);
 

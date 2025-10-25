@@ -5,7 +5,7 @@ use lib_asset::{FsResolver, TextureId};
 use serde::Deserialize;
 use thiserror::Error;
 
-use crate::{Animation, AnimationId, Clip, ClipAction, ImgRect, Position};
+use crate::{Animation, AnimationId, Clip, ClipAction, ImgRect, Position, Track};
 
 static REQUIRED_ASEPRITE_VERSION: &'static str = "1.3";
 
@@ -155,6 +155,7 @@ pub fn load_clips_from_aseprite(
                 sort_offset: 0.0f32,
             };
             clips.push(Clip {
+                track_id: 0,
                 id: clip_id,
                 start: cursor,
                 len: frame.duration,
@@ -177,7 +178,20 @@ pub fn load_animations_from_aseprite(
 ) -> Result<HashMap<AnimationId, Animation>, LoadFromAsepriteError> {
     let res = load_clips_from_aseprite(resolver, sheet)?
         .into_iter()
-        .map(|(name, (clips, is_looping))| (name, Animation { clips, is_looping }))
+        .map(|(name, (clips, is_looping))| {
+            let tracks = vec![Track {
+                id: 0,
+                name: "sprites".to_string(),
+            }];
+            (
+                name,
+                Animation {
+                    clips,
+                    tracks,
+                    is_looping,
+                },
+            )
+        })
         .collect();
     Ok(res)
 }

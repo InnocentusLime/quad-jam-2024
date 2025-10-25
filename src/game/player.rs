@@ -101,6 +101,7 @@ pub fn spawn(world: &mut World, pos: Vec2) {
             },
         },
         AnimationPlay {
+            pause: false,
             animation: AnimationId::BunnyWalkD,
             total_dt: 0.0,
             cursor: 0,
