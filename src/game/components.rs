@@ -1,5 +1,4 @@
 use hecs::Entity;
-use lib_anim::{Animation, AnimationId};
 use macroquad::prelude::*;
 
 #[derive(Debug, Clone, Copy)]
@@ -139,19 +138,4 @@ impl TileStorage {
 #[derive(Debug, Clone, Copy)]
 pub struct GoalTag {
     pub achieved: bool,
-}
-
-pub struct AnimationPlay {
-    pub animation: AnimationId,
-    pub total_dt: f32,
-    pub cursor: u32,
-}
-
-impl AnimationPlay {
-    pub fn is_done(&self, animation: &Animation) -> bool {
-        if animation.is_looping {
-            return false;
-        }
-        self.cursor == animation.max_pos()
-    }
 }

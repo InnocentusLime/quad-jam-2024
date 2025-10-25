@@ -159,7 +159,13 @@ impl Game for CollisionTestGame {
         ));
     }
 
-    fn input_phase(&mut self, input: &InputModel, dt: f32, world: &mut World) {
+    fn input_phase(
+        &mut self,
+        input: &InputModel,
+        dt: f32,
+        _resources: &Resources,
+        world: &mut World,
+    ) {
         for (_, con) in world.query_mut::<&mut ControlTag>() {
             con.dr = Vec2::ZERO;
             let mut dir = Vec2::ZERO;
@@ -181,13 +187,20 @@ impl Game for CollisionTestGame {
         }
     }
 
-    fn plan_collision_queries(&mut self, _dt: f32, _world: &mut World, _cmds: &mut CommandBuffer) {
+    fn plan_collision_queries(
+        &mut self,
+        _dt: f32,
+        _resources: &Resources,
+        _world: &mut World,
+        _cmds: &mut CommandBuffer,
+    ) {
         /* NOOP */
     }
 
     fn update(
         &mut self,
         _dt: f32,
+        _resources: &Resources,
         world: &mut World,
         _cmds: &mut CommandBuffer,
     ) -> Option<AppState> {
@@ -229,7 +242,13 @@ impl Game for CollisionTestGame {
         None
     }
 
-    fn render_export(&self, _state: &AppState, world: &World, render: &mut Render) {
+    fn render_export(
+        &self,
+        _state: &AppState,
+        _resources: &Resources,
+        world: &World,
+        render: &mut Render,
+    ) {
         for (ent, (tf, col)) in &mut world.query::<(&Transform, &EntityCollision)>() {
             let color = match (self.collided.contains(&ent), self.char_bump.contains(&ent)) {
                 (_, true) => BLUE,

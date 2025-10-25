@@ -1,5 +1,3 @@
-use hashbrown::HashMap;
-use lib_anim::{Animation, AnimationId, ClipAction};
 use lib_asset::FontId;
 
 use super::prelude::*;
@@ -20,45 +18,6 @@ static CONTINUE_HINT_MOBILE: &str = "Tap the screen to continue";
 static START_TEXT_DESK: &str = "Controls";
 static START_HINT: &str = "Move: WASD\nShoot: Mouse + Left Button\nYou get extra score for hitting multiple enemies at once\nPRESS SPACE TO START\nGet ready to run!";
 static START_TEXT_MOBILE: &str = "Tap to start";
-
-pub fn anims(world: &World, render: &mut Render, animations: &HashMap<AnimationId, Animation>) {
-    for (_, (tf, play)) in world.query::<(&Transform, &mut AnimationPlay)>().iter() {
-        let Some(anim) = animations.get(&play.animation) else {
-            warn!("No such anim: {:?}", play.animation);
-            continue;
-        };
-        let matching_clips = anim
-            .clips
-            .iter()
-            .filter(|x| x.start <= play.cursor && play.cursor < x.start + x.len);
-        for clip in matching_clips {
-            match &clip.action {
-                ClipAction::DrawSprite {
-                    layer,
-                    texture_id,
-                    local_pos,
-                    local_rotation: _,
-                    rect,
-                    origin,
-                    sort_offset,
-                } => render.sprite_buffer.push(SpriteData {
-                    layer: *layer,
-                    tf: Transform::from_pos(tf.pos + vec2(local_pos.x, local_pos.y)),
-                    texture: *texture_id,
-                    rect: Rect {
-                        x: rect.x as f32,
-                        y: rect.y as f32,
-                        w: rect.w as f32,
-                        h: rect.h as f32,
-                    },
-                    origin: vec2(origin.x, origin.y),
-                    color: WHITE,
-                    sort_offset: *sort_offset,
-                }),
-            }
-        }
-    }
-}
 
 pub fn player_attack(render: &mut Render, world: &World) {
     use super::player::{PLAYER_ATTACK_LENGTH, PLAYER_ATTACK_WIDTH};
