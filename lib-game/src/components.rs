@@ -26,6 +26,7 @@ pub struct AnimationPlay {
     pub animation: AnimationId,
     pub total_dt: f32,
     pub cursor: u32,
+    pub pause: bool,
 }
 
 impl AnimationPlay {

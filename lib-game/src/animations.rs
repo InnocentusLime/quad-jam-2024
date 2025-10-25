@@ -21,6 +21,9 @@ pub(crate) fn update_anims(
         if max_pos == 0 {
             continue;
         }
+        if play.pause {
+            continue;
+        }
 
         play.total_dt += dt;
         if play.total_dt < ANIMATION_TIME_UNIT {
