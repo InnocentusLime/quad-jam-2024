@@ -69,7 +69,7 @@ impl Game for CollisionTestGame {
         &[]
     }
 
-    async fn init(&mut self, _data: &str, world: &mut World, _render: &mut Render) {
+    async fn init(&mut self, _resources: &Resources, world: &mut World, _render: &mut Render) {
         info!("Init");
         world.spawn((
             ControlTag { dr: Vec2::ZERO },
@@ -157,16 +157,6 @@ impl Game for CollisionTestGame {
                 },
             },
         ));
-    }
-
-    async fn next_level(
-        &mut self,
-        _prev: Option<&str>,
-        _app_state: &AppState,
-        _world: &World,
-    ) -> NextState {
-        info!("next state");
-        NextState::Load("test".to_string())
     }
 
     fn input_phase(&mut self, input: &InputModel, dt: f32, world: &mut World) {

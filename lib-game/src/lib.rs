@@ -11,6 +11,7 @@ pub use collisions::*;
 pub use components::*;
 use dbg::DebugStuff;
 pub use input::*;
+use lib_asset::{FsResolver, TextureId};
 use lib_level::TILE_SIDE;
 pub use render::*;
 pub use sound_director::*;
@@ -75,20 +76,10 @@ pub trait Game: 'static {
     /// is located.
     fn init(
         &mut self,
-        data: &str,
+        resources: &Resources,
         world: &mut World,
         render: &mut Render,
     ) -> impl std::future::Future<Output = ()> + Send;
-
-    /// Used by the app to consult what should be the next
-    /// level to load. For now the data returned is just forwarded
-    /// to `init`.
-    fn next_level(
-        &mut self,
-        prev: Option<&str>,
-        app_state: &AppState,
-        world: &World,
-    ) -> impl std::future::Future<Output = NextState> + Send;
 
     /// Handle the user input. You also get the delta-time.
     fn input_phase(&mut self, input: &InputModel, dt: f32, world: &mut World);
@@ -136,8 +127,8 @@ pub struct App {
     fullscreen: bool,
     old_size: (u32, u32),
 
-    loaded_level: Option<String>,
     state: AppState,
+    pub resources: Resources,
     accumelated_time: f32,
 
     camera: Camera2D,
@@ -157,8 +148,8 @@ impl App {
             fullscreen: conf.fullscreen,
             old_size: (conf.window_width as u32, conf.window_height as u32),
 
-            loaded_level: None,
             state: AppState::Start,
+            resources: Resources::new(),
             accumelated_time: 0.0,
 
             camera: Camera2D::default(),
@@ -205,18 +196,32 @@ impl App {
                 });
             });
 
-            if let Some(next_state) = self.next_state(&input, &debug, game).await {
-                match next_state {
-                    NextState::AppState(next_state) => self.state = next_state,
-                    NextState::Load(data) => {
-                        info!("Loading: {data}");
-                        self.world.clear();
-                        game.init(data.as_str(), &mut self.world, &mut self.render)
-                            .await;
-                        self.state = AppState::Active { paused: false };
-                        self.loaded_level = Some(data);
-                    }
-                }
+            let load_level = self.next_state(&input, &debug);
+            if load_level {
+                info!("Loading level");
+                let level = lib_level::load_level(&self.resources.resolver, "test_room")
+                    .await
+                    .unwrap();
+                self.render.add_texture(
+                    TextureId::WorldAtlas,
+                    &level
+                        .map
+                        .atlas
+                        .load_texture(&self.resources.resolver)
+                        .await
+                        .unwrap(),
+                );
+                self.render.set_atlas(
+                    TextureId::WorldAtlas,
+                    level.map.atlas_margin,
+                    level.map.atlas_spacing,
+                );
+                self.render.set_tilemap(&level);
+
+                self.resources.level = Some(level);
+                self.world.clear();
+                game.init(&self.resources, &mut self.world, &mut self.render)
+                    .await;
             }
 
             dump!("game state: {:?}", self.state);
@@ -303,42 +308,38 @@ impl App {
         dump!("Entities: {ent_count}");
     }
 
-    async fn next_state<G: Game>(
-        &mut self,
-        input: &InputModel,
-        debug: &DebugStuff<G>,
-        game: &mut G,
-    ) -> Option<NextState> {
+    fn next_state<G: Game>(&mut self, input: &InputModel, debug: &DebugStuff<G>) -> bool {
         /* Debug freeze */
         if (debug.should_pause() || self.freeze)
             && self.state == (AppState::Active { paused: false })
         {
-            return Some(NextState::AppState(AppState::DebugFreeze));
+            self.state = AppState::DebugFreeze;
+            return false;
         }
         if !(debug.should_pause() || self.freeze) && self.state == AppState::DebugFreeze {
-            return Some(NextState::AppState(AppState::Active { paused: false }));
+            self.state = AppState::Active { paused: false };
+            return false;
         }
 
         /* Normal state transitions */
         match self.state {
-            AppState::GameDone if input.confirmation_detected => {
-                self.loaded_level = None;
+            AppState::GameDone | AppState::GameOver if input.confirmation_detected => {
                 self.state = AppState::Start;
-                let verdict = game
-                    .next_level(self.loaded_level.as_deref(), &self.state, &self.world)
-                    .await;
-                Some(verdict)
+                false
             }
-            AppState::Win | AppState::GameOver | AppState::Start if input.confirmation_detected => {
-                let verdict = game
-                    .next_level(self.loaded_level.as_deref(), &self.state, &self.world)
-                    .await;
-                Some(verdict)
+            AppState::Win if input.confirmation_detected => {
+                self.state = AppState::GameDone;
+                false
+            }
+            AppState::Start if input.confirmation_detected => {
+                self.state = AppState::Active { paused: false };
+                true
             }
             AppState::Active { paused } if input.pause_requested => {
-                Some(NextState::AppState(AppState::Active { paused: !paused }))
+                self.state = AppState::Active { paused: !paused };
+                false
             }
-            _ => None,
+            _ => false,
         }
     }
 
@@ -358,5 +359,19 @@ impl App {
             (0.5 * TILE_SIDE as f32) * 16.0,
             (0.5 * TILE_SIDE as f32) * 17.0,
         );
+    }
+}
+
+pub struct Resources {
+    pub resolver: FsResolver,
+    pub level: Option<lib_level::LevelDef>,
+}
+
+impl Resources {
+    pub fn new() -> Self {
+        Resources {
+            resolver: FsResolver::new(),
+            level: None,
+        }
     }
 }
