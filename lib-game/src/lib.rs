@@ -24,7 +24,7 @@ use macroquad::prelude::*;
 
 use lib_dbg::*;
 
-use crate::animations::update_anims;
+use crate::{animations::update_anims, dbg::AnimationEdit};
 
 const GAME_TICKRATE: f32 = 1.0 / 60.0;
 
@@ -202,6 +202,7 @@ impl App {
                 .map(|(name, payload)| (name.to_string(), *payload)),
             game.debug_commands().iter().map(|(x, y, z)| (*x, *y, *z)),
         );
+        let mut anim_edit = AnimationEdit::new();
 
         sys::done_loading();
 
@@ -220,6 +221,7 @@ impl App {
             animations.get_mut(&AnimationId::BunnyAttackD).unwrap(),
         );
         self.resources.animations = animations;
+        anim_edit.set_to_anim(&self.resources.animations);
 
         loop {
             ScreenDump::new_frame();
@@ -229,12 +231,13 @@ impl App {
             let do_tick = self.update_ticking(real_dt);
             self.fullscreen_toggles(&input);
             debug.input(&input, &mut self, game);
+       
 
             // NOTE: this is a simple demo to show egui working
             #[cfg(not(target_family = "wasm"))]
             egui_macroquad::ui(|egui_ctx| {
-                egui::Window::new("egui ❤ macroquad").show(egui_ctx, |ui| {
-                    ui.label("Test");
+                egui::Window::new("animation_edit").show(egui_ctx, |ui| {
+                    anim_edit.ui(ui, &mut self.resources.animations, &mut self.world);
                 });
             });
 
@@ -299,6 +302,7 @@ impl App {
         game.input_phase(&input, GAME_TICKRATE, &self.resources, &mut self.world);
 
         update_anims(GAME_TICKRATE, &mut self.world, &self.resources.animations);
+
         self.collisions.import_colliders(&mut self.world);
         self.collisions.export_kinematic_moves(&mut self.world);
 

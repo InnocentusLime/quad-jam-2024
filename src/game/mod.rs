@@ -181,8 +181,8 @@ impl Game for Project {
         resources: &lib_game::Resources,
         world: &mut World,
     ) {
-        player::auto_state_transition(world, &resources.animations);
-        player::controls(dt, input, world, &resources.animations);
+        // player::auto_state_transition(world, &resources.animations);
+        // player::controls(dt, input, world, &resources.animations);
         if self.do_ai { /* No enemies yet */ }
     }
 
@@ -193,7 +193,7 @@ impl Game for Project {
         world: &mut World,
         _cmds: &mut CommandBuffer,
     ) {
-        player::state_to_anim(world);
+        // player::state_to_anim(world);
     }
 
     fn update(

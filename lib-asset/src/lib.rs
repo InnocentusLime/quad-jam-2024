@@ -104,6 +104,7 @@ macro_rules! declare_assets {
         $($id_ident:ident($path:literal),)+
     }) => {
         #[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
+        #[derive(strum::IntoStaticStr, strum::VariantArray)]
         pub enum $asset_ty {
             $($id_ident,)+
         }

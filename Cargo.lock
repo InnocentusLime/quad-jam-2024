@@ -1013,6 +1013,7 @@ dependencies = [
  "hashbrown 0.14.5",
  "macroquad",
  "serde",
+ "strum",
 ]
 
 [[package]]
@@ -1053,6 +1054,7 @@ dependencies = [
  "macroquad",
  "rand 0.9.1",
  "sapp-jsutils",
+ "strum",
 ]
 
 [[package]]

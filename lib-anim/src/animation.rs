@@ -25,7 +25,7 @@ pub struct Clip {
     pub action: ClipAction,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum ClipAction {
     DrawSprite {
         layer: u32,
@@ -53,7 +53,7 @@ pub struct ImgRect {
 }
 
 // TODO: macro for generating this id AND mapping from pack to ids
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, strum::EnumString, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, strum::EnumString, strum::VariantArray, strum::IntoStaticStr, PartialEq, Eq, Hash)]
 pub enum AnimationId {
     BunnyIdleD,
     BunnyWalkD,
