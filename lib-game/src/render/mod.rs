@@ -1,6 +1,7 @@
 mod components;
 
 use hashbrown::HashMap;
+use lib_anim::{Animation, AnimationId, ClipAction};
 use lib_dbg::dump;
 
 pub use components::*;
@@ -9,7 +10,7 @@ use lib_asset::{FontId, TextureId};
 use lib_level::{LevelDef, TILE_SIDE, TileIdx};
 use macroquad::prelude::*;
 
-use crate::Transform;
+use crate::{AnimationPlay, Transform};
 
 const FONT_SCALE: f32 = 1.0;
 const MAIN_FONT_SIZE: u16 = 32;
@@ -147,6 +148,49 @@ impl Render {
         }
     }
 
+    pub fn put_anims_into_sprite_buffer(
+        &mut self,
+        world: &mut World,
+        animations: &HashMap<AnimationId, Animation>,
+    ) {
+        for (_, (tf, play)) in world.query_mut::<(&Transform, &mut AnimationPlay)>() {
+            let Some(anim) = animations.get(&play.animation) else {
+                warn!("No such anim: {:?}", play.animation);
+                continue;
+            };
+            let matching_clips = anim
+                .clips
+                .iter()
+                .filter(|x| x.start <= play.cursor && play.cursor < x.start + x.len);
+            for clip in matching_clips {
+                match &clip.action {
+                    ClipAction::DrawSprite {
+                        layer,
+                        texture_id,
+                        local_pos,
+                        local_rotation: _,
+                        rect,
+                        origin,
+                        sort_offset,
+                    } => self.sprite_buffer.push(SpriteData {
+                        layer: *layer,
+                        tf: Transform::from_pos(tf.pos + vec2(local_pos.x, local_pos.y)),
+                        texture: *texture_id,
+                        rect: Rect {
+                            x: rect.x as f32,
+                            y: rect.y as f32,
+                            w: rect.w as f32,
+                            h: rect.h as f32,
+                        },
+                        origin: vec2(origin.x, origin.y),
+                        color: WHITE,
+                        sort_offset: *sort_offset,
+                    }),
+                }
+            }
+        }
+    }
+
     pub fn render(&mut self, camera: &dyn Camera, dry_run: bool, dt: f32) {
         clear_background(Color {
             r: 0.0,
@@ -180,7 +224,6 @@ impl Render {
 
         set_camera(camera);
 
-        self.put_tilemap_into_sprite_buffer();
         self.draw_sprites();
 
         self.draw_circles();
@@ -198,7 +241,7 @@ impl Render {
         }
     }
 
-    fn put_tilemap_into_sprite_buffer(&mut self) {
+    pub fn put_tilemap_into_sprite_buffer(&mut self) {
         self.sprite_buffer
             .reserve(self.tilemap_height * self.tilemap_width);
         for (idx, &tile_idx) in self.tilemap_data.iter().enumerate() {
@@ -322,6 +365,8 @@ impl Render {
     }
 
     fn draw_sprites(&mut self) {
+        dump!("sprites drawn: {}", self.sprite_buffer.len());
+
         self.sprite_buffer.sort_by(|s1, s2| {
             let y_s1 = s1.tf.pos.y + s1.sort_offset;
             let y_s2 = s2.tf.pos.y + s2.sort_offset;

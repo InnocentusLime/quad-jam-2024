@@ -6,12 +6,8 @@ mod player;
 mod prelude;
 mod render;
 
-use hashbrown::HashMap;
-use lib_anim::{Animation, AnimationId};
 use lib_asset::{FontId, FsResolver, TextureId};
 use prelude::*;
-
-pub const ANIMATION_TIME_UNIT: f32 = 1.0 / 1000.0;
 
 fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut World) -> Entity {
     assert_eq!(data.len(), width * height);
@@ -109,8 +105,7 @@ fn decide_next_state(world: &mut World) -> Option<AppState> {
     None
 }
 
-async fn load_graphics(render: &mut Render) -> anyhow::Result<()> {
-    let resolver = FsResolver::new();
+async fn load_graphics(resolver: &FsResolver, render: &mut Render) -> anyhow::Result<()> {
     set_default_filter_mode(FilterMode::Nearest);
 
     render.add_font(FontId::Quaver, &FontId::Quaver.load_font(&resolver).await?);
@@ -128,26 +123,14 @@ async fn load_graphics(render: &mut Render) -> anyhow::Result<()> {
 
 pub struct Project {
     do_ai: bool,
-    animations: HashMap<AnimationId, Animation>,
 }
 
 impl Project {
     pub async fn new(app: &mut App) -> Project {
-        load_graphics(&mut app.render).await.unwrap();
-        let resolver = FsResolver::new();
-        let mut animations = lib_anim::AnimationPackId::Bunny
-            .load_animation_pack(&resolver)
+        load_graphics(&app.resources.resolver, &mut app.render)
             .await
             .unwrap();
-
-        // There is no way to specify offsets right now.
-        // So we patch them in
-        patch_bunny_attack_animation(animations.get_mut(&AnimationId::BunnyAttackD).unwrap());
-
-        Project {
-            do_ai: true,
-            animations,
-        }
+        Project { do_ai: true }
     }
 
     fn disable_ai(&mut self, _world: &mut World, _args: &[&str]) {
@@ -191,20 +174,32 @@ impl Game for Project {
         }
     }
 
-    fn input_phase(&mut self, input: &lib_game::InputModel, dt: f32, world: &mut World) {
-        player::auto_state_transition(world, &self.animations);
-        player::controls(dt, input, world, &self.animations);
+    fn input_phase(
+        &mut self,
+        input: &lib_game::InputModel,
+        dt: f32,
+        resources: &lib_game::Resources,
+        world: &mut World,
+    ) {
+        player::auto_state_transition(world, &resources.animations);
+        player::controls(dt, input, world, &resources.animations);
         if self.do_ai { /* No enemies yet */ }
     }
 
-    fn plan_collision_queries(&mut self, dt: f32, world: &mut World, _cmds: &mut CommandBuffer) {
+    fn plan_collision_queries(
+        &mut self,
+        _dt: f32,
+        _resources: &lib_game::Resources,
+        world: &mut World,
+        _cmds: &mut CommandBuffer,
+    ) {
         player::state_to_anim(world);
-        update_anims(dt, world, &self.animations);
     }
 
     fn update(
         &mut self,
         dt: f32,
+        _resources: &lib_game::Resources,
         world: &mut World,
         _cmds: &mut CommandBuffer,
     ) -> Option<lib_game::AppState> {
@@ -216,60 +211,19 @@ impl Game for Project {
         decide_next_state(world)
     }
 
-    fn render_export(&self, app_state: &AppState, world: &World, render: &mut Render) {
+    fn render_export(
+        &self,
+        app_state: &AppState,
+        _resources: &lib_game::Resources,
+        world: &World,
+        render: &mut Render,
+    ) {
         if app_state.is_presentable() {
             render::player_attack(render, world);
             render::goal(render, world);
             render::game_ui(render, world);
-            render::anims(world, render, &self.animations);
         }
 
         render::toplevel_ui(app_state, render);
-    }
-}
-
-fn update_anims(dt: f32, world: &mut World, animations: &HashMap<AnimationId, Animation>) {
-    for (_, play) in world.query::<&mut AnimationPlay>().iter() {
-        let Some(anim) = animations.get(&play.animation) else {
-            warn!("No such anim: {:?}", play.animation);
-            continue;
-        };
-        let max_pos = anim.max_pos();
-        if max_pos == 0 {
-            continue;
-        }
-
-        play.total_dt += dt;
-        if play.total_dt < ANIMATION_TIME_UNIT {
-            continue;
-        }
-
-        let cursor_delta = play.total_dt.div_euclid(ANIMATION_TIME_UNIT);
-        play.total_dt -= cursor_delta * ANIMATION_TIME_UNIT;
-
-        play.cursor += cursor_delta as u32;
-        if anim.is_looping {
-            play.cursor = play.cursor % max_pos;
-        } else {
-            play.cursor = play.cursor.min(max_pos);
-        }
-    }
-}
-
-fn patch_bunny_attack_animation(animation: &mut Animation) {
-    use lib_anim::ClipAction::DrawSprite;
-
-    let hit_off = 14.0;
-    match &mut animation.clips[1].action {
-        DrawSprite { local_pos, .. } => local_pos.y -= 3.0,
-    }
-    match &mut animation.clips[2].action {
-        DrawSprite { local_pos, .. } => local_pos.y += hit_off,
-    }
-    match &mut animation.clips[3].action {
-        DrawSprite { local_pos, .. } => local_pos.y += hit_off,
-    }
-    match &mut animation.clips[4].action {
-        DrawSprite { local_pos, .. } => local_pos.y += hit_off,
     }
 }

@@ -9,6 +9,7 @@ anyhow = { workspace = true }
 hecs = { workspace = true }
 macroquad = { workspace = true }
 hashbrown = { workspace = true }
+lib-anim = { path = "../lib-anim" }
 lib-dbg = { path = "../lib-dbg" }
 lib-col = { path = "../lib-col" }
 lib-level = { path = "../lib-level" }

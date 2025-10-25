@@ -1044,6 +1044,7 @@ dependencies = [
  "egui-macroquad",
  "hashbrown 0.14.5",
  "hecs",
+ "lib-anim",
  "lib-asset",
  "lib-col",
  "lib-dbg",

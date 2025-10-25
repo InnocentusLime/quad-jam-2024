@@ -1,3 +1,4 @@
+mod animations;
 mod collisions;
 mod components;
 mod dbg;
@@ -10,7 +11,9 @@ pub mod sys;
 pub use collisions::*;
 pub use components::*;
 use dbg::DebugStuff;
+use hashbrown::HashMap;
 pub use input::*;
+use lib_anim::{Animation, AnimationId};
 use lib_asset::{FsResolver, TextureId};
 use lib_level::TILE_SIDE;
 pub use render::*;
@@ -20,6 +23,8 @@ use hecs::{CommandBuffer, World};
 use macroquad::prelude::*;
 
 use lib_dbg::*;
+
+use crate::animations::update_anims;
 
 const GAME_TICKRATE: f32 = 1.0 / 60.0;
 
@@ -82,22 +87,46 @@ pub trait Game: 'static {
     ) -> impl std::future::Future<Output = ()> + Send;
 
     /// Handle the user input. You also get the delta-time.
-    fn input_phase(&mut self, input: &InputModel, dt: f32, world: &mut World);
+    fn input_phase(
+        &mut self,
+        input: &InputModel,
+        dt: f32,
+        resources: &Resources,
+        world: &mut World,
+    );
 
     /// Set up all physics queries. This can be considered as a sort of
     /// pre-update phase.
     /// This phase accepts a command buffer. The commands get executed right
     /// after the this phase.
-    fn plan_collision_queries(&mut self, dt: f32, world: &mut World, cmds: &mut CommandBuffer);
+    fn plan_collision_queries(
+        &mut self,
+        dt: f32,
+        resources: &Resources,
+        world: &mut World,
+        cmds: &mut CommandBuffer,
+    );
 
     /// Main update routine. You can request the App to transition
     /// into a new state by returning [Option::Some].
     /// This phase accepts a command buffer. The commands get executed right
     /// after the this phase.
-    fn update(&mut self, dt: f32, world: &mut World, cmds: &mut CommandBuffer) -> Option<AppState>;
+    fn update(
+        &mut self,
+        dt: f32,
+        resources: &Resources,
+        world: &mut World,
+        cmds: &mut CommandBuffer,
+    ) -> Option<AppState>;
 
     /// Export the game world for rendering.
-    fn render_export(&self, state: &AppState, world: &World, render: &mut Render);
+    fn render_export(
+        &self,
+        state: &AppState,
+        resources: &Resources,
+        world: &World,
+        render: &mut Render,
+    );
 }
 
 impl AppState {
@@ -179,6 +208,19 @@ impl App {
         info!("Done loading");
         info!("lib-game version: {}", env!("CARGO_PKG_VERSION"));
 
+        // TODO: remove
+        let mut animations = lib_anim::AnimationPackId::Bunny
+            .load_animation_pack(&self.resources.resolver)
+            .await
+            .unwrap();
+
+        // There is no way to specify offsets right now.
+        // So we patch them in
+        animations::patch_bunny_attack_animation(
+            animations.get_mut(&AnimationId::BunnyAttackD).unwrap(),
+        );
+        self.resources.animations = animations;
+
         loop {
             ScreenDump::new_frame();
 
@@ -239,10 +281,14 @@ impl App {
     }
 
     fn game_present<G: Game>(&mut self, real_dt: f32, game: &G) {
-        self.update_camera();
         self.sound.run(&self.world);
+
+        self.update_camera();
         self.render.new_frame();
-        game.render_export(&self.state, &self.world, &mut self.render);
+        self.render.put_tilemap_into_sprite_buffer();
+        self.render
+            .put_anims_into_sprite_buffer(&mut self.world, &self.resources.animations);
+        game.render_export(&self.state, &self.resources, &self.world, &mut self.render);
         self.render.render(&self.camera, !self.draw_world, real_dt);
 
         #[cfg(not(target_family = "wasm"))]
@@ -250,17 +296,28 @@ impl App {
     }
 
     fn game_update<G: Game>(&mut self, input: &InputModel, game: &mut G) -> Option<AppState> {
-        game.input_phase(&input, GAME_TICKRATE, &mut self.world);
+        game.input_phase(&input, GAME_TICKRATE, &self.resources, &mut self.world);
 
+        update_anims(GAME_TICKRATE, &mut self.world, &self.resources.animations);
         self.collisions.import_colliders(&mut self.world);
         self.collisions.export_kinematic_moves(&mut self.world);
 
-        game.plan_collision_queries(GAME_TICKRATE, &mut self.world, &mut self.cmds);
+        game.plan_collision_queries(
+            GAME_TICKRATE,
+            &self.resources,
+            &mut self.world,
+            &mut self.cmds,
+        );
         self.cmds.run_on(&mut self.world);
 
         self.collisions.export_queries(&mut self.world);
 
-        let new_state = game.update(GAME_TICKRATE, &mut self.world, &mut self.cmds);
+        let new_state = game.update(
+            GAME_TICKRATE,
+            &self.resources,
+            &mut self.world,
+            &mut self.cmds,
+        );
         self.cmds.run_on(&mut self.world);
 
         self.world.flush();
@@ -365,6 +422,7 @@ impl App {
 pub struct Resources {
     pub resolver: FsResolver,
     pub level: Option<lib_level::LevelDef>,
+    pub animations: HashMap<AnimationId, Animation>,
 }
 
 impl Resources {
@@ -372,6 +430,7 @@ impl Resources {
         Resources {
             resolver: FsResolver::new(),
             level: None,
+            animations: HashMap::new(),
         }
     }
 }
