@@ -123,6 +123,7 @@ async fn load_graphics(resolver: &FsResolver, render: &mut Render) -> anyhow::Re
 
 pub struct Project {
     do_ai: bool,
+    do_player: bool,
 }
 
 impl Project {
@@ -130,7 +131,10 @@ impl Project {
         load_graphics(&app.resources.resolver, &mut app.render)
             .await
             .unwrap();
-        Project { do_ai: true }
+        Project {
+            do_ai: true,
+            do_player: true,
+        }
     }
 
     fn disable_ai(&mut self, _world: &mut World, _args: &[&str]) {
@@ -139,6 +143,14 @@ impl Project {
 
     fn enable_ai(&mut self, _world: &mut World, _args: &[&str]) {
         self.do_ai = true;
+    }
+
+    fn disable_player(&mut self, _world: &mut World, _args: &[&str]) {
+        self.do_player = false;
+    }
+
+    fn enable_player(&mut self, _world: &mut World, _args: &[&str]) {
+        self.do_player = true;
     }
 }
 
@@ -153,6 +165,8 @@ impl Game for Project {
         &[
             ("noai", "disable ai", Self::disable_ai),
             ("ai", "enable ai", Self::enable_ai),
+            ("nopl", "disable player", Self::disable_player),
+            ("pl", "enable player", Self::enable_player),
         ]
     }
 
@@ -181,8 +195,10 @@ impl Game for Project {
         resources: &lib_game::Resources,
         world: &mut World,
     ) {
-        player::auto_state_transition(world, &resources.animations);
-        player::controls(dt, input, world, &resources.animations);
+        if self.do_player {
+            player::auto_state_transition(world, &resources.animations);
+            player::controls(dt, input, world, &resources.animations);
+        }
         if self.do_ai { /* No enemies yet */ }
     }
 
@@ -193,7 +209,9 @@ impl Game for Project {
         world: &mut World,
         _cmds: &mut CommandBuffer,
     ) {
-        player::state_to_anim(world);
+        if self.do_player {
+            player::state_to_anim(world);
+        }
     }
 
     fn update(
