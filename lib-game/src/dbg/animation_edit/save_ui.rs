@@ -14,6 +14,7 @@ use strum::VariantArray;
 pub fn load_anim_pack_ui(anims: &mut HashMap<AnimationId, Animation>) {
     let src = FileDialog::new()
         .set_title("Load animation pack")
+        .set_directory("project-animations")
         .add_filter("", &["json"])
         .pick_file();
     if let Some(src) = src {
@@ -59,6 +60,7 @@ pub fn save_anim_pack_modal(
             if ui.button("Save").clicked() {
                 let dst = FileDialog::new()
                     .set_title("Save animation pack")
+                    .set_directory("project-animations")
                     .add_filter("", &["json"])
                     .save_file();
                 if let Some(dst) = dst {
