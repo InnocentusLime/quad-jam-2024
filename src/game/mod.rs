@@ -174,6 +174,7 @@ impl Game for Project {
         &[
             ("phys", draw_physics_debug),
             ("pl", player::draw_player_state),
+            ("ch", debug_character_bodies),
         ]
     }
 
@@ -243,5 +244,30 @@ impl Game for Project {
         }
 
         render::toplevel_ui(app_state, render);
+    }
+}
+
+fn debug_character_bodies(world: &World) {
+    for (_, (tf, tag)) in &mut world
+        .query::<(&Transform, &BodyTag)>()
+        .with::<&KinematicControl>()
+    {
+        let color = YELLOW;
+
+        match tag.shape {
+            Shape::Rect { width, height } => draw_rectangle_lines_ex(
+                tf.pos.x,
+                tf.pos.y,
+                width,
+                height,
+                1.0,
+                DrawRectangleParams {
+                    offset: vec2(0.5, 0.5),
+                    rotation: tf.angle,
+                    color,
+                },
+            ),
+            Shape::Circle { radius } => draw_circle_lines(tf.pos.x, tf.pos.y, radius, 1.0, color),
+        }
     }
 }
