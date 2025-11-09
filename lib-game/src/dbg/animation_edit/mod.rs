@@ -18,7 +18,7 @@ use sequencer::*;
 use crate::AnimationPlay;
 
 pub struct AnimationEdit {
-    pub target: Entity,
+    pub playback: Entity,
     open_save_pack: bool,
     current_pack_id: AnimationPackId,
     sequencer_state: SequencerState,
@@ -31,7 +31,7 @@ pub struct AnimationEdit {
 impl AnimationEdit {
     pub fn new() -> Self {
         Self {
-            target: Entity::DANGLING,
+            playback: Entity::DANGLING,
             open_save_pack: false,
             current_pack_id: AnimationPackId::Bunny,
             sequencer_state: SequencerState::Idle,
@@ -52,15 +52,15 @@ impl AnimationEdit {
         anims: &mut HashMap<AnimationId, Animation>,
         world: &mut World,
     ) {
-        ComboBox::new("target_id", "target_entity")
-            .selected_text(format!("{:?}", self.target))
+        ComboBox::new("playback", "playback entity")
+            .selected_text(format!("{:?}", self.playback))
             .show_ui(ui, |ui| {
                 for (entity, _) in world.query_mut::<&mut AnimationPlay>() {
-                    ui.selectable_value(&mut self.target, entity, format!("{entity:?}"));
+                    ui.selectable_value(&mut self.playback, entity, format!("{entity:?}"));
                 }
             });
-        let Ok(mut play) = world.get::<&mut AnimationPlay>(self.target) else {
-            self.target = Entity::DANGLING;
+        let Ok(mut play) = world.get::<&mut AnimationPlay>(self.playback) else {
+            self.playback = Entity::DANGLING;
             return;
         };
 
