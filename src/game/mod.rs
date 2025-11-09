@@ -175,6 +175,7 @@ impl Game for Project {
             ("phys", draw_physics_debug),
             ("pl", player::draw_player_state),
             ("ch", debug_character_bodies),
+            ("dmg", debug_damage_boxes),
         ]
     }
 
@@ -252,22 +253,12 @@ fn debug_character_bodies(world: &World) {
         .query::<(&Transform, &BodyTag)>()
         .with::<&KinematicControl>()
     {
-        let color = YELLOW;
+        draw_shape_lines(tf, &tag.shape, YELLOW);
+    }
+}
 
-        match tag.shape {
-            Shape::Rect { width, height } => draw_rectangle_lines_ex(
-                tf.pos.x,
-                tf.pos.y,
-                width,
-                height,
-                1.0,
-                DrawRectangleParams {
-                    offset: vec2(0.5, 0.5),
-                    rotation: tf.angle,
-                    color,
-                },
-            ),
-            Shape::Circle { radius } => draw_circle_lines(tf.pos.x, tf.pos.y, radius, 1.0, color),
-        }
+fn debug_damage_boxes(world: &World) {
+    for (_, (tf, tag)) in &mut world.query::<(&Transform, &col_query::Damage)>() {
+        draw_shape_lines(tf, &tag.collider, RED);
     }
 }
