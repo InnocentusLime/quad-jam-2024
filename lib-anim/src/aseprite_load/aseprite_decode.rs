@@ -1,28 +1,13 @@
 use std::str::FromStr;
 
+use anyhow::Context;
 use hashbrown::HashMap;
 use lib_asset::{FsResolver, TextureId};
 use serde::Deserialize;
-use thiserror::Error;
 
 use crate::{Animation, AnimationId, Clip, ClipAction, ImgRect, Position, Track};
 
 static REQUIRED_ASEPRITE_VERSION: &'static str = "1.3";
-
-#[derive(Debug, Error)]
-pub enum LoadFromAsepriteError {
-    #[error("Expected version to be {REQUIRED_ASEPRITE_VERSION}. Found {found:?}")]
-    VersionMismatch { found: String },
-    #[error("Duplicate frame id: {dup}")]
-    DuplicateId { dup: u32 },
-    #[error("Expected frame filename to be a number, found {found:?}")]
-    BadFrameFilename { found: String },
-    #[allow(dead_code)]
-    #[error("Unknown animation name: {found:?}")]
-    UnknownAnimationName { found: String },
-    #[error("Exepcted repeat number to be a number, found: {found:?}")]
-    RepeatNumberNotNumber { found: String },
-}
 
 #[derive(Debug, Deserialize)]
 pub struct Sheet {
@@ -71,27 +56,24 @@ pub struct SheetTag {
 pub fn load_clips_from_aseprite(
     resolver: &FsResolver,
     sheet: &Sheet,
-) -> Result<HashMap<AnimationId, (Vec<Clip>, bool)>, LoadFromAsepriteError> {
+) -> anyhow::Result<HashMap<AnimationId, (Vec<Clip>, bool)>> {
     let version_prefix = String::from(REQUIRED_ASEPRITE_VERSION) + ".";
-    if !sheet.meta.version.starts_with(&version_prefix) {
-        return Err(LoadFromAsepriteError::VersionMismatch {
-            found: sheet.meta.version.clone(),
-        });
-    }
+    let version = &sheet.meta.version;
+    anyhow::ensure!(
+        version.starts_with(&version_prefix),
+        "Expected version to be {REQUIRED_ASEPRITE_VERSION}. Found {version:?}",
+    );
 
     let mut id_to_frame = HashMap::with_capacity(sheet.frames.len());
     for frame in sheet.frames.iter() {
-        let (id, new) = match frame.filename.parse::<u32>() {
-            Ok(id) => (id, id_to_frame.insert(id, frame).is_none()),
-            Err(_) => {
-                return Err(LoadFromAsepriteError::BadFrameFilename {
-                    found: frame.filename.clone(),
-                });
-            }
-        };
-        if !new {
-            return Err(LoadFromAsepriteError::DuplicateId { dup: id });
-        }
+        let id = frame.filename.parse::<u32>().with_context(|| {
+            format!(
+                "Expected frame filename to be a number, found {:?}",
+                frame.filename
+            )
+        })?;
+        let new = id_to_frame.insert(id, frame).is_none();
+        anyhow::ensure!(new, "Duplicate frame id: {id}");
     }
 
     let mut result = HashMap::new();
@@ -109,10 +91,11 @@ pub fn load_clips_from_aseprite(
             true
         } else {
             // TODO: properly handle number of repetitions
-            let _reapeat_n = anim.repeat.as_str().parse::<u32>().map_err(|_| {
-                LoadFromAsepriteError::RepeatNumberNotNumber {
-                    found: anim.repeat.clone(),
-                }
+            let _reapeat_n = anim.repeat.as_str().parse::<u32>().with_context(|| {
+                format!(
+                    "Exepcted repeat number to be a number, found: {:?}",
+                    anim.repeat
+                )
             })?;
             false
         };
@@ -175,7 +158,7 @@ pub fn load_clips_from_aseprite(
 pub fn load_animations_from_aseprite(
     resolver: &FsResolver,
     sheet: &Sheet,
-) -> Result<HashMap<AnimationId, Animation>, LoadFromAsepriteError> {
+) -> anyhow::Result<HashMap<AnimationId, Animation>> {
     let res = load_clips_from_aseprite(resolver, sheet)?
         .into_iter()
         .map(|(name, (clips, is_looping))| {
