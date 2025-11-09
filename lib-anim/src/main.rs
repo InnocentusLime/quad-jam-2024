@@ -35,7 +35,7 @@ fn main() -> ExitCode {
 fn check_animations(resolver: &FsResolver, animations: PathBuf) -> anyhow::Result<()> {
     println!("Checking {animations:?}");
 
-    lib_anim::aseprite_load::load_animations(resolver, animations)?;
+    lib_anim::aseprite_load::load_animations_aseprite(resolver, animations)?;
     Ok(())
 }
 
@@ -46,7 +46,7 @@ fn compile_animations(
 ) -> anyhow::Result<()> {
     println!("Compiling {animations:?} into {out:?}");
 
-    let anims = lib_anim::aseprite_load::load_animations(resolver, animations)
+    let anims = lib_anim::aseprite_load::load_animations_aseprite(resolver, animations)
         .context("loading package")?;
     let out = fs::File::create(out).context("opening the output")?;
     lib_anim::binary_io::compile::write_animation_pack(&anims, out).context("writing the package")
