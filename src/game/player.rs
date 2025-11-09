@@ -7,8 +7,6 @@ pub const PLAYER_SPEED: f32 = 48.0;
 pub const PLAYER_SPAWN_HEALTH: i32 = 3;
 pub const PLAYER_HIT_COOLDOWN: f32 = 1.0;
 pub const PLAYER_SIZE: f32 = 16.0;
-pub const PLAYER_ATTACK_LENGTH: f32 = TILE_SIDE_F32 * 3.0;
-pub const PLAYER_ATTACK_WIDTH: f32 = 8.0;
 
 struct PlayerContext<'a> {
     kinematic: &'a mut KinematicControl,

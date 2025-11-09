@@ -19,21 +19,6 @@ static START_TEXT_DESK: &str = "Controls";
 static START_HINT: &str = "Move: WASD\nShoot: Mouse + Left Button\nYou get extra score for hitting multiple enemies at once\nPRESS SPACE TO START\nGet ready to run!";
 static START_TEXT_MOBILE: &str = "Tap to start";
 
-pub fn player_attack(render: &mut Render, world: &World) {
-    use super::player::{PLAYER_ATTACK_LENGTH, PLAYER_ATTACK_WIDTH};
-    for (_, pos) in &mut world.query::<&Transform>().with::<&PlayerAttackTag>() {
-        render.world.spawn((
-            *pos,
-            RectShape {
-                origin: vec2(0.5, 0.5),
-                width: PLAYER_ATTACK_LENGTH,
-                height: PLAYER_ATTACK_WIDTH,
-            },
-            Tint(RED),
-        ));
-    }
-}
-
 pub fn game_ui(render: &mut Render, world: &World) {
     let world_font_size = 16f32;
     let off_y = world_font_size;
