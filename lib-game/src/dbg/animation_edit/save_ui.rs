@@ -11,6 +11,39 @@ use log::{error, info, warn};
 use rfd::FileDialog;
 use strum::VariantArray;
 
+pub fn load_anim_pack_ui(anims: &mut HashMap<AnimationId, Animation>) {
+    let src = FileDialog::new()
+        .set_title("Load animation pack")
+        .add_filter("", &["json"])
+        .pick_file();
+    if let Some(src) = src {
+        load_anim_pack(src, anims);
+    }
+}
+
+fn load_anim_pack(src: impl AsRef<Path>, anims: &mut HashMap<AnimationId, Animation>) {
+    let src = src.as_ref();
+    let mut file = match File::open(src) {
+        Ok(file) => file,
+        Err(e) => {
+            error!("Could not open {src:?}: {e}");
+            return;
+        }
+    };
+
+    let pack: HashMap<_, _> = match serde_json::from_reader(&mut file) {
+        Ok(x) => {
+            info!("Loaded data to {src:?}");
+            x
+        }
+        Err(e) => {
+            error!("Failed to load from {src:?}: {e}");
+            return;
+        }
+    };
+    anims.extend(pack);
+}
+
 pub fn save_anim_pack_modal(
     ui: &mut Ui,
     current_pack_id: &mut AnimationPackId,

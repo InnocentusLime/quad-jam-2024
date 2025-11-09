@@ -64,12 +64,17 @@ impl AnimationEdit {
             return;
         };
 
-        if ui.button("Save Pack").clicked() {
-            self.open_save_pack = true;
-        }
-        if self.open_save_pack {
-            self.open_save_pack = save_anim_pack_modal(ui, &mut self.current_pack_id, &anims);
-        }
+        ui.horizontal(|ui| {
+            if ui.button("Load Pack").clicked() {
+                load_anim_pack_ui(anims);
+            }
+            if ui.button("Save Pack").clicked() {
+                self.open_save_pack = true;
+            }
+            if self.open_save_pack {
+                self.open_save_pack = save_anim_pack_modal(ui, &mut self.current_pack_id, &anims);
+            }
+        });
 
         let anim = anims.get_mut(&play.animation).unwrap();
         ui.horizontal(|ui| {
