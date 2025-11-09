@@ -15,7 +15,6 @@ postcard = "1"
 macroquad = { workspace = true }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-thiserror = "2"
 postcard = { version = "1", features = ["use-std"] }
 clap = { version = "4", features = ["derive"] }
 serde_json = "1"
