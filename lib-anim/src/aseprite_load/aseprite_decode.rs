@@ -3,6 +3,7 @@ use std::str::FromStr;
 use anyhow::Context;
 use hashbrown::HashMap;
 use lib_asset::{FsResolver, TextureId};
+use log::{info, warn};
 use serde::Deserialize;
 
 use crate::{Animation, AnimationId, Clip, ClipAction, ImgRect, Position, Track};
@@ -83,7 +84,10 @@ pub fn load_clips_from_aseprite(
         let anim_id = match AnimationId::from_str(&anim.data) {
             Ok(x) => x,
             Err(_) => {
-                eprintln!("Skipping {:?}: unknown", anim.data);
+                warn!(
+                    "Skipping aseprite tag {:?}: does not correspond to any animation id",
+                    anim.data
+                );
                 continue;
             }
         };
@@ -103,7 +107,7 @@ pub fn load_clips_from_aseprite(
         // FIXME: this check is flakey. Just check
         // all frames.
         if anim.to as usize >= sheet.frames.len() {
-            // TODO: log skip
+            info!("Skipping {:?}: animation edge is out of range", anim.data);
             continue;
         }
 
