@@ -59,6 +59,7 @@ pub struct FsResolver {
     assets_dir: PathBuf,
     aseprite_dir: PathBuf,
     animations_pack_dir: PathBuf,
+    animations_pack_proj_dir: PathBuf,
 }
 
 impl FsResolver {
@@ -67,6 +68,7 @@ impl FsResolver {
             assets_dir: Self::assets_dir_default(),
             aseprite_dir: Self::aseprite_dir_default(),
             animations_pack_dir: Self::animations_pack_dir_default(),
+            animations_pack_proj_dir: Self::animations_pack_proj_dir_default(),
         }
     }
 
@@ -95,6 +97,15 @@ impl FsResolver {
         set_aserpite_dir,
         aseprite_filename,
         aseprite_path
+    );
+
+    impl_resource_methods!(
+        animations_pack_proj_dir,
+        animations_pack_proj_dir_default = "project-animations",
+        get_animations_pack_proj_dir,
+        set_animations_pack_proj_dir,
+        animation_pack_proj_filename,
+        animation_pack_proj_path
     );
 }
 
