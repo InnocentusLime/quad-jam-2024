@@ -1,3 +1,4 @@
+use hecs::Entity;
 use lib_anim::{Animation, AnimationId};
 use macroquad::prelude::*;
 
@@ -36,4 +37,11 @@ impl AnimationPlay {
         }
         self.cursor == animation.max_pos()
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct AnimationEvent {
+    pub parent: Entity,
+    pub animation: AnimationId,
+    pub clip_id: u32,
 }

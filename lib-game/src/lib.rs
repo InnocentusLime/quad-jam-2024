@@ -19,12 +19,12 @@ use lib_level::TILE_SIDE;
 pub use render::*;
 pub use sound_director::*;
 
-use hecs::{CommandBuffer, World};
+use hecs::{CommandBuffer, Entity, World};
 use macroquad::prelude::*;
 
 use lib_dbg::*;
 
-use crate::animations::update_anims;
+use crate::animations::{collect_active_events, delete_animation_events, update_anims};
 
 #[cfg(not(target_family = "wasm"))]
 use dbg::AnimationEdit;
@@ -167,6 +167,7 @@ pub struct App {
     pub render: Render,
     sound: SoundDirector,
     collisions: CollisionSolver,
+    active_events: HashMap<AnimationEvent, Entity>,
     world: World,
     cmds: CommandBuffer,
 
@@ -188,6 +189,7 @@ impl App {
             render: Render::new(),
             sound: SoundDirector::new().await?,
             collisions: CollisionSolver::new(),
+            active_events: HashMap::new(),
             world: World::new(),
             cmds: CommandBuffer::new(),
 
@@ -302,7 +304,8 @@ impl App {
     fn game_update<G: Game>(&mut self, input: &InputModel, game: &mut G) -> Option<AppState> {
         game.input_phase(&input, GAME_TICKRATE, &self.resources, &mut self.world);
 
-        update_anims(GAME_TICKRATE, &mut self.world, &self.resources.animations);
+        update_anims(GAME_TICKRATE, &mut self.world, &self.resources);
+        collect_active_events(&mut self.world, &mut self.active_events);
 
         self.collisions.import_colliders(&mut self.world);
         self.collisions.export_kinematic_moves(&mut self.world);
@@ -325,6 +328,12 @@ impl App {
         );
         self.cmds.run_on(&mut self.world);
 
+        delete_animation_events(
+            &mut self.world,
+            &self.resources,
+            &mut self.cmds,
+            &mut self.active_events,
+        );
         self.world.flush();
 
         new_state
