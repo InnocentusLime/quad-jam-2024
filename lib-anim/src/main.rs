@@ -1,6 +1,6 @@
 #![cfg(not(target_family = "wasm"))]
 
-use std::fs;
+use std::fs::{self, File};
 use std::{path::PathBuf, process::ExitCode};
 
 use anyhow::Context;
@@ -19,6 +19,7 @@ fn main() -> ExitCode {
         Commands::CompileAnims { animations, out } => compile_animations(animations, out),
         Commands::DumpAnims { animations } => dump_animations(animations),
         Commands::CompileDir { dir, out } => compile_dir(dir, out),
+        Commands::ConvertAseprite { aseprite, out } => convert_aseprite(&resolver, aseprite, out),
     };
 
     match result {
@@ -73,6 +74,16 @@ fn compile_dir(dir: PathBuf, out: PathBuf) -> anyhow::Result<()> {
     Ok(())
 }
 
+fn convert_aseprite(
+    fs_resolver: &FsResolver,
+    aseprite: PathBuf,
+    out: PathBuf,
+) -> anyhow::Result<()> {
+    let anims = lib_anim::aseprite_load::load_animations_aseprite(fs_resolver, aseprite)?;
+    let out = File::create(out).context("open destination")?;
+    serde_json::to_writer_pretty(out, &anims).context("writing to dest")
+}
+
 /// A tool for working with the game's maps.
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -118,6 +129,16 @@ enum Commands {
         dir: PathBuf,
         /// The directory to put the results into
         #[arg(short, long, value_name = "DIR")]
+        out: PathBuf,
+    },
+    /// Convert an aseprite animation pack into an animation
+    /// pack for the editor and the game.
+    ConvertAseprite {
+        /// The aseprite package
+        #[arg(short, long, value_name = "FILE")]
+        aseprite: PathBuf,
+        /// The animation package destination-file
+        #[arg(short, long, value_name = "FILE")]
         out: PathBuf,
     },
 }
