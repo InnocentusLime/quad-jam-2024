@@ -41,21 +41,3 @@ pub(crate) fn update_anims(
         }
     }
 }
-
-pub(crate) fn patch_bunny_attack_animation(animation: &mut Animation) {
-    use lib_anim::ClipAction::DrawSprite;
-
-    let hit_off = 14.0;
-    match &mut animation.clips[1].action {
-        DrawSprite { local_pos, .. } => local_pos.y -= 3.0,
-    }
-    match &mut animation.clips[2].action {
-        DrawSprite { local_pos, .. } => local_pos.y += hit_off,
-    }
-    match &mut animation.clips[3].action {
-        DrawSprite { local_pos, .. } => local_pos.y += hit_off,
-    }
-    match &mut animation.clips[4].action {
-        DrawSprite { local_pos, .. } => local_pos.y += hit_off,
-    }
-}

@@ -214,16 +214,10 @@ impl App {
         info!("lib-game version: {}", env!("CARGO_PKG_VERSION"));
 
         // TODO: remove
-        let mut animations = lib_anim::AnimationPackId::Bunny
+        let animations = lib_anim::AnimationPackId::Bunny
             .load_animation_pack(&self.resources.resolver)
             .await
             .unwrap();
-
-        // There is no way to specify offsets right now.
-        // So we patch them in
-        animations::patch_bunny_attack_animation(
-            animations.get_mut(&AnimationId::BunnyAttackD).unwrap(),
-        );
         self.resources.animations = animations;
 
         loop {
