@@ -90,6 +90,7 @@ pub fn spawn(world: &mut World, pos: Vec2) {
             state: PlayerState::Idle,
         },
         PlayerScore(0),
+        Team::Player,
         Health::new(PLAYER_SPAWN_HEALTH),
         DamageCooldown::new(PLAYER_HIT_COOLDOWN),
         KinematicControl::new(col_group::LEVEL),
