@@ -239,7 +239,6 @@ impl Game for Project {
         render: &mut Render,
     ) {
         if app_state.is_presentable() {
-            render::player_attack(render, world);
             render::goal(render, world);
             render::game_ui(render, world);
         }

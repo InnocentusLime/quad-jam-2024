@@ -64,9 +64,6 @@ pub enum PlayerState {
     Attacking = 2,
 }
 
-#[derive(Default, Debug, Clone, Copy)]
-pub struct PlayerAttackTag;
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum TileType {
     Wall,
