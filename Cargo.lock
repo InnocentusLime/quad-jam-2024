@@ -1473,6 +1473,7 @@ dependencies = [
  "clap",
  "hashbrown 0.14.5",
  "lib-asset",
+ "log",
  "macroquad",
  "postcard",
  "serde",
