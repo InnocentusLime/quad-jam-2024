@@ -4,6 +4,12 @@ use macroquad::prelude::*;
 #[derive(Debug, Clone, Copy)]
 pub struct PlayerScore(pub u32);
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Team {
+    Player,
+    Enemy,
+}
+
 /// [Health] component stores entity's health.
 /// Normally, to do damage, you should just put it into the `damage` field.
 /// `damage` is zeroed every frame and is substracted to `value`.
