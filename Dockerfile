@@ -31,7 +31,7 @@ RUN mkdir /dist/animations && \
     /project/target/debug/lib-anim \
         --assets /project/assets \
         compile-dir \
-            -d /project/project-aseprite \
+            -d /project/project-animations \
             -o /dist/animations
 
 FROM httpd:trixie 
