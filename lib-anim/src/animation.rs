@@ -27,7 +27,10 @@ pub struct Clip {
     pub action: ClipAction,
 }
 
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, strum::IntoStaticStr)]
+#[derive(
+    Clone, Copy, Debug, Serialize, Deserialize, strum::IntoStaticStr, strum::EnumDiscriminants,
+)]
+#[strum_discriminants(derive(strum::IntoStaticStr, strum::VariantArray))]
 pub enum ClipAction {
     DrawSprite {
         layer: u32,
@@ -37,6 +40,13 @@ pub enum ClipAction {
         rect: ImgRect,
         origin: Position,
         sort_offset: f32,
+    },
+    AttackBox {
+        local_pos: Position,
+        local_rotation: f32,
+        team: Team,
+        group: lib_col::Group,
+        shape: lib_col::Shape,
     },
 }
 
@@ -58,6 +68,24 @@ pub struct ImgRect {
     pub y: u32,
     pub w: u32,
     pub h: u32,
+}
+
+#[derive(
+    Debug,
+    Clone,
+    Copy,
+    Serialize,
+    Deserialize,
+    strum::EnumString,
+    strum::VariantArray,
+    strum::IntoStaticStr,
+    PartialEq,
+    Eq,
+    Hash,
+)]
+pub enum Team {
+    Player,
+    Enemy,
 }
 
 // TODO: macro for generating this id AND mapping from pack to ids

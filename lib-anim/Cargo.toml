@@ -10,6 +10,7 @@ strum = { workspace = true }
 hashbrown = { workspace = true, features = ["serde"] }
 serde = { workspace = true }
 lib-asset = { path = "../lib-asset" }
+lib-col = { path = "../lib-col" }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 postcard = "1"

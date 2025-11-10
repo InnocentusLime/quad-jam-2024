@@ -134,27 +134,6 @@ impl AnimationEdit {
     }
 }
 
-fn enum_select<T>(
-    ui: &mut Ui,
-    id_salt: impl std::hash::Hash,
-    label: impl Into<WidgetText>,
-    current_value: &mut T,
-) where
-    T: Copy + PartialEq,
-    T: strum::VariantArray,
-    for<'a> &'a T: Into<&'static str>,
-{
-    let current_text: &'static str = (&*current_value).into();
-    ComboBox::new(id_salt, label)
-        .selected_text(current_text)
-        .show_ui(ui, |ui| {
-            for selected_value in T::VARIANTS {
-                let text: &'static str = selected_value.into();
-                ui.selectable_value(current_value, *selected_value, text);
-            }
-        });
-}
-
 fn selected_clip_ui(ui: &mut Ui, clips: &mut ClipsUi, selected_clip: &mut Option<u32>) {
     ui.group(|ui| {
         ui.set_min_size(vec2(200.0, 300.0));
@@ -170,11 +149,44 @@ fn selected_clip_ui(ui: &mut Ui, clips: &mut ClipsUi, selected_clip: &mut Option
         ui.label(format!("Track: {}", clip.track_id));
         ui.label(format!("Pos: {}", clip.start));
         ui.label(format!("Length: {}", clip.len));
-        clip_action_ui(clips.get_action_mut(clip_idx).unwrap(), ui);
+        clip_action_ui(ui, clips.get_action_mut(clip_idx).unwrap());
     });
 }
 
-fn clip_action_ui(clip: &mut lib_anim::ClipAction, ui: &mut Ui) {
+fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
+    let old_ty: lib_anim::ClipActionDiscriminants = (*clip).into();
+    let mut new_ty = old_ty;
+    enum_select(ui, "action_type", "Clip Action", &mut new_ty);
+    if old_ty != new_ty {
+        let new_clip = match new_ty {
+            lib_anim::ClipActionDiscriminants::DrawSprite => lib_anim::ClipAction::DrawSprite {
+                layer: 0,
+                texture_id: TextureId::BunnyAtlas,
+                local_pos: lib_anim::Position { x: 0.0, y: 0.0 },
+                local_rotation: 0.0,
+                rect: lib_anim::ImgRect {
+                    x: 0,
+                    y: 0,
+                    w: 0,
+                    h: 0,
+                },
+                origin: lib_anim::Position { x: 0.0, y: 0.0 },
+                sort_offset: 0.0,
+            },
+            lib_anim::ClipActionDiscriminants::AttackBox => lib_anim::ClipAction::AttackBox {
+                local_pos: lib_anim::Position { x: 0.0, y: 0.0 },
+                local_rotation: 0.0,
+                team: lib_anim::Team::Player,
+                group: lib_col::Group::empty(),
+                shape: lib_col::Shape::Rect {
+                    width: 0.0,
+                    height: 0.0,
+                },
+            },
+        };
+        *clip = new_clip;
+    }
+
     match clip {
         lib_anim::ClipAction::DrawSprite {
             layer,
@@ -226,5 +238,141 @@ fn clip_action_ui(clip: &mut lib_anim::ClipAction, ui: &mut Ui) {
                 ui.label("sort offset");
             });
         }
+        lib_anim::ClipAction::AttackBox {
+            local_pos,
+            local_rotation,
+            team,
+            group,
+            shape,
+        } => {
+            ui.horizontal(|ui| {
+                ui.add(DragValue::new(&mut local_pos.x).range(-256.0..=256.0));
+                ui.add(DragValue::new(&mut local_pos.y).range(-256.0..=256.0));
+                ui.label("local pos");
+            });
+            ui.horizontal(|ui| {
+                ui.add(DragValue::new(local_rotation).range(0.0..=std::f32::consts::TAU));
+                ui.label("local rotation");
+            });
+            ui.horizontal(|ui| {
+                enum_select(ui, "team_id", "team", team);
+                ui.label("team");
+            });
+            ui.horizontal(|ui| {
+                group_ui(ui, group);
+                ui.label("group");
+            });
+            shape_ui(ui, shape);
+        }
     }
+}
+
+fn group_ui(ui: &mut Ui, group: &mut lib_col::Group) {
+    let response = ui.button("Configure");
+    let flags_ui = |ui: &mut Ui| {
+        group_flags_ui(ui, group);
+    };
+
+    let popup_id = ui.make_persistent_id("group_flags");
+    if response.clicked() {
+        ui.memory_mut(|mem| mem.toggle_popup(popup_id));
+    }
+    egui::popup_above_or_below_widget(
+        ui,
+        popup_id,
+        &response,
+        egui::AboveOrBelow::Below,
+        egui::PopupCloseBehavior::CloseOnClickOutside,
+        flags_ui,
+    );
+}
+
+fn group_flags_ui(ui: &mut Ui, group: &mut lib_col::Group) {
+    use crate::col_group::*;
+
+    ui.set_min_width(200.0);
+
+    let mut level = group.includes(LEVEL);
+    let mut characters = group.includes(CHARACTERS);
+    let mut player = group.includes(PLAYER);
+
+    ui.checkbox(&mut level, "level");
+    ui.checkbox(&mut characters, "characters");
+    ui.checkbox(&mut player, "player");
+
+    *group = lib_col::Group::empty();
+    if level {
+        *group = group.union(LEVEL)
+    }
+    if characters {
+        *group = group.union(CHARACTERS);
+    }
+    if player {
+        *group = group.union(PLAYER);
+    }
+}
+
+fn shape_ui(ui: &mut Ui, shape: &mut lib_col::Shape) {
+    let shape_tys = ["Rect", "Shape"];
+    let defaults = [
+        lib_col::Shape::Rect {
+            width: 0.0,
+            height: 0.0,
+        },
+        lib_col::Shape::Circle { radius: 0.0 },
+    ];
+    let curr_id = match shape {
+        lib_col::Shape::Rect { .. } => 0,
+        lib_col::Shape::Circle { .. } => 1,
+    };
+    let mut new_id = curr_id;
+    ComboBox::new("shape", "Shape")
+        .selected_text(shape_tys[curr_id])
+        .show_ui(ui, |ui| {
+            for (id, label) in shape_tys.iter().enumerate() {
+                ui.selectable_value(&mut new_id, id, *label);
+            }
+        });
+    if curr_id != new_id {
+        *shape = defaults[new_id];
+    }
+    match shape {
+        lib_col::Shape::Rect { width, height } => {
+            ui.horizontal(|ui| {
+                ui.add(DragValue::new(width).range(0.0..=300.0));
+                ui.label("width");
+            });
+            ui.horizontal(|ui| {
+                ui.add(DragValue::new(height).range(0.0..=300.0));
+                ui.label("height");
+            });
+        }
+        lib_col::Shape::Circle { radius } => {
+            ui.horizontal(|ui| {
+                ui.add(DragValue::new(radius).range(0.0..=300.0));
+                ui.label("radius");
+            });
+        }
+    }
+}
+
+fn enum_select<T>(
+    ui: &mut Ui,
+    id_salt: impl std::hash::Hash,
+    label: impl Into<WidgetText>,
+    current_value: &mut T,
+) where
+    T: Copy + PartialEq,
+    T: strum::VariantArray,
+    for<'a> &'a T: Into<&'static str>,
+{
+    let current_text: &'static str = (&*current_value).into();
+    ComboBox::new(id_salt, label)
+        .selected_text(current_text)
+        .show_ui(ui, |ui| {
+            for selected_value in T::VARIANTS {
+                let text: &'static str = selected_value.into();
+                ui.selectable_value(current_value, *selected_value, text);
+            }
+        });
 }

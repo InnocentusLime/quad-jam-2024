@@ -186,6 +186,7 @@ impl Render {
                         color: WHITE,
                         sort_offset: *sort_offset,
                     }),
+                    _ => (),
                 }
             }
         }
