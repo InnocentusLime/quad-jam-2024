@@ -1502,6 +1502,7 @@ dependencies = [
  "image 0.25.6",
  "imageproc",
  "rand 0.9.1",
+ "serde",
 ]
 
 [[package]]

@@ -66,7 +66,7 @@ pub static CIRCLE_NORMALS: [Vec2; 8] = [
     ),
 ];
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize)]
 pub enum Shape {
     Rect { width: f32, height: f32 },
     Circle { radius: f32 },

@@ -4,7 +4,7 @@ pub const GROUP_COUNT: usize = 32;
 /// It encodes what set a collider belongs to.
 /// It is built using bitflags on u32, most methods are `const fn`, so
 /// most operations should be quite fast.
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, serde::Deserialize, serde::Serialize)]
 #[repr(transparent)]
 pub struct Group(pub u32);
 
