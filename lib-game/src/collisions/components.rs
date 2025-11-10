@@ -117,3 +117,28 @@ pub struct BodyTag {
     pub groups: Group,
     pub shape: Shape,
 }
+
+pub mod col_group {
+    use lib_col::Group;
+
+    pub const NONE: Group = Group::empty();
+    pub const LEVEL: Group = Group::from_id(0);
+    pub const PLAYER: Group = Group::from_id(1);
+    #[allow(dead_code)]
+    pub const ENEMY: Group = Group::from_id(2);
+    pub const DAMAGABLE: Group = Group::from_id(3);
+}
+
+pub mod col_query {
+    pub const LEVEL: usize = 0;
+    pub const DAMAGE: usize = 1;
+    pub const PICKUP: usize = 2;
+    pub const INTERACTION: usize = 3;
+
+    #[allow(dead_code)]
+    pub type Level = super::CollisionQuery<LEVEL>;
+    pub type Damage = super::CollisionQuery<DAMAGE>;
+    pub type Pickup = super::CollisionQuery<PICKUP>;
+    #[allow(dead_code)]
+    pub type Interaction = super::CollisionQuery<INTERACTION>;
+}
