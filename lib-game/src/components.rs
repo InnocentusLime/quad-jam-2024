@@ -45,3 +45,9 @@ pub struct AnimationEvent {
     pub animation: AnimationId,
     pub clip_id: u32,
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Team {
+    Player,
+    Enemy,
+}
