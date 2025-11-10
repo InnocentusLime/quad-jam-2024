@@ -9,7 +9,7 @@ pub fn spawn(world: &mut World, pos: Vec2) {
                 width: 16.0,
                 height: 16.0,
             },
-            col_group::DAMAGABLE,
+            col_group::CHARACTERS,
             col_group::NONE,
         ),
     ));
