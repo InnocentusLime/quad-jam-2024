@@ -1,8 +1,10 @@
 use hashbrown::HashMap;
 use hecs::{CommandBuffer, Entity, World};
+use lib_col::Group;
 use log::warn;
+use macroquad::math::vec2;
 
-use crate::{AnimationEvent, AnimationPlay, Resources};
+use crate::{AnimationEvent, AnimationPlay, Resources, Team, Transform, col_query};
 
 pub const ANIMATION_TIME_UNIT: f32 = 1.0 / 1000.0;
 
@@ -82,6 +84,70 @@ pub(crate) fn delete_animation_events(
             });
         for entity in to_despawn {
             cmds.despawn(*entity);
+        }
+    }
+}
+
+pub(crate) fn update_attacks(
+    world: &mut World,
+    resources: &Resources,
+    cmds: &mut CommandBuffer,
+    active_events: &HashMap<AnimationEvent, Entity>,
+) {
+    for (entity, (parent_tf, play)) in &mut world.query::<(&Transform, &mut AnimationPlay)>() {
+        let Some(anim) = resources.animations.get(&play.animation) else {
+            warn!("No such anim: {:?}", play.animation);
+            continue;
+        };
+        let clips = anim
+            .clips
+            .iter()
+            .filter(|x| x.start <= play.cursor && play.cursor < x.start + x.len);
+        for clip in clips {
+            let lib_anim::ClipAction::AttackBox {
+                local_pos,
+                local_rotation,
+                team,
+                group,
+                shape,
+            } = clip.action
+            else {
+                continue;
+            };
+            let team = match team {
+                lib_anim::Team::Enemy => Team::Enemy,
+                lib_anim::Team::Player => Team::Player,
+            };
+            let event = AnimationEvent {
+                parent: entity,
+                animation: play.animation,
+                clip_id: clip.id,
+            };
+
+            match active_events.get(&event).copied() {
+                Some(ent) => {
+                    // TODO: will panic
+                    let mut query = world
+                        .query_one::<(&mut Transform, &mut col_query::Damage)>(ent)
+                        .unwrap();
+                    let (col_tf, col_q) = query.get().unwrap();
+                    *col_tf = Transform {
+                        pos: parent_tf.pos + vec2(local_pos.x, local_pos.y),
+                        angle: local_rotation,
+                    };
+                    col_q.collider = shape;
+                    col_q.group = group;
+                }
+                None => cmds.spawn((
+                    Transform {
+                        pos: parent_tf.pos + vec2(local_pos.x, local_pos.y),
+                        angle: local_rotation,
+                    },
+                    team,
+                    event,
+                    col_query::Damage::new_one(shape, group, Group::empty()),
+                )),
+            }
         }
     }
 }
