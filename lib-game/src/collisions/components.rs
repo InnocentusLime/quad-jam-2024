@@ -123,10 +123,8 @@ pub mod col_group {
 
     pub const NONE: Group = Group::empty();
     pub const LEVEL: Group = Group::from_id(0);
-    pub const PLAYER: Group = Group::from_id(1);
-    #[allow(dead_code)]
-    pub const ENEMY: Group = Group::from_id(2);
-    pub const DAMAGABLE: Group = Group::from_id(3);
+    pub const CHARACTERS: Group = Group::from_id(1);
+    pub const PLAYER: Group = Group::from_id(2);
 }
 
 pub mod col_query {

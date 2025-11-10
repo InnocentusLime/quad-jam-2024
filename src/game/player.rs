@@ -93,7 +93,7 @@ pub fn spawn(world: &mut World, pos: Vec2) {
         DamageCooldown::new(PLAYER_HIT_COOLDOWN),
         KinematicControl::new(col_group::LEVEL),
         BodyTag {
-            groups: col_group::PLAYER.union(col_group::DAMAGABLE),
+            groups: col_group::CHARACTERS.union(col_group::PLAYER),
             shape: Shape::Rect {
                 width: PLAYER_SIZE,
                 height: PLAYER_SIZE,
