@@ -24,7 +24,9 @@ use macroquad::prelude::*;
 
 use lib_dbg::*;
 
-use crate::animations::{collect_active_events, delete_animation_events, update_anims};
+use crate::animations::{
+    collect_active_events, delete_animation_events, update_anims, update_attacks,
+};
 
 #[cfg(not(target_family = "wasm"))]
 use dbg::AnimationEdit;
@@ -306,6 +308,12 @@ impl App {
 
         update_anims(GAME_TICKRATE, &mut self.world, &self.resources);
         collect_active_events(&mut self.world, &mut self.active_events);
+        update_attacks(
+            &mut self.world,
+            &self.resources,
+            &mut self.cmds,
+            &mut self.active_events,
+        );
 
         self.collisions.import_colliders(&mut self.world);
         self.collisions.export_kinematic_moves(&mut self.world);
