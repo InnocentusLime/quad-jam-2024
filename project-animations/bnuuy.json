@@ -236,12 +236,40 @@
             "sort_offset": 0.0
           }
         }
+      },
+      {
+        "id": 7,
+        "track_id": 1,
+        "start": 297,
+        "len": 106,
+        "action": {
+          "AttackBox": {
+            "local_pos": {
+              "x": 0.0,
+              "y": 17.0
+            },
+            "local_rotation": 0.0,
+            "team": "Player",
+            "group": 2,
+            "shape": {
+              "Rect": {
+                "width": 13.0,
+                "height": 41.0
+              }
+            },
+            "rotate_with_parent": true
+          }
+        }
       }
     ],
     "tracks": [
       {
         "name": "sprites",
         "id": 0
+      },
+      {
+        "name": "att",
+        "id": 1
       }
     ]
   },
