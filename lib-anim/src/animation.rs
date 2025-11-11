@@ -47,6 +47,7 @@ pub enum ClipAction {
         team: Team,
         group: lib_col::Group,
         shape: lib_col::Shape,
+        rotate_with_parent: bool,
     },
 }
 

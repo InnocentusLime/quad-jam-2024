@@ -182,6 +182,7 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
                     width: 0.0,
                     height: 0.0,
                 },
+                rotate_with_parent: false,
             },
         };
         *clip = new_clip;
@@ -243,6 +244,7 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
             local_rotation,
             team,
             group,
+            rotate_with_parent,
             shape,
         } => {
             ui.horizontal(|ui| {
@@ -262,6 +264,7 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
                 group_ui(ui, group);
                 ui.label("group");
             });
+            ui.checkbox(rotate_with_parent, "rotate with parent");
             shape_ui(ui, shape);
         }
     }

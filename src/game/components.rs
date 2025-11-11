@@ -47,7 +47,6 @@ impl DamageCooldown {
 
 #[derive(Debug, Clone, Copy)]
 pub struct PlayerData {
-    pub look_direction: Vec2,
     pub state: PlayerState,
 }
 

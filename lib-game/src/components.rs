@@ -51,3 +51,6 @@ pub enum Team {
     Player,
     Enemy,
 }
+
+#[derive(Debug, Clone, Copy)]
+pub struct CharacterLook(pub f32);

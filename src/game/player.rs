@@ -13,6 +13,7 @@ struct PlayerContext<'a> {
     play: &'a mut AnimationPlay,
     animation: &'a Animation,
     data: &'a mut PlayerData,
+    look: &'a mut CharacterLook,
 }
 
 impl<'a> PlayerContext<'a> {
@@ -23,7 +24,7 @@ impl<'a> PlayerContext<'a> {
     }
 
     fn set_look_direction(&mut self, dir: Vec2) {
-        self.data.look_direction = dir;
+        self.look.0 = std::f32::consts::PI - dir.angle_to(-Vec2::Y);
     }
 
     fn set_walk_step(&mut self, step: Vec2) {
@@ -49,12 +50,13 @@ impl<'a> PlayerContext<'a> {
 }
 
 pub fn draw_player_state(world: &World) {
-    for (_, (tf, kinematic, play, data)) in world
+    for (_, (tf, kinematic, play, data, look)) in world
         .query::<(
             &Transform,
             &mut KinematicControl,
             &mut AnimationPlay,
             &mut PlayerData,
+            &CharacterLook,
         )>()
         .iter()
     {
@@ -62,7 +64,7 @@ pub fn draw_player_state(world: &World) {
             format!("{:?}", data.state),
             format!("{:?}", play.animation),
             format!("cursor (ms): {}", play.cursor),
-            format!("look: {}", data.look_direction),
+            format!("look: {:.2}", look.0.to_degrees()),
             format!("dr: {}", kinematic.dr),
         ];
 
@@ -83,8 +85,8 @@ pub fn draw_player_state(world: &World) {
 pub fn spawn(world: &mut World, pos: Vec2) {
     world.spawn((
         Transform::from_pos(pos),
+        CharacterLook(0.0),
         PlayerData {
-            look_direction: Vec2::Y,
             state: PlayerState::Idle,
         },
         PlayerScore(0),
@@ -109,9 +111,12 @@ pub fn spawn(world: &mut World, pos: Vec2) {
 }
 
 pub fn auto_state_transition(world: &mut World, animations: &HashMap<AnimationId, Animation>) {
-    for (_, (data, play, kinematic)) in
-        world.query_mut::<(&mut PlayerData, &mut AnimationPlay, &mut KinematicControl)>()
-    {
+    for (_, (data, play, kinematic, look)) in world.query_mut::<(
+        &mut PlayerData,
+        &mut AnimationPlay,
+        &mut KinematicControl,
+        &mut CharacterLook,
+    )>() {
         let Some(animation) = animations.get(&play.animation) else {
             warn!("Animation {:?} is not loaded", play.animation);
             continue;
@@ -121,6 +126,7 @@ pub fn auto_state_transition(world: &mut World, animations: &HashMap<AnimationId
             play,
             kinematic,
             data,
+            look,
         };
         ctx.do_auto_state_transition();
     }
@@ -132,11 +138,12 @@ pub fn controls(
     world: &mut World,
     animations: &HashMap<AnimationId, Animation>,
 ) {
-    for (_, (tf, data, play, kinematic)) in world.query_mut::<(
+    for (_, (tf, data, play, kinematic, look)) in world.query_mut::<(
         &Transform,
         &mut PlayerData,
         &mut AnimationPlay,
         &mut KinematicControl,
+        &mut CharacterLook,
     )>() {
         let look_dir = (input.aim - tf.pos).normalize_or(vec2(0.0, 1.0));
         let mut walk_dir = Vec2::ZERO;
@@ -168,6 +175,7 @@ pub fn controls(
             play,
             kinematic,
             data,
+            look,
         };
         let new_state = match ctx.current_state() {
             PlayerState::Idle if input.attack_down => Some(PlayerState::Attacking),

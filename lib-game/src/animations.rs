@@ -2,9 +2,9 @@ use hashbrown::HashMap;
 use hecs::{CommandBuffer, Entity, World};
 use lib_col::Group;
 use log::warn;
-use macroquad::math::vec2;
+use macroquad::math::{Vec2, vec2};
 
-use crate::{AnimationEvent, AnimationPlay, Resources, Team, Transform, col_query};
+use crate::{AnimationEvent, AnimationPlay, CharacterLook, Resources, Team, Transform, col_query};
 
 pub const ANIMATION_TIME_UNIT: f32 = 1.0 / 1000.0;
 
@@ -94,7 +94,9 @@ pub(crate) fn update_attacks(
     cmds: &mut CommandBuffer,
     active_events: &HashMap<AnimationEvent, Entity>,
 ) {
-    for (entity, (parent_tf, play)) in &mut world.query::<(&Transform, &mut AnimationPlay)>() {
+    for (entity, (parent_tf, look, play)) in
+        &mut world.query::<(&Transform, &CharacterLook, &mut AnimationPlay)>()
+    {
         let Some(anim) = resources.animations.get(&play.animation) else {
             warn!("No such anim: {:?}", play.animation);
             continue;
@@ -110,6 +112,7 @@ pub(crate) fn update_attacks(
                 team,
                 group,
                 shape,
+                rotate_with_parent,
             } = clip.action
             else {
                 continue;
@@ -123,6 +126,18 @@ pub(crate) fn update_attacks(
                 animation: play.animation,
                 clip_id: clip.id,
             };
+            let local_pos = vec2(local_pos.x, local_pos.y);
+            let new_col_tf = if rotate_with_parent {
+                Transform {
+                    pos: parent_tf.pos + Vec2::from_angle(look.0).rotate(local_pos),
+                    angle: local_rotation + look.0,
+                }
+            } else {
+                Transform {
+                    pos: parent_tf.pos + local_pos,
+                    angle: local_rotation,
+                }
+            };
 
             match active_events.get(&event).copied() {
                 Some(ent) => {
@@ -131,18 +146,12 @@ pub(crate) fn update_attacks(
                         .query_one::<(&mut Transform, &mut col_query::Damage)>(ent)
                         .unwrap();
                     let (col_tf, col_q) = query.get().unwrap();
-                    *col_tf = Transform {
-                        pos: parent_tf.pos + vec2(local_pos.x, local_pos.y),
-                        angle: local_rotation,
-                    };
+                    *col_tf = new_col_tf;
                     col_q.collider = shape;
                     col_q.group = group;
                 }
                 None => cmds.spawn((
-                    Transform {
-                        pos: parent_tf.pos + vec2(local_pos.x, local_pos.y),
-                        angle: local_rotation,
-                    },
+                    new_col_tf,
                     team,
                     event,
                     col_query::Damage::new_one(shape, group, Group::empty()),
