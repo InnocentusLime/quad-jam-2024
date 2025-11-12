@@ -10,7 +10,7 @@ use macroquad::prelude::*;
 pub struct Health {
     pub value: i32,
     pub damage: i32,
-    pub block_damage: bool,
+    pub is_invulnerable: bool,
 }
 
 impl Health {
@@ -18,7 +18,7 @@ impl Health {
         Self {
             value,
             damage: 0,
-            block_damage: false,
+            is_invulnerable: false,
         }
     }
 }
