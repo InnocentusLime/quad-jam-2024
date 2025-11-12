@@ -81,7 +81,7 @@ impl AnimationPlay {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct AnimationEvent {
+pub struct ClipActionObject {
     pub parent: Entity,
     pub animation: AnimationId,
     pub clip_id: u32,

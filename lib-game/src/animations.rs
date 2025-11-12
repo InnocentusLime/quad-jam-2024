@@ -6,12 +6,12 @@ use log::warn;
 use macroquad::math::{Vec2, vec2};
 
 use crate::{
-    AnimationEvent, AnimationPlay, CharacterLook, Health, Resources, Team, Transform, col_query,
+    AnimationPlay, CharacterLook, ClipActionObject, Health, Resources, Team, Transform, col_query,
 };
 
 pub const ANIMATION_TIME_UNIT: f32 = 1.0 / 1000.0;
 
-pub(crate) fn update_anims(dt: f32, world: &mut World, resources: &Resources) {
+pub(crate) fn update(dt: f32, world: &mut World, resources: &Resources) {
     for (_, play) in world.query::<&mut AnimationPlay>().iter() {
         let Some(anim) = resources.animations.get(&play.animation) else {
             warn!("No such anim: {:?}", play.animation);
@@ -42,24 +42,24 @@ pub(crate) fn update_anims(dt: f32, world: &mut World, resources: &Resources) {
     }
 }
 
-pub(crate) fn collect_active_events(
+pub(crate) fn collect_clip_action_objects(
     world: &mut World,
-    active_events: &mut HashMap<AnimationEvent, Entity>,
+    clip_action_objects: &mut HashMap<ClipActionObject, Entity>,
 ) {
-    active_events.clear();
-    for (ent, event) in world.query_mut::<&AnimationEvent>() {
-        active_events.insert(*event, ent);
+    clip_action_objects.clear();
+    for (ent, event) in world.query_mut::<&ClipActionObject>() {
+        clip_action_objects.insert(*event, ent);
     }
 }
 
 // Assumption: active_events contains alive entities
-pub(crate) fn delete_animation_events(
+pub(crate) fn delete_clip_action_objects(
     world: &mut World,
     resources: &Resources,
     cmds: &mut CommandBuffer,
-    active_events: &mut HashMap<AnimationEvent, Entity>,
+    clip_action_objects: &mut HashMap<ClipActionObject, Entity>,
 ) {
-    for (event, entity) in active_events.iter() {
+    for (event, entity) in clip_action_objects.iter() {
         let Ok(play) = world.get::<&AnimationPlay>(event.parent) else {
             cmds.despawn(*entity);
             continue;
@@ -79,7 +79,7 @@ pub(crate) fn delete_animation_events(
             .iter()
             .filter(|x| !(x.start <= play.cursor && play.cursor < x.start + x.len))
             .filter_map(|clip| {
-                active_events.get(&AnimationEvent {
+                clip_action_objects.get(&ClipActionObject {
                     parent: entity,
                     animation: play.animation,
                     clip_id: clip.id,
@@ -91,11 +91,11 @@ pub(crate) fn delete_animation_events(
     }
 }
 
-pub(crate) fn update_attacks(
+pub(crate) fn update_attack_boxes(
     world: &mut World,
     resources: &Resources,
     cmds: &mut CommandBuffer,
-    active_events: &HashMap<AnimationEvent, Entity>,
+    active_events: &HashMap<ClipActionObject, Entity>,
 ) {
     for (entity, (parent_tf, look, play)) in
         &mut world.query::<(&Transform, &CharacterLook, &mut AnimationPlay)>()
@@ -124,7 +124,7 @@ pub(crate) fn update_attacks(
                 lib_anim::Team::Enemy => Team::Enemy,
                 lib_anim::Team::Player => Team::Player,
             };
-            let event = AnimationEvent {
+            let event = ClipActionObject {
                 parent: entity,
                 animation: play.animation,
                 clip_id: clip.id,
