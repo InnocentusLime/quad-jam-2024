@@ -316,7 +316,9 @@ impl App {
             &mut self.cmds,
             &mut self.active_events,
         );
+        health::reset_block_damage(&mut self.world);
         update_invulnerability(&mut self.world, &self.resources);
+        health::update_cooldown(GAME_TICKRATE, &mut self.world);
 
         self.collisions.import_colliders(&mut self.world);
         self.collisions.export_kinematic_moves(&mut self.world);
@@ -332,7 +334,6 @@ impl App {
         self.collisions.export_queries(&mut self.world);
 
         health::collect_damage(&mut self.world);
-        health::update_cooldown(GAME_TICKRATE, &mut self.world);
         health::apply_damage(&mut self.world);
 
         let new_state = game.update(

@@ -2,13 +2,15 @@ use crate::{col_query, components::*};
 
 use hecs::World;
 
+pub fn reset_block_damage(world: &mut World) {
+    for (_, hp) in world.query_mut::<&mut Health>() {
+        hp.block_damage = false;
+    }
+}
+
 pub fn update_cooldown(dt: f32, world: &mut World) {
     for (_, (cooldown, hp)) in world.query_mut::<(&mut DamageCooldown, &mut Health)>() {
-        if hp.value <= 0 {
-            continue;
-        }
-
-        hp.block_damage = cooldown.remaining > 0.0;
+        hp.block_damage = hp.block_damage || cooldown.remaining > 0.0;
         if cooldown.remaining > 0.0 {
             cooldown.remaining -= dt;
             continue;
