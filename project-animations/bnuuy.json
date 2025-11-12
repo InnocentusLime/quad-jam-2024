@@ -273,6 +273,56 @@
       }
     ]
   },
+  "BunnyDash": {
+    "is_looping": false,
+    "clips": [
+      {
+        "id": 0,
+        "track_id": 0,
+        "start": 0,
+        "len": 150,
+        "action": {
+          "DrawSprite": {
+            "layer": 1,
+            "texture_id": "BunnyAtlas",
+            "local_pos": {
+              "x": -8.0,
+              "y": -8.0
+            },
+            "local_rotation": 0.0,
+            "rect": {
+              "x": 1,
+              "y": 1,
+              "w": 16,
+              "h": 17
+            },
+            "origin": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "sort_offset": 0.0
+          }
+        }
+      },
+      {
+        "id": 1,
+        "track_id": 1,
+        "start": 0,
+        "len": 150,
+        "action": "Invulnerability"
+      }
+    ],
+    "tracks": [
+      {
+        "name": "sprites",
+        "id": 0
+      },
+      {
+        "name": "invuln",
+        "id": 1
+      }
+    ]
+  },
   "BunnyWalkD": {
     "is_looping": true,
     "clips": [
