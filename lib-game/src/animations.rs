@@ -74,17 +74,13 @@ pub(crate) fn delete_clip_action_objects(
             warn!("No such anim: {:?}", play.animation);
             continue;
         };
-        let to_despawn = anim
-            .clips
-            .iter()
-            .filter(|x| !(x.start <= play.cursor && play.cursor < x.start + x.len))
-            .filter_map(|clip| {
-                clip_action_objects.get(&ClipActionObject {
-                    parent: entity,
-                    animation: play.animation,
-                    clip_id: clip.id,
-                })
-            });
+        let to_despawn = anim.inactive_clips(play.cursor).filter_map(|clip| {
+            clip_action_objects.get(&ClipActionObject {
+                parent: entity,
+                animation: play.animation,
+                clip_id: clip.id,
+            })
+        });
         for entity in to_despawn {
             cmds.despawn(*entity);
         }
@@ -104,11 +100,7 @@ pub(crate) fn update_attack_boxes(
             warn!("No such anim: {:?}", play.animation);
             continue;
         };
-        let clips = anim
-            .clips
-            .iter()
-            .filter(|x| x.start <= play.cursor && play.cursor < x.start + x.len);
-        for clip in clips {
+        for clip in anim.active_clips(play.cursor) {
             let lib_anim::ClipAction::AttackBox {
                 local_pos,
                 local_rotation,
@@ -170,11 +162,7 @@ pub(crate) fn update_invulnerability(world: &mut World, resources: &Resources) {
             warn!("No such anim: {:?}", play.animation);
             continue;
         };
-        let clips = anim
-            .clips
-            .iter()
-            .filter(|x| x.start <= play.cursor && play.cursor < x.start + x.len);
-        for clip in clips {
+        for clip in anim.active_clips(play.cursor) {
             if !matches!(clip.action, ClipAction::Invulnerability) {
                 continue;
             }

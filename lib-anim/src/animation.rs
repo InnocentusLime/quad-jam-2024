@@ -16,6 +16,18 @@ impl Animation {
             .max()
             .unwrap_or_default()
     }
+
+    pub fn active_clips(&self, pos: u32) -> impl Iterator<Item = &Clip> {
+        self.clips
+            .iter()
+            .filter(move |x| x.start <= pos && pos < x.start + x.len)
+    }
+
+    pub fn inactive_clips(&self, pos: u32) -> impl Iterator<Item = &Clip> {
+        self.clips
+            .iter()
+            .filter(move |x| !(x.start <= pos && pos < x.start + x.len))
+    }
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
