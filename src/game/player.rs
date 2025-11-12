@@ -4,6 +4,7 @@ use lib_anim::{Animation, AnimationId};
 use super::prelude::*;
 
 pub const PLAYER_SPEED: f32 = 48.0;
+pub const PLAYER_DASH_SPEED: f32 = 432.0;
 pub const PLAYER_SPAWN_HEALTH: i32 = 3;
 pub const PLAYER_HIT_COOLDOWN: f32 = 1.0;
 pub const PLAYER_SIZE: f32 = 16.0;
@@ -27,6 +28,10 @@ impl<'a> PlayerContext<'a> {
         self.look.0 = std::f32::consts::PI - dir.angle_to(-Vec2::Y);
     }
 
+    fn look_direction(&self) -> Vec2 {
+        -Vec2::from_angle(self.look.0).rotate(-Vec2::Y)
+    }
+
     fn set_walk_step(&mut self, step: Vec2) {
         self.kinematic.dr = step;
     }
@@ -34,6 +39,9 @@ impl<'a> PlayerContext<'a> {
     fn do_auto_state_transition(&mut self) {
         match self.data.state {
             PlayerState::Attacking if self.is_anim_done() => {
+                self.set_state(PlayerState::Idle);
+            }
+            PlayerState::Dashing if self.is_anim_done() => {
                 self.set_state(PlayerState::Idle);
             }
             _ => (),
@@ -179,17 +187,18 @@ pub fn controls(
         };
         let new_state = match ctx.current_state() {
             PlayerState::Idle if input.attack_down => Some(PlayerState::Attacking),
+            PlayerState::Idle if input.dash_pressed => Some(PlayerState::Dashing),
             PlayerState::Idle if do_walk => Some(PlayerState::Walking),
             PlayerState::Walking if input.attack_down => Some(PlayerState::Attacking),
+            PlayerState::Walking if input.dash_pressed => Some(PlayerState::Dashing),
             PlayerState::Walking if !do_walk => Some(PlayerState::Idle),
             _ => None,
         };
-        if let Some(new_state) = new_state {
-            ctx.set_state(new_state);
-        }
 
         if matches!(ctx.current_state(), PlayerState::Walking) {
             ctx.set_walk_step(walk_dir * PLAYER_SPEED * dt);
+        } else if matches!(ctx.current_state(), PlayerState::Dashing) {
+            ctx.set_walk_step(ctx.look_direction() * PLAYER_DASH_SPEED * dt);
         } else {
             ctx.set_walk_step(Vec2::ZERO);
         }
@@ -198,6 +207,10 @@ pub fn controls(
             PlayerState::Walking | PlayerState::Idle
         ) {
             ctx.set_look_direction(look_dir);
+        }
+
+        if let Some(new_state) = new_state {
+            ctx.set_state(new_state);
         }
     }
 }
@@ -208,6 +221,7 @@ pub fn state_to_anim(world: &mut World) {
             PlayerState::Idle => AnimationId::BunnyIdleD,
             PlayerState::Walking => AnimationId::BunnyWalkD,
             PlayerState::Attacking => AnimationId::BunnyAttackD,
+            PlayerState::Dashing => AnimationId::BunnyDash,
         };
         play.animation = animation;
     }
