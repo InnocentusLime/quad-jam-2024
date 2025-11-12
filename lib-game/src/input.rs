@@ -11,6 +11,7 @@ pub struct InputModel {
     pub pause_requested: bool,
     pub fullscreen_toggle_requested: bool,
     pub attack_down: bool,
+    pub dash_pressed: bool,
     pub scroll_up: bool,
     pub scroll_down: bool,
     pub aim: Vec2,
@@ -35,10 +36,12 @@ impl InputModel {
             is_key_pressed(KeyCode::GraveAccent) || is_key_pressed(KeyCode::Apostrophe);
         let scroll_up = is_key_down(KeyCode::PageUp);
         let scroll_down = is_key_down(KeyCode::PageDown);
+        let dash_pressed = is_mouse_button_pressed(MouseButton::Right);
 
         Self {
             console_toggle_requested,
             attack_down,
+            dash_pressed,
             left_movement_down,
             right_movement_down,
             confirmation_detected,

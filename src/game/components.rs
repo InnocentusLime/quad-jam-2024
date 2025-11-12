@@ -14,6 +14,7 @@ pub enum PlayerState {
     Idle = 0,
     Walking = 1,
     Attacking = 2,
+    Dashing = 3,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
