@@ -14,7 +14,7 @@ impl Animation {
             .iter()
             .map(|x| x.start + x.len - 1)
             .max()
-            .unwrap()
+            .unwrap_or_default()
     }
 }
 
@@ -108,4 +108,5 @@ pub enum AnimationId {
     BunnyIdleD,
     BunnyWalkD,
     BunnyAttackD,
+    BunnyDash,
 }
