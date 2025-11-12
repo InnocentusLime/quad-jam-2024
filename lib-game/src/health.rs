@@ -4,14 +4,14 @@ use hecs::World;
 
 pub fn reset(world: &mut World) {
     for (_, hp) in world.query_mut::<&mut Health>() {
-        hp.block_damage = false;
+        hp.is_invulnerable = false;
         hp.damage = 0;
     }
 }
 
 pub fn update_cooldown(dt: f32, world: &mut World) {
     for (_, (cooldown, hp)) in world.query_mut::<(&mut DamageCooldown, &mut Health)>() {
-        hp.block_damage = hp.block_damage || cooldown.remaining > 0.0;
+        hp.is_invulnerable = hp.is_invulnerable || cooldown.remaining > 0.0;
         if cooldown.remaining > 0.0 {
             cooldown.remaining -= dt;
         }
@@ -20,7 +20,7 @@ pub fn update_cooldown(dt: f32, world: &mut World) {
 
 pub fn apply_cooldown(world: &mut World) {
     for (_, (cooldown, hp)) in world.query_mut::<(&mut DamageCooldown, &mut Health)>() {
-        if hp.damage > 0 && !hp.block_damage {
+        if hp.damage > 0 && !hp.is_invulnerable {
             cooldown.remaining = cooldown.max_value;
         }
     }
@@ -28,7 +28,7 @@ pub fn apply_cooldown(world: &mut World) {
 
 pub fn apply_damage(world: &mut World) {
     for (_, hp) in world.query_mut::<&mut Health>() {
-        if hp.block_damage {
+        if hp.is_invulnerable {
             continue;
         }
 

@@ -178,7 +178,7 @@ pub(crate) fn update_invulnerability(world: &mut World, resources: &Resources) {
             if !matches!(clip.action, ClipAction::Invulnerability) {
                 continue;
             }
-            health.block_damage = true;
+            health.is_invulnerable = true;
         }
     }
 }
