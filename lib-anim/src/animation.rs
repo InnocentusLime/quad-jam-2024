@@ -49,6 +49,7 @@ pub enum ClipAction {
         shape: lib_col::Shape,
         rotate_with_parent: bool,
     },
+    Invulnerability,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]

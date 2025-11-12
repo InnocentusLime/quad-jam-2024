@@ -27,6 +27,7 @@ use lib_dbg::*;
 
 use crate::animations::{
     collect_active_events, delete_animation_events, update_anims, update_attacks,
+    update_invulnerability,
 };
 
 #[cfg(not(target_family = "wasm"))]
@@ -315,6 +316,7 @@ impl App {
             &mut self.cmds,
             &mut self.active_events,
         );
+        update_invulnerability(&mut self.world, &self.resources);
 
         self.collisions.import_colliders(&mut self.world);
         self.collisions.export_kinematic_moves(&mut self.world);
