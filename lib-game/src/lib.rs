@@ -311,7 +311,7 @@ impl App {
             &mut self.cmds,
             &mut self.clip_action_objects,
         );
-        health::reset_block_damage(&mut self.world);
+        health::reset(&mut self.world);
         animations::update_invulnerability(&mut self.world, &self.resources);
         health::update_cooldown(GAME_TICKRATE, &mut self.world);
 
@@ -330,6 +330,7 @@ impl App {
 
         health::collect_damage(&mut self.world);
         health::apply_damage(&mut self.world);
+        health::apply_cooldown(&mut self.world);
 
         let new_state = game.update(
             GAME_TICKRATE,
