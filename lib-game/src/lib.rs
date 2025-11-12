@@ -25,11 +25,6 @@ use macroquad::prelude::*;
 
 use lib_dbg::*;
 
-use crate::animations::{
-    collect_active_events, delete_animation_events, update_anims, update_attacks,
-    update_invulnerability,
-};
-
 #[cfg(not(target_family = "wasm"))]
 use dbg::AnimationEdit;
 
@@ -171,7 +166,7 @@ pub struct App {
     pub render: Render,
     sound: SoundDirector,
     collisions: CollisionSolver,
-    active_events: HashMap<AnimationEvent, Entity>,
+    clip_action_objects: HashMap<ClipActionObject, Entity>,
     world: World,
     cmds: CommandBuffer,
 
@@ -193,7 +188,7 @@ impl App {
             render: Render::new(),
             sound: SoundDirector::new().await?,
             collisions: CollisionSolver::new(),
-            active_events: HashMap::new(),
+            clip_action_objects: HashMap::new(),
             world: World::new(),
             cmds: CommandBuffer::new(),
 
@@ -308,16 +303,16 @@ impl App {
     fn game_update<G: Game>(&mut self, input: &InputModel, game: &mut G) -> Option<AppState> {
         game.input_phase(&input, GAME_TICKRATE, &self.resources, &mut self.world);
 
-        update_anims(GAME_TICKRATE, &mut self.world, &self.resources);
-        collect_active_events(&mut self.world, &mut self.active_events);
-        update_attacks(
+        animations::update(GAME_TICKRATE, &mut self.world, &self.resources);
+        animations::collect_clip_action_objects(&mut self.world, &mut self.clip_action_objects);
+        animations::update_attack_boxes(
             &mut self.world,
             &self.resources,
             &mut self.cmds,
-            &mut self.active_events,
+            &mut self.clip_action_objects,
         );
         health::reset_block_damage(&mut self.world);
-        update_invulnerability(&mut self.world, &self.resources);
+        animations::update_invulnerability(&mut self.world, &self.resources);
         health::update_cooldown(GAME_TICKRATE, &mut self.world);
 
         self.collisions.import_colliders(&mut self.world);
@@ -344,11 +339,11 @@ impl App {
         );
         self.cmds.run_on(&mut self.world);
 
-        delete_animation_events(
+        animations::delete_clip_action_objects(
             &mut self.world,
             &self.resources,
             &mut self.cmds,
-            &mut self.active_events,
+            &mut self.clip_action_objects,
         );
         self.world.flush();
 
