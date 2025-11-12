@@ -184,6 +184,9 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
                 },
                 rotate_with_parent: false,
             },
+            lib_anim::ClipActionDiscriminants::Invulnerability => {
+                lib_anim::ClipAction::Invulnerability
+            }
         };
         *clip = new_clip;
     }
@@ -266,6 +269,9 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
             });
             ui.checkbox(rotate_with_parent, "rotate with parent");
             shape_ui(ui, shape);
+        }
+        lib_anim::ClipAction::Invulnerability => {
+            ui.label("No data");
         }
     }
 }

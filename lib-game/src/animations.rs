@@ -1,10 +1,13 @@
 use hashbrown::HashMap;
 use hecs::{CommandBuffer, Entity, World};
+use lib_anim::ClipAction;
 use lib_col::Group;
 use log::warn;
 use macroquad::math::{Vec2, vec2};
 
-use crate::{AnimationEvent, AnimationPlay, CharacterLook, Resources, Team, Transform, col_query};
+use crate::{
+    AnimationEvent, AnimationPlay, CharacterLook, Health, Resources, Team, Transform, col_query,
+};
 
 pub const ANIMATION_TIME_UNIT: f32 = 1.0 / 1000.0;
 
@@ -157,6 +160,25 @@ pub(crate) fn update_attacks(
                     col_query::Damage::new_one(shape, group, Group::empty()),
                 )),
             }
+        }
+    }
+}
+
+pub(crate) fn update_invulnerability(world: &mut World, resources: &Resources) {
+    for (_, (health, play)) in &mut world.query::<(&mut Health, &mut AnimationPlay)>() {
+        let Some(anim) = resources.animations.get(&play.animation) else {
+            warn!("No such anim: {:?}", play.animation);
+            continue;
+        };
+        let clips = anim
+            .clips
+            .iter()
+            .filter(|x| x.start <= play.cursor && play.cursor < x.start + x.len);
+        for clip in clips {
+            if !matches!(clip.action, ClipAction::Invulnerability) {
+                continue;
+            }
+            health.block_damage = true;
         }
     }
 }
