@@ -1,4 +1,6 @@
-use super::prelude::*;
+use crate::{col_query, components::*};
+
+use hecs::World;
 
 pub fn update_cooldown(dt: f32, world: &mut World) {
     for (_, (cooldown, hp)) in world.query_mut::<(&mut DamageCooldown, &mut Health)>() {
