@@ -1,7 +1,6 @@
 mod components;
 mod damager;
 mod goal;
-mod health;
 mod player;
 mod prelude;
 mod render;
@@ -218,15 +217,12 @@ impl Game for Project {
 
     fn update(
         &mut self,
-        dt: f32,
+        _dt: f32,
         _resources: &lib_game::Resources,
         world: &mut World,
         _cmds: &mut CommandBuffer,
     ) -> Option<lib_game::AppState> {
         goal::check(world);
-        health::collect_damage(world);
-        health::update_cooldown(dt, world);
-        health::apply_damage(world);
 
         decide_next_state(world)
     }

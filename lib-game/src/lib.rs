@@ -2,6 +2,7 @@ mod animations;
 mod collisions;
 mod components;
 mod dbg;
+mod health;
 mod input;
 mod render;
 mod sound_director;
@@ -327,6 +328,10 @@ impl App {
         self.cmds.run_on(&mut self.world);
 
         self.collisions.export_queries(&mut self.world);
+
+        health::collect_damage(&mut self.world);
+        health::update_cooldown(GAME_TICKRATE, &mut self.world);
+        health::apply_damage(&mut self.world);
 
         let new_state = game.update(
             GAME_TICKRATE,
