@@ -1,5 +1,6 @@
 use hashbrown::HashMap;
-use lib_anim::{Animation, AnimationId};
+use lib_anim::{Animation, AnimationId, ClipAction};
+use lib_dbg::dump;
 
 use super::prelude::*;
 
@@ -19,6 +20,7 @@ struct PlayerContext<'a> {
 
 impl<'a> PlayerContext<'a> {
     fn set_state(&mut self, new_state: PlayerState) {
+        dump!("New state: {new_state:?}");
         self.data.state = new_state;
         self.play.cursor = 0;
         self.play.total_dt = 0.0f32;
@@ -33,7 +35,11 @@ impl<'a> PlayerContext<'a> {
     }
 
     fn set_walk_step(&mut self, step: Vec2) {
-        self.kinematic.dr = step;
+        if self.can_move() {
+            self.kinematic.dr = step;
+        } else {
+            self.kinematic.dr = Vec2::ZERO;
+        }
     }
 
     fn do_auto_state_transition(&mut self) {
@@ -54,6 +60,30 @@ impl<'a> PlayerContext<'a> {
 
     fn is_anim_done(&self) -> bool {
         self.play.is_done(self.animation)
+    }
+
+    fn get_input_flags(&self) -> (bool, bool) {
+        for clip in self.animation.active_clips(self.play.cursor) {
+            let ClipAction::LockInput {
+                allow_walk_input,
+                allow_look_input,
+            } = clip.action
+            else {
+                continue;
+            };
+            return (allow_walk_input, allow_look_input);
+        }
+        (true, true)
+    }
+
+    fn can_move(&self) -> bool {
+        for clip in self.animation.active_clips(self.play.cursor) {
+            let ClipAction::Move = clip.action else {
+                continue;
+            };
+            return true;
+        }
+        false
     }
 }
 
@@ -185,32 +215,37 @@ pub fn controls(
             data,
             look,
         };
-        let new_state = match ctx.current_state() {
-            PlayerState::Idle if input.attack_down => Some(PlayerState::Attacking),
-            PlayerState::Idle if input.dash_pressed => Some(PlayerState::Dashing),
-            PlayerState::Idle if do_walk => Some(PlayerState::Walking),
-            PlayerState::Walking if input.attack_down => Some(PlayerState::Attacking),
-            PlayerState::Walking if input.dash_pressed => Some(PlayerState::Dashing),
-            PlayerState::Walking if !do_walk => Some(PlayerState::Idle),
-            _ => None,
-        };
+        ctx.set_walk_step(Vec2::ZERO);
+        let (allow_walk_input, allow_look_input) = ctx.get_input_flags();
+
+        if matches!(
+            ctx.current_state(),
+            PlayerState::Idle | PlayerState::Walking
+        ) && input.attack_down
+        {
+            ctx.set_state(PlayerState::Attacking);
+        } else if matches!(
+            ctx.current_state(),
+            PlayerState::Idle | PlayerState::Walking
+        ) && input.dash_pressed
+        {
+            ctx.set_state(PlayerState::Dashing);
+        } else if !matches!(ctx.current_state(), PlayerState::Walking)
+            && allow_walk_input
+            && do_walk
+        {
+            ctx.set_state(PlayerState::Walking);
+        } else if matches!(ctx.current_state(), PlayerState::Walking) && !do_walk {
+            ctx.set_state(PlayerState::Idle);
+        }
 
         if matches!(ctx.current_state(), PlayerState::Walking) {
             ctx.set_walk_step(walk_dir * PLAYER_SPEED * dt);
         } else if matches!(ctx.current_state(), PlayerState::Dashing) {
             ctx.set_walk_step(ctx.look_direction() * PLAYER_DASH_SPEED * dt);
-        } else {
-            ctx.set_walk_step(Vec2::ZERO);
         }
-        if matches!(
-            ctx.current_state(),
-            PlayerState::Walking | PlayerState::Idle
-        ) {
+        if allow_look_input {
             ctx.set_look_direction(look_dir);
-        }
-
-        if let Some(new_state) = new_state {
-            ctx.set_state(new_state);
         }
     }
 }

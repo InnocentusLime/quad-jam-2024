@@ -187,6 +187,11 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
             lib_anim::ClipActionDiscriminants::Invulnerability => {
                 lib_anim::ClipAction::Invulnerability
             }
+            lib_anim::ClipActionDiscriminants::LockInput => lib_anim::ClipAction::LockInput {
+                allow_walk_input: false,
+                allow_look_input: false,
+            },
+            lib_anim::ClipActionDiscriminants::Move => lib_anim::ClipAction::Move,
         };
         *clip = new_clip;
     }
@@ -271,6 +276,16 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
             shape_ui(ui, shape);
         }
         lib_anim::ClipAction::Invulnerability => {
+            ui.label("No data");
+        }
+        lib_anim::ClipAction::LockInput {
+            allow_walk_input,
+            allow_look_input,
+        } => {
+            ui.checkbox(allow_walk_input, "allow walk input");
+            ui.checkbox(allow_look_input, "allow look input");
+        }
+        lib_anim::ClipAction::Move => {
             ui.label("No data");
         }
     }
