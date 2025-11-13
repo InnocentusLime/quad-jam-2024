@@ -62,6 +62,11 @@ pub enum ClipAction {
         rotate_with_parent: bool,
     },
     Invulnerability,
+    LockInput {
+        allow_walk_input: bool,
+        allow_look_input: bool,
+    },
+    Move,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
