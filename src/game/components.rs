@@ -6,6 +6,8 @@ pub struct PlayerScore(pub u32);
 
 #[derive(Debug, Clone, Copy)]
 pub struct PlayerData {
+    pub stamina: f32,
+    pub stamina_cooldown: f32,
     pub state: PlayerState,
 }
 
