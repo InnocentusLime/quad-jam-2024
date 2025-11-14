@@ -26,8 +26,8 @@ pub fn game_ui(render: &mut Render, world: &World) {
     let (font_size, font_scale, font_scale_aspect) = camera_font_scale(world_font_size);
     let font = FontId::Quaver;
 
-    let mut player_q = world.query::<(&PlayerScore, &Health)>();
-    let (_, (score, player_health)) = player_q.into_iter().next().unwrap();
+    let mut player_q = world.query::<(&PlayerScore, &Health, &PlayerData)>();
+    let (_, (score, player_health, player_data)) = player_q.into_iter().next().unwrap();
     let (game_state, game_state_color) = if player_health.value <= 0 {
         ("You are dead", RED)
     } else {
@@ -59,13 +59,24 @@ pub fn game_ui(render: &mut Render, world: &World) {
     render.world.spawn((
         GlyphText {
             font,
+            string: Cow::Owned(format!("Stamina:{:3.2}", player_data.stamina)),
+            font_size,
+            font_scale,
+            font_scale_aspect,
+        },
+        Tint(YELLOW),
+        Transform::from_xy(ui_x, off_y * 3.0),
+    ));
+    render.world.spawn((
+        GlyphText {
+            font,
             string: Cow::Borrowed(game_state),
             font_size,
             font_scale,
             font_scale_aspect,
         },
         Tint(game_state_color),
-        Transform::from_xy(ui_x, off_y * 5.0),
+        Transform::from_xy(ui_x, off_y * 6.0),
     ));
 }
 

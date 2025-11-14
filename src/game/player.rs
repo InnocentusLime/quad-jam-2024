@@ -10,6 +10,12 @@ pub const PLAYER_SPAWN_HEALTH: i32 = 3;
 pub const PLAYER_HIT_COOLDOWN: f32 = 1.0;
 pub const PLAYER_SIZE: f32 = 16.0;
 
+pub const PLAYER_MAX_STAMINA: f32 = 100.0;
+pub const PLAYER_STAMINA_REGEN_RATE: f32 = 20.0;
+pub const PLAYER_STAMINA_REGEN_COOLDOWN: f32 = 0.8;
+pub const PLAYER_ATTACK_COST: f32 = 10.0;
+pub const PLAYER_DASH_COST: f32 = 25.0;
+
 struct PlayerContext<'a> {
     kinematic: &'a mut KinematicControl,
     play: &'a mut AnimationPlay,
@@ -85,6 +91,15 @@ impl<'a> PlayerContext<'a> {
         }
         false
     }
+
+    fn can_do_action(&self, cost: f32) -> bool {
+        self.data.stamina >= cost
+    }
+
+    fn do_action(&mut self, cost: f32) {
+        self.data.stamina -= cost;
+        self.data.stamina_cooldown = PLAYER_STAMINA_REGEN_COOLDOWN;
+    }
 }
 
 pub fn draw_player_state(world: &World) {
@@ -126,6 +141,8 @@ pub fn spawn(world: &mut World, pos: Vec2) {
         CharacterLook(0.0),
         PlayerData {
             state: PlayerState::Idle,
+            stamina: PLAYER_MAX_STAMINA,
+            stamina_cooldown: 0.0,
         },
         PlayerScore(0),
         Team::Player,
@@ -222,14 +239,18 @@ pub fn controls(
             ctx.current_state(),
             PlayerState::Idle | PlayerState::Walking
         ) && input.attack_down
+            && ctx.can_do_action(PLAYER_ATTACK_COST)
         {
             ctx.set_state(PlayerState::Attacking);
+            ctx.do_action(PLAYER_ATTACK_COST);
         } else if matches!(
             ctx.current_state(),
             PlayerState::Idle | PlayerState::Walking
         ) && input.dash_pressed
+            && ctx.can_do_action(PLAYER_DASH_COST)
         {
             ctx.set_state(PlayerState::Dashing);
+            ctx.do_action(PLAYER_DASH_COST);
         } else if !matches!(ctx.current_state(), PlayerState::Walking)
             && allow_walk_input
             && do_walk
@@ -247,6 +268,17 @@ pub fn controls(
         if allow_look_input {
             ctx.set_look_direction(look_dir);
         }
+    }
+}
+
+pub fn update_stamina(dt: f32, world: &mut World) {
+    for (_, data) in world.query_mut::<&mut PlayerData>() {
+        if data.stamina_cooldown >= 0.0 {
+            data.stamina_cooldown -= dt;
+            continue;
+        }
+        data.stamina += dt * PLAYER_STAMINA_REGEN_RATE;
+        data.stamina = data.stamina.min(PLAYER_MAX_STAMINA);
     }
 }
 
