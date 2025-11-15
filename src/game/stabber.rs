@@ -1,5 +1,6 @@
 use hashbrown::HashMap;
 use lib_anim::{Animation, AnimationId};
+use lib_dbg::dump;
 
 use super::prelude::*;
 
@@ -59,7 +60,7 @@ pub fn spawn(world: &mut World, pos: Vec2) {
         DamageCooldown::new(STABBER_HIT_COOLDOWN),
         KinematicControl::new(col_group::LEVEL),
         BodyTag {
-            groups: col_group::CHARACTERS.union(col_group::PLAYER),
+            groups: col_group::CHARACTERS,
             shape: Shape::Rect {
                 width: STABBER_SIZE,
                 height: STABBER_SIZE,
@@ -149,5 +150,15 @@ pub fn state_to_anim(world: &mut World) {
             StabberState::Attacking => AnimationId::StabberAttack,
         };
         play.animation = animation;
+    }
+}
+
+pub fn die_on_zero_health(world: &mut World, cmds: &mut CommandBuffer) {
+    for (entity, (health, _)) in world.query_mut::<(&Health, &StabberState)>() {
+        dump!("Stabber HP: {}", health.value);
+        if health.value > 0 {
+            continue;
+        }
+        cmds.despawn(entity);
     }
 }
