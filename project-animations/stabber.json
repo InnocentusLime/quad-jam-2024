@@ -1,0 +1,164 @@
+{
+  "StabberIdle": {
+    "is_looping": true,
+    "clips": [
+      {
+        "id": 0,
+        "track_id": 0,
+        "start": 0,
+        "len": 155,
+        "action": {
+          "DrawSprite": {
+            "layer": 0,
+            "texture_id": "WorldAtlas",
+            "local_pos": {
+              "x": -8.0,
+              "y": -8.0
+            },
+            "local_rotation": 0.0,
+            "rect": {
+              "x": 17,
+              "y": 1,
+              "w": 16,
+              "h": 16
+            },
+            "origin": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "sort_offset": 0.0
+          }
+        }
+      }
+    ],
+    "tracks": [
+      {
+        "name": "sprite",
+        "id": 0
+      }
+    ]
+  },
+  "StabberAttack": {
+    "is_looping": false,
+    "clips": [
+      {
+        "id": 0,
+        "track_id": 0,
+        "start": 0,
+        "len": 500,
+        "action": {
+          "DrawSprite": {
+            "layer": 0,
+            "texture_id": "WorldAtlas",
+            "local_pos": {
+              "x": -8.0,
+              "y": -8.0
+            },
+            "local_rotation": 0.0,
+            "rect": {
+              "x": 33,
+              "y": 1,
+              "w": 16,
+              "h": 16
+            },
+            "origin": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "sort_offset": 0.0
+          }
+        }
+      },
+      {
+        "id": 1,
+        "track_id": 1,
+        "start": 500,
+        "len": 200,
+        "action": {
+          "AttackBox": {
+            "local_pos": {
+              "x": 0.0,
+              "y": 15.0
+            },
+            "local_rotation": 0.0,
+            "team": "Enemy",
+            "group": 2,
+            "shape": {
+              "Rect": {
+                "width": 18.0,
+                "height": 28.0
+              }
+            },
+            "rotate_with_parent": true
+          }
+        }
+      },
+      {
+        "id": 2,
+        "track_id": 0,
+        "start": 500,
+        "len": 199,
+        "action": {
+          "DrawSprite": {
+            "layer": 1,
+            "texture_id": "WorldAtlas",
+            "local_pos": {
+              "x": -8.0,
+              "y": -8.0
+            },
+            "local_rotation": 0.0,
+            "rect": {
+              "x": 291,
+              "y": 1,
+              "w": 16,
+              "h": 16
+            },
+            "origin": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "sort_offset": 0.0
+          }
+        }
+      },
+      {
+        "id": 3,
+        "track_id": 0,
+        "start": 706,
+        "len": 392,
+        "action": {
+          "DrawSprite": {
+            "layer": 0,
+            "texture_id": "WorldAtlas",
+            "local_pos": {
+              "x": -8.0,
+              "y": -8.0
+            },
+            "local_rotation": 0.0,
+            "rect": {
+              "x": 33,
+              "y": 1,
+              "w": 16,
+              "h": 16
+            },
+            "origin": {
+              "x": 0.0,
+              "y": 0.0
+            },
+            "sort_offset": 0.0
+          }
+        }
+      }
+    ],
+    "tracks": [
+      {
+        "name": "sprite",
+        "id": 0
+      },
+      {
+        "name": "hits",
+        "id": 1
+      }
+    ]
+  }
+}
