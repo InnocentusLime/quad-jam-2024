@@ -4,6 +4,7 @@ mod goal;
 mod player;
 mod prelude;
 mod render;
+mod stabber;
 
 use lib_asset::{FontId, FsResolver, TextureId};
 use prelude::*;
@@ -200,7 +201,10 @@ impl Game for Project {
             player::auto_state_transition(world, &resources.animations);
             player::controls(dt, input, world, &resources.animations);
         }
-        if self.do_ai { /* No enemies yet */ }
+        if self.do_ai {
+            stabber::auto_state_transition(world, &resources.animations);
+            stabber::ai(dt, world, &resources.animations);
+        }
     }
 
     fn plan_collision_queries(
@@ -212,6 +216,9 @@ impl Game for Project {
     ) {
         if self.do_player {
             player::state_to_anim(world);
+        }
+        if self.do_ai {
+            stabber::state_to_anim(world);
         }
     }
 

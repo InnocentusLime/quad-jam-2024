@@ -2,6 +2,12 @@ use hecs::Entity;
 use macroquad::prelude::*;
 
 #[derive(Debug, Clone, Copy)]
+pub enum StabberState {
+    Idle,
+    Attacking,
+}
+
+#[derive(Debug, Clone, Copy)]
 pub struct PlayerScore(pub u32);
 
 #[derive(Debug, Clone, Copy)]
