@@ -81,6 +81,7 @@ impl AnimationEdit {
             animation_load_ui(ui, resolver, play.animation, anim);
         });
         enum_select(ui, "animation_id", "animation", &mut play.animation);
+        ui.checkbox(&mut anim.is_looping, "is looping");
         ui.checkbox(&mut play.pause, "Pause");
 
         let mut clips = ClipsUi::new(&mut anim.tracks, &mut anim.clips);
