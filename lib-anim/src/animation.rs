@@ -1,7 +1,7 @@
 use lib_asset::TextureId;
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct Animation {
     pub is_looping: bool,
     pub clips: Vec<Clip>,
