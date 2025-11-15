@@ -247,6 +247,7 @@ impl Game for Project {
     ) {
         if app_state.is_presentable() {
             render::goal(render, world);
+            render::stabber_hp(render, world);
             render::game_ui(render, world);
         }
 

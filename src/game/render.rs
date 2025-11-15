@@ -80,6 +80,40 @@ pub fn game_ui(render: &mut Render, world: &World) {
     ));
 }
 
+pub fn stabber_hp(render: &mut Render, world: &World) {
+    for (_, (pos, health)) in &mut world
+        .query::<(&Transform, &Health)>()
+        .with::<&StabberState>()
+    {
+        let (font_size, font_scale, font_scale_aspect) = camera_font_scale(8.0);
+        if health.is_invulnerable {
+            render.world.spawn((
+                GlyphText {
+                    font: FontId::Quaver,
+                    string: Cow::Owned(format!("{} (invulnerable)", health.value)),
+                    font_size,
+                    font_scale,
+                    font_scale_aspect,
+                },
+                Tint(RED),
+                Transform::from_pos(pos.pos + vec2(0.0, -16.0)),
+            ));
+        } else {
+            render.world.spawn((
+                GlyphText {
+                    font: FontId::Quaver,
+                    string: Cow::Owned(format!("{}", health.value)),
+                    font_size,
+                    font_scale,
+                    font_scale_aspect,
+                },
+                Tint(RED),
+                Transform::from_pos(pos.pos + vec2(0.0, -16.0)),
+            ));
+        }
+    }
+}
+
 pub fn goal(render: &mut Render, world: &World) {
     for (_, pos) in &mut world.query::<&Transform>().with::<&GoalTag>() {
         render.world.spawn((
