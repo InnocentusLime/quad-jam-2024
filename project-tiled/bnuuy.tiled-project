@@ -50,15 +50,24 @@
             ]
         },
         {
-            "id": 1,
-            "name": "TileTy",
-            "storageType": "string",
-            "type": "enum",
-            "values": [
-                "Wall",
-                "Ground"
+            "color": "#ffff0000",
+            "drawFill": true,
+            "id": 6,
+            "members": [
             ],
-            "valuesAsFlags": false
+            "name": "Stabber",
+            "type": "class",
+            "useAs": [
+                "property",
+                "map",
+                "layer",
+                "object",
+                "tile",
+                "tileset",
+                "wangcolor",
+                "wangset",
+                "project"
+            ]
         },
         {
             "color": "#ffa0a0a4",
@@ -88,6 +97,17 @@
                 "tile",
                 "project"
             ]
+        },
+        {
+            "id": 1,
+            "name": "TileTy",
+            "storageType": "string",
+            "type": "enum",
+            "values": [
+                "Wall",
+                "Ground"
+            ],
+            "valuesAsFlags": false
         }
     ]
 }
