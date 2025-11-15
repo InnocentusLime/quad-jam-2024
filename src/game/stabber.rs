@@ -8,7 +8,7 @@ pub const STABBER_SIZE: f32 = 16.0;
 pub const STABBER_SPAWN_HEALTH: i32 = 3;
 pub const STABBER_HIT_COOLDOWN: f32 = 3.0;
 pub const STABBER_WALK_SPEED: f32 = 18.0;
-pub const STABBER_AGRO_RANGE: f32 = 40.0;
+pub const STABBER_AGRO_RANGE: f32 = 36.0;
 
 struct StabberContext<'a> {
     kinematic: &'a mut KinematicControl,
