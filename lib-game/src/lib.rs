@@ -215,11 +215,19 @@ impl App {
         info!("lib-game version: {}", env!("CARGO_PKG_VERSION"));
 
         // TODO: remove
-        let animations = lib_anim::AnimationPackId::Bunny
-            .load_animation_pack(&self.resources.resolver)
-            .await
-            .unwrap();
-        self.resources.animations = animations;
+        self.resources.animations = HashMap::new();
+        self.resources.animations.extend(
+            lib_anim::AnimationPackId::Bunny
+                .load_animation_pack(&self.resources.resolver)
+                .await
+                .unwrap(),
+        );
+        self.resources.animations.extend(
+            lib_anim::AnimationPackId::Stabber
+                .load_animation_pack(&self.resources.resolver)
+                .await
+                .unwrap(),
+        );
 
         loop {
             ScreenDump::new_frame();
