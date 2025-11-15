@@ -10,6 +10,7 @@ use lib_asset::{FsResolver, declare_assets};
 declare_assets!(
     AnimationPackId(animation_pack_filename, animation_pack_path) {
         Bunny("bnuuy.bin"),
+        Stabber("stabber.bin"),
     }
 );
 
