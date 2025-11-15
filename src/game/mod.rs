@@ -79,6 +79,7 @@ fn init_level(world: &mut World, level_def: &lib_level::LevelDef) {
             lib_level::EntityInfo::Player {} => player::spawn(world, pos),
             lib_level::EntityInfo::Goal {} => goal::spawn(world, pos),
             lib_level::EntityInfo::Damager {} => damager::spawn(world, pos),
+            lib_level::EntityInfo::Stabber {} => stabber::spawn(world, pos),
         }
     }
 }
