@@ -76,7 +76,7 @@ impl AnimationEdit {
             }
         });
 
-        let anim = anims.get_mut(&play.animation).unwrap();
+        let anim = anims.entry(play.animation).or_insert_with(Default::default);
         ui.horizontal(|ui| {
             animation_load_ui(ui, resolver, play.animation, anim);
         });
