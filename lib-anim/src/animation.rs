@@ -126,4 +126,6 @@ pub enum AnimationId {
     BunnyWalkD,
     BunnyAttackD,
     BunnyDash,
+    StabberIdle,
+    StabberAttack,
 }
