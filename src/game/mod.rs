@@ -228,10 +228,12 @@ impl Game for Project {
         dt: f32,
         _resources: &lib_game::Resources,
         world: &mut World,
-        _cmds: &mut CommandBuffer,
+        cmds: &mut CommandBuffer,
     ) -> Option<lib_game::AppState> {
         player::update_stamina(dt, world);
         goal::check(world);
+
+        stabber::die_on_zero_health(world, cmds);
 
         decide_next_state(world)
     }
