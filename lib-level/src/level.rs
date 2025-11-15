@@ -77,6 +77,7 @@ pub enum EntityInfo {
     Player {},
     Goal {},
     Damager {},
+    Stabber {},
 }
 
 /// The definition of a map. Contains the tilemap
