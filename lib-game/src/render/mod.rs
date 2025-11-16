@@ -38,6 +38,7 @@ pub struct Render {
     tilemap_width: usize,
     tilemap_height: usize,
 
+    pub announcement_text: Option<AnnouncementText>,
     pub sprite_buffer: Vec<SpriteData>,
 
     textures: HashMap<TextureId, TextureVal>,
@@ -55,6 +56,7 @@ impl Render {
             tilemap_data: Vec::new(),
             tilemap_width: 0,
             tilemap_height: 0,
+            announcement_text: None,
             sprite_buffer: Vec::new(),
             world,
             textures: HashMap::new(),
@@ -123,6 +125,7 @@ impl Render {
     pub fn new_frame(&mut self) {
         dump!("Render entities: {}", self.world.iter().count());
 
+        self.announcement_text = None;
         self.sprite_buffer.clear();
         self.world.clear();
     }
@@ -262,10 +265,10 @@ impl Render {
     }
 
     fn draw_announcement_text(&mut self) {
-        for (_, announce) in self.world.query_mut::<&AnnouncementText>() {
+        if let Some(announce) = self.announcement_text.as_ref() {
             let Some(font) = self.fonts.get(&self.ui_font) else {
                 warn!("No such font: {:?}", self.ui_font);
-                continue;
+                return;
             };
 
             let view_rect = Self::ui_view_rect(font);
@@ -304,7 +307,7 @@ impl Render {
             );
 
             let Some(hint) = announce.body else {
-                continue;
+                return;
             };
             let center = get_text_center(
                 Self::find_longest_line(hint),
