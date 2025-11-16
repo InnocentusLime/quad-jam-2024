@@ -15,7 +15,7 @@ use dbg::DebugStuff;
 use hashbrown::HashMap;
 pub use input::*;
 use lib_anim::{Animation, AnimationId};
-use lib_asset::{FsResolver, TextureId};
+use lib_asset::{FontId, FsResolver, TextureId};
 use lib_level::TILE_SIDE;
 pub use render::*;
 pub use sound_director::*;
@@ -257,16 +257,9 @@ impl App {
                 let level = lib_level::load_level(&self.resources.resolver, "test_room")
                     .await
                     .unwrap();
-                self.render.add_texture(
-                    TextureId::WorldAtlas,
-                    &level
-                        .map
-                        .atlas
-                        .load_texture(&self.resources.resolver)
-                        .await
-                        .unwrap(),
-                );
+                self.resources.load_texture(level.map.atlas).await;
                 self.render.set_atlas(
+                    &self.resources,
                     TextureId::WorldAtlas,
                     level.map.atlas_margin,
                     level.map.atlas_spacing,
@@ -302,7 +295,8 @@ impl App {
         self.render
             .put_anims_into_sprite_buffer(&mut self.world, &self.resources.animations);
         game.render_export(&self.state, &self.resources, &self.world, &mut self.render);
-        self.render.render(&self.camera, self.render_world, real_dt);
+        self.render
+            .render(&self.resources, &self.camera, self.render_world, real_dt);
 
         #[cfg(not(target_family = "wasm"))]
         egui_macroquad::draw();
@@ -457,6 +451,8 @@ pub struct Resources {
     pub resolver: FsResolver,
     pub level: Option<lib_level::LevelDef>,
     pub animations: HashMap<AnimationId, Animation>,
+    pub textures: HashMap<TextureId, Texture2D>,
+    pub fonts: HashMap<FontId, Font>,
 }
 
 impl Resources {
@@ -465,6 +461,18 @@ impl Resources {
             resolver: FsResolver::new(),
             level: None,
             animations: HashMap::new(),
+            textures: HashMap::new(),
+            fonts: HashMap::new(),
         }
+    }
+
+    pub async fn load_texture(&mut self, texture_id: TextureId) {
+        let texture = texture_id.load_texture(&self.resolver).await.unwrap();
+        self.textures.insert(texture_id, texture);
+    }
+
+    pub async fn load_font(&mut self, font_id: FontId) {
+        let font = font_id.load_font(&self.resolver).await.unwrap();
+        self.fonts.insert(font_id, font);
     }
 }

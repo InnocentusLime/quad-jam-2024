@@ -10,7 +10,7 @@ use lib_asset::{FontId, TextureId};
 use lib_level::{LevelDef, TILE_SIDE, TileIdx};
 use macroquad::prelude::*;
 
-use crate::{AnimationPlay, Transform};
+use crate::{AnimationPlay, Resources, Transform};
 
 const FONT_SCALE: f32 = 1.0;
 const MAIN_FONT_SIZE: u16 = 32;
@@ -46,7 +46,7 @@ macro_rules! put_text_fmt {
 /// It also provides a simple asset storage for quick access
 /// for the rendering code callers.
 pub struct Render {
-    pub ui_font: FontId,
+    ui_font: FontId,
 
     tilemap_atlas: TextureId,
     tilemap_tiles: Vec<Rect>,
@@ -57,9 +57,6 @@ pub struct Render {
     pub announcement_text: Option<AnnouncementText>,
     pub sprite_buffer: Vec<SpriteData>,
     text_buffer: Vec<GlyphText>,
-
-    textures: HashMap<TextureId, Texture2D>,
-    fonts: HashMap<FontId, Font>,
 }
 
 impl Render {
@@ -74,24 +71,7 @@ impl Render {
             announcement_text: None,
             sprite_buffer: Vec::new(),
             text_buffer: Vec::new(),
-            textures: HashMap::new(),
-            fonts: HashMap::new(),
         }
-    }
-
-    pub fn add_texture(&mut self, key: TextureId, texture: &Texture2D) {
-        self.textures.insert(
-            key,
-            texture.clone(),
-        );
-    }
-
-    pub fn add_font(&mut self, key: FontId, font: &Font) {
-        self.fonts.insert(key, font.clone());
-    }
-
-    pub fn get_font(&self, key: FontId) -> Option<&Font> {
-        self.fonts.get(&key)
     }
 
     pub fn put_text(
@@ -139,8 +119,14 @@ impl Render {
     /// * `atlas`: the atlas texture key
     /// * `atlas_margin`: space around the whole tileset
     /// * `atlas_spacing`: space between tiles
-    pub fn set_atlas(&mut self, atlas: TextureId, atlas_margin: u32, atlas_spacing: u32) {
-        let Some(atlas_texture) = self.textures.get(&atlas) else {
+    pub fn set_atlas(
+        &mut self,
+        resources: &Resources,
+        atlas: TextureId,
+        atlas_margin: u32,
+        atlas_spacing: u32,
+    ) {
+        let Some(atlas_texture) = resources.textures.get(&atlas) else {
             warn!("No such texture: {atlas:?}");
             return;
         };
@@ -227,7 +213,13 @@ impl Render {
         }
     }
 
-    pub fn render(&mut self, camera: &dyn Camera, render_world: bool, _dt: f32) {
+    pub fn render(
+        &mut self,
+        resources: &Resources,
+        camera: &dyn Camera,
+        render_world: bool,
+        _dt: f32,
+    ) {
         clear_background(Color {
             r: 0.0,
             g: 0.0,
@@ -237,12 +229,12 @@ impl Render {
 
         if render_world {
             set_camera(camera);
-            self.draw_sprites();
-            self.draw_texts();
+            self.draw_sprites(resources);
+            self.draw_texts(resources);
         }
 
-        self.setup_ui_camera();
-        self.draw_announcement_text();
+        self.setup_ui_camera(resources);
+        self.draw_announcement_text(resources);
     }
 
     pub fn debug_render<F>(&mut self, camera: &dyn Camera, code: F)
@@ -253,7 +245,7 @@ impl Render {
         code();
     }
 
-    fn draw_sprites(&mut self) {
+    fn draw_sprites(&mut self, resources: &Resources) {
         dump!("sprites drawn: {}", self.sprite_buffer.len());
 
         self.sprite_buffer.sort_by(|s1, s2| {
@@ -263,7 +255,7 @@ impl Render {
         });
 
         for sprite in self.sprite_buffer.iter() {
-            let Some(texture) = self.textures.get(&sprite.texture) else {
+            let Some(texture) = resources.textures.get(&sprite.texture) else {
                 warn!("No texture {:?}", sprite.texture);
                 continue;
             };
@@ -284,8 +276,8 @@ impl Render {
         }
     }
 
-    fn setup_ui_camera(&mut self) {
-        match self.get_font(self.ui_font) {
+    fn setup_ui_camera(&mut self, resources: &Resources) {
+        match resources.fonts.get(&self.ui_font) {
             None => {
                 warn!("No such font: {:?}", self.ui_font);
                 set_default_camera();
@@ -317,9 +309,9 @@ impl Render {
         }
     }
 
-    fn draw_announcement_text(&mut self) {
+    fn draw_announcement_text(&mut self, resources: &Resources) {
         if let Some(announce) = self.announcement_text.as_ref() {
-            let Some(font) = self.fonts.get(&self.ui_font) else {
+            let Some(font) = resources.fonts.get(&self.ui_font) else {
                 warn!("No such font: {:?}", self.ui_font);
                 return;
             };
@@ -385,10 +377,10 @@ impl Render {
         }
     }
 
-    fn draw_texts(&mut self) {
+    fn draw_texts(&mut self, resources: &Resources) {
         for text in self.text_buffer.iter() {
             let tint = text.color;
-            let Some(font) = self.fonts.get(&text.font) else {
+            let Some(font) = resources.fonts.get(&text.font) else {
                 warn!("No font {:?}", text.font);
                 continue;
             };
