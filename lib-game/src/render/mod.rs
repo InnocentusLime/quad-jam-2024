@@ -171,7 +171,7 @@ impl Render {
         }
     }
 
-    pub fn render(&mut self, camera: &dyn Camera, dry_run: bool, _dt: f32) {
+    pub fn render(&mut self, camera: &dyn Camera, render_world: bool, _dt: f32) {
         clear_background(Color {
             r: 0.0,
             g: 0.0,
@@ -179,7 +179,7 @@ impl Render {
             a: 1.0,
         });
 
-        if !dry_run {
+        if render_world {
             set_camera(camera);
             self.draw_sprites();
             self.draw_texts();

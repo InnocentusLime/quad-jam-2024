@@ -170,7 +170,7 @@ pub struct App {
     world: World,
     cmds: CommandBuffer,
 
-    draw_world: bool,
+    render_world: bool,
     freeze: bool,
 }
 
@@ -192,7 +192,7 @@ impl App {
             world: World::new(),
             cmds: CommandBuffer::new(),
 
-            draw_world: true,
+            render_world: true,
             freeze: false,
         })
     }
@@ -302,7 +302,7 @@ impl App {
         self.render
             .put_anims_into_sprite_buffer(&mut self.world, &self.resources.animations);
         game.render_export(&self.state, &self.resources, &self.world, &mut self.render);
-        self.render.render(&self.camera, !self.draw_world, real_dt);
+        self.render.render(&self.camera, self.render_world, real_dt);
 
         #[cfg(not(target_family = "wasm"))]
         egui_macroquad::draw();
