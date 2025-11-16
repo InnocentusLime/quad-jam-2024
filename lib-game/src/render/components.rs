@@ -12,16 +12,6 @@ pub struct FontKey(pub &'static str);
 #[repr(transparent)]
 pub struct Tint(pub Color);
 
-/// Tags the entity to be procedurally animated. This
-/// procedural animation does the following:
-/// 1. Shrink the entity along y axis by making the scale go from 1.0 to 0.0
-/// 2. Slowly dials down the alpha of its tint from 1.0 to 0.0
-///     (the original alpha value in [Tint] is overriden)
-///
-/// Requires [crate::components::Transform], [Timed] and [Tint] to work.
-#[derive(Clone, Copy, Debug)]
-pub struct VertShrinkFadeoutAnim;
-
 /// Draws some text with glyphs.
 ///
 /// Requires [crate::components::Transform] to work.

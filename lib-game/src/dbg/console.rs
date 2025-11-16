@@ -106,10 +106,10 @@ fn init_debug_commands<T>(cmds: &mut CommandCenter<App, T, DebugState>) {
     cmds.add_command("f", "freeze the app", |app, _, _, _| app.freeze = true);
     cmds.add_command("uf", "unfreeze the app", |app, _, _, _| app.freeze = false);
     cmds.add_command("hw", "hide the world rendering", |app, _, _, _| {
-        app.draw_world = false
+        app.render_world = false
     });
     cmds.add_command("sw", "show the world rendering", |app, _, _, _| {
-        app.draw_world = true
+        app.render_world = true
     });
     cmds.add_command(
         "reset",
