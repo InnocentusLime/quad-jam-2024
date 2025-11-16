@@ -2,8 +2,6 @@ use lib_asset::FontId;
 
 use super::prelude::*;
 
-use std::borrow::Cow;
-
 static WIN_TEXT: &str = "Congratulations!";
 static GAMEOVER_TEXT: &str = "Game Over";
 static COMPLETE_TEXT: &str = "Congratulations! You beat the game!";
@@ -20,10 +18,8 @@ static START_HINT: &str = "Move: WASD\nShoot: Mouse + Left Button\nYou get extra
 static START_TEXT_MOBILE: &str = "Tap to start";
 
 pub fn game_ui(render: &mut Render, world: &World) {
-    let world_font_size = 16f32;
-    let off_y = world_font_size;
+    let off_y = 16.0;
     let ui_x = TILE_SIDE_F32 * 16.0;
-    let (font_size, font_scale, font_scale_aspect) = camera_font_scale(world_font_size);
     let font = FontId::Quaver;
 
     let mut player_q = world.query::<(&PlayerScore, &Health, &PlayerData)>();
@@ -34,50 +30,40 @@ pub fn game_ui(render: &mut Render, world: &World) {
         ("", BLANK)
     };
 
-    render.world.spawn((
-        GlyphText {
-            font,
-            string: Cow::Owned(format!("Score:{}", score.0)),
-            font_size,
-            font_scale,
-            font_scale_aspect,
-        },
-        Tint(YELLOW),
-        Transform::from_xy(ui_x, off_y * 1.0),
-    ));
-    render.world.spawn((
-        GlyphText {
-            font,
-            string: Cow::Owned(format!("Health:{}", player_health.value)),
-            font_size,
-            font_scale,
-            font_scale_aspect,
-        },
-        Tint(YELLOW),
-        Transform::from_xy(ui_x, off_y * 2.0),
-    ));
-    render.world.spawn((
-        GlyphText {
-            font,
-            string: Cow::Owned(format!("Stamina:{:3.2}", player_data.stamina)),
-            font_size,
-            font_scale,
-            font_scale_aspect,
-        },
-        Tint(YELLOW),
-        Transform::from_xy(ui_x, off_y * 3.0),
-    ));
-    render.world.spawn((
-        GlyphText {
-            font,
-            string: Cow::Borrowed(game_state),
-            font_size,
-            font_scale,
-            font_scale_aspect,
-        },
-        Tint(game_state_color),
-        Transform::from_xy(ui_x, off_y * 6.0),
-    ));
+    put_text_fmt!(
+        render,
+        vec2(ui_x, off_y * 1.0),
+        YELLOW,
+        font,
+        16.0,
+        "Score: {}",
+        score.0
+    );
+    put_text_fmt!(
+        render,
+        vec2(ui_x, off_y * 2.0),
+        YELLOW,
+        font,
+        16.0,
+        "Health: {}",
+        player_health.value
+    );
+    put_text_fmt!(
+        render,
+        vec2(ui_x, off_y * 3.0),
+        YELLOW,
+        font,
+        16.0,
+        "Stamina: {:3.2}",
+        player_data.stamina,
+    );
+    render.put_text(
+        vec2(ui_x, off_y * 6.0),
+        game_state_color,
+        font,
+        16.0,
+        game_state,
+    );
 }
 
 pub fn stabber_hp(render: &mut Render, world: &World) {
@@ -85,31 +71,26 @@ pub fn stabber_hp(render: &mut Render, world: &World) {
         .query::<(&Transform, &Health)>()
         .with::<&StabberState>()
     {
-        let (font_size, font_scale, font_scale_aspect) = camera_font_scale(8.0);
         if health.is_invulnerable {
-            render.world.spawn((
-                GlyphText {
-                    font: FontId::Quaver,
-                    string: Cow::Owned(format!("{} (invulnerable)", health.value)),
-                    font_size,
-                    font_scale,
-                    font_scale_aspect,
-                },
-                Tint(RED),
-                Transform::from_pos(pos.pos + vec2(0.0, -16.0)),
-            ));
+            put_text_fmt!(
+                render,
+                pos.pos + vec2(0.0, -16.0),
+                RED,
+                FontId::Quaver,
+                8.0,
+                "{} (invulnerable)",
+                health.value
+            );
         } else {
-            render.world.spawn((
-                GlyphText {
-                    font: FontId::Quaver,
-                    string: Cow::Owned(format!("{}", health.value)),
-                    font_size,
-                    font_scale,
-                    font_scale_aspect,
-                },
-                Tint(RED),
-                Transform::from_pos(pos.pos + vec2(0.0, -16.0)),
-            ));
+            put_text_fmt!(
+                render,
+                pos.pos + vec2(0.0, -16.0),
+                RED,
+                FontId::Quaver,
+                8.0,
+                "{}",
+                health.value
+            );
         }
     }
 }

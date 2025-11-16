@@ -19,6 +19,27 @@ const VERTICAL_ORIENT_HORIZONTAL_PADDING: f32 = 16.0;
 pub static ORIENTATION_TEXT: &'static str = "Wrong Orientation";
 pub static ORIENTATION_HINT: &'static str = "Please re-orient your device\ninto landscape";
 
+#[macro_export]
+macro_rules! put_text_fmt {
+    (
+        $render: expr,
+        $pos: expr,
+        $color: expr,
+        $font: expr,
+        $world_font_size: expr,
+        $fmt: expr,
+        $($args:tt)*
+    ) => {
+        ($render).put_text_fmt(
+            $pos,
+            $color,
+            $font,
+            $world_font_size,
+            format_args!($fmt, $($args)*)
+        );
+    };
+}
+
 struct TextureVal {
     texture: Texture2D,
 }
@@ -30,7 +51,6 @@ struct TextureVal {
 /// for the rendering code callers.
 pub struct Render {
     pub ui_font: FontId,
-    pub world: World,
 
     tilemap_atlas: TextureId,
     tilemap_tiles: Vec<Rect>,
@@ -40,6 +60,7 @@ pub struct Render {
 
     pub announcement_text: Option<AnnouncementText>,
     pub sprite_buffer: Vec<SpriteData>,
+    text_buffer: Vec<GlyphText>,
 
     textures: HashMap<TextureId, TextureVal>,
     fonts: HashMap<FontId, Font>,
@@ -47,8 +68,6 @@ pub struct Render {
 
 impl Render {
     pub fn new() -> Self {
-        let world = World::new();
-
         Self {
             ui_font: FontId::Quaver,
             tilemap_atlas: TextureId::WorldAtlas,
@@ -58,7 +77,7 @@ impl Render {
             tilemap_height: 0,
             announcement_text: None,
             sprite_buffer: Vec::new(),
-            world,
+            text_buffer: Vec::new(),
             textures: HashMap::new(),
             fonts: HashMap::new(),
         }
@@ -79,6 +98,48 @@ impl Render {
 
     pub fn get_font(&self, key: FontId) -> Option<&Font> {
         self.fonts.get(&key)
+    }
+
+    pub fn put_text(
+        &mut self,
+        pos: Vec2,
+        color: Color,
+        font: FontId,
+        world_font_size: f32,
+        text: &str,
+    ) {
+        let (font_size, font_scale, font_scale_aspect) = camera_font_scale(world_font_size);
+        self.text_buffer.push(GlyphText {
+            x: pos.x,
+            y: pos.y,
+            color,
+            font,
+            string: text.to_string(),
+            font_size,
+            font_scale,
+            font_scale_aspect,
+        })
+    }
+
+    pub fn put_text_fmt(
+        &mut self,
+        pos: Vec2,
+        color: Color,
+        font: FontId,
+        world_font_size: f32,
+        text: std::fmt::Arguments,
+    ) {
+        let (font_size, font_scale, font_scale_aspect) = camera_font_scale(world_font_size);
+        self.text_buffer.push(GlyphText {
+            x: pos.x,
+            y: pos.y,
+            color,
+            font,
+            string: text.to_string(),
+            font_size,
+            font_scale,
+            font_scale_aspect,
+        })
     }
 
     /// * `atlas`: the atlas texture key
@@ -123,11 +184,9 @@ impl Render {
     }
 
     pub fn new_frame(&mut self) {
-        dump!("Render entities: {}", self.world.iter().count());
-
         self.announcement_text = None;
         self.sprite_buffer.clear();
-        self.world.clear();
+        self.text_buffer.clear();
     }
 
     pub fn put_anims_into_sprite_buffer(
@@ -333,11 +392,8 @@ impl Render {
     }
 
     fn draw_texts(&mut self) {
-        for (_, (text, tf, tint)) in self
-            .world
-            .query_mut::<(&GlyphText, &Transform, Option<&Tint>)>()
-        {
-            let tint = tint.map(|x| x.0).unwrap_or(WHITE);
+        for text in self.text_buffer.iter() {
+            let tint = text.color;
             let Some(font) = self.fonts.get(&text.font) else {
                 warn!("No font {:?}", text.font);
                 continue;
@@ -345,14 +401,14 @@ impl Render {
 
             draw_text_ex(
                 &text.string,
-                tf.pos.x,
-                tf.pos.y,
+                text.x,
+                text.y,
                 TextParams {
                     font: Some(font),
                     font_size: text.font_size,
                     font_scale: text.font_scale,
                     font_scale_aspect: text.font_scale_aspect,
-                    rotation: tf.angle,
+                    rotation: 0.0,
                     color: tint,
                 },
             );
@@ -423,6 +479,18 @@ fn get_tile_count_in_atlas(
 
     // Add the leading tiles back
     (tiles_x + 1, tiles_y + 1)
+}
+
+#[derive(Clone, Debug)]
+struct GlyphText {
+    x: f32,
+    y: f32,
+    color: Color,
+    font: FontId,
+    string: String,
+    font_size: u16,
+    font_scale: f32,
+    font_scale_aspect: f32,
 }
 
 #[cfg(test)]
