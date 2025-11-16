@@ -6,6 +6,7 @@ mod prelude;
 mod render;
 mod stabber;
 
+use lib_anim::AnimationPackId;
 use lib_asset::{FontId, TextureId};
 use prelude::*;
 
@@ -106,12 +107,17 @@ fn decide_next_state(world: &mut World) -> Option<AppState> {
     None
 }
 
-async fn load_graphics(resources: &mut Resources) {
+async fn load_resources(resources: &mut Resources) {
     set_default_filter_mode(FilterMode::Nearest);
 
     resources.load_font(FontId::Quaver).await;
     resources.load_texture(TextureId::BunnyAtlas).await;
     build_textures_atlas();
+
+    resources.load_animation_pack(AnimationPackId::Bunny).await;
+    resources
+        .load_animation_pack(AnimationPackId::Stabber)
+        .await;
 }
 
 pub struct Project {
@@ -121,7 +127,7 @@ pub struct Project {
 
 impl Project {
     pub async fn new(app: &mut App) -> Project {
-        load_graphics(&mut app.resources).await;
+        load_resources(&mut app.resources).await;
         Project {
             do_ai: true,
             do_player: true,
