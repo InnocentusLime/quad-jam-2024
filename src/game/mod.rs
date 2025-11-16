@@ -6,7 +6,7 @@ mod prelude;
 mod render;
 mod stabber;
 
-use lib_asset::{FontId, FsResolver, TextureId};
+use lib_asset::{FontId, TextureId};
 use prelude::*;
 
 fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut World) -> Entity {
@@ -106,20 +106,12 @@ fn decide_next_state(world: &mut World) -> Option<AppState> {
     None
 }
 
-async fn load_graphics(resolver: &FsResolver, render: &mut Render) -> anyhow::Result<()> {
+async fn load_graphics(resources: &mut Resources) {
     set_default_filter_mode(FilterMode::Nearest);
 
-    render.add_font(FontId::Quaver, &FontId::Quaver.load_font(&resolver).await?);
-    render.ui_font = FontId::Quaver;
-
-    render.add_texture(
-        TextureId::BunnyAtlas,
-        &TextureId::BunnyAtlas.load_texture(&resolver).await.unwrap(),
-    );
-
+    resources.load_font(FontId::Quaver).await;
+    resources.load_texture(TextureId::BunnyAtlas).await;
     build_textures_atlas();
-
-    Ok(())
 }
 
 pub struct Project {
@@ -129,9 +121,7 @@ pub struct Project {
 
 impl Project {
     pub async fn new(app: &mut App) -> Project {
-        load_graphics(&app.resources.resolver, &mut app.render)
-            .await
-            .unwrap();
+        load_graphics(&mut app.resources).await;
         Project {
             do_ai: true,
             do_player: true,
