@@ -117,40 +117,40 @@ pub fn stabber_hp(render: &mut Render, world: &World) {
 pub fn toplevel_ui(app_state: &AppState, render: &mut Render) {
     match app_state {
         AppState::Start => {
-            render.world.spawn((AnnouncementText {
+            render.announcement_text = Some(AnnouncementText {
                 heading: start_text(),
                 body: Some(START_HINT),
-            },));
+            })
         }
         AppState::GameOver => {
-            render.world.spawn((AnnouncementText {
+            render.announcement_text = Some(AnnouncementText {
                 heading: GAMEOVER_TEXT,
                 body: Some(game_restart_hint()),
-            },));
+            })
         }
         AppState::Win => {
-            render.world.spawn((AnnouncementText {
+            render.announcement_text = Some(AnnouncementText {
                 heading: WIN_TEXT,
                 body: Some(game_continue_hint()),
-            },));
+            })
         }
         AppState::Active { paused: true } => {
-            render.world.spawn((AnnouncementText {
+            render.announcement_text = Some(AnnouncementText {
                 heading: PAUSE_TEXT,
                 body: Some(PAUSE_HINT),
-            },));
+            })
         }
         AppState::PleaseRotate => {
-            render.world.spawn((AnnouncementText {
+            render.announcement_text = Some(AnnouncementText {
                 heading: ORIENTATION_TEXT,
                 body: Some(ORIENTATION_HINT),
-            },));
+            })
         }
         AppState::GameDone => {
-            render.world.spawn((AnnouncementText {
+            render.announcement_text = Some(AnnouncementText {
                 heading: COMPLETE_TEXT,
                 body: Some(game_restart_hint()),
-            },));
+            })
         }
         _ => (),
     }
