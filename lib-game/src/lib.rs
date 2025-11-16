@@ -14,7 +14,7 @@ pub use components::*;
 use dbg::DebugStuff;
 use hashbrown::HashMap;
 pub use input::*;
-use lib_anim::{Animation, AnimationId};
+use lib_anim::{Animation, AnimationId, AnimationPackId};
 use lib_asset::{FontId, FsResolver, TextureId};
 use lib_level::TILE_SIDE;
 pub use render::*;
@@ -213,21 +213,6 @@ impl App {
 
         info!("Done loading");
         info!("lib-game version: {}", env!("CARGO_PKG_VERSION"));
-
-        // TODO: remove
-        self.resources.animations = HashMap::new();
-        self.resources.animations.extend(
-            lib_anim::AnimationPackId::Bunny
-                .load_animation_pack(&self.resources.resolver)
-                .await
-                .unwrap(),
-        );
-        self.resources.animations.extend(
-            lib_anim::AnimationPackId::Stabber
-                .load_animation_pack(&self.resources.resolver)
-                .await
-                .unwrap(),
-        );
 
         loop {
             ScreenDump::new_frame();
@@ -474,5 +459,11 @@ impl Resources {
     pub async fn load_font(&mut self, font_id: FontId) {
         let font = font_id.load_font(&self.resolver).await.unwrap();
         self.fonts.insert(font_id, font);
+    }
+
+    /// **ADDITIVLY** loads an animations pack
+    pub async fn load_animation_pack(&mut self, pack_id: AnimationPackId) {
+        let pack = pack_id.load_animation_pack(&self.resolver).await.unwrap();
+        self.animations.extend(pack);
     }
 }
