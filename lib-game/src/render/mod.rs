@@ -5,7 +5,7 @@ use lib_anim::{Animation, AnimationId, ClipAction};
 use lib_dbg::dump;
 
 pub use components::*;
-use hecs::{Entity, World};
+use hecs::World;
 use lib_asset::{FontId, TextureId};
 use lib_level::{LevelDef, TILE_SIDE, TileIdx};
 use macroquad::prelude::*;
@@ -40,9 +40,6 @@ pub struct Render {
 
     pub sprite_buffer: Vec<SpriteData>,
 
-    to_delete: Vec<Entity>,
-    time: f32,
-
     textures: HashMap<TextureId, TextureVal>,
     fonts: HashMap<FontId, Font>,
 }
@@ -60,8 +57,6 @@ impl Render {
             tilemap_height: 0,
             sprite_buffer: Vec::new(),
             world,
-            to_delete: Vec::new(),
-            time: 0.0,
             textures: HashMap::new(),
             fonts: HashMap::new(),
         }
@@ -129,23 +124,7 @@ impl Render {
         dump!("Render entities: {}", self.world.iter().count());
 
         self.sprite_buffer.clear();
-
-        let it = self
-            .world
-            .iter()
-            .filter(|ent| {
-                let Some(timed) = ent.get::<&Timed>() else {
-                    return true;
-                };
-
-                Self::should_delete_timed(&timed)
-            })
-            .map(|x| x.entity());
-        self.to_delete.extend(it);
-
-        for e in self.to_delete.drain(..) {
-            let _ = self.world.despawn(e);
-        }
+        self.world.clear();
     }
 
     pub fn put_anims_into_sprite_buffer(
@@ -192,7 +171,7 @@ impl Render {
         }
     }
 
-    pub fn render(&mut self, camera: &dyn Camera, dry_run: bool, dt: f32) {
+    pub fn render(&mut self, camera: &dyn Camera, dry_run: bool, _dt: f32) {
         clear_background(Color {
             r: 0.0,
             g: 0.0,
@@ -200,7 +179,11 @@ impl Render {
             a: 1.0,
         });
 
-        self.draw_world(camera, dt, dry_run);
+        if !dry_run {
+            set_camera(camera);
+            self.draw_sprites();
+            self.draw_texts();
+        }
 
         self.setup_ui_camera();
         self.draw_announcement_text();
@@ -214,22 +197,35 @@ impl Render {
         code();
     }
 
-    fn draw_world(&mut self, camera: &dyn Camera, dt: f32, dry_run: bool) {
-        self.update_time(dt);
-        self.update_flickers();
-        self.anim_vert_shrink_fadeout();
+    fn draw_sprites(&mut self) {
+        dump!("sprites drawn: {}", self.sprite_buffer.len());
 
-        if dry_run {
-            return;
+        self.sprite_buffer.sort_by(|s1, s2| {
+            let y_s1 = s1.tf.pos.y + s1.sort_offset;
+            let y_s2 = s2.tf.pos.y + s2.sort_offset;
+            u32::cmp(&s1.layer, &s2.layer).then(f32::total_cmp(&y_s1, &y_s2))
+        });
+
+        for sprite in self.sprite_buffer.iter() {
+            let Some(TextureVal { texture, .. }) = self.textures.get(&sprite.texture) else {
+                warn!("No texture {:?}", sprite.texture);
+                continue;
+            };
+            draw_texture_ex(
+                texture,
+                sprite.tf.pos.x,
+                sprite.tf.pos.y,
+                sprite.color,
+                DrawTextureParams {
+                    dest_size: None,
+                    source: Some(sprite.rect),
+                    rotation: sprite.tf.angle,
+                    flip_x: false,
+                    flip_y: false,
+                    pivot: Some(sprite.origin),
+                },
+            );
         }
-
-        set_camera(camera);
-
-        self.draw_sprites();
-
-        self.draw_circles();
-        self.draw_rects();
-        self.draw_texts();
     }
 
     fn setup_ui_camera(&mut self) {
@@ -333,69 +329,6 @@ impl Render {
         }
     }
 
-    fn draw_rects(&mut self) {
-        for (_, (rect, tint, tf, scale)) in
-            self.world
-                .query_mut::<(&RectShape, Option<&Tint>, &Transform, Option<&Scale>)>()
-        {
-            let scale = scale.map(|x| x.0).unwrap_or(vec2(1.0, 1.0));
-            let tint = tint.map(|x| x.0).unwrap_or(WHITE);
-            draw_rectangle_ex(
-                tf.pos.x,
-                tf.pos.y,
-                rect.width * scale.x,
-                rect.height * scale.y,
-                DrawRectangleParams {
-                    offset: rect.origin,
-                    rotation: tf.angle,
-                    color: tint,
-                },
-            );
-        }
-    }
-
-    fn draw_circles(&mut self) {
-        for (_, (circle, tint, tf)) in self
-            .world
-            .query_mut::<(&CircleShape, Option<&Tint>, &Transform)>()
-        {
-            let tint = tint.map(|x| x.0).unwrap_or(WHITE);
-
-            draw_circle(tf.pos.x, tf.pos.y, circle.radius, tint);
-        }
-    }
-
-    fn draw_sprites(&mut self) {
-        dump!("sprites drawn: {}", self.sprite_buffer.len());
-
-        self.sprite_buffer.sort_by(|s1, s2| {
-            let y_s1 = s1.tf.pos.y + s1.sort_offset;
-            let y_s2 = s2.tf.pos.y + s2.sort_offset;
-            u32::cmp(&s1.layer, &s2.layer).then(f32::total_cmp(&y_s1, &y_s2))
-        });
-
-        for sprite in self.sprite_buffer.iter() {
-            let Some(TextureVal { texture, .. }) = self.textures.get(&sprite.texture) else {
-                warn!("No texture {:?}", sprite.texture);
-                continue;
-            };
-            draw_texture_ex(
-                texture,
-                sprite.tf.pos.x,
-                sprite.tf.pos.y,
-                sprite.color,
-                DrawTextureParams {
-                    dest_size: None,
-                    source: Some(sprite.rect),
-                    rotation: sprite.tf.angle,
-                    flip_x: false,
-                    flip_y: false,
-                    pivot: Some(sprite.origin),
-                },
-            );
-        }
-    }
-
     fn draw_texts(&mut self) {
         for (_, (text, tf, tint)) in self
             .world
@@ -421,38 +354,6 @@ impl Render {
                 },
             );
         }
-    }
-
-    fn anim_vert_shrink_fadeout(&mut self) {
-        for (_, (timed, tint, scale)) in self.world.query_mut::<(&Timed, &mut Tint, &mut Scale)>() {
-            let k = timed.time / timed.start;
-
-            tint.0.a = (2.0 * k).clamp(0.0, 1.0);
-            scale.0.y = k.powf(4.0);
-        }
-    }
-
-    fn update_time(&mut self, dt: f32) {
-        self.time += dt;
-
-        for (_, timed) in self.world.query_mut::<&mut Timed>() {
-            timed.time -= dt;
-        }
-    }
-
-    fn update_flickers(&mut self) {
-        let flicker_vis = (self.time * 1000.0) as u32 % 2 == 0;
-        if flicker_vis {
-            return;
-        }
-
-        for (_, (_flicker, tint)) in self.world.query_mut::<(&Flicker, &mut Tint)>() {
-            tint.0.a = 0.0;
-        }
-    }
-
-    fn should_delete_timed(timed: &Timed) -> bool {
-        timed.time <= 0.0
     }
 
     fn find_longest_line(text: &str) -> &str {
