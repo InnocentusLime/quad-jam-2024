@@ -1,81 +1,11 @@
 use std::borrow::Cow;
 
-use lib_asset::{FontId, TextureId};
+use lib_asset::FontId;
 use macroquad::prelude::*;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 #[repr(transparent)]
 pub struct FontKey(pub &'static str);
-
-/// Tags the entity to flicker. The flicker works
-/// by settings the alpha to 0 occasionally.
-/// It is not overridden to 1, however.
-///
-/// Requires [Tint] to work.
-#[derive(Clone, Copy, Debug)]
-pub struct Flicker;
-
-/// Tags the entity to have a fixed lifetime. Once
-/// the timer stops ticking -- it will get freed.
-#[derive(Clone, Copy, Debug)]
-pub struct Timed {
-    pub time: f32,
-    pub start: f32,
-}
-
-impl Timed {
-    pub fn new(init: f32) -> Self {
-        Self {
-            time: init,
-            start: init,
-        }
-    }
-}
-
-/// Overrides the scaling of an entity.
-#[derive(Clone, Copy, Debug)]
-pub struct Scale(pub Vec2);
-
-/// Tags the entity to be drawn as a sprite. To see
-/// what data to put into the texture, see [crate::render::Render].
-///
-/// Requires [crate::components::Transform] to work.
-///
-/// Can read [Tint] and [Scale], but they are optional.
-/// * If no tint is specified, the sprite is drawn with a white tint
-/// * If no scale is specified, the sprite is drawn with `(1.0, 1.0)` scale
-#[derive(Clone, Copy, Debug)]
-pub struct Sprite {
-    pub origin: Vec2,
-    pub texture: TextureId,
-}
-
-/// Draws a circle!
-///
-/// Requires [crate::components::Transform] to work, however
-/// rotation will be ignored.
-///
-/// Can read [Tint], but it is optional.
-/// * If no tint is specified, the circle is drawn with a white tint
-#[derive(Clone, Copy, Debug)]
-pub struct CircleShape {
-    pub radius: f32,
-}
-
-/// Draws a rect!
-///
-/// Requires [crate::components::Transform] to work.
-///
-/// Can read [Tint], but it is optional.
-/// * If no tint is specified, the rect is drawn with a white tint
-///
-/// Can read [Scale], but it is optional.
-#[derive(Clone, Copy, Debug)]
-pub struct RectShape {
-    pub origin: Vec2,
-    pub width: f32,
-    pub height: f32,
-}
 
 /// Tags the entity to be drawn with a certain color.
 #[derive(Clone, Copy, Debug)]
