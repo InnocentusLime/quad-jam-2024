@@ -114,20 +114,6 @@ pub fn stabber_hp(render: &mut Render, world: &World) {
     }
 }
 
-pub fn goal(render: &mut Render, world: &World) {
-    for (_, pos) in &mut world.query::<&Transform>().with::<&GoalTag>() {
-        render.world.spawn((
-            *pos,
-            Tint(GREEN),
-            RectShape {
-                origin: vec2(0.5, 0.5),
-                width: 16.0,
-                height: 16.0,
-            },
-        ));
-    }
-}
-
 pub fn toplevel_ui(app_state: &AppState, render: &mut Render) {
     match app_state {
         AppState::Start => {
