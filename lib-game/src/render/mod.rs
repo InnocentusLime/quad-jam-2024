@@ -40,10 +40,6 @@ macro_rules! put_text_fmt {
     };
 }
 
-struct TextureVal {
-    texture: Texture2D,
-}
-
 /// Render does rendering stuff. When it comes to the world
 /// drawing, all the data is taken from its own world -- "export world".
 ///
@@ -62,7 +58,7 @@ pub struct Render {
     pub sprite_buffer: Vec<SpriteData>,
     text_buffer: Vec<GlyphText>,
 
-    textures: HashMap<TextureId, TextureVal>,
+    textures: HashMap<TextureId, Texture2D>,
     fonts: HashMap<FontId, Font>,
 }
 
@@ -86,9 +82,7 @@ impl Render {
     pub fn add_texture(&mut self, key: TextureId, texture: &Texture2D) {
         self.textures.insert(
             key,
-            TextureVal {
-                texture: texture.clone(),
-            },
+            texture.clone(),
         );
     }
 
@@ -151,8 +145,8 @@ impl Render {
             return;
         };
 
-        let atlas_width = atlas_texture.texture.width() as u32;
-        let atlas_height = atlas_texture.texture.height() as u32;
+        let atlas_width = atlas_texture.width() as u32;
+        let atlas_height = atlas_texture.height() as u32;
         let (atlas_tiles_x, atlas_tiles_y) =
             get_tile_count_in_atlas(atlas_width, atlas_height, atlas_margin, atlas_spacing);
 
@@ -269,7 +263,7 @@ impl Render {
         });
 
         for sprite in self.sprite_buffer.iter() {
-            let Some(TextureVal { texture, .. }) = self.textures.get(&sprite.texture) else {
+            let Some(texture) = self.textures.get(&sprite.texture) else {
                 warn!("No texture {:?}", sprite.texture);
                 continue;
             };
