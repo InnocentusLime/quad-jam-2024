@@ -40,7 +40,7 @@ egui-macroquad = { git = "https://github.com/InnocentusLime/egui-macroquad.git",
 egui = "0.31.1"
 
 [patch.crates-io]
-macroquad = { git = "https://github.com/InnocentusLime/macroquad.git", rev = "6a61f666749871179e616c7dd5b5117fcb94616c" }
+macroquad = { git = "https://github.com/InnocentusLime/macroquad.git", rev = "d37736c42bc4328e2fd6f2ebcd3f19d88320732e" }
 
 [profile.release]
 opt-level = 3
