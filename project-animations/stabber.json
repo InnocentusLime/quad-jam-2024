@@ -22,7 +22,8 @@
               "w": 16,
               "h": 16
             },
-            "sort_offset": 0.0
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
           }
         }
       }
@@ -57,7 +58,8 @@
               "w": 16,
               "h": 16
             },
-            "sort_offset": 0.0
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
           }
         }
       },
@@ -105,7 +107,8 @@
               "w": 16,
               "h": 16
             },
-            "sort_offset": 0.0
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
           }
         }
       },
@@ -129,7 +132,33 @@
               "w": 16,
               "h": 16
             },
-            "sort_offset": 0.0
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
+          }
+        }
+      },
+      {
+        "id": 4,
+        "track_id": 2,
+        "start": 494,
+        "len": 243,
+        "action": {
+          "DrawSprite": {
+            "layer": 1,
+            "texture_id": "WorldAtlas",
+            "local_pos": {
+              "x": 8.0,
+              "y": 0.0
+            },
+            "local_rotation": 1.5707964,
+            "rect": {
+              "x": 296,
+              "y": 1,
+              "w": 36,
+              "h": 42
+            },
+            "sort_offset": 0.0,
+            "rotate_with_parent": true
           }
         }
       }
@@ -142,6 +171,10 @@
       {
         "name": "hits",
         "id": 1
+      },
+      {
+        "name": "atk",
+        "id": 2
       }
     ]
   }

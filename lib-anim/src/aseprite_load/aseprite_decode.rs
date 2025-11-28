@@ -139,6 +139,7 @@ pub fn load_clips_from_aseprite(
                 local_rotation: 0.0,
                 rect,
                 sort_offset: 0.0f32,
+                rotate_with_parent: false,
             };
             clips.push(Clip {
                 track_id: 0,
