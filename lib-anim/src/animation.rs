@@ -50,7 +50,6 @@ pub enum ClipAction {
         local_pos: Position,
         local_rotation: f32,
         rect: ImgRect,
-        origin: Position,
         sort_offset: f32,
     },
     AttackBox {

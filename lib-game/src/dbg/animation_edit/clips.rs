@@ -372,7 +372,6 @@ fn default_action() -> lib_anim::ClipAction {
             w: 0,
             h: 0,
         },
-        origin: lib_anim::Position { x: 0.0, y: 0.0 },
         sort_offset: 0.0,
     }
 }

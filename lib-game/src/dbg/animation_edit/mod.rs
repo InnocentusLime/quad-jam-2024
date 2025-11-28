@@ -181,7 +181,6 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
                     w: 0,
                     h: 0,
                 },
-                origin: lib_anim::Position { x: 0.0, y: 0.0 },
                 sort_offset: 0.0,
             },
             lib_anim::ClipActionDiscriminants::AttackBox => lib_anim::ClipAction::AttackBox {
@@ -214,7 +213,6 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
             local_pos,
             local_rotation,
             rect,
-            origin,
             sort_offset,
         } => {
             ui.horizontal(|ui| {
@@ -247,11 +245,6 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
                 ui.add(DragValue::new(&mut rect.w).range(0..=512));
                 ui.add(DragValue::new(&mut rect.h).range(0..=512));
                 ui.label("texture rect size");
-            });
-            ui.horizontal(|ui| {
-                ui.add(DragValue::new(&mut origin.x).range(-256.0..=256.0));
-                ui.add(DragValue::new(&mut origin.y).range(-256.0..=256.0));
-                ui.label("origin");
             });
             ui.horizontal(|ui| {
                 ui.add(DragValue::new(sort_offset).range(-64.0..=64.0));
