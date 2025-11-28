@@ -51,6 +51,7 @@ pub enum ClipAction {
         local_rotation: f32,
         rect: ImgRect,
         sort_offset: f32,
+        rotate_with_parent: bool,
     },
     AttackBox {
         local_pos: Position,

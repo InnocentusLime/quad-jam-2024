@@ -22,7 +22,8 @@
               "w": 16,
               "h": 17
             },
-            "sort_offset": 0.0
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
           }
         }
       }
@@ -57,7 +58,8 @@
               "w": 16,
               "h": 17
             },
-            "sort_offset": 0.0
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
           }
         }
       },
@@ -81,7 +83,8 @@
               "w": 18,
               "h": 16
             },
-            "sort_offset": 0.0
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
           }
         }
       },
@@ -105,7 +108,8 @@
               "w": 12,
               "h": 38
             },
-            "sort_offset": 0.0
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
           }
         }
       },
@@ -129,7 +133,8 @@
               "w": 12,
               "h": 38
             },
-            "sort_offset": 0.0
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
           }
         }
       },
@@ -153,7 +158,8 @@
               "w": 32,
               "h": 42
             },
-            "sort_offset": 0.0
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
           }
         }
       },
@@ -177,7 +183,8 @@
               "w": 18,
               "h": 17
             },
-            "sort_offset": 0.0
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
           }
         }
       },
@@ -201,7 +208,8 @@
               "w": 16,
               "h": 17
             },
-            "sort_offset": 0.0
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
           }
         }
       },
@@ -280,7 +288,8 @@
               "w": 16,
               "h": 17
             },
-            "sort_offset": 0.0
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
           }
         }
       },
@@ -330,7 +339,8 @@
               "w": 18,
               "h": 16
             },
-            "sort_offset": 0.0
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
           }
         }
       }
@@ -377,7 +387,8 @@
               "w": 16,
               "h": 17
             },
-            "sort_offset": 0.0
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
           }
         }
       },
@@ -401,7 +412,8 @@
               "w": 18,
               "h": 17
             },
-            "sort_offset": 0.0
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
           }
         }
       },
@@ -425,7 +437,8 @@
               "w": 20,
               "h": 16
             },
-            "sort_offset": 0.0
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
           }
         }
       },
@@ -449,7 +462,8 @@
               "w": 16,
               "h": 17
             },
-            "sort_offset": 0.0
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
           }
         }
       },
@@ -473,7 +487,8 @@
               "w": 18,
               "h": 17
             },
-            "sort_offset": 0.0
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
           }
         }
       },
@@ -497,7 +512,8 @@
               "w": 20,
               "h": 16
             },
-            "sort_offset": 0.0
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
           }
         }
       },

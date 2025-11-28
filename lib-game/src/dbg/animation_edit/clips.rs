@@ -373,5 +373,6 @@ fn default_action() -> lib_anim::ClipAction {
             h: 0,
         },
         sort_offset: 0.0,
+        rotate_with_parent: false,
     }
 }

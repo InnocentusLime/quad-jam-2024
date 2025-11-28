@@ -182,6 +182,7 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
                     h: 0,
                 },
                 sort_offset: 0.0,
+                rotate_with_parent: false,
             },
             lib_anim::ClipActionDiscriminants::AttackBox => lib_anim::ClipAction::AttackBox {
                 local_pos: lib_anim::Position { x: 0.0, y: 0.0 },
@@ -214,6 +215,7 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
             local_rotation,
             rect,
             sort_offset,
+            rotate_with_parent,
         } => {
             ui.horizontal(|ui| {
                 ui.add(DragValue::new(layer).range(0..=10));
@@ -250,6 +252,7 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
                 ui.add(DragValue::new(sort_offset).range(-64.0..=64.0));
                 ui.label("sort offset");
             });
+            ui.checkbox(rotate_with_parent, "rotate with parent");
         }
         lib_anim::ClipAction::AttackBox {
             local_pos,
