@@ -191,7 +191,6 @@ impl Render {
                         local_pos,
                         local_rotation: _,
                         rect,
-                        origin,
                         sort_offset,
                     } => self.sprite_buffer.push(SpriteData {
                         layer: *layer,
@@ -203,7 +202,6 @@ impl Render {
                             w: rect.w as f32,
                             h: rect.h as f32,
                         },
-                        origin: vec2(origin.x, origin.y),
                         color: WHITE,
                         sort_offset: *sort_offset,
                     }),
@@ -270,7 +268,7 @@ impl Render {
                     rotation: sprite.tf.angle,
                     flip_x: false,
                     flip_y: false,
-                    pivot: Some(sprite.origin),
+                    pivot: None,
                 },
             );
         }
@@ -302,7 +300,6 @@ impl Render {
                 },
                 texture: self.tilemap_atlas,
                 rect: tile_rect,
-                origin: vec2(0.0, 0.0),
                 color: WHITE,
                 sort_offset: 0.0,
             });
@@ -442,7 +439,6 @@ pub struct SpriteData {
     pub tf: Transform,
     pub texture: TextureId,
     pub rect: Rect,
-    pub origin: Vec2,
     pub color: Color,
     pub sort_offset: f32,
 }
