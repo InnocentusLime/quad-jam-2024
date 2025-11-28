@@ -225,7 +225,7 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
                 ui.label("local pos");
             });
             ui.horizontal(|ui| {
-                ui.add(DragValue::new(local_rotation).range(0.0..=std::f32::consts::TAU));
+                ui.drag_angle(local_rotation);
                 ui.label("local rotation");
             });
             ui.horizontal(|ui| {
@@ -262,7 +262,7 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
                 ui.label("local pos");
             });
             ui.horizontal(|ui| {
-                ui.add(DragValue::new(local_rotation).range(0.0..=std::f32::consts::TAU));
+                ui.drag_angle(local_rotation);
                 ui.label("local rotation");
             });
             ui.horizontal(|ui| {
