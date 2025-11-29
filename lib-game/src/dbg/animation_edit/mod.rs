@@ -15,7 +15,7 @@ use clips::*;
 use save_ui::*;
 use sequencer::*;
 
-use crate::AnimationPlay;
+use crate::{AnimationPlay, CharacterLook};
 
 pub struct AnimationEdit {
     pub playback: Entity,
@@ -55,11 +55,17 @@ impl AnimationEdit {
         ComboBox::new("playback", "playback entity")
             .selected_text(format!("{:?}", self.playback))
             .show_ui(ui, |ui| {
-                for (entity, _) in world.query_mut::<&mut AnimationPlay>() {
+                for (entity, _) in world.query_mut::<(&mut AnimationPlay, &mut CharacterLook)>() {
                     ui.selectable_value(&mut self.playback, entity, format!("{entity:?}"));
                 }
             });
-        let Ok(mut play) = world.get::<&mut AnimationPlay>(self.playback) else {
+        let Ok(mut play_q) =
+            world.query_one::<(&mut AnimationPlay, &mut CharacterLook)>(self.playback)
+        else {
+            self.playback = Entity::DANGLING;
+            return;
+        };
+        let Some((play, look)) = play_q.get() else {
             self.playback = Entity::DANGLING;
             return;
         };
@@ -79,6 +85,10 @@ impl AnimationEdit {
         let anim = anims.entry(play.animation).or_insert_with(Default::default);
         ui.horizontal(|ui| {
             animation_load_ui(ui, resolver, play.animation, anim);
+        });
+        ui.horizontal(|ui| {
+            ui.drag_angle(&mut look.0);
+            ui.label("look");
         });
         enum_select(ui, "animation_id", "animation", &mut play.animation);
         ui.checkbox(&mut anim.is_looping, "is looping");
