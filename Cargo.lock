@@ -1467,7 +1467,7 @@ dependencies = [
 
 [[package]]
 name = "lib-anim"
-version = "0.6.1"
+version = "0.7.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1516,7 +1516,7 @@ dependencies = [
 
 [[package]]
 name = "lib-game"
-version = "0.19.1"
+version = "0.12.0"
 dependencies = [
  "anyhow",
  "egui",
@@ -2264,7 +2264,7 @@ dependencies = [
 
 [[package]]
 name = "quad-jam-2024"
-version = "0.12.1"
+version = "0.13.0"
 dependencies = [
  "anyhow",
  "glam",
