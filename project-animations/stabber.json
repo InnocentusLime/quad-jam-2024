@@ -9,7 +9,7 @@
         "len": 155,
         "action": {
           "DrawSprite": {
-            "layer": 0,
+            "layer": 1,
             "texture_id": "WorldAtlas",
             "local_pos": {
               "x": -8.0,
@@ -45,7 +45,7 @@
         "len": 500,
         "action": {
           "DrawSprite": {
-            "layer": 0,
+            "layer": 1,
             "texture_id": "WorldAtlas",
             "local_pos": {
               "x": -8.0,
@@ -119,7 +119,7 @@
         "len": 392,
         "action": {
           "DrawSprite": {
-            "layer": 0,
+            "layer": 1,
             "texture_id": "WorldAtlas",
             "local_pos": {
               "x": -8.0,
