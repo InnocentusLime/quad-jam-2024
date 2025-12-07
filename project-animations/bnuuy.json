@@ -221,16 +221,16 @@
         "action": {
           "AttackBox": {
             "local_pos": {
-              "x": 0.0,
-              "y": 17.0
+              "x": 13.0,
+              "y": 0.0
             },
             "local_rotation": 0.0,
             "team": "Player",
             "group": 2,
             "shape": {
               "Rect": {
-                "width": 13.0,
-                "height": 41.0
+                "width": 41.0,
+                "height": 13.0
               }
             },
             "rotate_with_parent": true
