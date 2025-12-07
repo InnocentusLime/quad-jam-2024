@@ -1508,7 +1508,7 @@ dependencies = [
 
 [[package]]
 name = "lib-dbg"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "egui",
  "log",
@@ -1516,7 +1516,7 @@ dependencies = [
 
 [[package]]
 name = "lib-game"
-version = "0.12.0"
+version = "0.13.0"
 dependencies = [
  "anyhow",
  "egui",
@@ -2264,7 +2264,7 @@ dependencies = [
 
 [[package]]
 name = "quad-jam-2024"
-version = "0.13.0"
+version = "0.13.1"
 dependencies = [
  "anyhow",
  "glam",
