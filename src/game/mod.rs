@@ -151,7 +151,7 @@ impl Game for Project {
         &[
             ("phys", draw_physics_debug),
             ("pl", player::draw_player_state),
-            ("ch", debug_character_bodies),
+            ("ch", debug_character_info),
             ("dmg", debug_damage_boxes),
         ]
     }
@@ -230,12 +230,14 @@ impl Game for Project {
     }
 }
 
-fn debug_character_bodies(world: &World) {
-    for (_, (tf, tag)) in &mut world
-        .query::<(&Transform, &BodyTag)>()
+fn debug_character_info(world: &World) {
+    for (_, (tf, tag, look)) in &mut world
+        .query::<(&Transform, &BodyTag, &CharacterLook)>()
         .with::<&KinematicControl>()
     {
         draw_shape_lines(tf, &tag.shape, YELLOW);
+        let end = tf.pos + 20.0 * Vec2::from_angle(look.0);
+        draw_line(tf.pos.x, tf.pos.y, end.x, end.y, 1.0, YELLOW);
     }
 }
 
