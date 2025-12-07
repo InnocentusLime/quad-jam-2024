@@ -1,6 +1,5 @@
 use hashbrown::HashMap;
 use lib_anim::{Animation, AnimationId, ClipAction};
-use lib_dbg::dump;
 
 use super::prelude::*;
 
@@ -26,7 +25,6 @@ struct PlayerContext<'a> {
 
 impl<'a> PlayerContext<'a> {
     fn set_state(&mut self, new_state: PlayerState) {
-        dump!("New state: {new_state:?}");
         self.data.state = new_state;
         self.play.cursor = 0;
         self.play.total_dt = 0.0f32;

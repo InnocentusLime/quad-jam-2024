@@ -133,38 +133,18 @@ impl Project {
             do_player: true,
         }
     }
-
-    fn disable_ai(&mut self, _world: &mut World, _args: &[&str]) {
-        self.do_ai = false;
-    }
-
-    fn enable_ai(&mut self, _world: &mut World, _args: &[&str]) {
-        self.do_ai = true;
-    }
-
-    fn disable_player(&mut self, _world: &mut World, _args: &[&str]) {
-        self.do_player = false;
-    }
-
-    fn enable_player(&mut self, _world: &mut World, _args: &[&str]) {
-        self.do_player = true;
-    }
 }
 
 impl Game for Project {
-    fn debug_commands(
-        &self,
-    ) -> &[(
-        &'static str,
-        &'static str,
-        fn(&mut Self, &mut World, &[&str]),
-    )] {
-        &[
-            ("noai", "disable ai", Self::disable_ai),
-            ("ai", "enable ai", Self::enable_ai),
-            ("nopl", "disable player", Self::disable_player),
-            ("pl", "enable player", Self::enable_player),
-        ]
+    fn handle_command(&mut self, _app: &mut App, cmd: &lib_dbg::Command) -> bool {
+        match cmd.command.as_str() {
+            "noai" => self.do_ai = false,
+            "ai" => self.do_ai = true,
+            "nopl" => self.do_player = false,
+            "pl" => self.do_player = true,
+            _ => return false,
+        }
+        true
     }
 
     fn debug_draws(&self) -> &[(&'static str, fn(&World))] {

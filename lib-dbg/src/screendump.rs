@@ -1,170 +1,73 @@
-use crate::screentext::*;
-use macroquad::prelude::*;
+use egui::Window;
 
-use std::{
-    fmt,
-    sync::{LazyLock, Mutex},
-};
-
-struct ScreenPen {
-    pen_text_color: Color,
-    pen_back_color: Color,
-    curr_line: usize,
-}
-
-struct ScreenDumpImpl {
-    pen: ScreenPen,
-    text: ScreenText,
-}
-
-impl ScreenDumpImpl {
-    fn new() -> Self {
-        ScreenDumpImpl {
-            pen: ScreenPen {
-                pen_back_color: SCREENCON_DEFAULT_BACKGROUND,
-                pen_text_color: WHITE,
-                curr_line: 0,
-            },
-            text: ScreenText::new(),
-        }
-    }
-
-    fn write_str_no_newline(&mut self, s: &str) {
-        let line = &mut self.text.lines[self.pen.curr_line];
-
-        line.background = self.pen.pen_back_color;
-        line.color = self.pen.pen_text_color;
-        line.put(s);
-    }
-
-    fn next_line(&mut self) {
-        if self.pen.curr_line == SCREENCON_LINES {
-            return;
-        }
-
-        self.pen.curr_line = self.pen.curr_line + 1;
-    }
-
-    fn scroll(&self) -> usize {
-        self.text.scroll_offset
-    }
-
-    fn set_scroll(&mut self, x: usize) {
-        self.text.scroll_offset = x % SCREENCON_LINES;
-    }
-
-    fn set_color(&mut self, text: Color, back: Color) {
-        self.pen.pen_text_color = text;
-        self.pen.pen_back_color = back;
-    }
-
-    fn get_color(&self) -> (Color, Color) {
-        (self.pen.pen_text_color, self.pen.pen_back_color)
-    }
-
-    fn wipe(&mut self) {
-        self.pen.curr_line = 0;
-        for line in self.text.lines.iter_mut() {
-            line.clear();
-        }
-    }
-}
-
-impl<'a> fmt::Write for ScreenDumpImpl {
-    fn write_str(&mut self, s: &str) -> fmt::Result {
-        if !s.is_ascii() {
-            return Err(fmt::Error);
-        }
-
-        let mut next = Some(s);
-        while let Some(mut curr) = next.take() {
-            if curr.len() == 0 {
-                break;
-            }
-
-            if let Some((line, rest)) = curr.split_once('\n') {
-                curr = line;
-                next = Some(rest);
-            }
-
-            self.write_str_no_newline(curr);
-
-            if next.is_some() {
-                self.next_line();
-            }
-        }
-
-        Ok(())
-    }
-}
-
-static GLOBAL_DUMP: LazyLock<Mutex<ScreenDumpImpl>> =
-    LazyLock::new(|| Mutex::new(ScreenDumpImpl::new()));
-
-pub struct ScreenDump;
-
-impl ScreenDump {
-    pub fn draw() {
-        GLOBAL_DUMP.lock().unwrap().text.draw();
-    }
-
-    fn scope<R>(scope: impl FnOnce(&mut ScreenDumpImpl) -> R) -> R {
-        let mut lock = GLOBAL_DUMP.lock().unwrap();
-        scope(&mut lock)
-    }
-
-    pub fn get_color() -> (Color, Color) {
-        Self::scope(|con| con.get_color())
-    }
-
-    pub fn set_color(text: Color, back: Color) {
-        Self::scope(|con| con.set_color(text, back))
-    }
-
-    pub fn scroll() -> usize {
-        Self::scope(|con| con.scroll())
-    }
-
-    pub fn set_scroll(scroll: usize) {
-        Self::scope(|con| con.set_scroll(scroll))
-    }
-
-    pub fn scroll_forward() {
-        Self::scope(|con| {
-            let scroll = con.scroll();
-            con.set_scroll(scroll.saturating_add(1));
-        })
-    }
-
-    pub fn scroll_back() {
-        Self::scope(|con| {
-            let scroll = con.scroll();
-            con.set_scroll(scroll.saturating_sub(1));
-        })
-    }
-
-    pub fn new_frame() {
-        Self::scope(|con| con.wipe());
-    }
-}
-
-impl fmt::Write for ScreenDump {
-    fn write_str(&mut self, s: &str) -> fmt::Result {
-        let mut lock = GLOBAL_DUMP.lock().unwrap();
-        lock.write_str(s)
-    }
-}
+use std::fmt;
+use std::sync::{LazyLock, Mutex};
 
 #[macro_export]
 macro_rules! dump {
     ($($arg:tt)+) => {
-        std::fmt::write(&mut $crate::ScreenDump,
-            std::format_args!(
-                "{}:{} {}\n",
-                std::file!(),
-                std::line!(),
-                std::format_args!($($arg)+)
-            ),
-        ).unwrap();
+        $crate::GLOBAL_DUMP.put_line(std::format_args!($($arg)+));
     };
+}
+
+const DUMP_LINE_CAPACITY: usize = 255;
+const DUMP_CAPACITY: usize = 100;
+
+pub static GLOBAL_DUMP: LazyLock<ScreenDump> = LazyLock::new(|| ScreenDump::new());
+
+pub struct ScreenDump(Mutex<ScreenDumpBuff>);
+
+impl ScreenDump {
+    pub fn new() -> Self {
+        ScreenDump(Mutex::new(ScreenDumpBuff::new()))
+    }
+
+    pub fn put_line(&self, args: fmt::Arguments) {
+        let mut buff = self.0.lock().expect("Dangling mutex");
+        let line = buff.get_next_line();
+        fmt::write(line, args).expect("failed to write a line");
+    }
+
+    pub fn show(&self, ctx: &egui::Context) {
+        let mut buff = self.0.lock().expect("Dangling mutex");
+        Window::new("Value dump").show(ctx, |ui| {
+            for line in buff.lines() {
+                ui.label(line);
+            }
+        });
+        buff.reset();
+    }
+}
+
+struct ScreenDumpBuff {
+    lines: Vec<String>,
+    next_line: usize,
+}
+
+impl ScreenDumpBuff {
+    fn new() -> Self {
+        ScreenDumpBuff {
+            lines: Vec::with_capacity(DUMP_CAPACITY),
+            next_line: 0,
+        }
+    }
+
+    fn get_next_line(&mut self) -> &mut String {
+        assert!(self.next_line <= DUMP_CAPACITY);
+        if self.next_line >= self.lines.len() {
+            self.lines.push(String::with_capacity(DUMP_LINE_CAPACITY));
+        }
+        let res = &mut self.lines[self.next_line];
+        self.next_line += 1;
+        res
+    }
+
+    fn reset(&mut self) {
+        self.next_line = 0;
+        self.lines.iter_mut().for_each(String::clear);
+    }
+
+    fn lines(&self) -> impl Iterator<Item = &String> {
+        self.lines.iter().take(self.next_line)
+    }
 }

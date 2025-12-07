@@ -1510,8 +1510,8 @@ dependencies = [
 name = "lib-dbg"
 version = "0.1.0"
 dependencies = [
+ "egui",
  "log",
- "macroquad",
 ]
 
 [[package]]

@@ -60,15 +60,7 @@ pub enum NextState {
 /// 6. Game::update
 /// 7. Game::render
 pub trait Game: 'static {
-    /// Return the debug commands of this game. These commands
-    /// will be added to the App's command registry.
-    fn debug_commands(
-        &self,
-    ) -> &[(
-        &'static str,
-        &'static str,
-        fn(&mut Self, &mut World, &[&str]),
-    )];
+    fn handle_command(&mut self, app: &mut App, cmd: &Command) -> bool;
 
     /// Return the list of the debug draws. Debug draws are batches
     /// of (usually, macroquad) draw calls to assist you at debugging
@@ -167,7 +159,7 @@ pub struct App {
     sound: SoundDirector,
     collisions: CollisionSolver,
     clip_action_objects: HashMap<ClipActionObject, Entity>,
-    world: World,
+    pub world: World,
     cmds: CommandBuffer,
 
     render_world: bool,
@@ -200,11 +192,11 @@ impl App {
     /// Just runs the game. This is what you call after loading all the resources.
     /// This method will run forever as it provides the application loop.
     pub async fn run<G: Game>(mut self, game: &mut G) {
-        let mut debug = DebugStuff::<G>::new(
+        let mut debug = DebugStuff::new();
+        debug.debug_draws.extend(
             game.debug_draws()
                 .iter()
                 .map(|(name, payload)| (name.to_string(), *payload)),
-            game.debug_commands().iter().map(|(x, y, z)| (*x, *y, *z)),
         );
         #[cfg(not(target_family = "wasm"))]
         let mut anim_edit = AnimationEdit::new();
@@ -215,17 +207,13 @@ impl App {
         info!("lib-game version: {}", env!("CARGO_PKG_VERSION"));
 
         loop {
-            ScreenDump::new_frame();
-
             let input = InputModel::capture(&self.camera);
             let real_dt = get_frame_time();
             let do_tick = self.update_ticking(real_dt);
             self.fullscreen_toggles(&input);
-            debug.input(&input, &mut self, game);
 
-            // NOTE: this is a simple demo to show egui working
-            #[cfg(not(target_family = "wasm"))]
             egui_macroquad::ui(|egui_ctx| {
+                #[cfg(not(target_family = "wasm"))]
                 egui::Window::new("animation_edit").show(egui_ctx, |ui| {
                     anim_edit.ui(
                         &self.resources.resolver,
@@ -234,6 +222,11 @@ impl App {
                         &mut self.world,
                     );
                 });
+                let cmd = debug.cmd_center.show(egui_ctx, get_char_pressed());
+                if let Some(cmd) = cmd {
+                    self.handle_command(&mut debug, game, cmd);
+                }
+                GLOBAL_DUMP.show(egui_ctx);
             });
 
             let load_level = self.next_state(&input, &debug);
@@ -266,7 +259,16 @@ impl App {
 
             self.game_present(real_dt, game);
             self.debug_info();
-            debug.draw(&self.camera, &mut self.render, &self.world);
+
+            self.render.debug_render(&self.camera, || {
+                for debug_draw_name in debug.enabled_debug_draws.iter() {
+                    let draw = debug.debug_draws[debug_draw_name];
+                    draw(&self.world);
+                }
+            });
+
+            egui_macroquad::draw();
+
             next_frame().await
         }
     }
@@ -282,9 +284,6 @@ impl App {
         game.render_export(&self.state, &self.resources, &self.world, &mut self.render);
         self.render
             .render(&self.resources, &self.camera, self.render_world, real_dt);
-
-        #[cfg(not(target_family = "wasm"))]
-        egui_macroquad::draw();
     }
 
     fn game_update<G: Game>(&mut self, input: &InputModel, game: &mut G) -> Option<AppState> {
@@ -355,11 +354,9 @@ impl App {
 
     fn update_ticking(&mut self, real_dt: f32) -> bool {
         self.accumelated_time += real_dt;
-        if self.accumelated_time >= 2.0 * GAME_TICKRATE {
-            warn!(
-                "LAG by {:.2}ms",
-                (self.accumelated_time - 2.0 * GAME_TICKRATE) * 1000.0
-            );
+        let lag_ms = (self.accumelated_time - 2.0 * GAME_TICKRATE) * 1000.0;
+        if lag_ms > 1.0 {
+            warn!("LAG by {lag_ms:.2}ms");
             self.accumelated_time = 0.0;
             false
         } else if self.accumelated_time >= GAME_TICKRATE {
@@ -373,12 +370,12 @@ impl App {
     fn debug_info(&mut self) {
         let ent_count = self.world.iter().count();
 
-        dump!("{}", self.accumelated_time);
+        dump!("Dt: {:.2}", self.accumelated_time);
         dump!("FPS: {:?}", get_fps());
         dump!("Entities: {ent_count}");
     }
 
-    fn next_state<G: Game>(&mut self, input: &InputModel, debug: &DebugStuff<G>) -> bool {
+    fn next_state(&mut self, input: &InputModel, debug: &DebugStuff) -> bool {
         /* Debug freeze */
         if (debug.should_pause() || self.freeze)
             && self.state == (AppState::Active { paused: false })
@@ -429,6 +426,47 @@ impl App {
             (0.5 * TILE_SIDE as f32) * 16.0,
             (0.5 * TILE_SIDE as f32) * 17.0,
         );
+    }
+
+    fn handle_command<G: Game>(&mut self, debug: &mut DebugStuff, game: &mut G, cmd: Command) {
+        match cmd.command.as_str() {
+            "f" => self.freeze = true,
+            "uf" => self.freeze = false,
+            "hw" => self.render_world = false,
+            "sw" => self.render_world = true,
+            "reset" => self.state = AppState::Start,
+            "dde" => {
+                if cmd.args.len() < 1 {
+                    error!("Not enough args");
+                    return;
+                }
+
+                let dd_name = &cmd.args[0];
+                if !debug.debug_draws.contains_key(dd_name) {
+                    error!("No such debug draw: {:?}", dd_name);
+                    return;
+                }
+                debug.enabled_debug_draws.insert(dd_name.to_owned());
+            }
+            "ddd" => {
+                if cmd.args.len() < 1 {
+                    error!("Not enough args");
+                    return;
+                }
+
+                let dd_name = &cmd.args[0];
+                if !debug.enabled_debug_draws.contains(dd_name) {
+                    error!("No enabled debug draw: {:?}", dd_name);
+                    return;
+                }
+                debug.enabled_debug_draws.remove(dd_name);
+            }
+            unmatched => {
+                if !game.handle_command(self, &cmd) {
+                    error!("Unknown command: {unmatched:?}");
+                }
+            }
+        }
     }
 }
 
