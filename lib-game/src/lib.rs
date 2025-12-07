@@ -5,7 +5,6 @@ mod dbg;
 mod health;
 mod input;
 mod render;
-mod sound_director;
 
 pub mod sys;
 
@@ -18,7 +17,6 @@ use lib_anim::{Animation, AnimationId, AnimationPackId};
 use lib_asset::{FontId, FsResolver, TextureId};
 use lib_level::TILE_SIDE;
 pub use render::*;
-pub use sound_director::*;
 
 use hecs::{CommandBuffer, Entity, World};
 use macroquad::prelude::*;
@@ -156,7 +154,6 @@ pub struct App {
 
     camera: Camera2D,
     pub render: Render,
-    sound: SoundDirector,
     collisions: CollisionSolver,
     clip_action_objects: HashMap<ClipActionObject, Entity>,
     pub world: World,
@@ -178,7 +175,6 @@ impl App {
 
             camera: Camera2D::default(),
             render: Render::new(),
-            sound: SoundDirector::new().await?,
             collisions: CollisionSolver::new(),
             clip_action_objects: HashMap::new(),
             world: World::new(),
@@ -274,8 +270,6 @@ impl App {
     }
 
     fn game_present<G: Game>(&mut self, real_dt: f32, game: &G) {
-        self.sound.run(&self.world);
-
         self.update_camera();
         self.render.new_frame();
         self.render.put_tilemap_into_sprite_buffer();
