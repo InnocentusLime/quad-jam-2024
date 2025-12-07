@@ -71,16 +71,16 @@
         "action": {
           "AttackBox": {
             "local_pos": {
-              "x": 0.0,
-              "y": 15.0
+              "x": 15.0,
+              "y": 0.0
             },
             "local_rotation": 0.0,
             "team": "Enemy",
             "group": 2,
             "shape": {
               "Rect": {
-                "width": 18.0,
-                "height": 28.0
+                "width": 28.0,
+                "height": 18.0
               }
             },
             "rotate_with_parent": true
@@ -147,10 +147,10 @@
             "layer": 1,
             "texture_id": "WorldAtlas",
             "local_pos": {
-              "x": 8.0,
-              "y": 0.0
+              "x": 0.0,
+              "y": -8.0
             },
-            "local_rotation": 1.5707964,
+            "local_rotation": 0.0,
             "rect": {
               "x": 296,
               "y": 1,

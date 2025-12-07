@@ -31,11 +31,11 @@ impl<'a> PlayerContext<'a> {
     }
 
     fn set_look_direction(&mut self, dir: Vec2) {
-        self.look.0 = std::f32::consts::PI - dir.angle_to(-Vec2::Y);
+        self.look.0 = dir.to_angle();
     }
 
     fn look_direction(&self) -> Vec2 {
-        -Vec2::from_angle(self.look.0).rotate(-Vec2::Y)
+        Vec2::from_angle(self.look.0)
     }
 
     fn set_walk_step(&mut self, step: Vec2) {

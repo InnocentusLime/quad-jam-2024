@@ -25,7 +25,7 @@ impl<'a> StabberContext<'a> {
     }
 
     fn set_look_direction(&mut self, dir: Vec2) {
-        self.look.0 = std::f32::consts::PI - dir.angle_to(-Vec2::Y);
+        self.look.0 = dir.to_angle();
     }
 
     fn set_walk_step(&mut self, step: Vec2) {
