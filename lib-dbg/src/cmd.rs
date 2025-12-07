@@ -147,13 +147,14 @@ impl ConsoleBuffer {
     }
 
     fn show(&self, ui: &mut egui::Ui) {
-        ScrollArea::vertical()
+        ScrollArea::both()
             .scroll_bar_visibility(ScrollBarVisibility::AlwaysVisible)
             .max_height(LOG_HEIGHT)
             .stick_to_bottom(true)
             .show(ui, |ui| {
                 ui.set_min_height(LOG_HEIGHT);
                 ui.set_min_width(CMD_WIDTH);
+                ui.set_max_width(CMD_WIDTH);
                 for line in self.0.iter() {
                     ui.horizontal(|ui| {
                         if line.command_echo {
