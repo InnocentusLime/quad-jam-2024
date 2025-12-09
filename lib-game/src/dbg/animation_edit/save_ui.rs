@@ -148,7 +148,9 @@ pub fn animation_load_ui(
             .pick_file();
         let loaded_anim = src.and_then(|src| load_aseprite_anim(src, resolver, current_anim_id));
         if let Some(loaded_anim) = loaded_anim {
-            *current_anim = loaded_anim;
+            // FIXME: there are concerns about overlapping IDs
+            current_anim.clips.retain(|x| x.track_id != 0);
+            current_anim.clips.extend(loaded_anim.clips);
         }
     }
 }
