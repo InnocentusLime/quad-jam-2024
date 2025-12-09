@@ -197,7 +197,7 @@ fn load_aseprite_anim(
     let mut anims = match lib_anim::aseprite_load::load_animations_aseprite(resolver, &src) {
         Ok(x) => x,
         Err(e) => {
-            error!("Failed to load {src:?}: {e}");
+            error!("Failed to load {src:?}: {e:#}");
             return None;
         }
     };
