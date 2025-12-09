@@ -49,11 +49,11 @@
             "texture_id": "BunnyAtlas",
             "local_pos": {
               "x": -8.0,
-              "y": -8.0
+              "y": -8.5
             },
             "local_rotation": 0.0,
             "rect": {
-              "x": 115,
+              "x": 1,
               "y": 1,
               "w": 16,
               "h": 17
@@ -74,11 +74,11 @@
             "texture_id": "BunnyAtlas",
             "local_pos": {
               "x": -9.0,
-              "y": -9.0
+              "y": -8.0
             },
             "local_rotation": 0.0,
             "rect": {
-              "x": 132,
+              "x": 98,
               "y": 1,
               "w": 18,
               "h": 16
@@ -99,14 +99,14 @@
             "texture_id": "BunnyAtlas",
             "local_pos": {
               "x": -6.0,
-              "y": -6.0
+              "y": -5.5
             },
             "local_rotation": 0.0,
             "rect": {
-              "x": 151,
+              "x": 117,
               "y": 1,
               "w": 12,
-              "h": 38
+              "h": 11
             },
             "sort_offset": 0.0,
             "rotate_with_parent": false
@@ -124,14 +124,14 @@
             "texture_id": "BunnyAtlas",
             "local_pos": {
               "x": -6.0,
-              "y": -8.0
+              "y": -5.5
             },
             "local_rotation": 0.0,
             "rect": {
-              "x": 164,
+              "x": 130,
               "y": 1,
               "w": 12,
-              "h": 38
+              "h": 11
             },
             "sort_offset": 0.0,
             "rotate_with_parent": false
@@ -149,14 +149,14 @@
             "texture_id": "BunnyAtlas",
             "local_pos": {
               "x": -16.0,
-              "y": -8.0
+              "y": -8.5
             },
             "local_rotation": 0.0,
             "rect": {
-              "x": 177,
+              "x": 143,
               "y": 1,
               "w": 32,
-              "h": 42
+              "h": 17
             },
             "sort_offset": 0.0,
             "rotate_with_parent": false
@@ -174,11 +174,11 @@
             "texture_id": "BunnyAtlas",
             "local_pos": {
               "x": -9.0,
-              "y": -8.0
+              "y": -8.5
             },
             "local_rotation": 0.0,
             "rect": {
-              "x": 210,
+              "x": 176,
               "y": 1,
               "w": 18,
               "h": 17
@@ -199,11 +199,11 @@
             "texture_id": "BunnyAtlas",
             "local_pos": {
               "x": -8.0,
-              "y": -8.0
+              "y": -8.5
             },
             "local_rotation": 0.0,
             "rect": {
-              "x": 229,
+              "x": 1,
               "y": 1,
               "w": 16,
               "h": 17
@@ -457,7 +457,7 @@
             },
             "local_rotation": 0.0,
             "rect": {
-              "x": 58,
+              "x": 1,
               "y": 1,
               "w": 16,
               "h": 17
@@ -482,7 +482,7 @@
             },
             "local_rotation": 0.0,
             "rect": {
-              "x": 75,
+              "x": 58,
               "y": 1,
               "w": 18,
               "h": 17
@@ -507,7 +507,7 @@
             },
             "local_rotation": 0.0,
             "rect": {
-              "x": 94,
+              "x": 77,
               "y": 1,
               "w": 20,
               "h": 16
