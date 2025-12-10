@@ -281,13 +281,49 @@ pub fn update_stamina(dt: f32, world: &mut World) {
 }
 
 pub fn state_to_anim(world: &mut World) {
-    for (_, (data, play)) in world.query_mut::<(&PlayerData, &mut AnimationPlay)>() {
+    for (_, (data, look, kin, play)) in world.query_mut::<(
+        &PlayerData,
+        &CharacterLook,
+        &KinematicControl,
+        &mut AnimationPlay,
+    )>() {
         let animation = match data.state {
-            PlayerState::Idle => AnimationId::BunnyIdleD,
-            PlayerState::Walking => AnimationId::BunnyWalkD,
+            PlayerState::Idle => match angle_to_direction(look.0) {
+                Direction::Right => AnimationId::BunnyIdleR,
+                Direction::Down => AnimationId::BunnyIdleD,
+                Direction::Left => AnimationId::BunnyIdleL,
+                Direction::Up => AnimationId::BunnyIdleU,
+            },
+            PlayerState::Walking => match angle_to_direction(kin.dr.to_angle()) {
+                Direction::Right => AnimationId::BunnyWalkR,
+                Direction::Down => AnimationId::BunnyWalkD,
+                Direction::Left => AnimationId::BunnyWalkL,
+                Direction::Up => AnimationId::BunnyWalkU,
+            },
             PlayerState::Attacking => AnimationId::BunnyAttackD,
             PlayerState::Dashing => AnimationId::BunnyDash,
         };
         play.animation = animation;
     }
+}
+
+fn angle_to_direction(angle: f32) -> Direction {
+    let increment = std::f32::consts::FRAC_PI_4;
+    if (-3.0 * increment..=-increment).contains(&angle) {
+        Direction::Up
+    } else if (-increment..increment).contains(&angle) {
+        Direction::Right
+    } else if (increment..=3.0 * increment).contains(&angle) {
+        Direction::Down
+    } else {
+        Direction::Left
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Direction {
+    Right,
+    Down,
+    Left,
+    Up,
 }
