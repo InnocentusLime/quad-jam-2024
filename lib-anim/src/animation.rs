@@ -122,8 +122,14 @@ pub enum Team {
     Hash,
 )]
 pub enum AnimationId {
+    BunnyIdleR,
     BunnyIdleD,
+    BunnyIdleL,
+    BunnyIdleU,
+    BunnyWalkR,
     BunnyWalkD,
+    BunnyWalkL,
+    BunnyWalkU,
     BunnyAttackD,
     BunnyDash,
     StabberIdle,
