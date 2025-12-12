@@ -20,12 +20,15 @@ use crate::{AnimationPlay, CharacterLook};
 pub struct AnimationEdit {
     pub playback: Entity,
     open_save_pack: bool,
+    open_load_aseprite_modal: bool,
     current_pack_id: AnimationPackId,
     sequencer_state: SequencerState,
     tf: TimelineTf,
     track_label: String,
     selected_clip: Option<u32>,
     selected_track: Option<u32>,
+    load_into_track: u32,
+    layer_name: String,
 }
 
 impl AnimationEdit {
@@ -33,6 +36,7 @@ impl AnimationEdit {
         Self {
             playback: Entity::DANGLING,
             open_save_pack: false,
+            open_load_aseprite_modal: false,
             current_pack_id: AnimationPackId::Bunny,
             sequencer_state: SequencerState::Idle,
             selected_clip: None,
@@ -42,6 +46,8 @@ impl AnimationEdit {
                 zoom: 1.0,
                 pan: 0.0,
             },
+            load_into_track: 0,
+            layer_name: String::new(),
         }
     }
 
@@ -84,7 +90,15 @@ impl AnimationEdit {
 
         let anim = anims.entry(play.animation).or_insert_with(Default::default);
         ui.horizontal(|ui| {
-            animation_load_ui(ui, resolver, play.animation, anim);
+            animation_load_ui(
+                ui,
+                resolver,
+                play.animation,
+                anim,
+                &mut self.open_load_aseprite_modal,
+                &mut self.load_into_track,
+                &mut self.layer_name,
+            );
         });
         ui.horizontal(|ui| {
             ui.drag_angle(&mut look.0);
