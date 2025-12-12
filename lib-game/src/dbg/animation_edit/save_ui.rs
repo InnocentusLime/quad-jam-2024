@@ -197,7 +197,19 @@ fn load_aseprite_modal(
                 current_anim
                     .clips
                     .retain(|x| x.track_id != *load_into_track);
-                current_anim.clips.extend(loaded_anim.clips);
+                let clip_offset = current_anim
+                    .clips
+                    .iter()
+                    .map(|x| x.id + 1)
+                    .max()
+                    .unwrap_or_default();
+                current_anim
+                    .clips
+                    .extend(loaded_anim.clips.into_iter().map(|clip| lib_anim::Clip {
+                        id: clip.id + clip_offset,
+                        track_id: *load_into_track,
+                        ..clip
+                    }));
             }
         }
     });
