@@ -215,7 +215,11 @@ impl<'a> Sequencer<'a> {
             return;
         };
         let new_track_y = ((start_pos_y + total_drag_delta_y).max(0.0) / CLIP_HEIGHT) as u32;
-        let new_pos = (start_pos_x + self.tf.inv_tf_vector(total_drag_delta_x)) as u32;
+        let new_pos = if total_drag_delta_y.abs() > CLIP_HEIGHT {
+            start_pos_x as u32
+        } else {
+            (start_pos_x + self.tf.inv_tf_vector(total_drag_delta_x)) as u32
+        };
         let new_len = clip.len;
         self.clips
             .set_clip_pos_len(clip_id, new_track_y, new_pos, new_len);
