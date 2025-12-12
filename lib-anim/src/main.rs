@@ -79,7 +79,7 @@ fn convert_aseprite(
     aseprite: PathBuf,
     out: PathBuf,
 ) -> anyhow::Result<()> {
-    let anims = lib_anim::aseprite_load::load_animations_aseprite(fs_resolver, aseprite)?;
+    let anims = lib_anim::aseprite_load::load_animations_aseprite(fs_resolver, aseprite, None)?;
     let out = File::create(out).context("open destination")?;
     serde_json::to_writer_pretty(out, &anims).context("writing to dest")
 }

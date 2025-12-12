@@ -38,7 +38,7 @@ impl AnimationPackId {
         // On native (dev-environment) we load from aseprite and project files.
         // First we try to load the project. If that fails, we try to load aseprite.
         // This way it is faster to iterate on designs.
-        match aseprite_load::load_animations_aseprite(resolver, &aseprite_path) {
+        match aseprite_load::load_animations_aseprite(resolver, &aseprite_path, None) {
             Ok(x) => return Ok(x),
             Err(e) => warn!("Failed to load aseprite sheet {self:?}: {e:?}"),
         }

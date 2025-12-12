@@ -1,6 +1,6 @@
 { "frames": [
    {
-    "filename": "0",
+    "filename": "0.player body",
     "frame": { "x": 1, "y": 1, "w": 16, "h": 17 },
     "rotated": false,
     "trimmed": true,
@@ -9,7 +9,7 @@
     "duration": 167
    },
    {
-    "filename": "1",
+    "filename": "1.player body",
     "frame": { "x": 18, "y": 1, "w": 18, "h": 17 },
     "rotated": false,
     "trimmed": true,
@@ -18,7 +18,7 @@
     "duration": 167
    },
    {
-    "filename": "2",
+    "filename": "2.player body",
     "frame": { "x": 37, "y": 1, "w": 20, "h": 16 },
     "rotated": false,
     "trimmed": true,
@@ -27,7 +27,7 @@
     "duration": 167
    },
    {
-    "filename": "3",
+    "filename": "3.player body",
     "frame": { "x": 1, "y": 1, "w": 16, "h": 17 },
     "rotated": false,
     "trimmed": true,
@@ -36,7 +36,7 @@
     "duration": 167
    },
    {
-    "filename": "4",
+    "filename": "4.player body",
     "frame": { "x": 58, "y": 1, "w": 18, "h": 17 },
     "rotated": false,
     "trimmed": true,
@@ -45,7 +45,7 @@
     "duration": 167
    },
    {
-    "filename": "5",
+    "filename": "5.player body",
     "frame": { "x": 77, "y": 1, "w": 20, "h": 16 },
     "rotated": false,
     "trimmed": true,
@@ -54,7 +54,7 @@
     "duration": 167
    },
    {
-    "filename": "6",
+    "filename": "6.player body",
     "frame": { "x": 1, "y": 1, "w": 16, "h": 17 },
     "rotated": false,
     "trimmed": true,
@@ -63,7 +63,7 @@
     "duration": 100
    },
    {
-    "filename": "7",
+    "filename": "7.player body",
     "frame": { "x": 98, "y": 1, "w": 18, "h": 16 },
     "rotated": false,
     "trimmed": true,
@@ -72,34 +72,34 @@
     "duration": 200
    },
    {
-    "filename": "8",
-    "frame": { "x": 117, "y": 1, "w": 12, "h": 38 },
+    "filename": "8.player body",
+    "frame": { "x": 117, "y": 1, "w": 12, "h": 11 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 238, "y": 115, "w": 12, "h": 38 },
+    "spriteSourceSize": { "x": 238, "y": 116, "w": 12, "h": 11 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 100
    },
    {
-    "filename": "9",
-    "frame": { "x": 130, "y": 1, "w": 12, "h": 38 },
+    "filename": "9.player body",
+    "frame": { "x": 130, "y": 1, "w": 12, "h": 11 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 238, "y": 115, "w": 12, "h": 38 },
+    "spriteSourceSize": { "x": 238, "y": 116, "w": 12, "h": 11 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 100
    },
    {
-    "filename": "10",
-    "frame": { "x": 143, "y": 1, "w": 32, "h": 42 },
+    "filename": "10.player body",
+    "frame": { "x": 143, "y": 1, "w": 32, "h": 17 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 228, "y": 111, "w": 32, "h": 42 },
+    "spriteSourceSize": { "x": 228, "y": 111, "w": 32, "h": 17 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 100
    },
    {
-    "filename": "11",
+    "filename": "11.player body",
     "frame": { "x": 176, "y": 1, "w": 18, "h": 17 },
     "rotated": false,
     "trimmed": true,
@@ -108,7 +108,7 @@
     "duration": 100
    },
    {
-    "filename": "12",
+    "filename": "12.player body",
     "frame": { "x": 1, "y": 1, "w": 16, "h": 17 },
     "rotated": false,
     "trimmed": true,
@@ -117,7 +117,7 @@
     "duration": 100
    },
    {
-    "filename": "13",
+    "filename": "13.player body",
     "frame": { "x": 1, "y": 1, "w": 16, "h": 17 },
     "rotated": false,
     "trimmed": true,
@@ -126,7 +126,7 @@
     "duration": 100
    },
    {
-    "filename": "14",
+    "filename": "14.player body",
     "frame": { "x": 1, "y": 1, "w": 16, "h": 17 },
     "rotated": false,
     "trimmed": true,
@@ -135,7 +135,7 @@
     "duration": 100
    },
    {
-    "filename": "15",
+    "filename": "15.player body",
     "frame": { "x": 1, "y": 1, "w": 16, "h": 17 },
     "rotated": false,
     "trimmed": true,
@@ -144,7 +144,7 @@
     "duration": 100
    },
    {
-    "filename": "16",
+    "filename": "16.player body",
     "frame": { "x": 1, "y": 1, "w": 16, "h": 17 },
     "rotated": false,
     "trimmed": true,
@@ -153,7 +153,7 @@
     "duration": 100
    },
    {
-    "filename": "17",
+    "filename": "17.player body",
     "frame": { "x": 1, "y": 1, "w": 16, "h": 17 },
     "rotated": false,
     "trimmed": true,
@@ -162,7 +162,7 @@
     "duration": 100
    },
    {
-    "filename": "18",
+    "filename": "18.player body",
     "frame": { "x": 1, "y": 1, "w": 16, "h": 17 },
     "rotated": false,
     "trimmed": true,
@@ -171,8 +171,404 @@
     "duration": 100
    },
    {
-    "filename": "19",
-    "frame": { "x": 195, "y": 1, "w": 16, "h": 16 },
+    "filename": "19.player body",
+    "frame": { "x": 195, "y": 1, "w": 12, "h": 15 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 269, "y": 113, "w": 12, "h": 15 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "20.player body",
+    "frame": { "x": 208, "y": 1, "w": 12, "h": 15 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 269, "y": 113, "w": 12, "h": 15 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "21.player body",
+    "frame": { "x": 221, "y": 1, "w": 12, "h": 14 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 269, "y": 114, "w": 12, "h": 14 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "22.player body",
+    "frame": { "x": 195, "y": 1, "w": 12, "h": 15 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 269, "y": 113, "w": 12, "h": 15 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "23.player body",
+    "frame": { "x": 234, "y": 1, "w": 12, "h": 15 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 269, "y": 113, "w": 12, "h": 15 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "24.player body",
+    "frame": { "x": 247, "y": 1, "w": 12, "h": 14 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 269, "y": 114, "w": 12, "h": 14 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "25.player body",
+    "frame": { "x": 260, "y": 1, "w": 14, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 258, "y": 111, "w": 14, "h": 17 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "26.player body",
+    "frame": { "x": 275, "y": 1, "w": 14, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 258, "y": 111, "w": 14, "h": 17 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "27.player body",
+    "frame": { "x": 290, "y": 1, "w": 14, "h": 16 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 258, "y": 112, "w": 14, "h": 16 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "28.player body",
+    "frame": { "x": 260, "y": 1, "w": 14, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 258, "y": 111, "w": 14, "h": 17 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "29.player body",
+    "frame": { "x": 305, "y": 1, "w": 14, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 258, "y": 111, "w": 14, "h": 17 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "30.player body",
+    "frame": { "x": 320, "y": 1, "w": 14, "h": 16 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 258, "y": 112, "w": 14, "h": 16 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "31.player body",
+    "frame": { "x": 335, "y": 1, "w": 14, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 265, "y": 111, "w": 14, "h": 17 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "32.player body",
+    "frame": { "x": 350, "y": 1, "w": 14, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 265, "y": 111, "w": 14, "h": 17 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "33.player body",
+    "frame": { "x": 365, "y": 1, "w": 14, "h": 16 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 265, "y": 112, "w": 14, "h": 16 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "34.player body",
+    "frame": { "x": 335, "y": 1, "w": 14, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 265, "y": 111, "w": 14, "h": 17 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "35.player body",
+    "frame": { "x": 380, "y": 1, "w": 14, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 265, "y": 111, "w": 14, "h": 17 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "36.player body",
+    "frame": { "x": 395, "y": 1, "w": 14, "h": 16 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 265, "y": 112, "w": 14, "h": 16 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "37.player body",
+    "frame": { "x": 410, "y": 1, "w": 68, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 236, "y": 111, "w": 68, "h": 17 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "38.player body",
+    "frame": { "x": 479, "y": 1, "w": 69, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 235, "y": 111, "w": 69, "h": 17 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "39.player body",
+    "frame": { "x": 549, "y": 1, "w": 70, "h": 16 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 234, "y": 112, "w": 70, "h": 16 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "40.player body",
+    "frame": { "x": 410, "y": 1, "w": 68, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 236, "y": 111, "w": 68, "h": 17 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "41.player body",
+    "frame": { "x": 620, "y": 1, "w": 69, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 235, "y": 111, "w": 69, "h": 17 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "42.player body",
+    "frame": { "x": 690, "y": 1, "w": 70, "h": 16 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 234, "y": 112, "w": 70, "h": 16 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "43.player body",
+    "frame": { "x": 1, "y": 1, "w": 16, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 236, "y": 111, "w": 16, "h": 17 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "0.player ears",
+    "frame": { "x": 1, "y": 19, "w": 1, "h": 1 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "1.player ears",
+    "frame": { "x": 1, "y": 19, "w": 1, "h": 1 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "2.player ears",
+    "frame": { "x": 1, "y": 19, "w": 1, "h": 1 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "3.player ears",
+    "frame": { "x": 1, "y": 19, "w": 1, "h": 1 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "4.player ears",
+    "frame": { "x": 1, "y": 19, "w": 1, "h": 1 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "5.player ears",
+    "frame": { "x": 1, "y": 19, "w": 1, "h": 1 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 167
+   },
+   {
+    "filename": "6.player ears",
+    "frame": { "x": 1, "y": 19, "w": 1, "h": 1 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 100
+   },
+   {
+    "filename": "7.player ears",
+    "frame": { "x": 3, "y": 19, "w": 10, "h": 2 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 239, "y": 118, "w": 10, "h": 2 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 200
+   },
+   {
+    "filename": "8.player ears",
+    "frame": { "x": 14, "y": 19, "w": 12, "h": 38 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 238, "y": 115, "w": 12, "h": 38 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 100
+   },
+   {
+    "filename": "9.player ears",
+    "frame": { "x": 27, "y": 19, "w": 12, "h": 38 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 238, "y": 115, "w": 12, "h": 38 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 100
+   },
+   {
+    "filename": "10.player ears",
+    "frame": { "x": 40, "y": 19, "w": 8, "h": 17 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 240, "y": 136, "w": 8, "h": 17 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 100
+   },
+   {
+    "filename": "11.player ears",
+    "frame": { "x": 1, "y": 19, "w": 1, "h": 1 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 100
+   },
+   {
+    "filename": "12.player ears",
+    "frame": { "x": 1, "y": 19, "w": 1, "h": 1 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 100
+   },
+   {
+    "filename": "13.player ears",
+    "frame": { "x": 1, "y": 19, "w": 1, "h": 1 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 100
+   },
+   {
+    "filename": "14.player ears",
+    "frame": { "x": 1, "y": 19, "w": 1, "h": 1 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 100
+   },
+   {
+    "filename": "15.player ears",
+    "frame": { "x": 1, "y": 19, "w": 1, "h": 1 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 100
+   },
+   {
+    "filename": "16.player ears",
+    "frame": { "x": 1, "y": 19, "w": 1, "h": 1 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 100
+   },
+   {
+    "filename": "17.player ears",
+    "frame": { "x": 1, "y": 19, "w": 1, "h": 1 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 100
+   },
+   {
+    "filename": "18.player ears",
+    "frame": { "x": 1, "y": 19, "w": 1, "h": 1 },
+    "rotated": false,
+    "trimmed": true,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
+    "sourceSize": { "w": 480, "h": 270 },
+    "duration": 100
+   },
+   {
+    "filename": "19.player ears",
+    "frame": { "x": 49, "y": 19, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": true,
     "spriteSourceSize": { "x": 267, "y": 112, "w": 16, "h": 16 },
@@ -180,8 +576,8 @@
     "duration": 167
    },
    {
-    "filename": "20",
-    "frame": { "x": 212, "y": 1, "w": 18, "h": 16 },
+    "filename": "20.player ears",
+    "frame": { "x": 66, "y": 19, "w": 18, "h": 16 },
     "rotated": false,
     "trimmed": true,
     "spriteSourceSize": { "x": 266, "y": 112, "w": 18, "h": 16 },
@@ -189,8 +585,8 @@
     "duration": 167
    },
    {
-    "filename": "21",
-    "frame": { "x": 231, "y": 1, "w": 20, "h": 16 },
+    "filename": "21.player ears",
+    "frame": { "x": 85, "y": 19, "w": 20, "h": 16 },
     "rotated": false,
     "trimmed": true,
     "spriteSourceSize": { "x": 265, "y": 113, "w": 20, "h": 16 },
@@ -198,8 +594,8 @@
     "duration": 167
    },
    {
-    "filename": "22",
-    "frame": { "x": 195, "y": 1, "w": 16, "h": 16 },
+    "filename": "22.player ears",
+    "frame": { "x": 49, "y": 19, "w": 16, "h": 16 },
     "rotated": false,
     "trimmed": true,
     "spriteSourceSize": { "x": 267, "y": 112, "w": 16, "h": 16 },
@@ -207,8 +603,8 @@
     "duration": 167
    },
    {
-    "filename": "23",
-    "frame": { "x": 252, "y": 1, "w": 18, "h": 16 },
+    "filename": "23.player ears",
+    "frame": { "x": 106, "y": 19, "w": 18, "h": 16 },
     "rotated": false,
     "trimmed": true,
     "spriteSourceSize": { "x": 266, "y": 112, "w": 18, "h": 16 },
@@ -216,8 +612,8 @@
     "duration": 167
    },
    {
-    "filename": "24",
-    "frame": { "x": 271, "y": 1, "w": 20, "h": 16 },
+    "filename": "24.player ears",
+    "frame": { "x": 125, "y": 19, "w": 20, "h": 16 },
     "rotated": false,
     "trimmed": true,
     "spriteSourceSize": { "x": 265, "y": 113, "w": 20, "h": 16 },
@@ -225,173 +621,173 @@
     "duration": 167
    },
    {
-    "filename": "25",
-    "frame": { "x": 292, "y": 1, "w": 14, "h": 18 },
+    "filename": "25.player ears",
+    "frame": { "x": 146, "y": 19, "w": 6, "h": 14 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 258, "y": 111, "w": 14, "h": 18 },
+    "spriteSourceSize": { "x": 258, "y": 115, "w": 6, "h": 14 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 167
    },
    {
-    "filename": "26",
-    "frame": { "x": 307, "y": 1, "w": 17, "h": 17 },
+    "filename": "26.player ears",
+    "frame": { "x": 153, "y": 19, "w": 8, "h": 16 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 255, "y": 111, "w": 17, "h": 17 },
+    "spriteSourceSize": { "x": 255, "y": 112, "w": 8, "h": 16 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 167
    },
    {
-    "filename": "27",
-    "frame": { "x": 325, "y": 1, "w": 19, "h": 17 },
+    "filename": "27.player ears",
+    "frame": { "x": 162, "y": 19, "w": 10, "h": 16 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 253, "y": 112, "w": 19, "h": 17 },
+    "spriteSourceSize": { "x": 253, "y": 113, "w": 10, "h": 16 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 167
    },
    {
-    "filename": "28",
-    "frame": { "x": 292, "y": 1, "w": 14, "h": 18 },
+    "filename": "28.player ears",
+    "frame": { "x": 146, "y": 19, "w": 6, "h": 14 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 258, "y": 111, "w": 14, "h": 18 },
+    "spriteSourceSize": { "x": 258, "y": 115, "w": 6, "h": 14 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 167
    },
    {
-    "filename": "29",
-    "frame": { "x": 345, "y": 1, "w": 17, "h": 17 },
+    "filename": "29.player ears",
+    "frame": { "x": 153, "y": 19, "w": 8, "h": 16 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 255, "y": 111, "w": 17, "h": 17 },
+    "spriteSourceSize": { "x": 255, "y": 112, "w": 8, "h": 16 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 167
    },
    {
-    "filename": "30",
-    "frame": { "x": 363, "y": 1, "w": 19, "h": 17 },
+    "filename": "30.player ears",
+    "frame": { "x": 162, "y": 19, "w": 10, "h": 16 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 253, "y": 112, "w": 19, "h": 17 },
+    "spriteSourceSize": { "x": 253, "y": 113, "w": 10, "h": 16 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 167
    },
    {
-    "filename": "31",
-    "frame": { "x": 383, "y": 1, "w": 14, "h": 18 },
+    "filename": "31.player ears",
+    "frame": { "x": 173, "y": 19, "w": 6, "h": 14 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 265, "y": 111, "w": 14, "h": 18 },
+    "spriteSourceSize": { "x": 273, "y": 115, "w": 6, "h": 14 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 167
    },
    {
-    "filename": "32",
-    "frame": { "x": 398, "y": 1, "w": 17, "h": 17 },
+    "filename": "32.player ears",
+    "frame": { "x": 180, "y": 19, "w": 8, "h": 16 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 265, "y": 111, "w": 17, "h": 17 },
+    "spriteSourceSize": { "x": 274, "y": 112, "w": 8, "h": 16 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 167
    },
    {
-    "filename": "33",
-    "frame": { "x": 416, "y": 1, "w": 19, "h": 17 },
+    "filename": "33.player ears",
+    "frame": { "x": 189, "y": 19, "w": 10, "h": 16 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 265, "y": 112, "w": 19, "h": 17 },
+    "spriteSourceSize": { "x": 274, "y": 113, "w": 10, "h": 16 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 167
    },
    {
-    "filename": "34",
-    "frame": { "x": 383, "y": 1, "w": 14, "h": 18 },
+    "filename": "34.player ears",
+    "frame": { "x": 173, "y": 19, "w": 6, "h": 14 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 265, "y": 111, "w": 14, "h": 18 },
+    "spriteSourceSize": { "x": 273, "y": 115, "w": 6, "h": 14 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 167
    },
    {
-    "filename": "35",
-    "frame": { "x": 436, "y": 1, "w": 17, "h": 17 },
+    "filename": "35.player ears",
+    "frame": { "x": 180, "y": 19, "w": 8, "h": 16 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 265, "y": 111, "w": 17, "h": 17 },
+    "spriteSourceSize": { "x": 274, "y": 112, "w": 8, "h": 16 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 167
    },
    {
-    "filename": "36",
-    "frame": { "x": 454, "y": 1, "w": 19, "h": 17 },
+    "filename": "36.player ears",
+    "frame": { "x": 189, "y": 19, "w": 10, "h": 16 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 265, "y": 112, "w": 19, "h": 17 },
+    "spriteSourceSize": { "x": 274, "y": 113, "w": 10, "h": 16 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 167
    },
    {
-    "filename": "37",
-    "frame": { "x": 474, "y": 1, "w": 70, "h": 18 },
+    "filename": "37.player ears",
+    "frame": { "x": 200, "y": 19, "w": 33, "h": 17 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 236, "y": 111, "w": 70, "h": 18 },
+    "spriteSourceSize": { "x": 273, "y": 112, "w": 33, "h": 17 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 167
    },
    {
-    "filename": "38",
-    "frame": { "x": 545, "y": 1, "w": 72, "h": 17 },
+    "filename": "38.player ears",
+    "frame": { "x": 234, "y": 19, "w": 33, "h": 16 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 235, "y": 111, "w": 72, "h": 17 },
+    "spriteSourceSize": { "x": 274, "y": 112, "w": 33, "h": 16 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 167
    },
    {
-    "filename": "39",
-    "frame": { "x": 618, "y": 1, "w": 74, "h": 17 },
+    "filename": "39.player ears",
+    "frame": { "x": 268, "y": 19, "w": 34, "h": 16 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 234, "y": 112, "w": 74, "h": 17 },
+    "spriteSourceSize": { "x": 274, "y": 113, "w": 34, "h": 16 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 167
    },
    {
-    "filename": "40",
-    "frame": { "x": 474, "y": 1, "w": 70, "h": 18 },
+    "filename": "40.player ears",
+    "frame": { "x": 200, "y": 19, "w": 33, "h": 17 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 236, "y": 111, "w": 70, "h": 18 },
+    "spriteSourceSize": { "x": 273, "y": 112, "w": 33, "h": 17 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 167
    },
    {
-    "filename": "41",
-    "frame": { "x": 693, "y": 1, "w": 72, "h": 17 },
+    "filename": "41.player ears",
+    "frame": { "x": 303, "y": 19, "w": 33, "h": 16 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 235, "y": 111, "w": 72, "h": 17 },
+    "spriteSourceSize": { "x": 274, "y": 112, "w": 33, "h": 16 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 167
    },
    {
-    "filename": "42",
-    "frame": { "x": 766, "y": 1, "w": 74, "h": 17 },
+    "filename": "42.player ears",
+    "frame": { "x": 337, "y": 19, "w": 34, "h": 16 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 234, "y": 112, "w": 74, "h": 17 },
+    "spriteSourceSize": { "x": 274, "y": 113, "w": 34, "h": 16 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 167
    },
    {
-    "filename": "43",
-    "frame": { "x": 1, "y": 1, "w": 16, "h": 17 },
+    "filename": "43.player ears",
+    "frame": { "x": 1, "y": 19, "w": 1, "h": 1 },
     "rotated": false,
     "trimmed": true,
-    "spriteSourceSize": { "x": 236, "y": 111, "w": 16, "h": 17 },
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 1, "h": 1 },
     "sourceSize": { "w": 480, "h": 270 },
     "duration": 167
    }
@@ -401,7 +797,7 @@
   "version": "1.3.15.5-x64",
   "image": "bnuuy.png",
   "format": "RGBA8888",
-  "size": { "w": 841, "h": 44 },
+  "size": { "w": 761, "h": 58 },
   "scale": "1",
   "frameTags": [
    { "name": "Walk D", "from": 0, "to": 5, "direction": "forward", "color": "#000000ff", "data": "BunnyWalkD" },
