@@ -228,7 +228,8 @@ impl App {
             let load_level = self.next_state(&input, &debug);
             if load_level {
                 info!("Loading level");
-                let level = lib_level::load_level(&self.resources.resolver, "test_room")
+                let level = lib_level::LevelId::TestRoom
+                    .load_level(&self.resources.resolver)
                     .await
                     .unwrap();
                 self.resources.load_texture(level.map.atlas).await;

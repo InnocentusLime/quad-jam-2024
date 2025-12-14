@@ -60,6 +60,8 @@ pub struct FsResolver {
     aseprite_dir: PathBuf,
     animations_pack_dir: PathBuf,
     animations_pack_proj_dir: PathBuf,
+    tiled_dir: PathBuf,
+    levels_dir: PathBuf,
 }
 
 impl FsResolver {
@@ -69,6 +71,8 @@ impl FsResolver {
             aseprite_dir: Self::aseprite_dir_default(),
             animations_pack_dir: Self::animations_pack_dir_default(),
             animations_pack_proj_dir: Self::animations_pack_proj_dir_default(),
+            tiled_dir: Self::tiled_dir_default(),
+            levels_dir: Self::levels_dir_default(),
         }
     }
 
@@ -106,6 +110,24 @@ impl FsResolver {
         set_animations_pack_proj_dir,
         animation_pack_proj_filename,
         animation_pack_proj_path
+    );
+
+    impl_resource_methods!(
+        tiled_dir,
+        tiled_dir_default = "project-tiled",
+        get_tiled_dir,
+        set_tiled_dir,
+        tiled_filename,
+        tiled_path
+    );
+
+    impl_resource_methods!(
+        levels_dir,
+        levels_dir_default = "levels",
+        get_levels_dir,
+        set_levels_dir,
+        level_filename,
+        level_path
     );
 }
 
