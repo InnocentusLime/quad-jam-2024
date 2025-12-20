@@ -125,13 +125,10 @@ impl AppState {
     /// Gives a hint whether the user should start
     /// rendering the game state or not
     pub fn is_presentable(&self) -> bool {
-        match self {
-            AppState::Active { .. }
-            | AppState::GameOver
-            | AppState::Win
-            | AppState::DebugFreeze => true,
-            _ => false,
-        }
+        matches!(
+            self,
+            AppState::Active { .. } | AppState::GameOver | AppState::Win | AppState::DebugFreeze
+        )
     }
 }
 
@@ -250,10 +247,11 @@ impl App {
             }
 
             dump!("game state: {:?}", self.state);
-            if matches!(self.state, AppState::Active { paused: false }) && do_tick {
-                if let Some(next_state) = self.game_update(&input, game) {
-                    self.state = next_state;
-                }
+            if matches!(self.state, AppState::Active { paused: false })
+                && do_tick
+                && let Some(next_state) = self.game_update(&input, game)
+            {
+                self.state = next_state;
             }
 
             self.game_present(real_dt, game);
@@ -284,7 +282,7 @@ impl App {
     }
 
     fn game_update<G: Game>(&mut self, input: &InputModel, game: &mut G) -> Option<AppState> {
-        game.input_phase(&input, GAME_TICKRATE, &self.resources, &mut self.world);
+        game.input_phase(input, GAME_TICKRATE, &self.resources, &mut self.world);
 
         animations::update(GAME_TICKRATE, &mut self.world, &self.resources);
         animations::collect_clip_action_objects(&mut self.world, &mut self.clip_action_objects);
@@ -292,7 +290,7 @@ impl App {
             &mut self.world,
             &self.resources,
             &mut self.cmds,
-            &mut self.clip_action_objects,
+            &self.clip_action_objects,
         );
         health::reset(&mut self.world);
         animations::update_invulnerability(&mut self.world, &self.resources);
@@ -343,7 +341,7 @@ impl App {
         set_fullscreen(!self.fullscreen);
 
         if self.fullscreen {
-            miniquad::window::set_window_size(self.old_size.0 as u32, self.old_size.1 as u32);
+            miniquad::window::set_window_size(self.old_size.0, self.old_size.1);
         }
 
         self.fullscreen = !self.fullscreen;
@@ -433,7 +431,7 @@ impl App {
             "sw" => self.render_world = true,
             "reset" => self.state = AppState::Start,
             "dde" => {
-                if cmd.args.len() < 1 {
+                if cmd.args.is_empty() {
                     error!("Not enough args");
                     return;
                 }
@@ -446,7 +444,7 @@ impl App {
                 debug.enabled_debug_draws.insert(dd_name.to_owned());
             }
             "ddd" => {
-                if cmd.args.len() < 1 {
+                if cmd.args.is_empty() {
                     error!("Not enough args");
                     return;
                 }
@@ -500,5 +498,11 @@ impl Resources {
     pub async fn load_animation_pack(&mut self, pack_id: AnimationPackId) {
         let pack: HashMap<_, _> = self.resolver.load(pack_id).await.unwrap();
         self.animations.extend(pack);
+    }
+}
+
+impl Default for Resources {
+    fn default() -> Self {
+        Resources::new()
     }
 }

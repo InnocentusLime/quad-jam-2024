@@ -94,8 +94,8 @@ impl AnimationPackId {
     pub fn animations(self) -> impl Iterator<Item = AnimationId> {
         let pack_name: &'static str = (&self).into();
         AnimationId::VARIANTS
-            .into_iter()
-            .map(|x| *x)
+            .iter()
+            .copied()
             .filter(move |anim_id| {
                 let anim_name: &'static str = anim_id.into();
                 anim_name.starts_with(pack_name)

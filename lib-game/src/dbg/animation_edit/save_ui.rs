@@ -191,7 +191,7 @@ fn load_aseprite_modal(
                 .add_filter("", &["json"])
                 .pick_file();
             let loaded_anim =
-                src.and_then(|src| load_aseprite_anim(src, resolver, current_anim_id, &layer_name));
+                src.and_then(|src| load_aseprite_anim(src, resolver, current_anim_id, layer_name));
             if let Some(loaded_anim) = loaded_anim {
                 // FIXME: there are concerns about overlapping IDs
                 current_anim

@@ -13,7 +13,7 @@ macro_rules! dump {
 const DUMP_LINE_CAPACITY: usize = 255;
 const DUMP_CAPACITY: usize = 100;
 
-pub static GLOBAL_DUMP: LazyLock<ScreenDump> = LazyLock::new(|| ScreenDump::new());
+pub static GLOBAL_DUMP: LazyLock<ScreenDump> = LazyLock::new(ScreenDump::new);
 
 pub struct ScreenDump(Mutex<ScreenDumpBuff>);
 
@@ -36,6 +36,12 @@ impl ScreenDump {
             }
         });
         buff.reset();
+    }
+}
+
+impl Default for ScreenDump {
+    fn default() -> Self {
+        ScreenDump::new()
     }
 }
 

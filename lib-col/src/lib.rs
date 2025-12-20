@@ -112,3 +112,9 @@ impl CollisionSolver {
         Some((entity, toi, normal))
     }
 }
+
+impl Default for CollisionSolver {
+    fn default() -> Self {
+        CollisionSolver::new()
+    }
+}

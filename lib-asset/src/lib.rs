@@ -74,6 +74,12 @@ impl FsResolver {
     }
 }
 
+impl Default for FsResolver {
+    fn default() -> Self {
+        FsResolver::new()
+    }
+}
+
 pub trait Asset: Sized {
     type AssetId: Copy + strum::VariantArray;
     const ROOT: AssetRoot;

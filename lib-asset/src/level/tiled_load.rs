@@ -145,7 +145,7 @@ fn load_entity_defs_from_object_layer(layer: &tiled::Layer) -> anyhow::Result<Ve
     let mut entities = Vec::new();
     for object in object_layer.objects() {
         anyhow::ensure!(
-            object.user_type != "",
+            !object.user_type.is_empty(),
             "Layer {OBJECT_LAYER:?}, object {}: no class",
             object.id(),
         );
@@ -189,7 +189,7 @@ fn resolve_atlas(
         .with_context(|| format!("Inverse resolving {atlas_path:?}"))
 }
 
-static REQUIRED_TILED_VERSION: &'static str = "1.10";
-static OBJECT_LAYER: &'static str = "Actors";
-static WORLD_LAYER: &'static str = "World";
-static TILE_CLASS: &'static str = "Tile";
+static REQUIRED_TILED_VERSION: &str = "1.10";
+static OBJECT_LAYER: &str = "Actors";
+static WORLD_LAYER: &str = "World";
+static TILE_CLASS: &str = "Tile";

@@ -5,7 +5,7 @@
 use glam::{Affine2, Vec2, Vec4, vec2};
 
 pub const MAX_AXIS_NORMALS: usize = 8;
-pub const SHAPE_TOI_EPSILON: f32 = std::f32::EPSILON * 100.0f32;
+pub const SHAPE_TOI_EPSILON: f32 = f32::EPSILON * 100.0f32;
 pub static RECT_VERTICES: [Vec2; 4] = [
     vec2(-1.0, 1.0),
     vec2(1.0, 1.0),
