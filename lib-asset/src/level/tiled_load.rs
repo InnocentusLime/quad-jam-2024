@@ -7,77 +7,24 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use crate::{FsResolver, TextureId};
 use hashbrown::HashMap;
-use lib_asset::{FsResolver, TextureId};
+use macroquad::texture::Texture2D;
 use thiserror::Error;
 
 use super::tiled_props_des::{DeserializerError, from_properties};
 use crate::level::*;
 
-static REQUIRED_TILED_VERSION: &'static str = "1.10";
-static OBJECT_LAYER: &'static str = "Actors";
-static WORLD_LAYER: &'static str = "World";
-static TILE_CLASS: &'static str = "Tile";
+/// Load a level by path through tield. For internal use only.
+pub fn load_level(resolver: &FsResolver, path: impl AsRef<Path>) -> anyhow::Result<LevelDef> {
+    let mut loader = tiled::Loader::new();
+    let map = loader.load_tmx_map(path)?;
+    let level = load_level_from_map(resolver, &map)?;
 
-#[derive(Debug, Error)]
-pub enum LoadFromTiledError {
-    #[error("Unsupported tiled map version: {0:?}")]
-    UnsupportedVersion(String),
-    #[error("Incorrect tile height: expected {TILE_SIDE:}, found {0:}")]
-    TileHeight(u32),
-    #[error("Incorrect tile width: expected {TILE_SIDE:}, found {0:}")]
-    TileWidth(u32),
-    #[error("Duplicate layer: {0:?}")]
-    DuplicateLayer(String),
-    #[error("Unknown layer: {0:?}")]
-    UnknownLayer(String),
-    #[error("World layer ({WORLD_LAYER:?}) not found")]
-    WorldLayerAbsent,
-    #[error("Object layer ({OBJECT_LAYER:?}) not found")]
-    ObjectLayerAbsent,
-    #[error("Expected layer {WORLD_LAYER:?} to be a tile layer")]
-    WorldLayerNotTileLayer,
-    #[error("Expected world layer to be finite")]
-    WorldLayerInfinite,
-    #[error("Incorrect layer {WORLD_LAYER:?} width: expected {expected:}, found {found:}")]
-    WorldLayerWidth { expected: u32, found: u32 },
-    #[error("Incorrect layer {WORLD_LAYER:?} height: expected {expected:}, found {found:}")]
-    WorldLayerHeight { expected: u32, found: u32 },
-    #[error("Expected the map to have 1 tileset. Found {0:?}")]
-    UnexpectedTilesetAmount(usize),
-    #[error("Image collection based tilesets are not supported")]
-    MapTilesetIrregular,
-    #[error("Tileset {tileset:?}: path {path:?} can't be resolved")]
-    TilesetImageNotCanonizable {
-        tileset: String,
-        path: PathBuf,
-        #[source]
-        reason: io::Error,
-    },
-    #[error("Tileset {tileset:?}, tile {tile_idx:}: unknown tile")]
-    UnknownTile { tileset: String, tile_idx: u32 },
-    #[error("Tileset {tileset:?}, tile {tile_idx:}: failed to deserialize properties")]
-    TileDeserError {
-        tileset: String,
-        tile_idx: u32,
-        #[source]
-        reason: DeserializerError,
-    },
-    #[error("Expected layer {OBJECT_LAYER:?} to be an object layer")]
-    ObjectLayerNotObjectLayer,
-    #[error("Object {obj_idx}: no class")]
-    NoObjectType { obj_idx: u32 },
-    #[error("Object {obj_idx}: failed to deserialize properties")]
-    ObjectDeserError {
-        obj_idx: u32,
-        #[source]
-        reason: DeserializerError,
-    },
-    #[error("Object {obj_idx}: expected shape to be square, found")]
-    NonSquareObject { obj_idx: u32 },
+    Ok(level)
 }
 
-pub fn load_level_from_map(
+fn load_level_from_map(
     resolver: &FsResolver,
     map: &tiled::Map,
 ) -> Result<LevelDef, LoadFromTiledError> {
@@ -266,7 +213,70 @@ fn resolve_atlas(
             reason,
         }
     })?;
-    let id = TextureId::inverse_resolve(resolver, &atlas_path).unwrap();
+    let id = resolver.inverse_resolve::<Texture2D>(&atlas_path).unwrap();
 
     Ok(id)
+}
+
+static REQUIRED_TILED_VERSION: &'static str = "1.10";
+static OBJECT_LAYER: &'static str = "Actors";
+static WORLD_LAYER: &'static str = "World";
+static TILE_CLASS: &'static str = "Tile";
+
+#[derive(Debug, Error)]
+pub enum LoadFromTiledError {
+    #[error("Unsupported tiled map version: {0:?}")]
+    UnsupportedVersion(String),
+    #[error("Incorrect tile height: expected {TILE_SIDE:}, found {0:}")]
+    TileHeight(u32),
+    #[error("Incorrect tile width: expected {TILE_SIDE:}, found {0:}")]
+    TileWidth(u32),
+    #[error("Duplicate layer: {0:?}")]
+    DuplicateLayer(String),
+    #[error("Unknown layer: {0:?}")]
+    UnknownLayer(String),
+    #[error("World layer ({WORLD_LAYER:?}) not found")]
+    WorldLayerAbsent,
+    #[error("Object layer ({OBJECT_LAYER:?}) not found")]
+    ObjectLayerAbsent,
+    #[error("Expected layer {WORLD_LAYER:?} to be a tile layer")]
+    WorldLayerNotTileLayer,
+    #[error("Expected world layer to be finite")]
+    WorldLayerInfinite,
+    #[error("Incorrect layer {WORLD_LAYER:?} width: expected {expected:}, found {found:}")]
+    WorldLayerWidth { expected: u32, found: u32 },
+    #[error("Incorrect layer {WORLD_LAYER:?} height: expected {expected:}, found {found:}")]
+    WorldLayerHeight { expected: u32, found: u32 },
+    #[error("Expected the map to have 1 tileset. Found {0:?}")]
+    UnexpectedTilesetAmount(usize),
+    #[error("Image collection based tilesets are not supported")]
+    MapTilesetIrregular,
+    #[error("Tileset {tileset:?}: path {path:?} can't be resolved")]
+    TilesetImageNotCanonizable {
+        tileset: String,
+        path: PathBuf,
+        #[source]
+        reason: io::Error,
+    },
+    #[error("Tileset {tileset:?}, tile {tile_idx:}: unknown tile")]
+    UnknownTile { tileset: String, tile_idx: u32 },
+    #[error("Tileset {tileset:?}, tile {tile_idx:}: failed to deserialize properties")]
+    TileDeserError {
+        tileset: String,
+        tile_idx: u32,
+        #[source]
+        reason: DeserializerError,
+    },
+    #[error("Expected layer {OBJECT_LAYER:?} to be an object layer")]
+    ObjectLayerNotObjectLayer,
+    #[error("Object {obj_idx}: no class")]
+    NoObjectType { obj_idx: u32 },
+    #[error("Object {obj_idx}: failed to deserialize properties")]
+    ObjectDeserError {
+        obj_idx: u32,
+        #[source]
+        reason: DeserializerError,
+    },
+    #[error("Object {obj_idx}: expected shape to be square, found")]
+    NonSquareObject { obj_idx: u32 },
 }

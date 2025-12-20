@@ -1,7 +1,7 @@
 use egui::{Color32, Key, Painter, Pos2, Rect, Response, Sense, Stroke, Ui, Vec2, Widget, pos2};
 use egui::{epaint, vec2};
 
-use lib_anim::Clip;
+use lib_asset::animation::*;
 
 use super::clips::*;
 
@@ -112,25 +112,29 @@ impl<'a> Sequencer<'a> {
         }
     }
 
-    fn clip_action_to_cursor(ui: &mut Ui, action: ClipAction) {
+    fn clip_action_to_cursor(ui: &mut Ui, action: UiClipGesture) {
         match action {
-            ClipAction::Move => ui.ctx().set_cursor_icon(egui::CursorIcon::Grab),
-            ClipAction::Resize { .. } => {
+            UiClipGesture::Move => ui.ctx().set_cursor_icon(egui::CursorIcon::Grab),
+            UiClipGesture::Resize { .. } => {
                 ui.ctx().set_cursor_icon(egui::CursorIcon::ResizeHorizontal)
             }
         }
     }
 
-    fn clip_action_to_new_state(track_y: u32, clip: &Clip, action: ClipAction) -> SequencerState {
+    fn clip_action_to_new_state(
+        track_y: u32,
+        clip: &Clip,
+        action: UiClipGesture,
+    ) -> SequencerState {
         match action {
-            ClipAction::Move => SequencerState::MoveClip {
+            UiClipGesture::Move => SequencerState::MoveClip {
                 clip_id: clip.id,
                 start_pos_x: clip.start as f32,
                 start_pos_y: track_y as f32 * CLIP_HEIGHT,
                 total_drag_delta_x: 0.0f32,
                 total_drag_delta_y: 0.0f32,
             },
-            ClipAction::Resize { resize_left } => SequencerState::ResizeClip {
+            UiClipGesture::Resize { resize_left } => SequencerState::ResizeClip {
                 clip_id: clip.id,
                 resize_left,
                 start_left: clip.start as f32,

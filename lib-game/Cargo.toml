@@ -11,10 +11,8 @@ strum = { workspace = true }
 hecs = { workspace = true }
 macroquad = { workspace = true }
 hashbrown = { workspace = true }
-lib-anim = { path = "../lib-anim" }
 lib-dbg = { path = "../lib-dbg" }
 lib-col = { path = "../lib-col" }
-lib-level = { path = "../lib-level" }
 lib-asset = { path = "../lib-asset" }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]

@@ -35,8 +35,13 @@
 //! should 1-to-1 correspond to its appropriate `spawn()` function in the
 //! game code minus the `&mut World` argument.
 
+#[cfg(not(target_family = "wasm"))]
+pub mod tiled_load;
+#[cfg(not(target_family = "wasm"))]
+mod tiled_props_des;
+
+use crate::TextureId;
 use hashbrown::HashMap;
-use lib_asset::TextureId;
 use serde::{Deserialize, Serialize};
 
 pub const TILE_SIDE: u32 = 16;

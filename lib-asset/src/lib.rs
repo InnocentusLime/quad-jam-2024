@@ -1,201 +1,87 @@
-use std::{
-    fmt::Debug,
-    path::{Path, PathBuf},
-};
+mod asset_roots;
+mod assets;
+
+pub mod animation;
+pub mod level;
+
+pub use asset_roots::*;
+pub use assets::*;
 
 use anyhow::Context;
-use macroquad::{
-    text::{Font, load_ttf_font},
-    texture::{Texture2D, load_texture},
-};
+use hashbrown::HashMap;
+use strum::VariantArray;
 
-#[doc(hidden)]
-macro_rules! impl_resource_methods {
-    (
-        $field:ident,
-        $dir_def:ident = $dir_path:literal,
-        $get_dir:ident,
-        $set_dir:ident,
-        $get_filename:ident,
-        $get_path:ident
-    ) => {
-        fn $dir_def() -> PathBuf {
-            PathBuf::from($dir_path)
-        }
-
-        #[cfg(not(target_family = "wasm"))]
-        fn $get_dir(&self) -> impl AsRef<Path> {
-            let mut path = PathBuf::from("./");
-            path.push(&self.$field);
-            match std::fs::canonicalize(&path) {
-                Ok(x) => x,
-                Err(e) => panic!("Failed to resolve {path:?}: {e}"),
-            }
-        }
-
-        #[cfg(target_family = "wasm")]
-        fn $get_dir(&self) -> impl AsRef<Path> {
-            &self.$field
-        }
-
-        pub fn $set_dir(&mut self, dir: impl AsRef<Path>) -> anyhow::Result<()> {
-            self.$field = PathBuf::from(dir.as_ref());
-            Ok(())
-        }
-
-        pub fn $get_filename<'a>(&self, path: &'a Path) -> anyhow::Result<&'a Path> {
-            path.strip_prefix(self.$get_dir())
-                .with_context(|| format!("Resolving against {:?}", self.$field))
-        }
-
-        pub fn $get_path(&self, filename: impl AsRef<Path>) -> PathBuf {
-            let filename = filename.as_ref();
-            PathBuf::from_iter([self.$get_dir().as_ref(), filename])
-        }
-    };
-}
+use std::path::{Path, PathBuf};
 
 pub struct FsResolver {
-    assets_dir: PathBuf,
-    aseprite_dir: PathBuf,
-    animations_pack_dir: PathBuf,
-    animations_pack_proj_dir: PathBuf,
-    tiled_dir: PathBuf,
-    levels_dir: PathBuf,
+    roots: HashMap<AssetRoot, PathBuf>,
 }
 
 impl FsResolver {
     pub fn new() -> Self {
-        FsResolver {
-            assets_dir: Self::assets_dir_default(),
-            aseprite_dir: Self::aseprite_dir_default(),
-            animations_pack_dir: Self::animations_pack_dir_default(),
-            animations_pack_proj_dir: Self::animations_pack_proj_dir_default(),
-            tiled_dir: Self::tiled_dir_default(),
-            levels_dir: Self::levels_dir_default(),
+        let roots = AssetRoot::VARIANTS
+            .iter()
+            .map(|x| (*x, x.default_path().into()))
+            .collect();
+        FsResolver { roots }
+    }
+
+    pub fn inverse_resolve<A: Asset>(&self, path: &Path) -> anyhow::Result<A::AssetId> {
+        let got_file = self.get_filename(A::ROOT, path)?;
+        let item = <A::AssetId as VariantArray>::VARIANTS
+            .iter()
+            .map(|id| (id, A::filename(*id)))
+            .find(|(_, file)| got_file.as_os_str() == std::ffi::OsStr::new(file));
+
+        match item {
+            Some((id, _)) => Ok(*id),
+            None => anyhow::bail!("{path:?} does not correspond to any asset"),
         }
     }
 
-    impl_resource_methods!(
-        assets_dir,
-        assets_dir_default = "assets",
-        get_assets_dir,
-        set_assets_dir,
-        asset_filename,
-        asset_path
-    );
+    pub async fn load<A: Asset>(&self, id: A::AssetId) -> anyhow::Result<A> {
+        A::load(self, &self.get_path(A::ROOT, A::filename(id))).await
+    }
 
-    impl_resource_methods!(
-        animations_pack_dir,
-        animations_pack_dir_default = "animations",
-        get_animations_pack_dir,
-        set_animations_pack_dir,
-        animation_pack_filename,
-        animation_pack_path
-    );
+    pub fn set_root(&mut self, id: AssetRoot, dir: impl AsRef<Path>) {
+        self.roots.insert(id, dir.as_ref().to_path_buf());
+    }
 
-    impl_resource_methods!(
-        aseprite_dir,
-        aseprite_dir_default = "project-aseprite",
-        get_aseprite_dir,
-        set_aserpite_dir,
-        aseprite_filename,
-        aseprite_path
-    );
-
-    impl_resource_methods!(
-        animations_pack_proj_dir,
-        animations_pack_proj_dir_default = "project-animations",
-        get_animations_pack_proj_dir,
-        set_animations_pack_proj_dir,
-        animation_pack_proj_filename,
-        animation_pack_proj_path
-    );
-
-    impl_resource_methods!(
-        tiled_dir,
-        tiled_dir_default = "project-tiled",
-        get_tiled_dir,
-        set_tiled_dir,
-        tiled_filename,
-        tiled_path
-    );
-
-    impl_resource_methods!(
-        levels_dir,
-        levels_dir_default = "levels",
-        get_levels_dir,
-        set_levels_dir,
-        level_filename,
-        level_path
-    );
-}
-
-#[macro_export]
-macro_rules! declare_assets {
-    ($asset_ty:ident($resolver_inv_call:ident, $resolver_call:ident) {
-        $($id_ident:ident($path:literal),)+
-    }) => {
-        #[derive(Debug, Clone, Copy, serde::Serialize, serde::Deserialize, PartialEq, Eq, Hash)]
-        #[derive(strum::IntoStaticStr, strum::VariantArray)]
-        pub enum $asset_ty {
-            $($id_ident,)+
+    #[cfg(not(target_family = "wasm"))]
+    fn get_dir(&self, root: AssetRoot) -> impl AsRef<Path> {
+        let mut path = PathBuf::from("./");
+        path.push(&self.roots[&root]);
+        match std::fs::canonicalize(&path) {
+            Ok(x) => x,
+            Err(e) => panic!("Failed to resolve {path:?}: {e}"),
         }
-
-        impl $asset_ty {
-            pub fn filenames() -> &'static [($asset_ty, &'static str)] {
-                &[$(($asset_ty::$id_ident, $path)),+]
-            }
-
-            pub fn get_filename(self) -> &'static str {
-                match self {
-                    $( $asset_ty::$id_ident => $path ),+
-                }
-            }
-
-            pub fn inverse_resolve(resolver: &$crate::FsResolver, path: &std::path::Path) -> anyhow::Result<$asset_ty> {
-                let got_file = resolver.$resolver_inv_call(path)?;
-                let item = Self::filenames().iter()
-                    .find(|(_, file)| got_file.as_os_str() == std::ffi::OsStr::new(file));
-
-                match item {
-                    Some((id, _)) => Ok(*id),
-                    None => anyhow::bail!("{path:?} does not correspond to any asset"),
-                }
-            }
-
-            pub fn resolve(self, resolver: &$crate::FsResolver) -> std::path::PathBuf {
-                resolver.$resolver_call(self.get_filename())
-            }
-        }
-    };
-}
-
-declare_assets!(
-    TextureId(asset_filename, asset_path) {
-        BunnyAtlas("bnuuy.png"),
-        WorldAtlas("world.png"),
     }
-);
 
-impl TextureId {
-    pub async fn load_texture(self, resolver: &FsResolver) -> anyhow::Result<Texture2D> {
-        let path = self.resolve(resolver);
-        let tex = load_texture(&path.as_os_str().to_string_lossy()).await?;
-        Ok(tex)
+    #[cfg(target_family = "wasm")]
+    fn get_dir(&self, root: AssetRoot) -> impl AsRef<Path> {
+        &self.roots[&root]
+    }
+
+    fn get_filename<'a>(&self, root: AssetRoot, path: &'a Path) -> anyhow::Result<&'a Path> {
+        let dir = self.get_dir(root);
+        let dir = dir.as_ref();
+        path.strip_prefix(dir)
+            .with_context(|| format!("Resolving against {dir:?}"))
+    }
+
+    pub fn get_path(&self, root: AssetRoot, filename: impl AsRef<Path>) -> PathBuf {
+        PathBuf::from_iter([self.get_dir(root).as_ref(), filename.as_ref()])
     }
 }
 
-declare_assets!(
-    FontId(asset_filename, asset_path) {
-        Quaver("quaver.ttf"),
-    }
-);
+pub trait Asset: Sized {
+    type AssetId: Copy + strum::VariantArray;
+    const ROOT: AssetRoot;
 
-impl FontId {
-    pub async fn load_font(self, resolver: &FsResolver) -> anyhow::Result<Font> {
-        let path = self.resolve(resolver);
-        let font = load_ttf_font(&path.as_os_str().to_string_lossy()).await?;
-        Ok(font)
-    }
+    fn load(
+        resolver: &FsResolver,
+        path: &Path,
+    ) -> impl Future<Output = anyhow::Result<Self>> + Send;
+
+    fn filename(id: Self::AssetId) -> &'static str;
 }

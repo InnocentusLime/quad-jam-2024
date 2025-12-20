@@ -1,5 +1,5 @@
 use egui::{Color32, Painter, Pos2, Rect, Stroke, TextStyle, Ui, WidgetText, pos2, vec2};
-use lib_anim::{Clip, Track};
+use lib_asset::animation::*;
 
 use super::TimelineTf;
 
@@ -10,7 +10,7 @@ pub const TRACK_LABEL_WIDTH: f32 = 100.0;
 pub const TRACK_MARK_WIDTH: f32 = 10.0;
 
 #[derive(Debug, Clone, Copy)]
-pub enum ClipAction {
+pub enum UiClipGesture {
     Move,
     Resize { resize_left: bool },
 }
@@ -118,16 +118,16 @@ impl<'a> ClipWidget<'a> {
         pointer: Pos2,
         tf: TimelineTf,
         track_y: u32,
-    ) -> ClipAction {
+    ) -> UiClipGesture {
         let this_rect = self.rect(track_y, timeline_rect, tf);
         let local_off = pointer.x - this_rect.left();
         let resize_left = local_off <= CLIP_RESIZE_ZONE;
         let resize_right = local_off >= this_rect.width() - CLIP_RESIZE_ZONE;
 
         if resize_left || resize_right {
-            ClipAction::Resize { resize_left }
+            UiClipGesture::Resize { resize_left }
         } else {
-            ClipAction::Move
+            UiClipGesture::Move
         }
     }
 
@@ -218,7 +218,7 @@ impl<'a> ClipsUi<'a> {
         self.clips.iter().find(|x| x.id == idx)
     }
 
-    pub fn get_action_mut(&mut self, idx: u32) -> Option<&mut lib_anim::ClipAction> {
+    pub fn get_action_mut(&mut self, idx: u32) -> Option<&mut ClipAction> {
         self.get_mut(idx).map(|x| &mut x.action)
     }
 
@@ -360,13 +360,13 @@ pub fn darken_color(color: Color32) -> Color32 {
     Color32::BLACK + color.additive().linear_multiply(0.05)
 }
 
-fn default_action() -> lib_anim::ClipAction {
-    lib_anim::ClipAction::DrawSprite {
+fn default_action() -> ClipAction {
+    ClipAction::DrawSprite {
         layer: 0,
         texture_id: lib_asset::TextureId::WorldAtlas,
-        local_pos: lib_anim::Position { x: 0.0, y: 0.0 },
+        local_pos: Position { x: 0.0, y: 0.0 },
         local_rotation: 0.0,
-        rect: lib_anim::ImgRect {
+        rect: ImgRect {
             x: 0,
             y: 0,
             w: 0,

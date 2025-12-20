@@ -1,5 +1,5 @@
 use hashbrown::HashMap;
-use lib_anim::{Animation, AnimationId};
+use lib_asset::animation::{Animation, AnimationId};
 
 use super::prelude::*;
 
