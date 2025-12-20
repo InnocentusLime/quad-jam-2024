@@ -27,19 +27,13 @@ use serde::{Deserializer, de};
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-pub enum DeserializerError {
-    #[error("Property {property:?}: expected a bool, found type {found_ty:?}")]
-    ExpectedBool { property: String, found_ty: String },
-    #[error("Property {property:?}: expected an integer, found type {found_ty:?}")]
-    ExpectedInteger { property: String, found_ty: String },
-    #[error("Property {property:?}: expected an integer or float, found type {found_ty:?}")]
-    ExpectedIntegerOrFloat { property: String, found_ty: String },
-    #[error("Property {property:?}: expected a string, found type {found_ty:?}")]
-    ExpectedString { property: String, found_ty: String },
-    #[error("Property {property:?}: expected a string or path, found type {found_ty:?}")]
-    ExpectedStringOrPath { property: String, found_ty: String },
-    #[error("Property {property:?}: expected a class, found type {found_ty:?}")]
-    ExpectedClass { property: String, found_ty: String },
+pub enum Error {
+    #[error("Property {property:?}: expected {expected}, found type {found_ty:?}")]
+    TypeMismatch {
+        expected: &'static str,
+        property: String,
+        found_ty: String,
+    },
     #[error("Exepcted class to be {expected_class:?}, found {found_class:?}")]
     StructNameMismatch {
         expected_class: String,
@@ -54,16 +48,13 @@ pub enum DeserializerError {
     OnlyStructEnumVariants,
     #[error("Only structs and enums can be deserialized from properties")]
     OnlyStructsAndEnums,
-    #[error("Deserializing into {requested_ty:?} is not supported")]
-    UnsupportedType { requested_ty: String },
+    #[error("Deserializing into {ty:?} is not supported")]
+    UnsupportedType { ty: &'static str },
     #[error("{msg}")]
     Custom { msg: String },
 }
 
-pub fn from_properties<'a, T>(
-    ty_name: &'a str,
-    props: &'a tiled::Properties,
-) -> Result<T, DeserializerError>
+pub fn from_properties<'a, T>(ty_name: &'a str, props: &'a tiled::Properties) -> Result<T, Error>
 where
     T: de::Deserialize<'a>,
 {
@@ -77,7 +68,7 @@ struct TiledPropertiesDeserializer<'de> {
 }
 
 impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertiesDeserializer<'de> {
-    type Error = DeserializerError;
+    type Error = Error;
 
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
@@ -90,126 +81,126 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertiesDeserializer<'de>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_i8<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_i16<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_i32<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_i64<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_u8<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_u16<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_u32<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_u64<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_f32<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_f64<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_char<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_str<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_string<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_bytes<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_byte_buf<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_option<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_unit<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_unit_struct<V>(
@@ -220,7 +211,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertiesDeserializer<'de>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_newtype_struct<V>(
@@ -231,21 +222,21 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertiesDeserializer<'de>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_seq<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_tuple<V>(self, _len: usize, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_tuple_struct<V>(
@@ -257,7 +248,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertiesDeserializer<'de>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -280,7 +271,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertiesDeserializer<'de>
         V: de::Visitor<'de>,
     {
         if name != self.ty_name {
-            return Err(DeserializerError::StructNameMismatch {
+            return Err(Error::StructNameMismatch {
                 expected_class: name.to_string(),
                 found_class: self.ty_name.to_string(),
             });
@@ -298,7 +289,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertiesDeserializer<'de>
         V: de::Visitor<'de>,
     {
         if !variants.contains(&self.ty_name) {
-            return Err(DeserializerError::NoSuchEnumVariant {
+            return Err(Error::NoSuchEnumVariant {
                 expected_classes: variants.iter().map(|x| x.to_string()).collect(),
                 found_class: self.ty_name.to_string(),
             });
@@ -310,7 +301,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertiesDeserializer<'de>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructsAndEnums)
+        Err(Error::OnlyStructsAndEnums)
     }
 
     fn deserialize_ignored_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -326,7 +317,7 @@ struct TiledPropertyDeserializer<'de> {
     prop: &'de tiled::PropertyValue,
 }
 
-impl de::Error for DeserializerError {
+impl de::Error for Error {
     fn custom<T>(msg: T) -> Self
     where
         T: std::fmt::Display,
@@ -338,7 +329,7 @@ impl de::Error for DeserializerError {
 }
 
 impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
-    type Error = DeserializerError;
+    type Error = Error;
 
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
@@ -367,7 +358,8 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::BoolValue(b) => visitor.visit_bool(*b),
-            _ => Err(DeserializerError::ExpectedBool {
+            _ => Err(Error::TypeMismatch {
+                expected: "a bool",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
             }),
@@ -380,7 +372,8 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::IntValue(i) => visitor.visit_i8(*i as i8),
-            _ => Err(DeserializerError::ExpectedInteger {
+            _ => Err(Error::TypeMismatch {
+                expected: "an integer",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
             }),
@@ -393,7 +386,8 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::IntValue(i) => visitor.visit_i16(*i as i16),
-            _ => Err(DeserializerError::ExpectedInteger {
+            _ => Err(Error::TypeMismatch {
+                expected: "an integer",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
             }),
@@ -406,7 +400,8 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::IntValue(i) => visitor.visit_i32(*i as i32),
-            _ => Err(DeserializerError::ExpectedInteger {
+            _ => Err(Error::TypeMismatch {
+                expected: "an integer",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
             }),
@@ -419,7 +414,8 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::IntValue(i) => visitor.visit_i64(*i as i64),
-            _ => Err(DeserializerError::ExpectedInteger {
+            _ => Err(Error::TypeMismatch {
+                expected: "an integer",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
             }),
@@ -432,7 +428,8 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::IntValue(i) => visitor.visit_u8(*i as u8),
-            _ => Err(DeserializerError::ExpectedInteger {
+            _ => Err(Error::TypeMismatch {
+                expected: "an integer",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
             }),
@@ -445,7 +442,8 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::IntValue(i) => visitor.visit_u16(*i as u16),
-            _ => Err(DeserializerError::ExpectedInteger {
+            _ => Err(Error::TypeMismatch {
+                expected: "an integer",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
             }),
@@ -458,7 +456,8 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::IntValue(i) => visitor.visit_u32(*i as u32),
-            _ => Err(DeserializerError::ExpectedInteger {
+            _ => Err(Error::TypeMismatch {
+                expected: "an integer",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
             }),
@@ -471,7 +470,8 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::IntValue(i) => visitor.visit_u64(*i as u64),
-            _ => Err(DeserializerError::ExpectedInteger {
+            _ => Err(Error::TypeMismatch {
+                expected: "an integer",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
             }),
@@ -485,7 +485,8 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
         match self.prop {
             tiled::PropertyValue::IntValue(i) => visitor.visit_f32(*i as f32),
             tiled::PropertyValue::FloatValue(f) => visitor.visit_f32(*f),
-            _ => Err(DeserializerError::ExpectedIntegerOrFloat {
+            _ => Err(Error::TypeMismatch {
+                expected: "an integer or float",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
             }),
@@ -499,7 +500,8 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
         match self.prop {
             tiled::PropertyValue::IntValue(i) => visitor.visit_f64(*i as f64),
             tiled::PropertyValue::FloatValue(f) => visitor.visit_f64(*f as f64),
-            _ => Err(DeserializerError::ExpectedIntegerOrFloat {
+            _ => Err(Error::TypeMismatch {
+                expected: "an integer or float",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
             }),
@@ -510,9 +512,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::UnsupportedType {
-            requested_ty: "char".to_string(),
-        })
+        Err(Error::UnsupportedType { ty: "char" })
     }
 
     fn deserialize_str<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -522,7 +522,8 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
         match self.prop {
             tiled::PropertyValue::StringValue(s) => visitor.visit_str(s.as_str()),
             tiled::PropertyValue::FileValue(s) => visitor.visit_str(s.as_str()),
-            _ => Err(DeserializerError::ExpectedStringOrPath {
+            _ => Err(Error::TypeMismatch {
+                expected: "a string or path",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
             }),
@@ -540,36 +541,28 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::UnsupportedType {
-            requested_ty: "bytes".to_string(),
-        })
+        Err(Error::UnsupportedType { ty: "bytes" })
     }
 
     fn deserialize_byte_buf<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::UnsupportedType {
-            requested_ty: "byte buf".to_string(),
-        })
+        Err(Error::UnsupportedType { ty: "byte buf" })
     }
 
     fn deserialize_option<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::UnsupportedType {
-            requested_ty: "option".to_string(),
-        })
+        Err(Error::UnsupportedType { ty: "option" })
     }
 
     fn deserialize_unit<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::UnsupportedType {
-            requested_ty: "unit".to_string(),
-        })
+        Err(Error::UnsupportedType { ty: "unit" })
     }
 
     fn deserialize_unit_struct<V>(
@@ -580,9 +573,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::UnsupportedType {
-            requested_ty: "unit struct".to_string(),
-        })
+        Err(Error::UnsupportedType { ty: "unit struct" })
     }
 
     fn deserialize_newtype_struct<V>(
@@ -593,8 +584,8 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::UnsupportedType {
-            requested_ty: "newtype struct".to_string(),
+        Err(Error::UnsupportedType {
+            ty: "newtype struct",
         })
     }
 
@@ -602,18 +593,14 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::UnsupportedType {
-            requested_ty: "seq".to_string(),
-        })
+        Err(Error::UnsupportedType { ty: "seq" })
     }
 
     fn deserialize_tuple<V>(self, _len: usize, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::UnsupportedType {
-            requested_ty: "tuple".to_string(),
-        })
+        Err(Error::UnsupportedType { ty: "tuple" })
     }
 
     fn deserialize_tuple_struct<V>(
@@ -625,9 +612,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::UnsupportedType {
-            requested_ty: "tuple struct".to_string(),
-        })
+        Err(Error::UnsupportedType { ty: "tuple struct" })
     }
 
     fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -641,7 +626,8 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
                     props: properties.iter(),
                 })
             }
-            _ => Err(DeserializerError::ExpectedClass {
+            _ => Err(Error::TypeMismatch {
+                expected: "a class",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
             }),
@@ -663,7 +649,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
                 property_type,
             } => {
                 if property_type != name {
-                    return Err(DeserializerError::StructNameMismatch {
+                    return Err(Error::StructNameMismatch {
                         expected_class: name.to_string(),
                         found_class: property_type.to_string(),
                     });
@@ -673,7 +659,8 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
                     props: properties.iter(),
                 })
             }
-            _ => Err(DeserializerError::ExpectedClass {
+            _ => Err(Error::TypeMismatch {
+                expected: "a class",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
             }),
@@ -693,7 +680,8 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
             tiled::PropertyValue::StringValue(s) => {
                 visitor.visit_enum(de::value::StrDeserializer::new(s.as_str()))
             }
-            _ => Err(DeserializerError::ExpectedString {
+            _ => Err(Error::TypeMismatch {
+                expected: "a string",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
             }),
@@ -706,7 +694,8 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::StringValue(s) => visitor.visit_str(s.as_str()),
-            _ => Err(DeserializerError::ExpectedString {
+            _ => Err(Error::TypeMismatch {
+                expected: "a string",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
             }),
@@ -740,7 +729,7 @@ struct PropetyMapAccess<'de> {
 }
 
 impl<'a, 'de> de::EnumAccess<'de> for &'a mut TiledPropertiesDeserializer<'de> {
-    type Error = DeserializerError;
+    type Error = Error;
     type Variant = Self;
 
     fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant), Self::Error>
@@ -753,24 +742,24 @@ impl<'a, 'de> de::EnumAccess<'de> for &'a mut TiledPropertiesDeserializer<'de> {
 }
 
 impl<'a, 'de> de::VariantAccess<'de> for &'a mut TiledPropertiesDeserializer<'de> {
-    type Error = DeserializerError;
+    type Error = Error;
 
     fn unit_variant(self) -> Result<(), Self::Error> {
-        Err(DeserializerError::OnlyStructEnumVariants)
+        Err(Error::OnlyStructEnumVariants)
     }
 
     fn newtype_variant_seed<T>(self, _seed: T) -> Result<T::Value, Self::Error>
     where
         T: de::DeserializeSeed<'de>,
     {
-        Err(DeserializerError::OnlyStructEnumVariants)
+        Err(Error::OnlyStructEnumVariants)
     }
 
     fn tuple_variant<V>(self, _len: usize, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(DeserializerError::OnlyStructEnumVariants)
+        Err(Error::OnlyStructEnumVariants)
     }
 
     fn struct_variant<V>(
@@ -786,7 +775,7 @@ impl<'a, 'de> de::VariantAccess<'de> for &'a mut TiledPropertiesDeserializer<'de
 }
 
 impl<'de> de::MapAccess<'de> for PropetyMapAccess<'de> {
-    type Error = DeserializerError;
+    type Error = Error;
 
     fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>, Self::Error>
     where
