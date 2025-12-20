@@ -8,20 +8,20 @@ mod render;
 
 pub mod sys;
 
-pub use collisions::*;
-pub use components::*;
 use dbg::DebugStuff;
 use hashbrown::HashMap;
-pub use input::*;
 use lib_asset::animation::{Animation, AnimationId};
 use lib_asset::level::{LevelDef, TILE_SIDE};
 use lib_asset::{AnimationPackId, FontId, FsResolver, LevelId, TextureId};
+
+pub use collisions::*;
+pub use components::*;
+pub use dbg::{DebugCommand, GLOBAL_DUMP};
+pub use input::*;
 pub use render::*;
 
 use hecs::{CommandBuffer, Entity, World};
 use macroquad::prelude::*;
-
-use lib_dbg::*;
 
 #[cfg(not(target_family = "wasm"))]
 use dbg::AnimationEdit;
@@ -58,7 +58,7 @@ pub enum NextState {
 /// 6. Game::update
 /// 7. Game::render
 pub trait Game: 'static {
-    fn handle_command(&mut self, app: &mut App, cmd: &Command) -> bool;
+    fn handle_command(&mut self, app: &mut App, cmd: &DebugCommand) -> bool;
 
     /// Return the list of the debug draws. Debug draws are batches
     /// of (usually, macroquad) draw calls to assist you at debugging
@@ -425,7 +425,7 @@ impl App {
         );
     }
 
-    fn handle_command<G: Game>(&mut self, debug: &mut DebugStuff, game: &mut G, cmd: Command) {
+    fn handle_command<G: Game>(&mut self, debug: &mut DebugStuff, game: &mut G, cmd: DebugCommand) {
         match cmd.command.as_str() {
             "f" => self.freeze = true,
             "uf" => self.freeze = false,

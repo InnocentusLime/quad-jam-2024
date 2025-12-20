@@ -4,6 +4,7 @@ version = "0.13.3"
 edition = "2024"
 
 [dependencies]
+egui = { workspace = true }
 egui-macroquad = { workspace = true }
 log = { workspace = true }
 anyhow = { workspace = true }
@@ -11,7 +12,6 @@ strum = { workspace = true }
 hecs = { workspace = true }
 macroquad = { workspace = true }
 hashbrown = { workspace = true }
-lib-dbg = { path = "../lib-dbg" }
 lib-col = { path = "../lib-col" }
 lib-asset = { path = "../lib-asset" }
 
@@ -19,7 +19,6 @@ lib-asset = { path = "../lib-asset" }
 sapp-jsutils = { version = "^0.1" }
 
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-egui = { workspace = true }
 rfd = { version = "0.15.4" }
 serde_json = "1"
 

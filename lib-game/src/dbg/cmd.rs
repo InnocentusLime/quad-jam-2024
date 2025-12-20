@@ -12,7 +12,7 @@ const TEXT_CAPACITY: usize = 1000;
 const LOG_HEIGHT: f32 = 400.0;
 
 #[derive(Debug)]
-pub struct Command {
+pub struct DebugCommand {
     pub command: String,
     pub args: Vec<String>,
 }
@@ -32,7 +32,7 @@ impl CommandCenter {
         !self.buff.is_empty()
     }
 
-    pub fn show(&mut self, ctx: &egui::Context, ch: Option<char>) -> Option<Command> {
+    pub fn show(&mut self, ctx: &egui::Context, ch: Option<char>) -> Option<DebugCommand> {
         let (close, submit, begin_command) = ctx.input(|inp| {
             let close = inp.key_pressed(egui::Key::Escape);
             let submit = inp.key_pressed(egui::Key::Enter);
@@ -57,7 +57,12 @@ impl CommandCenter {
         command.inner
     }
 
-    fn cmd_ui(&mut self, ui: &mut egui::Ui, submit: bool, begin_command: bool) -> Option<Command> {
+    fn cmd_ui(
+        &mut self,
+        ui: &mut egui::Ui,
+        submit: bool,
+        begin_command: bool,
+    ) -> Option<DebugCommand> {
         ui.set_width(CMD_WIDTH);
 
         GLOBAL_CON.0.lock().unwrap().show(ui);
@@ -79,11 +84,11 @@ impl CommandCenter {
     }
 }
 
-fn parse_command(s: &str) -> Option<Command> {
+fn parse_command(s: &str) -> Option<DebugCommand> {
     let s = &s[1..];
     let mut parts = s.split_ascii_whitespace();
     let command = parts.next()?.to_string();
-    Some(Command {
+    Some(DebugCommand {
         command,
         args: parts.map(|x| x.to_string()).collect(),
     })
