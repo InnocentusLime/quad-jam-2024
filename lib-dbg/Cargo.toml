@@ -1,8 +1,0 @@
-[package]
-name = "lib-dbg"
-version = "0.2.0"
-edition = "2024"
-
-[dependencies]
-egui = { workspace = true }
-log = { workspace = true }

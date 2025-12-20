@@ -4,7 +4,7 @@ version = "0.15.0"
 edition = "2024"
 
 [workspace]
-members = [ "lib-asset", "lib-col", "lib-dbg", "lib-game" ]
+members = [ "lib-asset", "lib-col", "lib-game" ]
 
 [dependencies]
 # Workspace deps
@@ -16,7 +16,6 @@ hashbrown = { workspace = true }
 glam = { workspace = true }
 # Internal deps
 lib-col = { path = "./lib-col"}
-lib-dbg = { path = "./lib-dbg" }
 lib-game = { path = "./lib-game" }
 lib-asset = { path = "./lib-asset" }
 

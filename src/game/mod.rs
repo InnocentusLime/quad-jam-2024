@@ -136,7 +136,7 @@ impl Project {
 }
 
 impl Game for Project {
-    fn handle_command(&mut self, _app: &mut App, cmd: &lib_dbg::Command) -> bool {
+    fn handle_command(&mut self, _app: &mut App, cmd: &DebugCommand) -> bool {
         match cmd.command.as_str() {
             "noai" => self.do_ai = false,
             "ai" => self.do_ai = true,

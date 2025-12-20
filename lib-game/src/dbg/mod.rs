@@ -1,13 +1,16 @@
 #[cfg(not(target_family = "wasm"))]
 mod animation_edit;
+mod cmd;
+mod screendump;
 
 use hashbrown::{HashMap, HashSet};
 use hecs::World;
-use lib_dbg::{CommandCenter, GLOBAL_CON};
 use log::set_logger;
 
 #[cfg(not(target_family = "wasm"))]
 pub use animation_edit::*;
+pub use cmd::*;
+pub use screendump::*;
 
 pub(crate) struct DebugStuff {
     pub cmd_center: CommandCenter,

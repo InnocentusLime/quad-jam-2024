@@ -1497,14 +1497,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "lib-dbg"
-version = "0.2.0"
-dependencies = [
- "egui",
- "log",
-]
-
-[[package]]
 name = "lib-game"
 version = "0.13.3"
 dependencies = [
@@ -1515,7 +1507,6 @@ dependencies = [
  "hecs",
  "lib-asset",
  "lib-col",
- "lib-dbg",
  "log",
  "macroquad",
  "rand 0.9.1",
@@ -2244,7 +2235,6 @@ dependencies = [
  "hecs",
  "lib-asset",
  "lib-col",
- "lib-dbg",
  "lib-game",
  "log",
  "macroquad",
