@@ -6,8 +6,8 @@ mod prelude;
 mod render;
 mod stabber;
 
-use lib_anim::AnimationPackId;
-use lib_asset::{FontId, TextureId};
+use lib_asset::level::*;
+use lib_asset::{AnimationPackId, FontId, TextureId};
 use prelude::*;
 
 fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut World) -> Entity {
@@ -53,15 +53,15 @@ fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut Wor
     world.spawn((storage,))
 }
 
-fn init_level(world: &mut World, level_def: &lib_level::LevelDef) {
+fn init_level(world: &mut World, level_def: &LevelDef) {
     let tile_data = level_def
         .map
         .tilemap
         .iter()
         .map(|idx| level_def.map.tiles[idx])
         .map(|tile| match tile.ty {
-            lib_level::TileTy::Ground => TileType::Ground,
-            lib_level::TileTy::Wall => TileType::Wall,
+            TileTy::Ground => TileType::Ground,
+            TileTy::Wall => TileType::Wall,
         })
         .collect::<Vec<_>>();
 
@@ -77,10 +77,10 @@ fn init_level(world: &mut World, level_def: &lib_level::LevelDef) {
             entity.tf.pos.y + entity.height / 2.0,
         );
         match entity.info {
-            lib_level::EntityInfo::Player {} => player::spawn(world, pos),
-            lib_level::EntityInfo::Goal {} => goal::spawn(world, pos),
-            lib_level::EntityInfo::Damager {} => damager::spawn(world, pos),
-            lib_level::EntityInfo::Stabber {} => stabber::spawn(world, pos),
+            EntityInfo::Player {} => player::spawn(world, pos),
+            EntityInfo::Goal {} => goal::spawn(world, pos),
+            EntityInfo::Damager {} => damager::spawn(world, pos),
+            EntityInfo::Stabber {} => stabber::spawn(world, pos),
         }
     }
 }

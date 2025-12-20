@@ -1,5 +1,5 @@
 use hecs::Entity;
-use lib_anim::{Animation, AnimationId};
+use lib_asset::animation::{Animation, AnimationId};
 use macroquad::prelude::*;
 
 /// [Health] component stores entity's health.

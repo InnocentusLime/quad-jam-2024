@@ -7,8 +7,8 @@ use egui::{Ui, Vec2, Widget};
 
 use hashbrown::HashMap;
 use hecs::{Entity, World};
-use lib_anim::{Animation, AnimationId, AnimationPackId};
-use lib_asset::{FsResolver, TextureId};
+use lib_asset::animation::*;
+use lib_asset::{AnimationPackId, FsResolver, TextureId};
 use strum::VariantArray;
 
 use clips::*;
@@ -178,18 +178,18 @@ fn selected_clip_ui(ui: &mut Ui, clips: &mut ClipsUi, selected_clip: &mut Option
     });
 }
 
-fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
-    let old_ty: lib_anim::ClipActionDiscriminants = (*clip).into();
+fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
+    let old_ty: ClipActionDiscriminants = (*clip).into();
     let mut new_ty = old_ty;
     enum_select(ui, "action_type", "Clip Action", &mut new_ty);
     if old_ty != new_ty {
         let new_clip = match new_ty {
-            lib_anim::ClipActionDiscriminants::DrawSprite => lib_anim::ClipAction::DrawSprite {
+            ClipActionDiscriminants::DrawSprite => ClipAction::DrawSprite {
                 layer: 0,
                 texture_id: TextureId::BunnyAtlas,
-                local_pos: lib_anim::Position { x: 0.0, y: 0.0 },
+                local_pos: Position { x: 0.0, y: 0.0 },
                 local_rotation: 0.0,
-                rect: lib_anim::ImgRect {
+                rect: ImgRect {
                     x: 0,
                     y: 0,
                     w: 0,
@@ -198,10 +198,10 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
                 sort_offset: 0.0,
                 rotate_with_parent: false,
             },
-            lib_anim::ClipActionDiscriminants::AttackBox => lib_anim::ClipAction::AttackBox {
-                local_pos: lib_anim::Position { x: 0.0, y: 0.0 },
+            ClipActionDiscriminants::AttackBox => ClipAction::AttackBox {
+                local_pos: Position { x: 0.0, y: 0.0 },
                 local_rotation: 0.0,
-                team: lib_anim::Team::Player,
+                team: Team::Player,
                 group: lib_col::Group::empty(),
                 shape: lib_col::Shape::Rect {
                     width: 0.0,
@@ -209,20 +209,18 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
                 },
                 rotate_with_parent: false,
             },
-            lib_anim::ClipActionDiscriminants::Invulnerability => {
-                lib_anim::ClipAction::Invulnerability
-            }
-            lib_anim::ClipActionDiscriminants::LockInput => lib_anim::ClipAction::LockInput {
+            ClipActionDiscriminants::Invulnerability => ClipAction::Invulnerability,
+            ClipActionDiscriminants::LockInput => ClipAction::LockInput {
                 allow_walk_input: false,
                 allow_look_input: false,
             },
-            lib_anim::ClipActionDiscriminants::Move => lib_anim::ClipAction::Move,
+            ClipActionDiscriminants::Move => ClipAction::Move,
         };
         *clip = new_clip;
     }
 
     match clip {
-        lib_anim::ClipAction::DrawSprite {
+        ClipAction::DrawSprite {
             layer,
             texture_id: current_texture_id,
             local_pos,
@@ -268,7 +266,7 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
             });
             ui.checkbox(rotate_with_parent, "rotate with parent");
         }
-        lib_anim::ClipAction::AttackBox {
+        ClipAction::AttackBox {
             local_pos,
             local_rotation,
             team,
@@ -296,17 +294,17 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut lib_anim::ClipAction) {
             ui.checkbox(rotate_with_parent, "rotate with parent");
             shape_ui(ui, shape);
         }
-        lib_anim::ClipAction::Invulnerability => {
+        ClipAction::Invulnerability => {
             ui.label("No data");
         }
-        lib_anim::ClipAction::LockInput {
+        ClipAction::LockInput {
             allow_walk_input,
             allow_look_input,
         } => {
             ui.checkbox(allow_walk_input, "allow walk input");
             ui.checkbox(allow_look_input, "allow look input");
         }
-        lib_anim::ClipAction::Move => {
+        ClipAction::Move => {
             ui.label("No data");
         }
     }

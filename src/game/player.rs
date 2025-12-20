@@ -1,5 +1,5 @@
 use hashbrown::HashMap;
-use lib_anim::{Animation, AnimationId, ClipAction};
+use lib_asset::animation::{Animation, AnimationId, ClipAction};
 
 use super::prelude::*;
 

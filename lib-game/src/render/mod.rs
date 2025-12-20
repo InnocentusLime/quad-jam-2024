@@ -1,13 +1,13 @@
 mod components;
 
 use hashbrown::HashMap;
-use lib_anim::{Animation, AnimationId, ClipAction};
-use lib_dbg::dump;
 
 pub use components::*;
 use hecs::World;
+use lib_asset::animation::{Animation, AnimationId, ClipAction};
+use lib_asset::level::{LevelDef, TILE_SIDE, TileIdx};
 use lib_asset::{FontId, TextureId};
-use lib_level::{LevelDef, TILE_SIDE, TileIdx};
+use lib_dbg::dump;
 use macroquad::prelude::*;
 
 use crate::{AnimationPlay, CharacterLook, Resources, Transform};

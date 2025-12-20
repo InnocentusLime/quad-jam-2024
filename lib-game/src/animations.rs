@@ -1,6 +1,6 @@
 use hashbrown::HashMap;
 use hecs::{CommandBuffer, Entity, World};
-use lib_anim::ClipAction;
+use lib_asset::animation::ClipAction;
 use lib_col::Group;
 use log::warn;
 use macroquad::math::{Vec2, vec2};
@@ -101,7 +101,7 @@ pub(crate) fn update_attack_boxes(
             continue;
         };
         for clip in anim.active_clips(play.cursor) {
-            let lib_anim::ClipAction::AttackBox {
+            let lib_asset::animation::ClipAction::AttackBox {
                 local_pos,
                 local_rotation,
                 team,
@@ -113,8 +113,8 @@ pub(crate) fn update_attack_boxes(
                 continue;
             };
             let team = match team {
-                lib_anim::Team::Enemy => Team::Enemy,
-                lib_anim::Team::Player => Team::Player,
+                lib_asset::animation::Team::Enemy => Team::Enemy,
+                lib_asset::animation::Team::Player => Team::Player,
             };
             let event = ClipActionObject {
                 parent: entity,

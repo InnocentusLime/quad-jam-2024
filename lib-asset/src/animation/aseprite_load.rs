@@ -1,60 +1,39 @@
-use std::str::FromStr;
+use std::{fs::File, path::Path, str::FromStr};
 
-use anyhow::{bail, ensure};
+use crate::{AssetRoot, FsResolver};
+use anyhow::{Context, bail, ensure};
 use hashbrown::HashMap;
-use lib_asset::{FsResolver, TextureId};
 use log::{info, warn};
+use macroquad::texture::Texture2D;
 use serde::Deserialize;
 
-use crate::{Animation, AnimationId, Clip, ClipAction, ImgRect, Position, Track};
+use super::{Animation, AnimationId, Clip, ClipAction, ImgRect, Position, Track};
 
-static REQUIRED_ASEPRITE_VERSION: &'static str = "1.3";
-
-#[derive(Debug, Deserialize)]
-pub struct Sheet {
-    pub frames: Vec<Frame>,
-    pub meta: SheetMeta,
+pub fn load_animations_aseprite(
+    resolver: &FsResolver,
+    path: impl AsRef<Path>,
+    layer: Option<&str>,
+) -> anyhow::Result<HashMap<AnimationId, Animation>> {
+    let path = path.as_ref();
+    let anim_file = File::open(path).with_context(|| format!("loading file {path:?}"))?;
+    let sheet =
+        serde_json::from_reader(anim_file).with_context(|| format!("decoding file {path:?}"))?;
+    let anim = load_animations_from_aseprite(resolver, &sheet, layer)
+        .with_context(|| format!("converting {path:?}"))?;
+    Ok(anim)
 }
 
-#[derive(Debug, Deserialize)]
-pub struct Frame {
-    pub filename: String,
-    /// The rect describing the frame rect
-    pub frame: FrameRect,
-    /// Duration in milliseconds
-    pub duration: u32,
+pub fn load_animations_project(
+    path: impl AsRef<Path>,
+) -> anyhow::Result<HashMap<AnimationId, Animation>> {
+    let path = path.as_ref();
+    let anim_file = File::open(path).with_context(|| format!("loading file {path:?}"))?;
+    let anim =
+        serde_json::from_reader(anim_file).with_context(|| format!("decoding file {path:?}"))?;
+    Ok(anim)
 }
 
-#[derive(Debug, Clone, Copy, Deserialize)]
-pub struct FrameRect {
-    pub x: u32,
-    pub y: u32,
-    pub w: u32,
-    pub h: u32,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct SheetMeta {
-    pub version: String,
-    pub image: String,
-    #[serde(rename = "frameTags")]
-    pub frame_tags: Vec<SheetTag>,
-}
-
-#[derive(Debug, Deserialize)]
-pub struct SheetTag {
-    #[allow(dead_code)]
-    pub name: String,
-    pub from: u32,
-    pub to: u32,
-    #[serde(default)]
-    pub repeat: String,
-    /// Userdata
-    #[serde(default)]
-    pub data: String,
-}
-
-pub fn load_animations_from_aseprite(
+fn load_animations_from_aseprite(
     resolver: &FsResolver,
     sheet: &Sheet,
     layer: Option<&str>,
@@ -81,7 +60,7 @@ pub fn load_animations_from_aseprite(
     Ok(res)
 }
 
-pub fn load_clips_from_aseprite(
+fn load_clips_from_aseprite(
     resolver: &FsResolver,
     sheet: &Sheet,
     layer: Option<&str>,
@@ -153,7 +132,7 @@ fn collect_frames(
         let Ok(frame_id) = pieces[0].parse() else {
             bail!("first piece of the frame name must be an integer");
         };
-        let sprite_path = resolver.asset_path(&sheet.meta.image);
+        let sprite_path = resolver.get_path(AssetRoot::Default, &sheet.meta.image);
 
         // NOTE: we assume that the order of layer frames is the same
         //       as the desired draw order
@@ -163,7 +142,7 @@ fn collect_frames(
             frame.duration,
             ClipAction::DrawSprite {
                 layer: 1,
-                texture_id: TextureId::inverse_resolve(resolver, &sprite_path).unwrap(),
+                texture_id: resolver.inverse_resolve::<Texture2D>(&sprite_path).unwrap(),
                 local_pos: Position {
                     x: -(frame.frame.w as f32) * 0.5,
                     y: -(frame.frame.h as f32) * 0.5,
@@ -182,4 +161,50 @@ fn collect_frames(
     }
 
     Ok(result)
+}
+
+static REQUIRED_ASEPRITE_VERSION: &'static str = "1.3";
+
+#[derive(Debug, Deserialize)]
+pub struct Sheet {
+    pub frames: Vec<Frame>,
+    pub meta: SheetMeta,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Frame {
+    pub filename: String,
+    /// The rect describing the frame rect
+    pub frame: FrameRect,
+    /// Duration in milliseconds
+    pub duration: u32,
+}
+
+#[derive(Debug, Clone, Copy, Deserialize)]
+pub struct FrameRect {
+    pub x: u32,
+    pub y: u32,
+    pub w: u32,
+    pub h: u32,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SheetMeta {
+    pub version: String,
+    pub image: String,
+    #[serde(rename = "frameTags")]
+    pub frame_tags: Vec<SheetTag>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct SheetTag {
+    #[allow(dead_code)]
+    pub name: String,
+    pub from: u32,
+    pub to: u32,
+    #[serde(default)]
+    pub repeat: String,
+    /// Userdata
+    #[serde(default)]
+    pub data: String,
 }

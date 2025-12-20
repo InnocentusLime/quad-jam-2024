@@ -13,9 +13,9 @@ pub use components::*;
 use dbg::DebugStuff;
 use hashbrown::HashMap;
 pub use input::*;
-use lib_anim::{Animation, AnimationId, AnimationPackId};
-use lib_asset::{FontId, FsResolver, TextureId};
-use lib_level::TILE_SIDE;
+use lib_asset::animation::{Animation, AnimationId};
+use lib_asset::level::{LevelDef, TILE_SIDE};
+use lib_asset::{AnimationPackId, FontId, FsResolver, LevelId, TextureId};
 pub use render::*;
 
 use hecs::{CommandBuffer, Entity, World};
@@ -228,8 +228,10 @@ impl App {
             let load_level = self.next_state(&input, &debug);
             if load_level {
                 info!("Loading level");
-                let level = lib_level::LevelId::TestRoom
-                    .load_level(&self.resources.resolver)
+                let level = self
+                    .resources
+                    .resolver
+                    .load::<LevelDef>(LevelId::TestRoom)
                     .await
                     .unwrap();
                 self.resources.load_texture(level.map.atlas).await;
@@ -467,7 +469,7 @@ impl App {
 
 pub struct Resources {
     pub resolver: FsResolver,
-    pub level: Option<lib_level::LevelDef>,
+    pub level: Option<LevelDef>,
     pub animations: HashMap<AnimationId, Animation>,
     pub textures: HashMap<TextureId, Texture2D>,
     pub fonts: HashMap<FontId, Font>,
@@ -485,18 +487,18 @@ impl Resources {
     }
 
     pub async fn load_texture(&mut self, texture_id: TextureId) {
-        let texture = texture_id.load_texture(&self.resolver).await.unwrap();
+        let texture = self.resolver.load(texture_id).await.unwrap();
         self.textures.insert(texture_id, texture);
     }
 
     pub async fn load_font(&mut self, font_id: FontId) {
-        let font = font_id.load_font(&self.resolver).await.unwrap();
+        let font = self.resolver.load(font_id).await.unwrap();
         self.fonts.insert(font_id, font);
     }
 
     /// **ADDITIVLY** loads an animations pack
     pub async fn load_animation_pack(&mut self, pack_id: AnimationPackId) {
-        let pack = pack_id.load_animation_pack(&self.resolver).await.unwrap();
+        let pack: HashMap<_, _> = self.resolver.load(pack_id).await.unwrap();
         self.animations.extend(pack);
     }
 }

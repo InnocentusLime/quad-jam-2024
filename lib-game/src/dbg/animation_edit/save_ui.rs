@@ -5,8 +5,8 @@ use egui::Ui;
 use egui::{DragValue, Modal, Widget};
 
 use hashbrown::HashMap;
-use lib_anim::{Animation, AnimationId, AnimationPackId};
-use lib_asset::FsResolver;
+use lib_asset::animation::*;
+use lib_asset::{AnimationPackId, FsResolver};
 use log::{error, info, warn};
 use rfd::FileDialog;
 use strum::VariantArray;
@@ -205,7 +205,7 @@ fn load_aseprite_modal(
                     .unwrap_or_default();
                 current_anim
                     .clips
-                    .extend(loaded_anim.clips.into_iter().map(|clip| lib_anim::Clip {
+                    .extend(loaded_anim.clips.into_iter().map(|clip| Clip {
                         id: clip.id + clip_offset,
                         track_id: *load_into_track,
                         ..clip
@@ -259,14 +259,13 @@ fn load_aseprite_anim(
     target: AnimationId,
     layer: &str,
 ) -> Option<Animation> {
-    let mut anims =
-        match lib_anim::aseprite_load::load_animations_aseprite(resolver, &src, Some(layer)) {
-            Ok(x) => x,
-            Err(e) => {
-                error!("Failed to load {src:?}: {e:#}");
-                return None;
-            }
-        };
+    let mut anims = match aseprite_load::load_animations_aseprite(resolver, &src, Some(layer)) {
+        Ok(x) => x,
+        Err(e) => {
+            error!("Failed to load {src:?}: {e:#}");
+            return None;
+        }
+    };
     let Some(anim) = anims.remove(&target) else {
         error!("No animation for {target:?}");
         return None;

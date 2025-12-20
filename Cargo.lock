@@ -1466,13 +1466,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "lib-anim"
-version = "0.8.0"
+name = "lib-asset"
+version = "0.3.0"
 dependencies = [
  "anyhow",
  "clap",
  "hashbrown 0.14.5",
- "lib-asset",
  "lib-col",
  "log",
  "macroquad",
@@ -1480,17 +1479,8 @@ dependencies = [
  "serde",
  "serde_json",
  "strum",
-]
-
-[[package]]
-name = "lib-asset"
-version = "0.3.0"
-dependencies = [
- "anyhow",
- "hashbrown 0.14.5",
- "macroquad",
- "serde",
- "strum",
+ "thiserror 2.0.12",
+ "tiled",
 ]
 
 [[package]]
@@ -1523,11 +1513,9 @@ dependencies = [
  "egui-macroquad",
  "hashbrown 0.14.5",
  "hecs",
- "lib-anim",
  "lib-asset",
  "lib-col",
  "lib-dbg",
- "lib-level",
  "log",
  "macroquad",
  "rand 0.9.1",
@@ -1535,22 +1523,6 @@ dependencies = [
  "sapp-jsutils",
  "serde_json",
  "strum",
-]
-
-[[package]]
-name = "lib-level"
-version = "0.5.0"
-dependencies = [
- "anyhow",
- "clap",
- "hashbrown 0.14.5",
- "lib-asset",
- "macroquad",
- "postcard",
- "serde",
- "strum",
- "thiserror 2.0.12",
- "tiled",
 ]
 
 [[package]]
@@ -2270,12 +2242,10 @@ dependencies = [
  "glam",
  "hashbrown 0.14.5",
  "hecs",
- "lib-anim",
  "lib-asset",
  "lib-col",
  "lib-dbg",
  "lib-game",
- "lib-level",
  "log",
  "macroquad",
 ]

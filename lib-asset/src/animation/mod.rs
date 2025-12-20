@@ -1,4 +1,7 @@
-use lib_asset::TextureId;
+#[cfg(not(target_family = "wasm"))]
+pub mod aseprite_load;
+
+use crate::TextureId;
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]

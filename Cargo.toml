@@ -4,7 +4,7 @@ version = "0.15.0"
 edition = "2024"
 
 [workspace]
-members = [ "lib-anim", "lib-asset", "lib-col", "lib-dbg", "lib-game", "lib-level" ]
+members = [ "lib-asset", "lib-col", "lib-dbg", "lib-game" ]
 
 [dependencies]
 # Workspace deps
@@ -18,8 +18,6 @@ glam = { workspace = true }
 lib-col = { path = "./lib-col"}
 lib-dbg = { path = "./lib-dbg" }
 lib-game = { path = "./lib-game" }
-lib-level = { path = "./lib-level" }
-lib-anim = { path = "./lib-anim" }
 lib-asset = { path = "./lib-asset" }
 
 [workspace.dependencies]
