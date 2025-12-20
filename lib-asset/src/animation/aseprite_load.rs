@@ -163,7 +163,7 @@ fn collect_frames(
     Ok(result)
 }
 
-static REQUIRED_ASEPRITE_VERSION: &'static str = "1.3";
+static REQUIRED_ASEPRITE_VERSION: &str = "1.3";
 
 #[derive(Debug, Deserialize)]
 pub struct Sheet {

@@ -33,7 +33,7 @@ impl CollisionList {
         match self {
             CollisionList::One(None) => &[],
             CollisionList::One(Some(entity_id)) => std::slice::from_ref(entity_id),
-            CollisionList::Many(entity_ids) => &entity_ids,
+            CollisionList::Many(entity_ids) => entity_ids,
         }
     }
 }

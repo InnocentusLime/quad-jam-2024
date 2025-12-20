@@ -67,7 +67,7 @@ struct TiledPropertiesDeserializer<'de> {
     props: &'de tiled::Properties,
 }
 
-impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertiesDeserializer<'de> {
+impl<'de> de::Deserializer<'de> for &mut TiledPropertiesDeserializer<'de> {
     type Error = Error;
 
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -328,7 +328,7 @@ impl de::Error for Error {
     }
 }
 
-impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
+impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
     type Error = Error;
 
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -399,7 +399,7 @@ impl<'de, 'a> de::Deserializer<'de> for &'a mut TiledPropertyDeserializer<'de> {
         V: de::Visitor<'de>,
     {
         match self.prop {
-            tiled::PropertyValue::IntValue(i) => visitor.visit_i32(*i as i32),
+            tiled::PropertyValue::IntValue(i) => visitor.visit_i32(*i),
             _ => Err(Error::TypeMismatch {
                 expected: "an integer",
                 property: self.name.to_string(),
@@ -728,7 +728,7 @@ struct PropetyMapAccess<'de> {
     props: std::collections::hash_map::Iter<'de, String, tiled::PropertyValue>,
 }
 
-impl<'a, 'de> de::EnumAccess<'de> for &'a mut TiledPropertiesDeserializer<'de> {
+impl<'de> de::EnumAccess<'de> for &mut TiledPropertiesDeserializer<'de> {
     type Error = Error;
     type Variant = Self;
 
@@ -741,7 +741,7 @@ impl<'a, 'de> de::EnumAccess<'de> for &'a mut TiledPropertiesDeserializer<'de> {
     }
 }
 
-impl<'a, 'de> de::VariantAccess<'de> for &'a mut TiledPropertiesDeserializer<'de> {
+impl<'de> de::VariantAccess<'de> for &mut TiledPropertiesDeserializer<'de> {
     type Error = Error;
 
     fn unit_variant(self) -> Result<(), Self::Error> {

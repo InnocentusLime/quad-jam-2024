@@ -23,10 +23,10 @@ impl<'a> Sequencer<'a> {
             return;
         };
 
-        if let Some(selected_clip) = self.selected_clip.clone() {
-            if self.clips.get(selected_clip).is_none() {
-                *self.selected_clip = None;
-            }
+        if let Some(selected_clip) = *self.selected_clip
+            && self.clips.get(selected_clip).is_none()
+        {
+            *self.selected_clip = None;
         }
 
         match *self.state {

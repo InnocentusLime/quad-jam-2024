@@ -84,7 +84,7 @@ impl AnimationEdit {
                 self.open_save_pack = true;
             }
             if self.open_save_pack {
-                self.open_save_pack = save_anim_pack_modal(ui, &mut self.current_pack_id, &anims);
+                self.open_save_pack = save_anim_pack_modal(ui, &mut self.current_pack_id, anims);
             }
         });
 
@@ -135,7 +135,7 @@ impl AnimationEdit {
                 .ui(ui);
 
             if ui.button("Add track").clicked() {
-                clips.add_track(self.track_label.clone().into());
+                clips.add_track(self.track_label.clone());
             }
 
             let resp = ui.add_enabled(self.selected_track.is_some(), Button::new("delete track"));

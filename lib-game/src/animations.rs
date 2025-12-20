@@ -35,7 +35,7 @@ pub(crate) fn update(dt: f32, world: &mut World, resources: &Resources) {
 
         play.cursor += cursor_delta as u32;
         if anim.is_looping {
-            play.cursor = play.cursor % max_pos;
+            play.cursor %= max_pos;
         } else {
             play.cursor = play.cursor.min(max_pos);
         }

@@ -69,6 +69,12 @@ impl CollisionSolver {
     }
 }
 
+impl Default for CollisionSolver {
+    fn default() -> Self {
+        CollisionSolver::new()
+    }
+}
+
 fn process_character_movement(
     solver: &lib_col::CollisionSolver,
     mut dr: Vec2,
