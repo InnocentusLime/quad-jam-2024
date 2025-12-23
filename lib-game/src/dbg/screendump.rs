@@ -3,13 +3,6 @@ use egui::Window;
 use std::fmt;
 use std::sync::{LazyLock, Mutex};
 
-#[macro_export]
-macro_rules! dump {
-    ($($arg:tt)+) => {
-        $crate::GLOBAL_DUMP.put_line(std::format_args!($($arg)+));
-    };
-}
-
 const DUMP_LINE_CAPACITY: usize = 255;
 const DUMP_CAPACITY: usize = 100;
 

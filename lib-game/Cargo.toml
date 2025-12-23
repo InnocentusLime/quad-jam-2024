@@ -4,8 +4,6 @@ version = "0.14.0"
 edition = "2024"
 
 [dependencies]
-egui = { workspace = true }
-egui-macroquad = { workspace = true }
 log = { workspace = true }
 anyhow = { workspace = true }
 strum = { workspace = true }
@@ -14,13 +12,26 @@ macroquad = { workspace = true }
 hashbrown = { workspace = true }
 lib-col = { path = "../lib-col" }
 lib-asset = { path = "../lib-asset" }
+# FIXME: we do not want to pull dev-tools on WASM
+# NOTE: Macroquad is patched, because some things may depend on it.
+#       There are no dependencies on egui-macroquad.
+#       Just pull it as git dep.
+egui = { version = "0.31.1", optional = true }
+rfd = { version = "0.15.4", optional = true }
+serde_json = { version ="1", optional = true }
+
+[dependencies.egui-macroquad]
+git = "https://github.com/InnocentusLime/egui-macroquad.git" 
+rev = "0061aee361e908d15e95e4c6bd02ec6beee3d7fd" 
+features = ["audio", "logs-rs"]
+optional = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 sapp-jsutils = { version = "^0.1" }
 
-[target.'cfg(not(target_family = "wasm"))'.dependencies]
-rfd = { version = "0.15.4" }
-serde_json = "1"
+[features]
+dbg = ["dep:egui", "dep:egui-macroquad"]
+dev-env = ["dbg", "lib-asset/dev-env", "dep:rfd", "dep:serde_json"]
 
 [dev-dependencies]
 rand = "0.9.1"

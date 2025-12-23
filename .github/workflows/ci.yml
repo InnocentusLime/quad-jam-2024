@@ -67,7 +67,7 @@ jobs:
           apt-get update &&
           apt-get install -y --no-install-recommends libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
       - name: Run tests
-        run: cargo test --workspace --package "*" --exclude quad-jam-2024 --locked
+        run: cargo test --workspace --package "*" --features dev-env --locked
   cargo-fmt:
     runs-on: ubuntu-latest
     container: rust:1.88.0-bookworm 

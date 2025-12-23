@@ -1,4 +1,4 @@
-#[cfg(not(target_family = "wasm"))]
+#[cfg(feature = "dev-env")]
 mod animation_edit;
 mod cmd;
 mod screendump;
@@ -7,7 +7,7 @@ use hashbrown::{HashMap, HashSet};
 use hecs::World;
 use log::set_logger;
 
-#[cfg(not(target_family = "wasm"))]
+#[cfg(feature = "dev-env")]
 pub use animation_edit::*;
 pub use cmd::*;
 pub use screendump::*;

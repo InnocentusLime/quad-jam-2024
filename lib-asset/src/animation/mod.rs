@@ -1,4 +1,4 @@
-#[cfg(not(target_family = "wasm"))]
+#[cfg(feature = "dev-env")]
 pub mod aseprite_load;
 
 use crate::TextureId;

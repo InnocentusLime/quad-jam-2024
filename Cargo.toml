@@ -29,12 +29,6 @@ anyhow = "1"
 # NOTE: keep the version matching the one macroquad is using
 hashbrown = "0.14.5"
 glam = { version = "0.30", features = ["serde"] }
-# FIXME: we do not want to pull dev-tools on WASM
-# NOTE: Macroquad is patched, because some things may depend on it.
-#       There are no dependencies on egui-macroquad.
-#       Just pull it as git dep.
-egui-macroquad = { git = "https://github.com/InnocentusLime/egui-macroquad.git", rev = "0061aee361e908d15e95e4c6bd02ec6beee3d7fd", features = ["audio", "logs-rs"] }
-egui = "0.31.1"
 
 [patch.crates-io]
 macroquad = { git = "https://github.com/InnocentusLime/macroquad.git", rev = "d37736c42bc4328e2fd6f2ebcd3f19d88320732e" }

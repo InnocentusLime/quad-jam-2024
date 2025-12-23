@@ -107,7 +107,7 @@ impl Asset for HashMap<AnimationId, Animation> {
     type AssetId = AnimationPackId;
     const ROOT: AssetRoot = AssetRoot::Animations;
 
-    #[cfg(not(target_family = "wasm"))]
+    #[cfg(feature = "dev-env")]
     async fn load(resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
         use crate::animation::aseprite_load;
         use log::warn;
@@ -150,7 +150,7 @@ impl Asset for HashMap<AnimationId, Animation> {
         Ok(placeholder)
     }
 
-    #[cfg(target_family = "wasm")]
+    #[cfg(not(feature = "dev-env"))]
     async fn load(_resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
         use macroquad::prelude::*;
         let data = load_file(path.to_str().unwrap()).await?;
@@ -185,7 +185,7 @@ impl Asset for LevelDef {
     type AssetId = LevelId;
     const ROOT: AssetRoot = AssetRoot::Levels;
 
-    #[cfg(not(target_family = "wasm"))]
+    #[cfg(feature = "dev-env")]
     async fn load(resolver: &FsResolver, path: &Path) -> anyhow::Result<LevelDef> {
         use crate::level::tiled_load;
         use std::path::PathBuf;
@@ -196,7 +196,7 @@ impl Asset for LevelDef {
         tiled_load::load_level(resolver, tiled_path)
     }
 
-    #[cfg(target_family = "wasm")]
+    #[cfg(not(feature = "dev-env"))]
     async fn load(_resolver: &FsResolver, path: &Path) -> anyhow::Result<LevelDef> {
         use macroquad::prelude::*;
         let data = load_file(path.to_str().unwrap()).await?;

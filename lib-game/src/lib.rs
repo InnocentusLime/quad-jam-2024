@@ -1,14 +1,15 @@
 mod animations;
 mod collisions;
 mod components;
-mod dbg;
 mod health;
 mod input;
 mod render;
 
+#[cfg(feature = "dbg")]
+pub mod dbg;
+
 pub mod sys;
 
-use dbg::DebugStuff;
 use hashbrown::HashMap;
 use lib_asset::animation::{Animation, AnimationId};
 use lib_asset::level::{LevelDef, TILE_SIDE};
@@ -16,15 +17,28 @@ use lib_asset::{AnimationPackId, FontId, FsResolver, LevelId, TextureId};
 
 pub use collisions::*;
 pub use components::*;
-pub use dbg::{DebugCommand, GLOBAL_DUMP};
 pub use input::*;
 pub use render::*;
 
+#[cfg(feature = "dev-env")]
+use dbg::AnimationEdit;
+
+#[macro_export]
+macro_rules! dump {
+    ($($arg:tt)+) => {
+        #[cfg(feature = "dbg")]
+        $crate::dbg::GLOBAL_DUMP.put_line(std::format_args!($($arg)+));
+    };
+}
+
+#[derive(Debug)]
+pub struct DebugCommand {
+    pub command: String,
+    pub args: Vec<String>,
+}
+
 use hecs::{CommandBuffer, Entity, World};
 use macroquad::prelude::*;
-
-#[cfg(not(target_family = "wasm"))]
-use dbg::AnimationEdit;
 
 const GAME_TICKRATE: f32 = 1.0 / 60.0;
 
@@ -157,6 +171,7 @@ pub struct App {
     cmds: CommandBuffer,
 
     render_world: bool,
+    #[allow(unused)]
     freeze: bool,
 }
 
@@ -185,13 +200,15 @@ impl App {
     /// Just runs the game. This is what you call after loading all the resources.
     /// This method will run forever as it provides the application loop.
     pub async fn run<G: Game>(mut self, game: &mut G) {
-        let mut debug = DebugStuff::new();
+        #[cfg(feature = "dbg")]
+        let mut debug = dbg::DebugStuff::new();
+        #[cfg(feature = "dbg")]
         debug.debug_draws.extend(
             game.debug_draws()
                 .iter()
                 .map(|(name, payload)| (name.to_string(), *payload)),
         );
-        #[cfg(not(target_family = "wasm"))]
+        #[cfg(feature = "dev-env")]
         let mut anim_edit = AnimationEdit::new();
 
         sys::done_loading();
@@ -205,8 +222,9 @@ impl App {
             let do_tick = self.update_ticking(real_dt);
             self.fullscreen_toggles(&input);
 
+            #[cfg(feature = "dbg")]
             egui_macroquad::ui(|egui_ctx| {
-                #[cfg(not(target_family = "wasm"))]
+                #[cfg(feature = "dev-env")]
                 egui::Window::new("animation_edit").show(egui_ctx, |ui| {
                     anim_edit.ui(
                         &self.resources.resolver,
@@ -219,10 +237,22 @@ impl App {
                 if let Some(cmd) = cmd {
                     self.handle_command(&mut debug, game, cmd);
                 }
-                GLOBAL_DUMP.show(egui_ctx);
+                dbg::GLOBAL_DUMP.show(egui_ctx);
             });
 
-            let load_level = self.next_state(&input, &debug);
+            /* Debug freeze */
+            #[cfg(feature = "dbg")]
+            if (debug.should_pause() || self.freeze)
+                && self.state == (AppState::Active { paused: false })
+            {
+                self.state = AppState::DebugFreeze;
+            }
+            #[cfg(feature = "dbg")]
+            if !(debug.should_pause() || self.freeze) && self.state == AppState::DebugFreeze {
+                self.state = AppState::Active { paused: false };
+            }
+
+            let load_level = self.next_state(&input);
             if load_level {
                 info!("Loading level");
                 let level = self
@@ -255,8 +285,11 @@ impl App {
             }
 
             self.game_present(real_dt, game);
+
+            #[cfg(feature = "dbg")]
             self.debug_info();
 
+            #[cfg(feature = "dbg")]
             self.render.debug_render(&self.camera, || {
                 for debug_draw_name in debug.enabled_debug_draws.iter() {
                     let draw = debug.debug_draws[debug_draw_name];
@@ -264,6 +297,7 @@ impl App {
                 }
             });
 
+            #[cfg(feature = "dbg")]
             egui_macroquad::draw();
 
             next_frame().await
@@ -362,6 +396,7 @@ impl App {
         }
     }
 
+    #[cfg(feature = "dbg")]
     fn debug_info(&mut self) {
         let ent_count = self.world.iter().count();
 
@@ -370,16 +405,8 @@ impl App {
         dump!("Entities: {ent_count}");
     }
 
-    fn next_state(&mut self, input: &InputModel, debug: &DebugStuff) -> bool {
-        /* Debug freeze */
-        if (debug.should_pause() || self.freeze)
-            && self.state == (AppState::Active { paused: false })
-        {
-            self.state = AppState::DebugFreeze;
-            return false;
-        }
-        if !(debug.should_pause() || self.freeze) && self.state == AppState::DebugFreeze {
-            self.state = AppState::Active { paused: false };
+    fn next_state(&mut self, input: &InputModel) -> bool {
+        if self.state == AppState::DebugFreeze {
             return false;
         }
 
@@ -423,7 +450,13 @@ impl App {
         );
     }
 
-    fn handle_command<G: Game>(&mut self, debug: &mut DebugStuff, game: &mut G, cmd: DebugCommand) {
+    #[cfg(feature = "dbg")]
+    fn handle_command<G: Game>(
+        &mut self,
+        debug: &mut dbg::DebugStuff,
+        game: &mut G,
+        cmd: DebugCommand,
+    ) {
         match cmd.command.as_str() {
             "f" => self.freeze = true,
             "uf" => self.freeze = false,
