@@ -20,9 +20,6 @@ pub use components::*;
 pub use input::*;
 pub use render::*;
 
-#[cfg(feature = "dev-env")]
-use dbg::AnimationEdit;
-
 #[macro_export]
 macro_rules! dump {
     ($($arg:tt)+) => {
@@ -201,15 +198,7 @@ impl App {
     /// This method will run forever as it provides the application loop.
     pub async fn run<G: Game>(mut self, game: &mut G) {
         #[cfg(feature = "dbg")]
-        let mut debug = dbg::DebugStuff::new();
-        #[cfg(feature = "dbg")]
-        debug.debug_draws.extend(
-            game.debug_draws()
-                .iter()
-                .map(|(name, payload)| (name.to_string(), *payload)),
-        );
-        #[cfg(feature = "dev-env")]
-        let mut anim_edit = AnimationEdit::new();
+        let mut debug = dbg::DebugStuff::new(game);
 
         sys::done_loading();
 
@@ -223,34 +212,7 @@ impl App {
             self.fullscreen_toggles(&input);
 
             #[cfg(feature = "dbg")]
-            egui_macroquad::ui(|egui_ctx| {
-                #[cfg(feature = "dev-env")]
-                egui::Window::new("animation_edit").show(egui_ctx, |ui| {
-                    anim_edit.ui(
-                        &self.resources.resolver,
-                        ui,
-                        &mut self.resources.animations,
-                        &mut self.world,
-                    );
-                });
-                let cmd = debug.cmd_center.show(egui_ctx, get_char_pressed());
-                if let Some(cmd) = cmd {
-                    self.handle_command(&mut debug, game, cmd);
-                }
-                dbg::GLOBAL_DUMP.show(egui_ctx);
-            });
-
-            /* Debug freeze */
-            #[cfg(feature = "dbg")]
-            if (debug.should_pause() || self.freeze)
-                && self.state == (AppState::Active { paused: false })
-            {
-                self.state = AppState::DebugFreeze;
-            }
-            #[cfg(feature = "dbg")]
-            if !(debug.should_pause() || self.freeze) && self.state == AppState::DebugFreeze {
-                self.state = AppState::Active { paused: false };
-            }
+            debug.ui(&mut self, game);
 
             let load_level = self.next_state(&input);
             if load_level {
@@ -287,18 +249,7 @@ impl App {
             self.game_present(real_dt, game);
 
             #[cfg(feature = "dbg")]
-            self.debug_info();
-
-            #[cfg(feature = "dbg")]
-            self.render.debug_render(&self.camera, || {
-                for debug_draw_name in debug.enabled_debug_draws.iter() {
-                    let draw = debug.debug_draws[debug_draw_name];
-                    draw(&self.world);
-                }
-            });
-
-            #[cfg(feature = "dbg")]
-            egui_macroquad::draw();
+            debug.draw(&mut self);
 
             next_frame().await
         }
@@ -396,15 +347,6 @@ impl App {
         }
     }
 
-    #[cfg(feature = "dbg")]
-    fn debug_info(&mut self) {
-        let ent_count = self.world.iter().count();
-
-        dump!("Dt: {:.2}", self.accumelated_time);
-        dump!("FPS: {:?}", get_fps());
-        dump!("Entities: {ent_count}");
-    }
-
     fn next_state(&mut self, input: &InputModel) -> bool {
         if self.state == AppState::DebugFreeze {
             return false;
@@ -448,53 +390,6 @@ impl App {
             (0.5 * TILE_SIDE as f32) * 16.0,
             (0.5 * TILE_SIDE as f32) * 17.0,
         );
-    }
-
-    #[cfg(feature = "dbg")]
-    fn handle_command<G: Game>(
-        &mut self,
-        debug: &mut dbg::DebugStuff,
-        game: &mut G,
-        cmd: DebugCommand,
-    ) {
-        match cmd.command.as_str() {
-            "f" => self.freeze = true,
-            "uf" => self.freeze = false,
-            "hw" => self.render_world = false,
-            "sw" => self.render_world = true,
-            "reset" => self.state = AppState::Start,
-            "dde" => {
-                if cmd.args.is_empty() {
-                    error!("Not enough args");
-                    return;
-                }
-
-                let dd_name = &cmd.args[0];
-                if !debug.debug_draws.contains_key(dd_name) {
-                    error!("No such debug draw: {:?}", dd_name);
-                    return;
-                }
-                debug.enabled_debug_draws.insert(dd_name.to_owned());
-            }
-            "ddd" => {
-                if cmd.args.is_empty() {
-                    error!("Not enough args");
-                    return;
-                }
-
-                let dd_name = &cmd.args[0];
-                if !debug.enabled_debug_draws.contains(dd_name) {
-                    error!("No enabled debug draw: {:?}", dd_name);
-                    return;
-                }
-                debug.enabled_debug_draws.remove(dd_name);
-            }
-            unmatched => {
-                if !game.handle_command(self, &cmd) {
-                    error!("Unknown command: {unmatched:?}");
-                }
-            }
-        }
     }
 }
 
