@@ -24,8 +24,10 @@ jobs:
           restore-keys: ci-web-bookworm-1.88-cargo-
       - shell: bash
         run: rustup target add wasm32-unknown-unknown
-      - name: Check WASM
-        run: cargo build --locked --target wasm32-unknown-unknown
+      - name: Check WASM (dbg-only)
+        run: cargo build --target wasm32-unknown-unknown --locked --features lib-game/dbg
+      - name: Check Native (shipped)
+        run: cargo build --target wasm32-unknown-unknown --locked
   ci-build-native:
     runs-on: ubuntu-latest
     container: rust:1.88.0-bookworm 
@@ -45,7 +47,11 @@ jobs:
         run: >
           apt-get update &&
           apt-get install -y --no-install-recommends libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
-      - name: Check WASM
+      - name: Check Native (dev-env)
+        run: cargo build --locked --features lib-game/dev-env
+      - name: Check Native (dbg-only)
+        run: cargo build --locked --features lib-game/dbg
+      - name: Check Native (shipped)
         run: cargo build --locked
   tests:
     runs-on: ubuntu-latest
