@@ -13,21 +13,21 @@ EOF
 ADD . /project/
 RUN <<EOF
     cd /project &&\
-    cargo build --locked --package lib-asset &&\
-    cargo build --target wasm32-unknown-unknown --profile wasm-release --locked
+    cargo build --package lib-asset --features dev-env --bin asset-compiler --locked &&\
+    cargo build --target wasm32-unknown-unknown --features lib-game/dbg --profile wasm-release --locked
 EOF
 # Put all files
 COPY /assets/ /dist/assets
 COPY /static/* /dist
 RUN cp /project/target/wasm32-unknown-unknown/wasm-release/quad-jam-2024.wasm /dist/game.wasm
 RUN mkdir /dist/levels && \
-    /project/target/debug/lib-asset \
+    /project/target/debug/asset-compiler \
         --assets /project/assets \
         compile-maps-dir \
             -d /project/project-tiled \
             -o /dist/levels
 RUN mkdir /dist/animations && \
-    /project/target/debug/lib-asset \
+    /project/target/debug/asset-compiler \
         --assets /project/assets \
         compile-anims-dir \
             -d /project/project-animations \
