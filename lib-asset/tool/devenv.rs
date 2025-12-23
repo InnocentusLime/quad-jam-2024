@@ -139,7 +139,7 @@ fn compile_maps_dir(resolver: &FsResolver, dir: PathBuf, out: PathBuf) -> anyhow
     Ok(())
 }
 
-/// A tool for working with the game's maps.
+/// Asset compiler for lib-asset.
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Cli {
