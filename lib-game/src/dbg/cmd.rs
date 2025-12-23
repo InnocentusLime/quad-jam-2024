@@ -5,17 +5,13 @@ use egui::scroll_area::ScrollBarVisibility;
 use egui::{Color32, Modal, RichText, ScrollArea, TextEdit};
 use log::Log;
 
+use crate::DebugCommand;
+
 const MAX_CMD_LEN: usize = 100;
 const CMD_WIDTH: f32 = 500.0;
 const LINEBUFF_SIZE: usize = 1000;
 const TEXT_CAPACITY: usize = 1000;
 const LOG_HEIGHT: f32 = 400.0;
-
-#[derive(Debug)]
-pub struct DebugCommand {
-    pub command: String,
-    pub args: Vec<String>,
-}
 
 pub struct CommandCenter {
     buff: String,

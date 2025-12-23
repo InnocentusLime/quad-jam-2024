@@ -1,5 +1,3 @@
-#![cfg(not(target_family = "wasm"))]
-
 use std::fs::{self, File};
 use std::{path::PathBuf, process::ExitCode};
 
@@ -9,7 +7,7 @@ use hashbrown::HashMap;
 use lib_asset::*;
 use postcard::ser_flavors::io::WriteFlavor;
 
-fn main() -> ExitCode {
+pub fn run() -> ExitCode {
     let cli = Cli::parse();
     let mut resolver = FsResolver::new();
     if let Some(asset_dir) = cli.assets {

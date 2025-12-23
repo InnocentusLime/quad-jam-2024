@@ -35,9 +35,9 @@
 //! should 1-to-1 correspond to its appropriate `spawn()` function in the
 //! game code minus the `&mut World` argument.
 
-#[cfg(not(target_family = "wasm"))]
+#[cfg(feature = "dev-env")]
 pub mod tiled_load;
-#[cfg(not(target_family = "wasm"))]
+#[cfg(feature = "dev-env")]
 mod tiled_props_des;
 
 use crate::TextureId;

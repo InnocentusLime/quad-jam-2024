@@ -1,3 +1,5 @@
+#![cfg(feature = "dev-env")]
+
 use std::fs;
 
 use lib_asset::*;
