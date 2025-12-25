@@ -87,12 +87,6 @@ pub struct ClipActionObject {
     pub clip_id: u32,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Team {
-    Player,
-    Enemy,
-}
-
 #[derive(Debug, Clone, Copy)]
 pub struct CharacterLook(pub f32);
 

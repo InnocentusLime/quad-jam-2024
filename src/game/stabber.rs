@@ -1,5 +1,3 @@
-use lib_asset::animation::AnimationId;
-
 use super::prelude::*;
 
 pub const STABBER_SIZE: f32 = 16.0;

@@ -40,7 +40,7 @@ pub mod tiled_load;
 #[cfg(feature = "dev-env")]
 mod tiled_props_des;
 
-use crate::TextureId;
+use crate::{Position, TextureId};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 
@@ -179,11 +179,4 @@ pub struct EntityPosition {
     pub angle: f32,
     /// Position in level units
     pub pos: Position,
-}
-
-/// A library-agnostic position representation.
-#[derive(Default, Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
-pub struct Position {
-    pub x: f32,
-    pub y: f32,
 }
