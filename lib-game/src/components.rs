@@ -95,3 +95,35 @@ pub enum Team {
 
 #[derive(Debug, Clone, Copy)]
 pub struct CharacterLook(pub f32);
+
+impl CharacterLook {
+    pub fn to_direction(self) -> Vec2 {
+        Vec2::from_angle(self.0)
+    }
+
+    pub fn from_direction(dir: Vec2) -> Self {
+        Self(dir.to_angle())
+    }
+
+    pub fn to_dir_enum(self) -> Direction {
+        let angle = self.0;
+        let increment = std::f32::consts::FRAC_PI_4;
+        if (-3.0 * increment..=-increment).contains(&angle) {
+            Direction::Up
+        } else if (-increment..increment).contains(&angle) {
+            Direction::Right
+        } else if (increment..=3.0 * increment).contains(&angle) {
+            Direction::Down
+        } else {
+            Direction::Left
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Direction {
+    Right = 0,
+    Down = 1,
+    Left = 2,
+    Up = 3,
+}
