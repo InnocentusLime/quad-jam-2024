@@ -26,12 +26,23 @@
             "rotate_with_parent": false
           }
         }
+      },
+      {
+        "id": 1,
+        "track_id": 1,
+        "start": 0,
+        "len": 155,
+        "action": "Move"
       }
     ],
     "tracks": [
       {
         "name": "sprite",
         "id": 0
+      },
+      {
+        "name": "move",
+        "id": 1
       }
     ]
   },
