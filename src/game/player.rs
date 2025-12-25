@@ -56,42 +56,30 @@ pub fn controls(dt: f32, input: &InputModel, world: &mut World, resources: &Reso
     }
     walk_dir = walk_dir.normalize_or_zero();
 
-    for_each_character::<&mut PlayerData>(world, resources, |_, mut character| {
-        let look_dir = (input.aim - character.pos()).normalize_or(vec2(0.0, 1.0));
-        character.set_walk_step(Vec2::ZERO);
-        let (allow_walk_input, allow_look_input) = character.get_input_flags();
-        if matches!(
-            character.get_state(),
-            PlayerState::Idle | PlayerState::Walking
-        ) && input.attack_down
-            && character.data.can_do_action(PLAYER_ATTACK_COST)
-        {
-            character.set_state(PlayerState::Attacking);
-            character.data.do_action(PLAYER_ATTACK_COST);
-        } else if matches!(
-            character.get_state(),
-            PlayerState::Idle | PlayerState::Walking
-        ) && input.dash_pressed
-            && character.data.can_do_action(PLAYER_DASH_COST)
-        {
-            character.set_state(PlayerState::Dashing);
-            character.data.do_action(PLAYER_DASH_COST);
-        } else if !matches!(character.get_state(), PlayerState::Walking)
-            && allow_walk_input
-            && do_walk
-        {
-            character.set_state(PlayerState::Walking);
-        } else if matches!(character.get_state(), PlayerState::Walking) && !do_walk {
-            character.set_state(PlayerState::Idle);
+    for_each_character::<&mut PlayerData>(world, resources, |_, mut c| {
+        let look_dir = (input.aim - c.pos()).normalize_or(vec2(0.0, 1.0));
+
+        if input.attack_down && can_attack(&c) {
+            c.set_state(PlayerState::Attacking);
+            c.data.substract_stamina(PLAYER_ATTACK_COST);
+        } else if input.dash_pressed && can_dash(&c) {
+            c.set_state(PlayerState::Dashing);
+            c.data.substract_stamina(PLAYER_DASH_COST);
+        } else if do_walk && can_walk(&c) {
+            c.set_state(PlayerState::Walking);
+        } else if !do_walk && matches!(c.get_state(), PlayerState::Walking) {
+            c.set_state(PlayerState::Idle);
         }
 
-        if matches!(character.get_state(), PlayerState::Walking) {
-            character.set_walk_step(walk_dir * PLAYER_SPEED * dt);
-        } else if matches!(character.get_state(), PlayerState::Dashing) {
-            character.set_walk_step(character.look_direction() * PLAYER_DASH_SPEED * dt);
+        c.set_walk_step(Vec2::ZERO);
+        match c.get_state() {
+            PlayerState::Walking => c.set_walk_step(walk_dir * PLAYER_SPEED * dt),
+            PlayerState::Dashing => c.set_walk_step(c.look_direction() * PLAYER_DASH_SPEED * dt),
+            _ => (),
         }
-        if allow_look_input {
-            character.set_look_direction(look_dir);
+
+        if c.get_input_flags().1 {
+            c.set_look_direction(look_dir);
         }
     });
 }
@@ -105,6 +93,21 @@ pub fn update_stamina(dt: f32, world: &mut World) {
         data.stamina += dt * PLAYER_STAMINA_REGEN_RATE;
         data.stamina = data.stamina.min(PLAYER_MAX_STAMINA);
     }
+}
+
+fn can_attack(c: &Character<&mut PlayerData>) -> bool {
+    matches!(c.get_state(), PlayerState::Idle | PlayerState::Walking)
+        && c.data.can_do_action(PLAYER_ATTACK_COST)
+}
+
+fn can_dash(c: &Character<&mut PlayerData>) -> bool {
+    matches!(c.get_state(), PlayerState::Idle | PlayerState::Walking)
+        && c.data.can_do_action(PLAYER_DASH_COST)
+}
+
+fn can_walk(c: &Character<&mut PlayerData>) -> bool {
+    let (allow_walk_input, _) = c.get_input_flags();
+    !matches!(c.get_state(), PlayerState::Walking) && allow_walk_input
 }
 
 impl CharacterData for &mut PlayerData {
@@ -146,7 +149,7 @@ impl PlayerData {
         self.stamina >= cost
     }
 
-    fn do_action(&mut self, cost: f32) {
+    fn substract_stamina(&mut self, cost: f32) {
         self.stamina -= cost;
         self.stamina_cooldown = PLAYER_STAMINA_REGEN_COOLDOWN;
     }
