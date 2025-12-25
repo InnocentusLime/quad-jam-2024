@@ -1,7 +1,7 @@
 use hecs::Entity;
 use macroquad::prelude::*;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StabberState {
     Idle,
     Attacking,
