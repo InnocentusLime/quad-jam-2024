@@ -8,9 +8,6 @@ pub enum StabberState {
 }
 
 #[derive(Debug, Clone, Copy)]
-pub struct PlayerScore(pub u32);
-
-#[derive(Debug, Clone, Copy)]
 pub struct PlayerData {
     pub stamina: f32,
     pub stamina_cooldown: f32,
