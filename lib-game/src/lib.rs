@@ -23,10 +23,18 @@ pub use input::*;
 pub use render::*;
 
 #[macro_export]
+#[cfg(feature = "dbg")]
 macro_rules! dump {
     ($($arg:tt)+) => {
-        #[cfg(feature = "dbg")]
         $crate::dbg::GLOBAL_DUMP.put_line(std::format_args!($($arg)+));
+    };
+}
+
+#[macro_export]
+#[cfg(not(feature = "dbg"))]
+macro_rules! dump {
+    ($($arg:tt)+) => {
+        /* NOOP */
     };
 }
 
