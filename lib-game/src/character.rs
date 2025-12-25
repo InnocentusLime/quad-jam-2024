@@ -1,9 +1,13 @@
-use hecs::{Entity, Query, World};
-use lib_asset::animation::{Animation, AnimationId, ClipAction};
+use hecs::{Bundle, Entity, Query, World};
+use lib_asset::animation::{Animation, AnimationId, ClipAction, Team};
+use lib_col::{Group, Shape};
 use log::warn;
 use macroquad::prelude::*;
 
-use crate::{AnimationPlay, CharacterLook, Direction, KinematicControl, Resources, Transform};
+use crate::{
+    AnimationPlay, BodyTag, CharacterLook, Direction, Health, KinematicControl, Resources,
+    Transform, col_group,
+};
 
 pub fn draw_char_state(world: &World, resources: &Resources) {
     for_each_character::<()>(world, resources, |ent, character| {
@@ -161,4 +165,47 @@ pub struct CharacterQuery<'a> {
     pub kinematic: &'a mut KinematicControl,
     pub play: &'a mut AnimationPlay,
     pub look: &'a mut CharacterLook,
+    pub hp: &'a mut Health,
+    pub team: &'a Team,
+}
+
+#[derive(Bundle)]
+pub struct CharacterBundle {
+    pub tf: Transform,
+    pub kinematic: KinematicControl,
+    pub play: AnimationPlay,
+    pub look: CharacterLook,
+    pub hp: Health,
+    pub team: Team,
+    pub body: BodyTag,
+}
+
+impl CharacterBundle {
+    pub fn new_enemy(pos: Vec2, shape: Shape, spawn_health: i32) -> Self {
+        Self::new(pos, col_group::NONE, shape, spawn_health, Team::Enemy)
+    }
+
+    pub fn new_player(pos: Vec2, shape: Shape, spawn_health: i32) -> Self {
+        Self::new(pos, col_group::PLAYER, shape, spawn_health, Team::Player)
+    }
+
+    pub fn new(pos: Vec2, group: Group, shape: Shape, spawn_health: i32, team: Team) -> Self {
+        CharacterBundle {
+            team,
+            tf: Transform::from_pos(pos),
+            look: CharacterLook(0.0),
+            hp: Health::new(spawn_health),
+            kinematic: KinematicControl::new(col_group::LEVEL),
+            body: BodyTag {
+                groups: col_group::CHARACTERS.union(group),
+                shape,
+            },
+            play: AnimationPlay {
+                pause: false,
+                animation: AnimationId::BunnyWalkD,
+                total_dt: 0.0,
+                cursor: 0,
+            },
+        }
+    }
 }
