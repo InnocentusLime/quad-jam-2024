@@ -1,10 +1,15 @@
+use hecs::EntityBuilder;
+
 use super::prelude::*;
 
-pub const STABBER_SIZE: f32 = 16.0;
 pub const STABBER_SPAWN_HEALTH: i32 = 3;
 pub const STABBER_HIT_COOLDOWN: f32 = 3.0;
 pub const STABBER_WALK_SPEED: f32 = 18.0;
 pub const STABBER_AGRO_RANGE: f32 = 36.0;
+pub const STABBER_SHAPE: Shape = Shape::Rect {
+    width: 16.0,
+    height: 16.0,
+};
 
 impl CharacterData for &mut StabberState {
     type StateId = StabberState;
@@ -29,28 +34,17 @@ impl CharacterData for &mut StabberState {
 }
 
 pub fn spawn(world: &mut World, pos: Vec2) {
-    world.spawn((
-        Transform::from_pos(pos),
-        CharacterLook(0.0),
-        Team::Enemy,
-        Health::new(STABBER_SPAWN_HEALTH),
+    let mut builder = EntityBuilder::new();
+    builder.add_bundle(CharacterBundle::new_enemy(
+        pos,
+        STABBER_SHAPE,
+        STABBER_SPAWN_HEALTH,
+    ));
+    builder.add_bundle((
         DamageCooldown::new(STABBER_HIT_COOLDOWN),
-        KinematicControl::new(col_group::LEVEL),
-        BodyTag {
-            groups: col_group::CHARACTERS,
-            shape: Shape::Rect {
-                width: STABBER_SIZE,
-                height: STABBER_SIZE,
-            },
-        },
-        AnimationPlay {
-            pause: false,
-            animation: AnimationId::BunnyWalkD,
-            total_dt: 0.0,
-            cursor: 0,
-        },
         StabberState::Idle,
     ));
+    world.spawn(builder.build());
 }
 
 pub fn ai(dt: f32, world: &mut World, resources: &Resources) {

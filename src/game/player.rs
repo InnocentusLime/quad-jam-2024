@@ -1,10 +1,15 @@
+use hecs::EntityBuilder;
+
 use super::prelude::*;
 
 pub const PLAYER_SPEED: f32 = 48.0;
 pub const PLAYER_DASH_SPEED: f32 = 432.0;
 pub const PLAYER_SPAWN_HEALTH: i32 = 3;
 pub const PLAYER_HIT_COOLDOWN: f32 = 1.0;
-pub const PLAYER_SIZE: f32 = 16.0;
+pub const PLAYER_SHAPE: Shape = Shape::Rect {
+    width: 16.0,
+    height: 16.0,
+};
 
 pub const PLAYER_MAX_STAMINA: f32 = 100.0;
 pub const PLAYER_STAMINA_REGEN_RATE: f32 = 20.0;
@@ -13,33 +18,22 @@ pub const PLAYER_ATTACK_COST: f32 = 10.0;
 pub const PLAYER_DASH_COST: f32 = 25.0;
 
 pub fn spawn(world: &mut World, pos: Vec2) {
-    world.spawn((
-        Transform::from_pos(pos),
-        CharacterLook(0.0),
+    let mut builder = EntityBuilder::new();
+    builder.add_bundle(CharacterBundle::new_player(
+        pos,
+        PLAYER_SHAPE,
+        PLAYER_SPAWN_HEALTH,
+    ));
+    builder.add_bundle((
         PlayerData {
             state: PlayerState::Idle,
             stamina: PLAYER_MAX_STAMINA,
             stamina_cooldown: 0.0,
         },
         PlayerScore(0),
-        Team::Player,
-        Health::new(PLAYER_SPAWN_HEALTH),
         DamageCooldown::new(PLAYER_HIT_COOLDOWN),
-        KinematicControl::new(col_group::LEVEL),
-        BodyTag {
-            groups: col_group::CHARACTERS.union(col_group::PLAYER),
-            shape: Shape::Rect {
-                width: PLAYER_SIZE,
-                height: PLAYER_SIZE,
-            },
-        },
-        AnimationPlay {
-            pause: false,
-            animation: AnimationId::BunnyWalkD,
-            total_dt: 0.0,
-            cursor: 0,
-        },
     ));
+    world.spawn(builder.build());
 }
 
 pub fn controls(dt: f32, input: &InputModel, world: &mut World, resources: &Resources) {
