@@ -1,4 +1,5 @@
 mod animations;
+mod character;
 mod collisions;
 mod components;
 mod health;
@@ -15,6 +16,7 @@ use lib_asset::animation::{Animation, AnimationId};
 use lib_asset::level::{LevelDef, TILE_SIDE};
 use lib_asset::{AnimationPackId, FontId, FsResolver, LevelId, TextureId};
 
+pub use character::*;
 pub use collisions::*;
 pub use components::*;
 pub use input::*;

@@ -22,7 +22,7 @@ lib-asset = { path = "./lib-asset" }
 [workspace.dependencies]
 serde = { version = "1", features = ["derive"] }
 strum = { version = "0.27.2", features = ["derive"] }
-hecs = "0.10.5"
+hecs = { version = "0.10.5", features = ["macros"] }
 log = { version = "0.4.22", features = ["max_level_info", "release_max_level_info"] }
 macroquad = { version = "0.4.14", features = ["audio", "log-rs"] }
 anyhow = "1"
