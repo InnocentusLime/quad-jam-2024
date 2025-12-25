@@ -30,7 +30,6 @@ pub fn spawn(world: &mut World, pos: Vec2) {
             stamina: PLAYER_MAX_STAMINA,
             stamina_cooldown: 0.0,
         },
-        PlayerScore(0),
         DamageCooldown::new(PLAYER_HIT_COOLDOWN),
     ));
     world.spawn(builder.build());
