@@ -8,7 +8,7 @@ use egui::{Ui, Vec2, Widget};
 use hashbrown::HashMap;
 use hecs::{Entity, World};
 use lib_asset::animation::*;
-use lib_asset::{AnimationPackId, FsResolver, TextureId};
+use lib_asset::{AnimationPackId, FsResolver, Position, TextureId};
 use strum::VariantArray;
 
 use clips::*;

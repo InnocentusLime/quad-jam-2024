@@ -1,5 +1,3 @@
-use lib_asset::animation::AnimationId;
-
 use super::prelude::*;
 
 pub const PLAYER_SPEED: f32 = 48.0;

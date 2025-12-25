@@ -91,3 +91,9 @@ pub trait Asset: Sized {
 
     fn filename(id: Self::AssetId) -> &'static str;
 }
+
+#[derive(Default, Clone, Copy, Debug, serde::Serialize, serde::Deserialize, PartialEq)]
+pub struct Position {
+    pub x: f32,
+    pub y: f32,
+}

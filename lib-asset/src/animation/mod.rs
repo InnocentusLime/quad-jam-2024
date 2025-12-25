@@ -1,7 +1,7 @@
 #[cfg(feature = "dev-env")]
 pub mod aseprite_load;
 
-use crate::TextureId;
+use crate::{Position, TextureId};
 use serde::{Deserialize, Serialize};
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
@@ -76,12 +76,6 @@ pub enum ClipAction {
 pub struct Track {
     pub name: String,
     pub id: u32,
-}
-
-#[derive(Default, Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
-pub struct Position {
-    pub x: f32,
-    pub y: f32,
 }
 
 #[derive(Default, Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
