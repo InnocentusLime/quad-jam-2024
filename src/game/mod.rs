@@ -150,7 +150,7 @@ impl Game for Project {
     fn debug_draws(&self) -> &[(&'static str, fn(&World))] {
         &[
             ("phys", draw_physics_debug),
-            ("pl", player::draw_player_state),
+            // ("pl", player::draw_player_state),
             ("ch", debug_character_info),
             ("dmg", debug_damage_boxes),
         ]
@@ -175,27 +175,27 @@ impl Game for Project {
         world: &mut World,
     ) {
         if self.do_player {
-            player::auto_state_transition(world, &resources.animations);
-            player::controls(dt, input, world, &resources.animations);
+            do_auto_state_transition::<&mut PlayerData>(world, resources);
+            player::controls(dt, input, world, resources);
         }
         if self.do_ai {
-            stabber::auto_state_transition(world, &resources.animations);
-            stabber::ai(dt, world, &resources.animations);
+            do_auto_state_transition::<&mut StabberState>(world, resources);
+            stabber::ai(dt, world, resources);
         }
     }
 
     fn plan_collision_queries(
         &mut self,
         _dt: f32,
-        _resources: &lib_game::Resources,
+        resources: &lib_game::Resources,
         world: &mut World,
         _cmds: &mut CommandBuffer,
     ) {
         if self.do_player {
-            player::state_to_anim(world);
+            state_to_anim::<&mut PlayerData>(world, resources);
         }
         if self.do_ai {
-            stabber::state_to_anim(world);
+            state_to_anim::<&mut StabberState>(world, resources);
         }
     }
 

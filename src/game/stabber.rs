@@ -1,5 +1,4 @@
-use hashbrown::HashMap;
-use lib_asset::animation::{Animation, AnimationId};
+use lib_asset::animation::AnimationId;
 
 use super::prelude::*;
 
@@ -9,44 +8,25 @@ pub const STABBER_HIT_COOLDOWN: f32 = 3.0;
 pub const STABBER_WALK_SPEED: f32 = 18.0;
 pub const STABBER_AGRO_RANGE: f32 = 36.0;
 
-struct StabberContext<'a> {
-    kinematic: &'a mut KinematicControl,
-    play: &'a mut AnimationPlay,
-    animation: &'a Animation,
-    state: &'a mut StabberState,
-    look: &'a mut CharacterLook,
-}
+impl CharacterData for &mut StabberState {
+    type StateId = StabberState;
 
-impl<'a> StabberContext<'a> {
-    fn set_state(&mut self, new_state: StabberState) {
-        *self.state = new_state;
-        self.play.cursor = 0;
-        self.play.total_dt = 0.0f32;
+    fn get_state(&self) -> Self::StateId {
+        **self
     }
-
-    fn set_look_direction(&mut self, dir: Vec2) {
-        self.look.0 = dir.to_angle();
+    fn set_state(&mut self, new_state: Self::StateId) {
+        **self = new_state
     }
-
-    fn set_walk_step(&mut self, step: Vec2) {
-        self.kinematic.dr = step;
-    }
-
-    fn do_auto_state_transition(&mut self) {
-        match self.state {
-            StabberState::Attacking if self.is_anim_done() => {
-                self.set_state(StabberState::Idle);
-            }
-            _ => (),
+    fn state_to_anim(character: &Character<Self>) -> AnimationId {
+        match character.get_state() {
+            StabberState::Idle => AnimationId::StabberIdle,
+            StabberState::Attacking => AnimationId::StabberAttack,
         }
     }
-
-    fn current_state(&self) -> StabberState {
-        *self.state
-    }
-
-    fn is_anim_done(&self) -> bool {
-        self.play.is_done(self.animation)
+    fn on_anim_end(character: &mut Character<Self>) {
+        if character.get_state() == StabberState::Attacking {
+            character.set_state(StabberState::Idle);
+        }
     }
 }
 
@@ -75,29 +55,7 @@ pub fn spawn(world: &mut World, pos: Vec2) {
     ));
 }
 
-pub fn auto_state_transition(world: &mut World, animations: &HashMap<AnimationId, Animation>) {
-    for (_, (state, play, kinematic, look)) in world.query_mut::<(
-        &mut StabberState,
-        &mut AnimationPlay,
-        &mut KinematicControl,
-        &mut CharacterLook,
-    )>() {
-        let Some(animation) = animations.get(&play.animation) else {
-            warn!("Animation {:?} is not loaded", play.animation);
-            continue;
-        };
-        let mut ctx = StabberContext {
-            animation,
-            play,
-            kinematic,
-            state,
-            look,
-        };
-        ctx.do_auto_state_transition();
-    }
-}
-
-pub fn ai(dt: f32, world: &mut World, animations: &HashMap<AnimationId, Animation>) {
+pub fn ai(dt: f32, world: &mut World, resources: &Resources) {
     let Some((_, (player_tf, _))) = world
         .query_mut::<(&Transform, &PlayerData)>()
         .into_iter()
@@ -107,49 +65,19 @@ pub fn ai(dt: f32, world: &mut World, animations: &HashMap<AnimationId, Animatio
     };
     let player_tf = *player_tf;
 
-    for (_, (tf, state, play, kinematic, look)) in world.query_mut::<(
-        &Transform,
-        &mut StabberState,
-        &mut AnimationPlay,
-        &mut KinematicControl,
-        &mut CharacterLook,
-    )>() {
-        let off_to_player = player_tf.pos - tf.pos;
+    for_each_character::<&mut StabberState>(world, resources, |_, mut character| {
+        let off_to_player = player_tf.pos - character.pos();
         let dir = off_to_player.normalize_or(Vec2::Y);
-        let Some(animation) = animations.get(&play.animation) else {
-            warn!("Animation {:?} is not loaded", play.animation);
-            continue;
-        };
-        let mut ctx = StabberContext {
-            animation,
-            play,
-            kinematic,
-            state,
-            look,
-        };
 
-        ctx.set_walk_step(Vec2::ZERO);
-        match ctx.current_state() {
-            StabberState::Idle => {
-                ctx.set_look_direction(dir);
-                ctx.set_walk_step(dir * STABBER_WALK_SPEED * dt);
-                if off_to_player.length() <= STABBER_AGRO_RANGE {
-                    ctx.set_state(StabberState::Attacking);
-                }
+        character.set_walk_step(Vec2::ZERO);
+        if character.get_state() == StabberState::Idle {
+            character.set_look_direction(dir);
+            character.set_walk_step(dir * STABBER_WALK_SPEED * dt);
+            if off_to_player.length() <= STABBER_AGRO_RANGE {
+                character.set_state(StabberState::Attacking);
             }
-            StabberState::Attacking => (),
         }
-    }
-}
-
-pub fn state_to_anim(world: &mut World) {
-    for (_, (state, play)) in world.query_mut::<(&StabberState, &mut AnimationPlay)>() {
-        let animation = match *state {
-            StabberState::Idle => AnimationId::StabberIdle,
-            StabberState::Attacking => AnimationId::StabberAttack,
-        };
-        play.animation = animation;
-    }
+    });
 }
 
 pub fn die_on_zero_health(world: &mut World, cmds: &mut CommandBuffer) {
