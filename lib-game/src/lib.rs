@@ -269,8 +269,7 @@ impl App {
         self.update_camera();
         self.render.new_frame();
         self.render.put_tilemap_into_sprite_buffer();
-        self.render
-            .put_anims_into_sprite_buffer(&mut self.world, &self.resources.animations);
+        animations::draw_sprites(&mut self.world, &self.resources, &mut self.render);
         game.render_export(&self.state, &self.resources, &self.world, &mut self.render);
         self.render
             .render(&self.resources, &self.camera, self.render_world, real_dt);

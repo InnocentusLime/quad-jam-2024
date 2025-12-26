@@ -32,7 +32,9 @@
         "track_id": 1,
         "start": 0,
         "len": 155,
-        "action": "Move"
+        "action": {
+          "Move": null
+        }
       }
     ],
     "tracks": [

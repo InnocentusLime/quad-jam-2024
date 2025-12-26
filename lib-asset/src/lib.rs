@@ -8,6 +8,7 @@ pub use asset_roots::*;
 pub use assets::*;
 
 use anyhow::Context;
+use glam::{Vec2, vec2};
 use hashbrown::HashMap;
 use strum::VariantArray;
 
@@ -96,4 +97,10 @@ pub trait Asset: Sized {
 pub struct Position {
     pub x: f32,
     pub y: f32,
+}
+
+impl Position {
+    pub fn to_vec2(self) -> Vec2 {
+        vec2(self.x, self.y)
+    }
 }

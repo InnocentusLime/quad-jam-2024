@@ -1,6 +1,6 @@
 use std::{fs::File, path::Path, str::FromStr};
 
-use crate::{AssetRoot, FsResolver};
+use crate::{AssetRoot, FsResolver, animation::ClipActionDrawSprite};
 use anyhow::{Context, bail, ensure};
 use hashbrown::HashMap;
 use log::{info, warn};
@@ -140,7 +140,7 @@ fn collect_frames(
         frames.push((
             frames.len() as u32,
             frame.duration,
-            ClipAction::DrawSprite {
+            ClipAction::DrawSprite(ClipActionDrawSprite {
                 layer: 1,
                 texture_id: resolver.inverse_resolve::<Texture2D>(&sprite_path).unwrap(),
                 local_pos: Position {
@@ -156,7 +156,7 @@ fn collect_frames(
                 },
                 sort_offset: 0.0f32,
                 rotate_with_parent: false,
-            },
+            }),
         ))
     }
 

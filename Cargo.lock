@@ -1483,6 +1483,7 @@ version = "0.5.0"
 dependencies = [
  "anyhow",
  "clap",
+ "glam",
  "hashbrown 0.14.5",
  "lib-col",
  "log",
