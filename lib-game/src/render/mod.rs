@@ -1,16 +1,12 @@
 mod components;
 
-use hashbrown::HashMap;
-
 use crate::dump;
 pub use components::*;
-use hecs::World;
-use lib_asset::animation::{Animation, AnimationId, ClipAction};
 use lib_asset::level::{LevelDef, TILE_SIDE, TileIdx};
 use lib_asset::{FontId, TextureId};
 use macroquad::prelude::*;
 
-use crate::{AnimationPlay, CharacterLook, Resources, Transform};
+use crate::{Resources, Transform};
 
 const FONT_SCALE: f32 = 1.0;
 const MAIN_FONT_SIZE: u16 = 32;
@@ -167,65 +163,6 @@ impl Render {
         self.announcement_text = None;
         self.sprite_buffer.clear();
         self.text_buffer.clear();
-    }
-
-    pub fn put_anims_into_sprite_buffer(
-        &mut self,
-        world: &mut World,
-        animations: &HashMap<AnimationId, Animation>,
-    ) {
-        for (_, (parent_tf, play, look)) in
-            world.query_mut::<(&Transform, &mut AnimationPlay, &CharacterLook)>()
-        {
-            let Some(anim) = animations.get(&play.animation) else {
-                warn!("No such anim: {:?}", play.animation);
-                continue;
-            };
-            let matching_clips = anim
-                .clips
-                .iter()
-                .filter(|x| x.start <= play.cursor && play.cursor < x.start + x.len);
-            for clip in matching_clips {
-                let ClipAction::DrawSprite {
-                    layer,
-                    texture_id,
-                    local_pos,
-                    local_rotation,
-                    rect,
-                    sort_offset,
-                    rotate_with_parent,
-                } = &clip.action
-                else {
-                    continue;
-                };
-
-                let local_pos = vec2(local_pos.x, local_pos.y);
-                let tf = if *rotate_with_parent {
-                    Transform {
-                        pos: parent_tf.pos + Vec2::from_angle(look.0).rotate(local_pos),
-                        angle: *local_rotation + look.0,
-                    }
-                } else {
-                    Transform {
-                        pos: parent_tf.pos + local_pos,
-                        angle: *local_rotation,
-                    }
-                };
-                self.sprite_buffer.push(SpriteData {
-                    layer: *layer,
-                    tf,
-                    texture: *texture_id,
-                    rect: Rect {
-                        x: rect.x as f32,
-                        y: rect.y as f32,
-                        w: rect.w as f32,
-                        h: rect.h as f32,
-                    },
-                    color: WHITE,
-                    sort_offset: *sort_offset,
-                })
-            }
-        }
     }
 
     pub fn render(

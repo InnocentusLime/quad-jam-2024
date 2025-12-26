@@ -362,7 +362,7 @@ pub fn darken_color(color: Color32) -> Color32 {
 }
 
 fn default_action() -> ClipAction {
-    ClipAction::DrawSprite {
+    ClipAction::DrawSprite(ClipActionDrawSprite {
         layer: 0,
         texture_id: lib_asset::TextureId::WorldAtlas,
         local_pos: Position { x: 0.0, y: 0.0 },
@@ -375,5 +375,5 @@ fn default_action() -> ClipAction {
         },
         sort_offset: 0.0,
         rotate_with_parent: false,
-    }
+    })
 }

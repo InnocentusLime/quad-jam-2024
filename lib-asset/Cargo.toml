@@ -8,6 +8,7 @@ name = "asset-compiler"
 path = "tool/main.rs"
 
 [dependencies]
+glam = { workspace = true }
 log = { workspace = true }
 anyhow = { workspace = true }
 strum = { workspace = true }

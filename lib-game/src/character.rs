@@ -1,5 +1,5 @@
 use hecs::{Bundle, Entity, Query, World};
-use lib_asset::animation::{Animation, AnimationId, ClipAction, Team};
+use lib_asset::animation::{Animation, AnimationId, Team};
 use lib_col::{Group, Shape};
 use log::warn;
 use macroquad::prelude::*;
@@ -13,7 +13,7 @@ pub fn draw_char_state(world: &World, resources: &Resources) {
     for_each_character::<()>(world, resources, |ent, character| {
         let debug_texts = [
             format!("ID {ent:?}"),
-            format!("{:?}", character.character_q.play.animation),
+            format!("{:?}", character.animation_id()),
             format!("cursor (ms): {}", character.character_q.play.cursor),
             format!("look: {:.2}", character.character_q.look.0.to_degrees()),
             format!("dr: {:.2}", character.character_q.kinematic.dr),
@@ -111,31 +111,48 @@ impl<'a, T> Character<'a, T> {
     }
 
     pub fn get_input_flags(&self) -> (bool, bool) {
-        for clip in self.animation.active_clips(self.character_q.play.cursor) {
-            let ClipAction::LockInput {
-                allow_walk_input,
-                allow_look_input,
-            } = clip.action
-            else {
-                continue;
-            };
-            return (allow_walk_input, allow_look_input);
-        }
-        (true, true)
+        self.animation
+            .active_lock_input(self.anim_cursor())
+            .map(|x| (x.action.allow_walk_input, x.action.allow_look_input))
+            .next()
+            .unwrap_or((true, true))
     }
 
     pub fn can_move(&self) -> bool {
-        for clip in self.animation.active_clips(self.character_q.play.cursor) {
-            let ClipAction::Move = clip.action else {
-                continue;
-            };
-            return true;
-        }
-        false
+        self.animation
+            .active_move(self.anim_cursor())
+            .next()
+            .is_some()
+    }
+
+    pub fn anim_cursor(&self) -> u32 {
+        self.character_q.play.cursor
+    }
+
+    pub fn look_angle(&self) -> f32 {
+        self.character_q.look.0
     }
 
     pub fn look_dir_enum(&self) -> Direction {
         self.character_q.look.to_dir_enum()
+    }
+
+    pub fn transform_child(&self, rotate: bool, pos: Vec2, angle: f32) -> Transform {
+        if rotate {
+            Transform {
+                pos: self.pos() + self.look_direction().rotate(pos),
+                angle: angle + self.look_angle(),
+            }
+        } else {
+            Transform {
+                pos: self.pos() + pos,
+                angle: angle,
+            }
+        }
+    }
+
+    pub fn animation_id(&self) -> AnimationId {
+        self.character_q.play.animation
     }
 }
 

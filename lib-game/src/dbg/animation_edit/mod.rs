@@ -184,7 +184,7 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
     enum_select(ui, "action_type", "Clip Action", &mut new_ty);
     if old_ty != new_ty {
         let new_clip = match new_ty {
-            ClipActionDiscriminants::DrawSprite => ClipAction::DrawSprite {
+            ClipActionDiscriminants::DrawSprite => ClipAction::DrawSprite(ClipActionDrawSprite {
                 layer: 0,
                 texture_id: TextureId::BunnyAtlas,
                 local_pos: Position { x: 0.0, y: 0.0 },
@@ -197,8 +197,8 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
                 },
                 sort_offset: 0.0,
                 rotate_with_parent: false,
-            },
-            ClipActionDiscriminants::AttackBox => ClipAction::AttackBox {
+            }),
+            ClipActionDiscriminants::AttackBox => ClipAction::AttackBox(ClipActionAttackBox {
                 local_pos: Position { x: 0.0, y: 0.0 },
                 local_rotation: 0.0,
                 team: Team::Player,
@@ -208,19 +208,21 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
                     height: 0.0,
                 },
                 rotate_with_parent: false,
-            },
-            ClipActionDiscriminants::Invulnerability => ClipAction::Invulnerability,
-            ClipActionDiscriminants::LockInput => ClipAction::LockInput {
+            }),
+            ClipActionDiscriminants::Invulnerability => {
+                ClipAction::Invulnerability(ClipActionInvulnerability)
+            }
+            ClipActionDiscriminants::LockInput => ClipAction::LockInput(ClipActionLockInput {
                 allow_walk_input: false,
                 allow_look_input: false,
-            },
-            ClipActionDiscriminants::Move => ClipAction::Move,
+            }),
+            ClipActionDiscriminants::Move => ClipAction::Move(ClipActionMove),
         };
         *clip = new_clip;
     }
 
     match clip {
-        ClipAction::DrawSprite {
+        ClipAction::DrawSprite(ClipActionDrawSprite {
             layer,
             texture_id: current_texture_id,
             local_pos,
@@ -228,7 +230,7 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
             rect,
             sort_offset,
             rotate_with_parent,
-        } => {
+        }) => {
             ui.horizontal(|ui| {
                 ui.add(DragValue::new(layer).range(0..=10));
                 ui.label("layer");
@@ -266,14 +268,14 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
             });
             ui.checkbox(rotate_with_parent, "rotate with parent");
         }
-        ClipAction::AttackBox {
+        ClipAction::AttackBox(ClipActionAttackBox {
             local_pos,
             local_rotation,
             team,
             group,
             rotate_with_parent,
             shape,
-        } => {
+        }) => {
             ui.horizontal(|ui| {
                 ui.add(DragValue::new(&mut local_pos.x).range(-256.0..=256.0));
                 ui.add(DragValue::new(&mut local_pos.y).range(-256.0..=256.0));
@@ -294,17 +296,17 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
             ui.checkbox(rotate_with_parent, "rotate with parent");
             shape_ui(ui, shape);
         }
-        ClipAction::Invulnerability => {
+        ClipAction::Invulnerability(_) => {
             ui.label("No data");
         }
-        ClipAction::LockInput {
+        ClipAction::LockInput(ClipActionLockInput {
             allow_walk_input,
             allow_look_input,
-        } => {
+        }) => {
             ui.checkbox(allow_walk_input, "allow walk input");
             ui.checkbox(allow_look_input, "allow look input");
         }
-        ClipAction::Move => {
+        ClipAction::Move(_) => {
             ui.label("No data");
         }
     }
