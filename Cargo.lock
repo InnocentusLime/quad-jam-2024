@@ -1479,7 +1479,7 @@ dependencies = [
 
 [[package]]
 name = "lib-asset"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1511,7 +1511,7 @@ dependencies = [
 
 [[package]]
 name = "lib-game"
-version = "0.14.1"
+version = "0.15.0"
 dependencies = [
  "anyhow",
  "egui",
@@ -2240,7 +2240,7 @@ dependencies = [
 
 [[package]]
 name = "quad-jam-2024"
-version = "0.17.0"
+version = "0.18.0"
 dependencies = [
  "anyhow",
  "glam",
