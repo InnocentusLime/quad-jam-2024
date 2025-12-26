@@ -13,11 +13,11 @@ pub use animation_edit::*;
 pub use cmd::*;
 pub use screendump::*;
 
-use crate::{App, AppState, DebugCommand, Game, dump};
+use crate::{App, AppState, DebugCommand, Game, Resources, dump};
 
 pub(crate) struct DebugStuff {
     pub cmd_center: CommandCenter,
-    pub debug_draws: HashMap<String, fn(&World)>,
+    pub debug_draws: HashMap<String, fn(&World, &Resources)>,
     pub enabled_debug_draws: HashSet<String>,
     #[cfg(feature = "dev-env")]
     anim_edit: AnimationEdit,
@@ -124,7 +124,7 @@ impl DebugStuff {
         app.render.debug_render(&app.camera, || {
             for debug_draw_name in self.enabled_debug_draws.iter() {
                 let draw = self.debug_draws[debug_draw_name];
-                draw(&app.world);
+                draw(&app.world, &app.resources);
             }
         });
 

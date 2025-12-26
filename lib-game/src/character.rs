@@ -6,7 +6,7 @@ use macroquad::prelude::*;
 
 use crate::{
     AnimationPlay, BodyTag, CharacterLook, Direction, Health, KinematicControl, Resources,
-    Transform, col_group,
+    Transform, col_group, draw_shape_lines,
 };
 
 pub fn draw_char_state(world: &World, resources: &Resources) {
@@ -30,6 +30,21 @@ pub fn draw_char_state(world: &World, resources: &Resources) {
                 YELLOW,
             );
         }
+
+        draw_shape_lines(
+            &character.character_q.tf,
+            &character.character_q.body.shape,
+            YELLOW,
+        );
+        let end = character.pos() + 20.0 * character.look_direction();
+        draw_line(
+            character.pos().x,
+            character.pos().y,
+            end.x,
+            end.y,
+            1.0,
+            YELLOW,
+        );
     });
 }
 
@@ -184,6 +199,7 @@ pub struct CharacterQuery<'a> {
     pub look: &'a mut CharacterLook,
     pub hp: &'a mut Health,
     pub team: &'a Team,
+    pub body: &'a BodyTag,
 }
 
 #[derive(Bundle)]

@@ -1,3 +1,4 @@
+use crate::Resources;
 use crate::collisions::*;
 use crate::components::*;
 
@@ -21,7 +22,7 @@ fn draw_bodies(world: &World) {
     }
 }
 
-pub fn draw_physics_debug(world: &World) {
+pub fn draw_physics_debug(world: &World, _resources: &Resources) {
     draw_bodies(world);
     draw_queries::<0>(world);
     draw_queries::<1>(world);

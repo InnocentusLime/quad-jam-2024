@@ -87,7 +87,7 @@ pub trait Game: 'static {
     ///
     /// These debug draws can be used in `dde` and `ddd` and will
     /// show up in `ddl`
-    fn debug_draws(&self) -> &[(&'static str, fn(&World))];
+    fn debug_draws(&self) -> &[(&'static str, fn(&World, &Resources))];
 
     /// Put all the appropriate data into the ECS World.
     /// The ECS world should be the only place where the state
