@@ -63,16 +63,16 @@ impl TestCase for ShapeCastTest {
         }
     }
 
-    fn draw(&self, canvas: &mut image::RgbImage) {
-        draw_shape(canvas, image::Rgb([255, 0, 0]), self.shape1, self.tf1);
-        draw_shape(canvas, image::Rgb([0, 255, 0]), self.shape2, self.tf2);
-        draw_vector(canvas, image::Rgb([0, 0, 255]), self.cast_dir, self.tf1);
+    fn draw(&self, canvas: &mut svg::Document) {
+        draw_shape(canvas, "red", self.shape1, self.tf1);
+        draw_shape(canvas, "green", self.shape2, self.tf2);
+        draw_vector(canvas, "blue", self.cast_dir, self.tf1);
         if let Some((toi_estimate, _)) = self.toi_estimate {
             let impact_tf = Affine2 {
                 translation: self.tf1.translation + toi_estimate * self.cast_dir,
                 ..self.tf1
             };
-            draw_shape(canvas, image::Rgb([255, 255, 0]), self.shape1, impact_tf);
+            draw_shape(canvas, "yellow", self.shape1, impact_tf);
         }
     }
 }

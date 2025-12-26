@@ -1,10 +1,11 @@
 use glam::{Affine2, Vec2, vec2};
-use imageproc::drawing;
 use lib_col::{Shape, rect_points};
+use svg::node::element::{Circle, Path, path::Data};
 
 const TRANSFORM_COUNT: usize = 10;
-const OUT_IMG_WIDTH: u32 = 1024;
-const OUT_IMG_HEIGHT: u32 = 1024;
+const OUT_IMG_WIDTH: u32 = 600;
+const OUT_IMG_HEIGHT: u32 = 600;
+const LINE_THICKNESS: f32 = 1.0;
 
 /// An interface for a test case for removing some boilerplate.
 pub trait TestCase: Copy {
@@ -17,7 +18,7 @@ pub trait TestCase: Copy {
     fn check(&self) -> bool;
 
     /// Draw a visual aid to `canvas`.
-    fn draw(&self, canvas: &mut image::RgbImage);
+    fn draw(&self, canvas: &mut svg::Document);
 }
 
 /// Additional API when your test in invariant against
@@ -75,47 +76,65 @@ fn random_translation_and_angle() -> (Vec2, f32) {
 }
 
 fn draw_test<T: TestCase>(case: &T) {
-    let mut img = image::RgbImage::new(OUT_IMG_WIDTH, OUT_IMG_HEIGHT);
-    img.fill(0);
-    case.draw(&mut img);
-    img.save_with_format("test-out.png", image::ImageFormat::Png)
-        .unwrap();
+    let mut document = svg::Document::new().set("viewBox", (0, 0, OUT_IMG_WIDTH, OUT_IMG_HEIGHT));
+    case.draw(&mut document);
+    svg::save("test-out.svg", &document).unwrap();
 }
 
 #[allow(dead_code)]
-pub fn draw_vector(canvas: &mut image::RgbImage, color: image::Rgb<u8>, dir: Vec2, tf: Affine2) {
+pub fn draw_vector(canvas: &mut svg::Document, color: &str, dir: Vec2, tf: Affine2) {
     let tf = Affine2::from_translation(vec2(
         OUT_IMG_WIDTH as f32 / 2.0,
         OUT_IMG_HEIGHT as f32 / 2.0,
-    )) * Affine2::from_scale(Vec2::splat(4.0))
-        * tf;
+    )) * tf;
     let start = tf.transform_point2(Vec2::ZERO);
     let end = start + 32.0 * dir;
 
-    drawing::draw_line_segment_mut(canvas, (start.x, start.y), (end.x, end.y), color);
+    let data = Data::new()
+        .move_to((start.x, start.y))
+        .line_to((end.x, end.y));
+    let path = Path::new()
+        .set("fill", "none")
+        .set("stroke", color)
+        .set("stroke-width", LINE_THICKNESS)
+        .set("d", data);
+    *canvas = canvas.clone().add(path);
 }
 
 #[allow(dead_code)]
-pub fn draw_shape(canvas: &mut image::RgbImage, color: image::Rgb<u8>, shape: Shape, tf: Affine2) {
+pub fn draw_shape(canvas: &mut svg::Document, color: &str, shape: Shape, tf: Affine2) {
     let tf = Affine2::from_translation(vec2(
         OUT_IMG_WIDTH as f32 / 2.0,
         OUT_IMG_HEIGHT as f32 / 2.0,
-    )) * Affine2::from_scale(vec2(4.0, -4.0))
-        * tf;
+    )) * tf;
     match shape {
         Shape::Rect { width, height } => {
             let points = rect_points(vec2(width, height), tf);
-            let points = points.map(|v| imageproc::point::Point { x: v.x, y: v.y });
-            imageproc::drawing::draw_hollow_polygon_mut(canvas, &points, color);
+
+            let data = Data::new()
+                .move_to((points[0].x, points[0].y))
+                .line_to((points[1].x, points[1].y))
+                .line_to((points[2].x, points[2].y))
+                .line_to((points[3].x, points[3].y))
+                .close();
+            let path = Path::new()
+                .set("fill", "none")
+                .set("stroke", color)
+                .set("stroke-width", LINE_THICKNESS)
+                .set("d", data);
+            *canvas = canvas.clone().add(path);
         }
         Shape::Circle { radius } => {
             let center = tf.transform_point2(Vec2::ZERO);
-            imageproc::drawing::draw_hollow_circle_mut(
-                canvas,
-                (center.x as i32, center.y as i32),
-                radius as i32,
-                color,
-            );
+
+            let circle = Circle::new()
+                .set("fill", "none")
+                .set("stroke", color)
+                .set("stroke-width", LINE_THICKNESS)
+                .set("cx", center.x)
+                .set("cy", center.y)
+                .set("r", radius);
+            *canvas = canvas.clone().add(circle);
         }
     }
 }
