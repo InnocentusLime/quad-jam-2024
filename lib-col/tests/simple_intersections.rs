@@ -2,7 +2,6 @@ mod common;
 
 use common::{FuzzableTestCase, TestCase, draw_shape, run_tests};
 use glam::{Affine2, Vec2, vec2};
-use imageproc::image;
 
 use lib_col::Shape;
 
@@ -31,9 +30,9 @@ impl TestCase for TwoShapesTest {
         }
     }
 
-    fn draw(&self, canvas: &mut image::RgbImage) {
-        draw_shape(canvas, image::Rgb([255, 0, 0]), self.shape1, self.tf1);
-        draw_shape(canvas, image::Rgb([0, 255, 0]), self.shape2, self.tf2);
+    fn draw(&self, canvas: &mut svg::Document) {
+        draw_shape(canvas, "red", self.shape1, self.tf1);
+        draw_shape(canvas, "green", self.shape2, self.tf2);
     }
 }
 

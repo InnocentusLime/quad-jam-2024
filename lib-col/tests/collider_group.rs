@@ -37,18 +37,14 @@ impl TestCase for GroupTest {
         matched == expected
     }
 
-    fn draw(&self, canvas: &mut image::RgbImage) {
-        let colors = [
-            image::Rgb([255, 0, 0]),
-            image::Rgb([0, 255, 0]),
-            image::Rgb([0, 0, 255]),
-        ];
+    fn draw(&self, canvas: &mut svg::Document) {
+        let colors = ["red", "green", "blue"];
         for (circle, color) in CIRCLES.into_iter().zip(colors) {
             draw_shape(canvas, color, circle.shape, circle.tf);
         }
 
         let query = self.get_query();
-        draw_shape(canvas, image::Rgb([255, 255, 255]), query.shape, query.tf);
+        draw_shape(canvas, "white", query.shape, query.tf);
     }
 }
 
