@@ -172,7 +172,7 @@ pub struct App {
 
     camera: Camera2D,
     pub render: Render,
-    collisions: CollisionSolver,
+    col_solver: CollisionSolver,
     clip_action_objects: HashMap<ClipActionObject, Entity>,
     pub world: World,
     cmds: CommandBuffer,
@@ -194,7 +194,7 @@ impl App {
 
             camera: Camera2D::default(),
             render: Render::new(),
-            collisions: CollisionSolver::new(),
+            col_solver: CollisionSolver::new(),
             clip_action_objects: HashMap::new(),
             world: World::new(),
             cmds: CommandBuffer::new(),
@@ -290,8 +290,8 @@ impl App {
         animations::update_invulnerability(&mut self.world, &self.resources);
         health::update_cooldown(GAME_TICKRATE, &mut self.world);
 
-        self.collisions.import_colliders(&mut self.world);
-        self.collisions.export_kinematic_moves(&mut self.world);
+        self.col_solver.import_colliders(&mut self.world);
+        self.col_solver.export_kinematic_moves(&mut self.world);
 
         game.plan_collision_queries(
             GAME_TICKRATE,
@@ -301,9 +301,9 @@ impl App {
         );
         self.cmds.run_on(&mut self.world);
 
-        self.collisions.export_queries(&mut self.world);
+        self.col_solver.compute_collisions(&mut self.world);
 
-        health::collect_damage(&mut self.world);
+        health::collect_damage(&mut self.world, &self.col_solver);
         health::apply_damage(&mut self.world);
         health::apply_cooldown(&mut self.world);
 
