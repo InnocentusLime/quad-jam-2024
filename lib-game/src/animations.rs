@@ -116,12 +116,7 @@ pub(crate) fn update_attack_boxes(
                     new_col_tf,
                     clip.action.team,
                     event,
-                    col_query::Damage::new_many(
-                        clip.action.shape,
-                        clip.action.group,
-                        Group::empty(),
-                        2,
-                    ),
+                    col_query::Damage::new(clip.action.shape, clip.action.group, Group::empty()),
                 )),
             }
         }

@@ -4,7 +4,7 @@ pub fn spawn(world: &mut World, pos: Vec2) {
     world.spawn((
         Transform::from_pos(pos),
         GoalTag { achieved: false },
-        col_query::Pickup::new_one(
+        col_query::Pickup::new(
             Shape::Rect {
                 width: 16.0,
                 height: 16.0,

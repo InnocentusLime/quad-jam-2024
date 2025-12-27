@@ -1,4 +1,4 @@
-use hecs::World;
+use hecs::{Entity, World};
 use macroquad::prelude::*;
 
 mod components;
@@ -14,12 +14,14 @@ const CHAR_SKIN: f32 = 0.01;
 
 pub struct CollisionSolver {
     solver: lib_col::CollisionSolver,
+    collision_buffer: Vec<Entity>,
 }
 
 impl CollisionSolver {
     pub fn new() -> Self {
         Self {
             solver: lib_col::CollisionSolver::new(),
+            collision_buffer: Vec::with_capacity(100),
         }
     }
 
@@ -45,27 +47,39 @@ impl CollisionSolver {
         }
     }
 
-    pub fn export_collision_queries<const ID: usize>(&mut self, world: &mut World) {
+    pub fn collisions_for<const ID: usize>(&self, query: &CollisionQuery<ID>) -> &[Entity] {
+        let off = query.collision_slice.off;
+        let len = query.collision_slice.len;
+        &self.collision_buffer[off..(off + len)]
+    }
+
+    pub fn compute_collisions(&mut self, world: &mut World) {
+        self.collision_buffer.clear();
+        self.compute_collisions_query::<0>(world);
+        self.compute_collisions_query::<1>(world);
+        self.compute_collisions_query::<2>(world);
+        self.compute_collisions_query::<3>(world);
+        self.compute_collisions_query::<4>(world);
+        self.compute_collisions_query::<5>(world);
+        self.compute_collisions_query::<6>(world);
+        self.compute_collisions_query::<7>(world);
+    }
+
+    pub fn compute_collisions_query<const ID: usize>(&mut self, world: &mut World) {
         for (_, (tf, query)) in &mut world.query::<(&Transform, &mut CollisionQuery<ID>)>() {
             let query_collider = get_query_collider(tf, query);
-            query.collision_list.clear();
-            query.collision_list.extend(
+            let start = self.collision_buffer.len();
+            self.collision_buffer.extend(
                 self.solver
                     .query_overlaps(query_collider, query.filter)
                     .map(|(e, _)| *e),
             );
+            let end = self.collision_buffer.len();
+            query.collision_slice = CollisionQuerySlice {
+                off: start,
+                len: end - start,
+            };
         }
-    }
-
-    pub fn export_queries(&mut self, world: &mut World) {
-        self.export_collision_queries::<0>(world);
-        self.export_collision_queries::<1>(world);
-        self.export_collision_queries::<2>(world);
-        self.export_collision_queries::<3>(world);
-        self.export_collision_queries::<4>(world);
-        self.export_collision_queries::<5>(world);
-        self.export_collision_queries::<6>(world);
-        self.export_collision_queries::<7>(world);
     }
 }
 
@@ -121,4 +135,60 @@ fn get_entity_collider(tf: &Transform, info: &BodyTag) -> lib_col::Collider {
 
 fn world_tf_to_phys(tf: Transform) -> Affine2 {
     lib_col::conv::topleft_corner_tf_to_crate(tf.pos, tf.angle)
+}
+
+#[cfg(test)]
+mod tests {
+    use hecs::World;
+    use lib_col::{Group, Shape};
+
+    use crate::{BodyTag, CollisionQuery, CollisionSolver, Transform};
+
+    // Tests proper buffer filling for collisions.
+    // We do not care about the setup complexity.
+    // All possible query configurations are tested in lib_col.
+    #[test]
+    fn test_buffer_offsets() {
+        let mut world = World::new();
+        let mut solver = CollisionSolver::new();
+        let shape = Shape::Rect {
+            width: 8.0,
+            height: 8.0,
+        };
+
+        let col1 = world.spawn((
+            Transform::from_xy(0.0, 0.0),
+            BodyTag {
+                shape,
+                groups: Group::from_id(0),
+            },
+        ));
+        let col2 = world.spawn((
+            Transform::from_xy(0.0, 0.0),
+            BodyTag {
+                shape,
+                groups: Group::from_id(1),
+            },
+        ));
+        let q_1 = world.spawn((
+            Transform::from_xy(0.0, 0.0),
+            CollisionQuery::<0>::new(shape, Group::from_id(0), Group::from_id(0)),
+        ));
+        let q_2 = world.spawn((
+            Transform::from_xy(0.0, 0.0),
+            CollisionQuery::<0>::new(shape, Group::from_id(1), Group::from_id(1)),
+        ));
+
+        for _ in 0..3 {
+            solver.import_colliders(&mut world);
+            solver.compute_collisions(&mut world);
+            assert_eq!(solver.collision_buffer.len(), 2);
+
+            let q_1 = world.get::<&CollisionQuery<0>>(q_1).unwrap();
+            assert_eq!(solver.collisions_for(&q_1), &[col1]);
+
+            let q_2 = world.get::<&CollisionQuery<0>>(q_2).unwrap();
+            assert_eq!(solver.collisions_for(&q_2), &[col2]);
+        }
+    }
 }
