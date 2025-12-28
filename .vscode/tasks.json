@@ -1,0 +1,67 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Run app",
+            "type": "shell",
+            "command": "cargo",
+            "problemMatcher": [],
+            "args": [
+                "run", 
+                "--features", 
+                "dev-env", 
+            ]
+        },
+        {
+            "label": "Test level",
+            "type": "shell",
+            "command": "cargo",
+            "problemMatcher": [],
+            "args": [
+                "run", 
+                "--features", 
+                "dev-env", 
+                "--",
+                "--level",
+                "${input:level}"
+            ],
+        },
+        {
+            "label": "Run webapp",
+            "type": "shell",
+            "command": "docker",
+            "problemMatcher": [],
+            "args": [
+                "run",
+                "--rm",
+                "-p", 
+                "8080:80",
+                "--name", 
+                "quad-jam", 
+                "quad-jam",
+            ],
+            "dependsOn": ["Docker prune"]
+        },
+        {
+            "label": "Docker prune",
+            "type": "shell",
+            "command": "docker",
+            "args": ["image", "prune", "-f"],
+            "dependsOn": ["Build webapp image"]
+        },
+        {
+            "label": "Build webapp image",
+            "type": "shell",
+            "command": "docker",
+            "problemMatcher": [],
+            "args": ["build", "-t", "quad-jam", "."]
+        }
+    ],
+    "inputs": [
+        {
+            "id": "level",
+            "description": "What level to test",
+            "type": "promptString"  
+        }
+    ]
+}
