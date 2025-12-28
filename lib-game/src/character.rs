@@ -166,6 +166,10 @@ impl<'a, T> Character<'a, T> {
         }
     }
 
+    pub fn collided(&self) -> bool {
+        self.character_q.kinematic.collided
+    }
+
     pub fn animation_id(&self) -> AnimationId {
         self.character_q.play.animation
     }
