@@ -4,6 +4,7 @@ mod collisions;
 mod components;
 mod health;
 mod input;
+mod level_utils;
 mod render;
 
 #[cfg(feature = "dbg")]
@@ -17,6 +18,7 @@ pub use character::*;
 pub use collisions::*;
 pub use components::*;
 pub use input::*;
+pub use level_utils::*;
 pub use lib_asset::animation::*;
 pub use lib_asset::level::*;
 pub use lib_asset::*;
@@ -162,7 +164,8 @@ pub struct App {
     fullscreen: bool,
     old_size: (u32, u32),
 
-    state: AppState,
+    pub state: AppState,
+    pub queued_level: Option<LevelId>,
     pub resources: Resources,
     accumelated_time: f32,
 
@@ -185,6 +188,7 @@ impl App {
             old_size: (conf.window_width as u32, conf.window_height as u32),
 
             state: AppState::Start,
+            queued_level: None,
             resources: Resources::new(),
             accumelated_time: 0.0,
 
@@ -220,27 +224,10 @@ impl App {
             #[cfg(feature = "dbg")]
             debug.ui(&mut self, game);
 
-            let load_level = self.next_state(&input);
-            if load_level {
-                info!("Loading level");
-                let level = self
-                    .resources
-                    .resolver
-                    .load::<LevelDef>(LevelId::TestRoom)
-                    .await
-                    .unwrap();
-                self.resources.load_texture(level.map.atlas).await;
-                self.render.set_atlas(
-                    &self.resources,
-                    TextureId::WorldAtlas,
-                    level.map.atlas_margin,
-                    level.map.atlas_spacing,
-                );
-                self.render.set_tilemap(&level);
-
-                self.resources.level = Some(level);
-                self.world.clear();
-                game.init(&self.resources, &mut self.world, &mut self.render);
+            self.next_state(&input);
+            if let Some(queued_level) = self.queued_level.take() {
+                self.load_level(game, queued_level).await;
+                self.state = AppState::Active { paused: false };
             }
 
             dump!("game state: {:?}", self.state);
@@ -258,6 +245,28 @@ impl App {
 
             next_frame().await
         }
+    }
+
+    async fn load_level<G: Game>(&mut self, game: &mut G, level_id: LevelId) {
+        info!("Loading level");
+        let level = self
+            .resources
+            .resolver
+            .load::<LevelDef>(level_id)
+            .await
+            .unwrap();
+        self.resources.load_texture(level.map.atlas).await;
+        self.render.set_atlas(
+            &self.resources,
+            TextureId::WorldAtlas,
+            level.map.atlas_margin,
+            level.map.atlas_spacing,
+        );
+        self.render.set_tilemap(&level);
+
+        self.resources.level = Some(level);
+        self.world.clear();
+        game.init(&self.resources, &mut self.world, &mut self.render);
     }
 
     fn game_present<G: Game>(&mut self, real_dt: f32, game: &G) {
@@ -352,30 +361,27 @@ impl App {
         }
     }
 
-    fn next_state(&mut self, input: &InputModel) -> bool {
+    fn next_state(&mut self, input: &InputModel) {
         if self.state == AppState::DebugFreeze {
-            return false;
+            return;
         }
 
         /* Normal state transitions */
         match self.state {
             AppState::GameDone | AppState::GameOver if input.confirmation_detected => {
                 self.state = AppState::Start;
-                false
             }
             AppState::Win if input.confirmation_detected => {
                 self.state = AppState::GameDone;
-                false
             }
             AppState::Start if input.confirmation_detected => {
                 self.state = AppState::Active { paused: false };
-                true
+                self.queued_level = Some(LevelId::TestRoom);
             }
             AppState::Active { paused } if input.pause_requested => {
                 self.state = AppState::Active { paused: !paused };
-                false
             }
-            _ => false,
+            _ => (),
         }
     }
 
