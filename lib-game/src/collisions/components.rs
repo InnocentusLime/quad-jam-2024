@@ -47,15 +47,28 @@ pub struct CollisionQuerySlice {
 pub struct KinematicControl {
     pub dr: Vec2,
     pub collision: Group,
+    pub slide: bool,
+    pub collided: bool,
 }
 
 impl KinematicControl {
     /// Creates a new [KinematicControl].
     /// * `collision` -- the layer which the body will collide against
-    pub fn new(collision: Group) -> Self {
+    pub fn new_slide(collision: Group) -> Self {
         Self {
             dr: Vec2::ZERO,
             collision,
+            slide: true,
+            collided: false,
+        }
+    }
+
+    pub fn new_nonslide(collision: Group) -> Self {
+        Self {
+            dr: Vec2::ZERO,
+            collision,
+            slide: false,
+            collided: false,
         }
     }
 }
