@@ -179,6 +179,7 @@ impl Asset for HashMap<AnimationId, Animation> {
 )]
 pub enum LevelId {
     TestRoom,
+    TestBulletRoom,
 }
 
 impl Asset for LevelDef {
@@ -206,6 +207,7 @@ impl Asset for LevelDef {
     fn filename(id: Self::AssetId) -> &'static str {
         match id {
             LevelId::TestRoom => "test_room.bin",
+            LevelId::TestBulletRoom => "test_bullet_room.bin",
         }
     }
 }
