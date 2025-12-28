@@ -159,12 +159,7 @@ impl Game for Project {
         ]
     }
 
-    async fn init(
-        &mut self,
-        resources: &lib_game::Resources,
-        world: &mut World,
-        _render: &mut Render,
-    ) {
+    fn init(&mut self, resources: &lib_game::Resources, world: &mut World, _render: &mut Render) {
         if let Some(level_data) = &resources.level {
             init_level(world, level_data);
         }
