@@ -42,8 +42,10 @@ impl CollisionSolver {
             character.group = kin.collision;
 
             let dr = lib_col::conv::topleft_corner_vector_to_crate(kin.dr);
-            let new_tf = process_character_movement(&self.solver, dr, character);
+            let (new_tf, collided) =
+                process_character_movement(&self.solver, dr, character, kin.slide);
             tf.pos = lib_col::conv::crate_vector_to_topleft_corner(new_tf.translation);
+            kin.collided = collided;
         }
     }
 
@@ -93,7 +95,9 @@ fn process_character_movement(
     solver: &lib_col::CollisionSolver,
     mut dr: Vec2,
     mut character: lib_col::Collider,
-) -> Affine2 {
+    slide: bool,
+) -> (Affine2, bool) {
+    let mut collided = false;
     for _ in 0..CHAR_MOVEMENT_ITERS {
         let offlen = dr.length();
         let direction = dr.normalize_or_zero();
@@ -107,9 +111,13 @@ fn process_character_movement(
 
         dr -= dr.dot(normal) * normal;
         dr += normal * CHAR_NORMAL_NUDGE;
+        collided = true;
+        if !slide {
+            break;
+        }
     }
 
-    character.tf
+    (character.tf, collided)
 }
 
 fn get_query_collider<const ID: usize>(

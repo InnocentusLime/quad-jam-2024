@@ -228,7 +228,7 @@ impl CharacterBundle {
             tf: Transform::from_pos(pos),
             look: CharacterLook(0.0),
             hp: Health::new(spawn_health),
-            kinematic: KinematicControl::new(col_group::LEVEL),
+            kinematic: KinematicControl::new_slide(col_group::LEVEL),
             body: BodyTag {
                 groups: col_group::CHARACTERS.union(group),
                 shape,
