@@ -129,6 +129,7 @@ pub trait Game: 'static {
         dt: f32,
         resources: &Resources,
         world: &mut World,
+        collisions: &CollisionSolver,
         cmds: &mut CommandBuffer,
     ) -> Option<AppState>;
 
@@ -311,6 +312,7 @@ impl App {
             GAME_TICKRATE,
             &self.resources,
             &mut self.world,
+            &self.col_solver,
             &mut self.cmds,
         );
         self.cmds.run_on(&mut self.world);

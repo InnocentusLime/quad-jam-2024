@@ -11,6 +11,31 @@
     ],
     "propertyTypes": [
         {
+            "color": "#ffff0000",
+            "drawFill": true,
+            "id": 7,
+            "members": [
+                {
+                    "name": "dir_angle",
+                    "type": "float",
+                    "value": 0
+                }
+            ],
+            "name": "BasicBullet",
+            "type": "class",
+            "useAs": [
+                "property",
+                "map",
+                "layer",
+                "object",
+                "tile",
+                "tileset",
+                "wangcolor",
+                "wangset",
+                "project"
+            ]
+        },
+        {
             "color": "#ffff0026",
             "drawFill": true,
             "id": 3,

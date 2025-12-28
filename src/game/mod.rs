@@ -1,3 +1,4 @@
+mod basic_bullet;
 mod components;
 mod damager;
 mod goal;
@@ -81,6 +82,9 @@ fn init_level(world: &mut World, level_def: &LevelDef) {
             EntityInfo::Goal {} => goal::spawn(world, pos),
             EntityInfo::Damager {} => damager::spawn(world, pos),
             EntityInfo::Stabber {} => stabber::spawn(world, pos),
+            EntityInfo::BasicBullet { dir_angle } => {
+                basic_bullet::spawn(world, pos, dir_angle.to_radians())
+            }
         }
     }
 }
@@ -201,14 +205,16 @@ impl Game for Project {
     fn update(
         &mut self,
         dt: f32,
-        _resources: &lib_game::Resources,
+        resources: &lib_game::Resources,
         world: &mut World,
+        _collisions: &CollisionSolver,
         cmds: &mut CommandBuffer,
     ) -> Option<lib_game::AppState> {
         player::update_stamina(dt, world);
         goal::check(world);
 
         stabber::die_on_zero_health(world, cmds);
+        basic_bullet::update(dt, world, resources, cmds);
 
         decide_next_state(world)
     }

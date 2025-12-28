@@ -219,14 +219,20 @@ pub struct CharacterBundle {
 
 impl CharacterBundle {
     pub fn new_enemy(pos: Vec2, shape: Shape, spawn_health: i32) -> Self {
-        Self::new(pos, col_group::NONE, shape, spawn_health, Team::Enemy)
+        Self::new_creature(pos, col_group::NONE, shape, spawn_health, Team::Enemy)
     }
 
     pub fn new_player(pos: Vec2, shape: Shape, spawn_health: i32) -> Self {
-        Self::new(pos, col_group::PLAYER, shape, spawn_health, Team::Player)
+        Self::new_creature(pos, col_group::PLAYER, shape, spawn_health, Team::Player)
     }
 
-    pub fn new(pos: Vec2, group: Group, shape: Shape, spawn_health: i32, team: Team) -> Self {
+    pub fn new_creature(
+        pos: Vec2,
+        group: Group,
+        shape: Shape,
+        spawn_health: i32,
+        team: Team,
+    ) -> Self {
         CharacterBundle {
             team,
             tf: Transform::from_pos(pos),
@@ -235,6 +241,26 @@ impl CharacterBundle {
             kinematic: KinematicControl::new_slide(col_group::LEVEL),
             body: BodyTag {
                 groups: col_group::CHARACTERS.union(group),
+                shape,
+            },
+            play: AnimationPlay {
+                pause: false,
+                animation: AnimationId::BunnyWalkD,
+                total_dt: 0.0,
+                cursor: 0,
+            },
+        }
+    }
+
+    pub fn new_projectile(pos: Vec2, shape: Shape) -> Self {
+        CharacterBundle {
+            team: Team::Enemy,
+            tf: Transform::from_pos(pos),
+            look: CharacterLook(0.0),
+            hp: Health::new(1),
+            kinematic: KinematicControl::new_nonslide(col_group::LEVEL),
+            body: BodyTag {
+                groups: col_group::PROJECTILES,
                 shape,
             },
             play: AnimationPlay {
