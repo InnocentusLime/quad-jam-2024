@@ -92,12 +92,7 @@ pub trait Game: 'static {
     /// Put all the appropriate data into the ECS World.
     /// The ECS world should be the only place where the state
     /// is located.
-    fn init(
-        &mut self,
-        resources: &Resources,
-        world: &mut World,
-        render: &mut Render,
-    ) -> impl std::future::Future<Output = ()> + Send;
+    fn init(&mut self, resources: &Resources, world: &mut World, render: &mut Render);
 
     /// Handle the user input. You also get the delta-time.
     fn input_phase(
@@ -245,8 +240,7 @@ impl App {
 
                 self.resources.level = Some(level);
                 self.world.clear();
-                game.init(&self.resources, &mut self.world, &mut self.render)
-                    .await;
+                game.init(&self.resources, &mut self.world, &mut self.render);
             }
 
             dump!("game state: {:?}", self.state);
