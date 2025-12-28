@@ -14,7 +14,7 @@ ADD . /project/
 RUN <<EOF
     cd /project &&\
     cargo build --package lib-asset --features dev-env --bin asset-compiler --locked &&\
-    cargo build --target wasm32-unknown-unknown --features lib-game/dbg --profile wasm-release --locked
+    cargo build --target wasm32-unknown-unknown --features dbg --profile wasm-release --locked
 EOF
 # Put all files
 COPY /assets/ /dist/assets

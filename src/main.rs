@@ -1,7 +1,12 @@
+#[cfg(feature = "dev-env")]
+mod cli;
 mod game;
 
 use game::Project;
 use macroquad::prelude::*;
+
+#[cfg(feature = "dev-env")]
+use crate::cli::apply_cli;
 
 fn window_conf() -> Conf {
     Conf {
@@ -26,6 +31,9 @@ async fn main() {
 
     let mut app = lib_game::App::new(&window_conf()).await.unwrap();
     let mut project = Project::new(&mut app).await;
+
+    #[cfg(feature = "dev-env")]
+    apply_cli(&mut app);
 
     app.run(&mut project).await;
 }
