@@ -1,0 +1,37 @@
+use hecs::EntityBuilder;
+
+use super::prelude::*;
+
+const BULLET_SPEED: f32 = 32.0;
+const BULLET_SHAPE: Shape = Shape::Rect {
+    width: 16.0,
+    height: 16.0,
+};
+
+pub fn spawn(world: &mut World, pos: Vec2, dir_angle: f32) {
+    let mut builder = EntityBuilder::new();
+    builder.add_bundle(CharacterBundle {
+        look: CharacterLook(dir_angle),
+        ..CharacterBundle::new_projectile(pos, BULLET_SHAPE)
+    });
+    builder.add(BulletTag);
+    builder.add(col_query::Damage::new(
+        BULLET_SHAPE,
+        col_group::CHARACTERS,
+        col_group::PLAYER,
+    ));
+    world.spawn(builder.build());
+}
+
+pub fn update(dt: f32, world: &mut World, resources: &Resources, cmds: &mut CommandBuffer) {
+    for_each_character::<(&BulletTag, &mut col_query::Damage)>(
+        world,
+        resources,
+        |entity, mut character| {
+            character.set_walk_step(dt * character.look_direction() * BULLET_SPEED);
+            if character.data.1.has_collided() || character.collided() {
+                cmds.despawn(entity);
+            }
+        },
+    );
+}

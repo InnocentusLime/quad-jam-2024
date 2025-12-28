@@ -86,6 +86,7 @@ pub mod col_group {
     pub const LEVEL: Group = Group::from_id(0);
     pub const CHARACTERS: Group = Group::from_id(1);
     pub const PLAYER: Group = Group::from_id(2);
+    pub const PROJECTILES: Group = Group::from_id(3);
 }
 
 pub mod col_query {
