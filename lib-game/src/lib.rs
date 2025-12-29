@@ -309,10 +309,10 @@ impl App {
 
         self.col_solver.compute_collisions(&mut self.world);
 
-        attack::update_grazing(GAME_TICKRATE, &mut self.world, &self.col_solver);
         health::collect_damage(&mut self.world, &self.col_solver);
         health::apply_damage(&mut self.world);
         health::apply_cooldown(&mut self.world);
+        attack::update_grazing(GAME_TICKRATE, &mut self.world, &self.col_solver);
 
         let new_state = game.update(
             GAME_TICKRATE,
