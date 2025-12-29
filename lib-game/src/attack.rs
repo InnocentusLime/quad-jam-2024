@@ -1,14 +1,18 @@
 use crate::{
-    BodyTag, CollisionSolver, GrazeGain, GrazeValue, Transform, col_group, col_query, dump,
+    BodyTag, CollisionSolver, GrazeGain, GrazeValue, Health, Transform, col_group, col_query,
 };
 use hecs::{Bundle, World};
 use lib_asset::animation::Team;
 use lib_col::{Group, Shape};
 
 pub(crate) fn update_grazing(dt: f32, world: &mut World, col_solver: &CollisionSolver) {
-    for (_, (graze_q, graze_gain)) in
-        &mut world.query::<(&mut col_query::Grazing, &mut GrazeGain)>()
+    for (_, (graze_q, graze_gain, health)) in
+        &mut world.query::<(&mut col_query::Grazing, &mut GrazeGain, &Health)>()
     {
+        // invulnerable characters can't graze
+        if health.is_invulnerable {
+            continue;
+        }
         for collision in col_solver.collisions_for(graze_q) {
             let Ok(graze_val) = world.get::<&GrazeValue>(*collision) else {
                 continue;
@@ -16,7 +20,6 @@ pub(crate) fn update_grazing(dt: f32, world: &mut World, col_solver: &CollisionS
             graze_gain.value += graze_val.0 * dt;
             graze_gain.value = graze_gain.value.min(graze_gain.max_value);
         }
-        dump!("Graze: {:.2}", graze_gain.value);
     }
 }
 
