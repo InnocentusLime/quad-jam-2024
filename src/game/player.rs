@@ -1,4 +1,4 @@
-use hecs::EntityBuilder;
+use hecs::{EntityBuilder, Query};
 
 use super::prelude::*;
 
@@ -12,8 +12,6 @@ pub const PLAYER_SHAPE: Shape = Shape::Rect {
 };
 
 pub const PLAYER_MAX_STAMINA: f32 = 100.0;
-pub const PLAYER_STAMINA_REGEN_RATE: f32 = 20.0;
-pub const PLAYER_STAMINA_REGEN_COOLDOWN: f32 = 0.8;
 pub const PLAYER_ATTACK_COST: f32 = 10.0;
 pub const PLAYER_DASH_COST: f32 = 25.0;
 
@@ -25,17 +23,11 @@ pub fn spawn(world: &mut World, pos: Vec2) {
         PLAYER_SPAWN_HEALTH,
     ));
     builder.add_bundle((
-        PlayerData {
-            state: PlayerState::Idle,
-            stamina: PLAYER_MAX_STAMINA,
-            stamina_cooldown: 0.0,
-        },
+        PlayerState::Idle,
         DamageCooldown::new(PLAYER_HIT_COOLDOWN),
-    ));
-    builder.add_bundle((
         GrazeGain {
             value: 0.0,
-            max_value: 100.0,
+            max_value: PLAYER_MAX_STAMINA,
         },
         col_query::Grazing::new(
             Shape::Rect {
@@ -70,7 +62,7 @@ pub fn controls(dt: f32, input: &InputModel, world: &mut World, resources: &Reso
     }
     walk_dir = walk_dir.normalize_or_zero();
 
-    for_each_character::<&mut PlayerData>(world, resources, |_, mut c| {
+    for_each_character::<PlayerData>(world, resources, |_, mut c| {
         let look_dir = (input.aim - c.pos()).normalize_or(vec2(0.0, 1.0));
 
         if input.attack_down && can_attack(&c) {
@@ -98,41 +90,30 @@ pub fn controls(dt: f32, input: &InputModel, world: &mut World, resources: &Reso
     });
 }
 
-pub fn update_stamina(dt: f32, world: &mut World) {
-    for (_, data) in world.query_mut::<&mut PlayerData>() {
-        if data.stamina_cooldown >= 0.0 {
-            data.stamina_cooldown -= dt;
-            continue;
-        }
-        data.stamina += dt * PLAYER_STAMINA_REGEN_RATE;
-        data.stamina = data.stamina.min(PLAYER_MAX_STAMINA);
-    }
-}
-
-fn can_attack(c: &Character<&mut PlayerData>) -> bool {
+fn can_attack(c: &Character<PlayerData>) -> bool {
     matches!(c.get_state(), PlayerState::Idle | PlayerState::Walking)
         && c.data.can_do_action(PLAYER_ATTACK_COST)
 }
 
-fn can_dash(c: &Character<&mut PlayerData>) -> bool {
+fn can_dash(c: &Character<PlayerData>) -> bool {
     matches!(c.get_state(), PlayerState::Idle | PlayerState::Walking)
         && c.data.can_do_action(PLAYER_DASH_COST)
 }
 
-fn can_walk(c: &Character<&mut PlayerData>) -> bool {
+fn can_walk(c: &Character<PlayerData>) -> bool {
     let (allow_walk_input, _) = c.get_input_flags();
     !matches!(c.get_state(), PlayerState::Walking) && allow_walk_input
 }
 
-impl CharacterData for &mut PlayerData {
+impl CharacterData for PlayerData<'_> {
     type StateId = PlayerState;
 
     fn get_state(&self) -> Self::StateId {
-        self.state
+        *self.state
     }
 
     fn set_state(&mut self, new_state: Self::StateId) {
-        self.state = new_state
+        *self.state = new_state
     }
 
     fn state_to_anim(character: &Character<Self>) -> AnimationId {
@@ -158,13 +139,19 @@ impl CharacterData for &mut PlayerData {
     }
 }
 
-impl PlayerData {
+#[derive(Query)]
+pub struct PlayerData<'a> {
+    pub state: &'a mut PlayerState,
+    pub graze_gain: &'a mut GrazeGain,
+}
+
+impl<'a> PlayerData<'a> {
     fn can_do_action(&self, cost: f32) -> bool {
-        self.stamina >= cost
+        self.graze_gain.value >= cost
     }
 
     fn substract_stamina(&mut self, cost: f32) {
-        self.stamina -= cost;
-        self.stamina_cooldown = PLAYER_STAMINA_REGEN_COOLDOWN;
+        self.graze_gain.value -= cost;
+        self.graze_gain.value = self.graze_gain.value.max(0.0);
     }
 }
