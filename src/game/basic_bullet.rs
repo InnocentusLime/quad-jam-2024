@@ -10,16 +10,18 @@ const BULLET_SHAPE: Shape = Shape::Rect {
 
 pub fn spawn(world: &mut World, pos: Vec2, dir_angle: f32) {
     let mut builder = EntityBuilder::new();
+    builder.add_bundle(AttackBundle::new(
+        Transform::from_pos(pos),
+        Team::Enemy,
+        BULLET_SHAPE,
+        2.0,
+        col_group::PLAYER,
+    ));
     builder.add_bundle(CharacterBundle {
         look: CharacterLook(dir_angle),
         ..CharacterBundle::new_projectile(pos, BULLET_SHAPE)
     });
     builder.add(BulletTag);
-    builder.add(col_query::Damage::new(
-        BULLET_SHAPE,
-        col_group::CHARACTERS,
-        col_group::PLAYER,
-    ));
     world.spawn(builder.build());
 }
 

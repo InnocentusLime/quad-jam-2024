@@ -32,6 +32,20 @@ pub fn spawn(world: &mut World, pos: Vec2) {
         },
         DamageCooldown::new(PLAYER_HIT_COOLDOWN),
     ));
+    builder.add_bundle((
+        GrazeGain {
+            value: 0.0,
+            max_value: 100.0,
+        },
+        col_query::Grazing::new(
+            Shape::Rect {
+                width: 32.0,
+                height: 32.0,
+            },
+            col_group::ATTACKS,
+            col_group::NONE,
+        ),
+    ));
     world.spawn(builder.build());
 }
 

@@ -86,7 +86,7 @@ pub mod col_group {
     pub const LEVEL: Group = Group::from_id(0);
     pub const CHARACTERS: Group = Group::from_id(1);
     pub const PLAYER: Group = Group::from_id(2);
-    pub const PROJECTILES: Group = Group::from_id(3);
+    pub const ATTACKS: Group = Group::from_id(3);
 }
 
 pub mod col_query {
@@ -94,6 +94,7 @@ pub mod col_query {
     pub const DAMAGE: usize = 1;
     pub const PICKUP: usize = 2;
     pub const INTERACTION: usize = 3;
+    pub const GRAZING: usize = 4;
 
     #[allow(dead_code)]
     pub type Level = super::CollisionQuery<LEVEL>;
@@ -101,4 +102,5 @@ pub mod col_query {
     pub type Pickup = super::CollisionQuery<PICKUP>;
     #[allow(dead_code)]
     pub type Interaction = super::CollisionQuery<INTERACTION>;
+    pub type Grazing = super::CollisionQuery<GRAZING>;
 }

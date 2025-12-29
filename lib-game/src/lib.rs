@@ -1,4 +1,5 @@
 mod animations;
+mod attack;
 mod character;
 mod collisions;
 mod components;
@@ -14,6 +15,7 @@ pub mod sys;
 
 use hashbrown::HashMap;
 
+pub use attack::*;
 pub use character::*;
 pub use collisions::*;
 pub use components::*;
@@ -307,6 +309,7 @@ impl App {
 
         self.col_solver.compute_collisions(&mut self.world);
 
+        attack::update_grazing(GAME_TICKRATE, &mut self.world, &self.col_solver);
         health::collect_damage(&mut self.world, &self.col_solver);
         health::apply_damage(&mut self.world);
         health::apply_cooldown(&mut self.world);
