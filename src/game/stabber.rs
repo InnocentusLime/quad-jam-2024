@@ -49,7 +49,7 @@ pub fn spawn(world: &mut World, pos: Vec2) {
 
 pub fn ai(dt: f32, world: &mut World, resources: &Resources) {
     let Some((_, (player_tf, _))) = world
-        .query_mut::<(&Transform, &PlayerData)>()
+        .query_mut::<(&Transform, &PlayerState)>()
         .into_iter()
         .next()
     else {

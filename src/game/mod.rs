@@ -92,7 +92,7 @@ fn init_level(world: &mut World, level_def: &LevelDef) {
 fn decide_next_state(world: &mut World) -> Option<AppState> {
     let player_dead = world
         .query_mut::<&Health>()
-        .with::<&PlayerData>()
+        .with::<player::PlayerData>()
         .into_iter()
         .all(|(_, hp)| hp.value <= 0);
     let goal_achieved = world
@@ -173,7 +173,7 @@ impl Game for Project {
         world: &mut World,
     ) {
         if self.do_player {
-            do_auto_state_transition::<&mut PlayerData>(world, resources);
+            do_auto_state_transition::<player::PlayerData>(world, resources);
             player::controls(dt, input, world, resources);
         }
         if self.do_ai {
@@ -190,7 +190,7 @@ impl Game for Project {
         _cmds: &mut CommandBuffer,
     ) {
         if self.do_player {
-            state_to_anim::<&mut PlayerData>(world, resources);
+            state_to_anim::<player::PlayerData>(world, resources);
         }
         if self.do_ai {
             state_to_anim::<&mut StabberState>(world, resources);
@@ -205,7 +205,6 @@ impl Game for Project {
         _collisions: &CollisionSolver,
         cmds: &mut CommandBuffer,
     ) -> Option<lib_game::AppState> {
-        player::update_stamina(dt, world);
         goal::check(world);
 
         stabber::die_on_zero_health(world, cmds);

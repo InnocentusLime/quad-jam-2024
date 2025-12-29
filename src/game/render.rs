@@ -1,5 +1,7 @@
 use lib_asset::FontId;
 
+use crate::game::player;
+
 use super::prelude::*;
 
 static WIN_TEXT: &str = "Congratulations!";
@@ -22,7 +24,7 @@ pub fn game_ui(render: &mut Render, world: &World) {
     let ui_x = TILE_SIDE_F32 * 16.0;
     let font = FontId::Quaver;
 
-    let mut player_q = world.query::<(&Health, &PlayerData)>();
+    let mut player_q = world.query::<(&Health, player::PlayerData)>();
     let (_, (player_health, player_data)) = player_q.into_iter().next().unwrap();
     let (game_state, game_state_color) = if player_health.value <= 0 {
         ("You are dead", RED)
@@ -46,7 +48,7 @@ pub fn game_ui(render: &mut Render, world: &World) {
         font,
         16.0,
         "Stamina: {:3.2}",
-        player_data.stamina,
+        player_data.graze_gain.value,
     );
     render.put_text(
         vec2(ui_x, off_y * 6.0),
