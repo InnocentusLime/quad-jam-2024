@@ -260,7 +260,7 @@ impl CharacterBundle {
             hp: Health::new(1),
             kinematic: KinematicControl::new_nonslide(col_group::LEVEL),
             body: BodyTag {
-                groups: col_group::PROJECTILES,
+                groups: col_group::ATTACKS,
                 shape,
             },
             play: AnimationPlay {

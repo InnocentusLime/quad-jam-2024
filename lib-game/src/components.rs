@@ -2,6 +2,15 @@ use hecs::Entity;
 use lib_asset::animation::{Animation, AnimationId};
 use macroquad::prelude::*;
 
+#[derive(Clone, Copy, Debug)]
+pub struct GrazeGain {
+    pub value: f32,
+    pub max_value: f32,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct GrazeValue(pub f32);
+
 /// [Health] component stores entity's health.
 /// Normally, to do damage, you should just put it into the `damage` field.
 /// `damage` is zeroed every frame and is substracted to `value`.

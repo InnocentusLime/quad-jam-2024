@@ -1,11 +1,10 @@
 use hashbrown::HashMap;
-use hecs::{CommandBuffer, Entity, World};
-use lib_col::Group;
+use hecs::{CommandBuffer, Entity, EntityBuilder, World};
 use macroquad::prelude::*;
 
 use crate::{
-    AnimationPlay, ClipActionObject, Render, Resources, SpriteData, Transform, col_query,
-    for_each_character,
+    AnimationPlay, AttackBundle, ClipActionObject, Render, Resources, SpriteData, Transform,
+    col_group, col_query, for_each_character,
 };
 
 pub const ANIMATION_TIME_UNIT: f32 = 1.0 / 1000.0;
@@ -112,12 +111,18 @@ pub(crate) fn update_attack_boxes(
                     col_q.collider = clip.action.shape;
                     col_q.group = clip.action.group;
                 }
-                None => cmds.spawn((
-                    new_col_tf,
-                    clip.action.team,
-                    event,
-                    col_query::Damage::new(clip.action.shape, clip.action.group, Group::empty()),
-                )),
+                None => {
+                    let mut builder = EntityBuilder::new();
+                    builder.add_bundle(AttackBundle::new(
+                        new_col_tf,
+                        clip.action.team,
+                        clip.action.shape,
+                        1.0,
+                        col_group::NONE,
+                    ));
+                    builder.add(event);
+                    cmds.spawn(builder.build());
+                }
             }
         }
     });
