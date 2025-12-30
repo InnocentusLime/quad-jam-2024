@@ -79,10 +79,7 @@ pub enum EntityInfo {
     Goal {},
     Damager {},
     Stabber {},
-    BasicBullet {
-        #[serde(default)]
-        dir_angle: f32,
-    },
+    BasicBullet {},
 }
 
 /// The definition of a map. Contains the tilemap

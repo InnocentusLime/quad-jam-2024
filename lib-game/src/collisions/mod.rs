@@ -4,7 +4,7 @@ use macroquad::prelude::*;
 mod components;
 mod debug;
 
-use crate::components::Transform;
+use crate::{components::Transform, dump};
 pub use components::*;
 pub use debug::*;
 
