@@ -3,7 +3,9 @@ mod common;
 use common::{TestCase, draw_shape, run_tests_no_fuzz};
 use glam::{Affine2, Mat2, vec2};
 use hashbrown::HashSet;
-use lib_col::{Collider, Group, Shape};
+use lib_col::{Collider, CollisionSolver, Group, Shape};
+
+use crate::common::entity;
 
 #[derive(Debug, Clone, Copy)]
 struct GroupTest {
@@ -28,11 +30,16 @@ impl TestCase for GroupTest {
     }
 
     fn check(&self) -> bool {
-        let query = self.get_query();
-        let matched = (0..CIRCLE_COUNT)
-            .filter(move |idx| CIRCLES[*idx].collides(&query))
+        let mut solver = CollisionSolver::new();
+        solver.fill((0..CIRCLE_COUNT).map(|idx| (entity(idx), CIRCLES[idx])));
+        let expected = self
+            .expected
+            .iter()
+            .map(|x| entity(*x))
             .collect::<HashSet<_>>();
-        let expected = self.expected.iter().map(|x| *x).collect::<HashSet<_>>();
+        let matched = solver
+            .query_overlaps(self.get_query(), Group::empty())
+            .collect::<HashSet<_>>();
 
         matched == expected
     }

@@ -63,10 +63,7 @@ impl TestCase for WorldTest {
             .into_iter()
             .map(|idx| spawned[*idx])
             .collect::<HashSet<_>>();
-        let actual = solver
-            .query_overlaps(col, filter)
-            .map(|(entitiy, _)| *entitiy)
-            .collect::<HashSet<_>>();
+        let actual = solver.query_overlaps(col, filter).collect::<HashSet<_>>();
 
         actual == expected
     }

@@ -2,7 +2,7 @@
 //! * Projecting a shape onto an axis
 //! * Separating axis theorem
 
-use glam::{Affine2, Vec2, Vec4, vec2};
+use glam::{Affine2, Vec2, vec2};
 
 pub const MAX_AXIS_NORMALS: usize = 8;
 pub const SHAPE_TOI_EPSILON: f32 = f32::EPSILON * 100.0f32;
@@ -73,184 +73,39 @@ pub enum Shape {
 }
 
 impl Shape {
-    /// Tries to apply the separating axis theorem.
-    /// This function tries the axes given by [Shape::separating_axes].
-    /// Ref: https://en.wikipedia.org/wiki/Hyperplane_separation_theorem
-    pub fn is_separated(&self, other: &Shape, tf1: Affine2, tf2: Affine2) -> bool {
-        let mut axis_buff = [Vec2::ZERO; MAX_AXIS_NORMALS * 2];
-        let n1 = self.separating_axes(tf1, 0, &mut axis_buff);
-        let n2 = other.separating_axes(tf2, n1, &mut axis_buff);
-
-        (0..n1 + n2)
-            .map(|idx| axis_buff[idx])
-            .any(|axis_normal| self.try_separating_axis(other, tf1, tf2, axis_normal))
-    }
-
-    /// Try applying the separating axis theorem.
-    /// The axis is encoded with its normal: axis_normal.
-    /// `axis_normal` must be a normalized vector.
-    pub fn try_separating_axis(
-        &self,
-        other: &Shape,
-        tf1: Affine2,
-        tf2: Affine2,
-        axis_normal: Vec2,
-    ) -> bool {
-        // If an axis separates shapes A and B, then their projections on axis normal
-        // do not intersect.
-        let proj1 = self.project(tf1, axis_normal);
-        let proj2 = other.project(tf2, axis_normal);
-        let (l_proj, r_proj) = if proj1[0] < proj2[0] {
-            (proj1, proj2)
-        } else {
-            (proj2, proj1)
-        };
-
-        // We now have l_proj and r_proj. Intersection happens only in this case:
-        // *--------------*
-        // l_proj[0]      l_proj[1]
-        //       *--------------*
-        //       r_proj[0]      r_proj[1]
-        l_proj[1] < r_proj[0]
-    }
-
-    /// Computes time of impact by using the separating axis theorem.
-    /// In addition provides the impact normal.
-    /// While this is implemented for circles, the result might not be
-    /// as precise as desired.
-    pub fn time_of_impact(
-        &self,
-        other: &Shape,
-        tf1: Affine2,
-        tf2: Affine2,
-        direction: Vec2,
-        t_max: f32,
-    ) -> Option<(f32, Vec2)> {
-        let mut axis_buff = [Vec2::ZERO; MAX_AXIS_NORMALS * 2];
-        let n1 = self.separating_axes(tf1, 0, &mut axis_buff);
-        let n2 = other.separating_axes(tf2, n1, &mut axis_buff);
-
-        let result = (0..n1 + n2)
-            .map(|idx| axis_buff[idx])
-            .filter_map(|axis_normal| {
-                self.candidate_time_of_impact(other, tf1, tf2, axis_normal, direction, t_max)
-            })
-            .max_by(|(t1, _), (t2, _)| f32::total_cmp(t1, t2));
-        let (toi, normal) = result?;
-        let tf1 = Affine2 {
-            translation: tf1.translation + (toi + SHAPE_TOI_EPSILON * 10.0) * direction,
-            ..tf1
-        };
-        if self.is_separated(other, tf1, tf2) {
-            None
-        } else {
-            Some((toi, normal))
-        }
-    }
-
-    /// Computes the time of impact for a fixed axis.
-    /// The axis is encoded with its normal: axis_normal.
-    /// `axis_normal` must be a normalized vector.
-    pub fn candidate_time_of_impact(
-        &self,
-        other: &Shape,
-        tf1: Affine2,
-        tf2: Affine2,
-        axis_normal: Vec2,
-        direction: Vec2,
-        t_max: f32,
-    ) -> Option<(f32, Vec2)> {
-        let proj1 = self.project(tf1, axis_normal);
-        let proj2 = other.project(tf2, axis_normal);
-        let dproj = axis_normal.dot(direction);
-
-        // Do not process cases when movement is parallel to the
-        // separation axis.
-        if dproj <= SHAPE_TOI_EPSILON {
-            return None;
-        }
-
-        let t = if proj1[0] < proj2[0] {
-            (proj2[0] - proj1[1]) / dproj
-        } else {
-            (proj1[0] - proj2[1]) / dproj
-        };
-
-        let push_normal = if dproj >= 0.0 {
-            -axis_normal
-        } else {
-            axis_normal
-        };
-
-        if t <= 0.0 || t > t_max {
-            None
-        } else {
-            Some((t, push_normal))
-        }
-    }
-
-    /// Provides potential separating axes for a shape.
-    /// * `tf` -- transform for `self`
-    /// * `offset` -- offset into the buffer
-    /// * `out` -- the buffer to write into. Must be at least [MAX_AXIS_NORMALS] long.
-    ///
-    /// The returned value is the amount of axes written.
-    pub fn separating_axes(&self, tf: Affine2, offset: usize, out: &mut [Vec2]) -> usize {
+    pub fn write_vertices(self, tf: Affine2, out: &mut Vec<Vec2>) {
         match self {
-            Shape::Rect { .. } => {
-                let normals = rect_normals(tf);
-                let n = normals.len();
-                out[offset..offset + n].copy_from_slice(&normals);
-                n
-            }
-            Shape::Circle { .. } => {
-                let normals = circle_normals(tf);
-                let n = normals.len();
-                out[offset..offset + n].copy_from_slice(&normals);
-                n
-            }
+            Shape::Rect { width, height } => out.extend(rect_points(vec2(width, height), tf)),
+            Shape::Circle { radius } => out.extend(circle_points(radius, tf)),
         }
     }
 
-    /// Projects a shape onto an axis:
-    /// * `tf` -- shape transform
-    /// * `axis` -- the axis to project onto. Must be a unit vector
-    ///
-    /// The result is two numbers, which represent a line segment on the axis.
-    /// ```graphics
-    /// ----------*----------axis--------*---->
-    ///           result[0]              result[1]
-    /// ```
-    pub fn project(&self, tf: Affine2, axis: Vec2) -> [f32; 2] {
-        let proj = match *self {
-            Shape::Rect { width, height } => project_rect(vec2(width, height), tf, axis),
-            Shape::Circle { radius } => project_circle(radius, tf, axis),
-        };
-        debug_assert!(proj[0] <= proj[1], "projection not ordered");
-
-        proj
+    pub fn write_normals(self, tf: Affine2, out: &mut Vec<Vec2>) {
+        match self {
+            Shape::Rect { .. } => out.extend(rect_normals(tf)),
+            Shape::Circle { .. } => out.extend(circle_normals(tf)),
+        }
     }
 }
 
 /// Returns transformed rectangle normals
 pub fn rect_normals(tf: Affine2) -> [Vec2; 4] {
-    RECT_NORMALS.map(|n| tf.transform_vector2(n))
+    [
+        tf.transform_vector2(RECT_NORMALS[0]),
+        tf.transform_vector2(RECT_NORMALS[1]),
+        tf.transform_vector2(RECT_NORMALS[2]),
+        tf.transform_vector2(RECT_NORMALS[3]),
+    ]
 }
 
 /// Returns transformed rectangle points
 pub fn rect_points(size: Vec2, tf: Affine2) -> [Vec2; 4] {
-    RECT_VERTICES
-        .map(|v| v * size / 2.0)
-        .map(|v| tf.transform_point2(v))
-}
-
-/// Projects a rectangle transformed by tf onto axis:
-/// * `size` -- the rectangle sides (width, height)
-/// * `tf` -- rectangle transform
-/// * `axis` -- the axis
-pub fn project_rect(size: Vec2, tf: Affine2, axis: Vec2) -> [f32; 2] {
-    let projections = Vec4::from_array(rect_points(size, tf).map(|v| v.dot(axis)));
-    [projections.min_element(), projections.max_element()]
+    [
+        tf.transform_point2(RECT_VERTICES[0] * size / 2.0),
+        tf.transform_point2(RECT_VERTICES[1] * size / 2.0),
+        tf.transform_point2(RECT_VERTICES[2] * size / 2.0),
+        tf.transform_point2(RECT_VERTICES[3] * size / 2.0),
+    ]
 }
 
 /// Returns transformed circle normals
@@ -263,20 +118,6 @@ pub fn circle_points(radius: f32, tf: Affine2) -> [Vec2; 8] {
     CIRCLE_VERTICES
         .map(|v| v * radius)
         .map(|v| tf.transform_point2(v))
-}
-
-/// Projects a circle transformed by tf onto axis:
-/// * `radius` -- the circle radius
-/// * `tf` -- circle transform
-/// * `axis` -- the axis
-pub fn project_circle(radius: f32, tf: Affine2, axis: Vec2) -> [f32; 2] {
-    let projections = circle_points(radius, tf).map(|v| v.dot(axis));
-    let projections1 = Vec4::from_slice(&projections[0..4]);
-    let projections2 = Vec4::from_slice(&projections[4..8]);
-    [
-        f32::min(projections1.min_element(), projections2.min_element()),
-        f32::max(projections1.max_element(), projections2.max_element()),
-    ]
 }
 
 #[cfg(test)]
