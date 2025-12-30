@@ -319,6 +319,13 @@ impl App {
             &mut self.cmds,
             &self.clip_action_objects,
         );
+        animations::update_spawned(
+            &mut self.world,
+            &self.resources,
+            &mut self.cmds,
+            game,
+            &self.clip_action_objects,
+        );
         health::reset(&mut self.world);
         animations::update_invulnerability(&mut self.world, &self.resources);
         health::update_cooldown(GAME_TICKRATE, &mut self.world);

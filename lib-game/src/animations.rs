@@ -1,9 +1,13 @@
 use hashbrown::HashMap;
 use hecs::{CommandBuffer, Entity, EntityBuilder, World};
+use lib_asset::{
+    Position,
+    level::{CharacterDef, CharacterPosition},
+};
 use macroquad::prelude::*;
 
 use crate::{
-    AnimationPlay, AttackBundle, ClipActionObject, Render, Resources, SpriteData, Transform,
+    AnimationPlay, AttackBundle, ClipActionObject, Game, Render, Resources, SpriteData, Transform,
     col_group, col_query, for_each_character,
 };
 
@@ -124,6 +128,49 @@ pub(crate) fn update_attack_boxes(
                     cmds.spawn(builder.build());
                 }
             }
+        }
+    });
+}
+
+pub(crate) fn update_spawned<G: Game>(
+    world: &mut World,
+    resources: &Resources,
+    cmds: &mut CommandBuffer,
+    game: &G,
+    active_events: &HashMap<ClipActionObject, Entity>,
+) {
+    for_each_character::<()>(world, resources, |parent, character| {
+        for clip in character.animation.active_spawn(character.anim_cursor()) {
+            let event = ClipActionObject {
+                parent,
+                animation: character.animation_id(),
+                clip_id: clip.id,
+            };
+            let (pos, look) = character.transform_character(
+                clip.action.rotate_with_parent,
+                clip.action.local_pos.to_vec2(),
+                clip.action.local_look,
+            );
+
+            if active_events.contains_key(&event) {
+                continue;
+            }
+
+            let def = CharacterDef {
+                tf: CharacterPosition {
+                    look_angle: look,
+                    pos: Position { x: pos.x, y: pos.y },
+                },
+                info: clip.action.character_info,
+            };
+            let mut builder = EntityBuilder::new();
+            game.init_character(resources, &mut builder, def);
+            cmds.spawn(builder.build());
+
+            // Spawn a dummy entity.
+            // This way we get a "lock" on spawning,
+            // but let the spawned entity hang around as much as it wants.
+            cmds.spawn((event,));
         }
     });
 }

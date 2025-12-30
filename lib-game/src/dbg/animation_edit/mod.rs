@@ -8,6 +8,7 @@ use egui::{Ui, Vec2, Widget};
 use hashbrown::HashMap;
 use hecs::{Entity, World};
 use lib_asset::animation::*;
+use lib_asset::level::CharacterInfo;
 use lib_asset::{AnimationPackId, FsResolver, Position, TextureId};
 use strum::VariantArray;
 
@@ -217,6 +218,12 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
                 allow_look_input: false,
             }),
             ClipActionDiscriminants::Move => ClipAction::Move(ClipActionMove),
+            ClipActionDiscriminants::Spawn => ClipAction::Spawn(ClipActionSpawn {
+                local_look: 0.0,
+                local_pos: Position { x: 0.0, y: 0.0 },
+                rotate_with_parent: false,
+                character_info: CharacterInfo::BasicBullet {},
+            }),
         };
         *clip = new_clip;
     }
@@ -309,6 +316,24 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
         ClipAction::Move(_) => {
             ui.label("No data");
         }
+        ClipAction::Spawn(ClipActionSpawn {
+            local_pos,
+            local_look,
+            rotate_with_parent,
+            character_info,
+        }) => {
+            ui.horizontal(|ui| {
+                ui.add(DragValue::new(&mut local_pos.x).range(-256.0..=256.0));
+                ui.add(DragValue::new(&mut local_pos.y).range(-256.0..=256.0));
+                ui.label("local pos");
+            });
+            ui.horizontal(|ui| {
+                ui.drag_angle(local_look);
+                ui.label("local look");
+            });
+            ui.checkbox(rotate_with_parent, "rotate with parent");
+            character_info_ui(ui, character_info);
+        }
     }
 }
 
@@ -397,6 +422,52 @@ fn shape_ui(ui: &mut Ui, shape: &mut lib_col::Shape) {
                 ui.add(DragValue::new(radius).range(0.0..=300.0));
                 ui.label("radius");
             });
+        }
+    }
+}
+
+fn character_info_ui(ui: &mut Ui, character_info: &mut CharacterInfo) {
+    let character_tys = ["Player", "Goal", "Damager", "Stabber", "BasicBullet"];
+    let defaults = [
+        CharacterInfo::Player {},
+        CharacterInfo::Goal {},
+        CharacterInfo::Damager {},
+        CharacterInfo::Stabber {},
+        CharacterInfo::BasicBullet {},
+    ];
+    let curr_id = match character_info {
+        CharacterInfo::Player { .. } => 0,
+        CharacterInfo::Goal { .. } => 1,
+        CharacterInfo::Damager { .. } => 2,
+        CharacterInfo::Stabber { .. } => 3,
+        CharacterInfo::BasicBullet { .. } => 4,
+    };
+    let mut new_id = curr_id;
+    ComboBox::new("info", "CharacterInfo")
+        .selected_text(character_tys[curr_id])
+        .show_ui(ui, |ui| {
+            for (id, label) in character_tys.iter().enumerate() {
+                ui.selectable_value(&mut new_id, id, *label);
+            }
+        });
+    if curr_id != new_id {
+        *character_info = defaults[new_id];
+    }
+    match character_info {
+        CharacterInfo::Player {} => {
+            ui.label("No data");
+        }
+        CharacterInfo::Goal {} => {
+            ui.label("No data");
+        }
+        CharacterInfo::Damager {} => {
+            ui.label("No data");
+        }
+        CharacterInfo::Stabber {} => {
+            ui.label("No data");
+        }
+        CharacterInfo::BasicBullet {} => {
+            ui.label("No data");
         }
     }
 }
