@@ -73,10 +73,7 @@ fn init_level(world: &mut World, level_def: &LevelDef) {
         world,
     );
     for entity in level_def.entities.iter() {
-        let pos = vec2(
-            entity.tf.pos.x + entity.width / 2.0,
-            entity.tf.pos.y + entity.height / 2.0,
-        );
+        let pos = entity.tf.pos.to_vec2();
         match entity.info {
             EntityInfo::Player {} => player::spawn(world, pos),
             EntityInfo::Goal {} => goal::spawn(world, pos),
