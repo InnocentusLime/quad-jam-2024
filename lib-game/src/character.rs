@@ -166,6 +166,17 @@ impl<'a, T> Character<'a, T> {
         }
     }
 
+    pub fn transform_character(&self, rotate: bool, pos: Vec2, look_angle: f32) -> (Vec2, f32) {
+        if rotate {
+            (
+                self.pos() + self.look_direction().rotate(pos),
+                look_angle + self.look_angle(),
+            )
+        } else {
+            (self.pos() + pos, look_angle)
+        }
+    }
+
     pub fn collided(&self) -> bool {
         self.character_q.kinematic.collided
     }

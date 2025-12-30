@@ -1,6 +1,7 @@
 #[cfg(feature = "dev-env")]
 pub mod aseprite_load;
 
+use crate::level::CharacterInfo;
 use crate::{Position, TextureId};
 use serde::{Deserialize, Serialize};
 
@@ -41,6 +42,10 @@ impl Animation {
 
     pub fn active_move(&self, pos: u32) -> impl Iterator<Item = Clip<ClipActionMove>> {
         self.active_clips(pos).filter_map(Clip::to_move)
+    }
+
+    pub fn active_spawn(&self, pos: u32) -> impl Iterator<Item = Clip<ClipActionSpawn>> {
+        self.active_clips(pos).filter_map(Clip::to_spawn)
     }
 
     pub fn active_clips(&self, pos: u32) -> impl Iterator<Item = Clip> {
@@ -103,6 +108,13 @@ impl Clip {
         Some(self.replace_action(mov))
     }
 
+    pub fn to_spawn(self) -> Option<Clip<ClipActionSpawn>> {
+        let ClipAction::Spawn(spawn) = self.action else {
+            return None;
+        };
+        Some(self.replace_action(spawn))
+    }
+
     fn replace_action<T>(self, action: T) -> Clip<T> {
         Clip {
             id: self.id,
@@ -124,6 +136,7 @@ pub enum ClipAction {
     Invulnerability(ClipActionInvulnerability),
     LockInput(ClipActionLockInput),
     Move(ClipActionMove),
+    Spawn(ClipActionSpawn),
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -157,6 +170,14 @@ pub struct ClipActionAttackBox {
 pub struct ClipActionLockInput {
     pub allow_walk_input: bool,
     pub allow_look_input: bool,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct ClipActionSpawn {
+    pub rotate_with_parent: bool,
+    pub local_pos: Position,
+    pub local_look: f32,
+    pub character_info: CharacterInfo,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
