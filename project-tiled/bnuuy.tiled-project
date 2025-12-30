@@ -15,11 +15,6 @@
             "drawFill": true,
             "id": 7,
             "members": [
-                {
-                    "name": "dir_angle",
-                    "type": "float",
-                    "value": 0
-                }
             ],
             "name": "BasicBullet",
             "type": "class",

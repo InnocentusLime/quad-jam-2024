@@ -151,10 +151,10 @@ fn load_entity_defs_from_object_layer(layer: &tiled::Layer) -> anyhow::Result<Ve
         );
         let info = from_properties(&object.user_type, &object.properties)
             .with_context(|| format!("Layer {OBJECT_LAYER:?}, object {}", object.id()))?;
-        let (width, height) = match object.shape {
-            tiled::ObjectShape::Rect { width, height } => (width, height),
+        let _poly = match &object.shape {
+            tiled::ObjectShape::Polygon { points } => points,
             _ => anyhow::bail!(
-                "Layer {OBJECT_LAYER:?}, object {}: non square object",
+                "Layer {OBJECT_LAYER:?}, object {}: non polyhon object",
                 object.id(),
             ),
         };
@@ -162,8 +162,8 @@ fn load_entity_defs_from_object_layer(layer: &tiled::Layer) -> anyhow::Result<Ve
         entities.push(EntityDef {
             tf: EntityPosition {
                 pos: Position {
-                    x: object.x + width / 2.0,
-                    y: object.y + height / 2.0,
+                    x: object.x,
+                    y: object.y,
                 },
                 angle: object.rotation / 180.0 * std::f32::consts::PI,
             },
@@ -188,6 +188,6 @@ fn resolve_atlas(
 }
 
 static REQUIRED_TILED_VERSION: &str = "1.10";
-static OBJECT_LAYER: &str = "Actors";
+static OBJECT_LAYER: &str = "Characters";
 static WORLD_LAYER: &str = "World";
 static TILE_CLASS: &str = "Tile";

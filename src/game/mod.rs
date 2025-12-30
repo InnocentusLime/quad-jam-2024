@@ -79,8 +79,8 @@ fn init_level(world: &mut World, level_def: &LevelDef) {
             EntityInfo::Goal {} => goal::spawn(world, pos),
             EntityInfo::Damager {} => damager::spawn(world, pos),
             EntityInfo::Stabber {} => stabber::spawn(world, pos),
-            EntityInfo::BasicBullet { dir_angle } => {
-                basic_bullet::spawn(world, pos, dir_angle.to_radians())
+            EntityInfo::BasicBullet {} => {
+                basic_bullet::spawn(world, pos, entity.tf.angle)
             }
         }
     }

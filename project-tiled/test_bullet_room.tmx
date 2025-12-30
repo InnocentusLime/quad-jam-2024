@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="16" height="17" tilewidth="16" tileheight="16" infinite="0" backgroundcolor="#030307" nextlayerid="4" nextobjectid="7">
+<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="16" height="17" tilewidth="16" tileheight="16" infinite="0" backgroundcolor="#030307" nextlayerid="4" nextobjectid="19">
  <tileset firstgid="1" source="world.tsx"/>
  <layer id="1" name="World" width="16" height="17">
   <data encoding="csv">
@@ -22,12 +22,15 @@
 22,18,18,18,18,18,18,18,18,18,18,18,18,18,18,23
 </data>
  </layer>
- <objectgroup id="3" name="Actors">
-  <object id="1" name="Player" type="Player" x="176.5" y="156.25" width="16" height="16"/>
-  <object id="6" name="Silly bullet" type="BasicBullet" x="56" y="86" width="16" height="16">
-   <properties>
-    <property name="dir_angle" type="float" value="45"/>
-   </properties>
-  </object>
+ <objectgroup id="3" name="Characters">
+  <object id="7" template="character.tx" type="BasicBullet" x="60.189" y="116.557" rotation="180"/>
+  <object id="8" template="character.tx" name="Player" type="Player" x="209" y="187" rotation="180"/>
+  <object id="11" template="character.tx" type="BasicBullet" x="90.3431" y="115.676" rotation="240"/>
+  <object id="12" template="character.tx" type="BasicBullet" x="70" y="140.333" rotation="240"/>
+  <object id="13" template="character.tx" type="BasicBullet" x="73.3333" y="91.6667" rotation="240"/>
+  <object id="14" template="character.tx" type="BasicBullet" x="47" y="134" rotation="240"/>
+  <object id="15" template="character.tx" type="BasicBullet" x="56.3333" y="95" rotation="240"/>
+  <object id="17" template="character.tx" type="BasicBullet" x="75.6667" y="111.333" rotation="240"/>
+  <object id="18" template="character.tx" type="BasicBullet" x="43.3333" y="114.667" rotation="240"/>
  </objectgroup>
 </map>
