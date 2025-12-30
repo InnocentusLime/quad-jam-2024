@@ -2,7 +2,9 @@ mod common;
 
 use common::{FuzzableTestCase, TestCase, draw_shape, draw_vector, run_tests};
 use glam::{Affine2, Vec2, vec2};
-use lib_col::{SHAPE_TOI_EPSILON, Shape, conv};
+use lib_col::{Collider, CollisionSolver, Group, SHAPE_TOI_EPSILON, Shape, conv};
+
+use crate::common::entity;
 
 const TOI_ESTIMATE_EPSILON: f32 = 0.0001;
 
@@ -24,14 +26,27 @@ impl TestCase for ShapeCastTest {
     }
 
     fn check(&self) -> bool {
-        let res = Shape::time_of_impact(
-            &self.shape1,
-            &self.shape2,
-            self.tf1,
-            self.tf2,
-            self.cast_dir,
-            self.toi_max,
-        );
+        let mut solver = CollisionSolver::new();
+        solver.fill([(
+            entity(1),
+            Collider {
+                tf: self.tf2,
+                shape: self.shape2,
+                group: Group::from_id(0),
+            },
+        )]);
+
+        let res = solver
+            .query_shape_cast(
+                Collider {
+                    tf: self.tf1,
+                    shape: self.shape1,
+                    group: Group::from_id(0),
+                },
+                self.cast_dir,
+                self.toi_max,
+            )
+            .map(|(_, x, y)| (x, y));
 
         match (res, self.toi_estimate) {
             (Some((result_toi, result_normal)), Some((target_toi, target_normal)))

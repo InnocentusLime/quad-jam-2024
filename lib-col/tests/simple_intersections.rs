@@ -3,7 +3,9 @@ mod common;
 use common::{FuzzableTestCase, TestCase, draw_shape, run_tests};
 use glam::{Affine2, Vec2, vec2};
 
-use lib_col::Shape;
+use lib_col::{Collider, CollisionSolver, Group, Shape};
+
+use crate::common::entity;
 
 #[derive(Debug, Clone, Copy)]
 struct TwoShapesTest {
@@ -21,7 +23,26 @@ impl TestCase for TwoShapesTest {
     }
 
     fn check(&self) -> bool {
-        let res = !Shape::is_separated(&self.shape1, &self.shape2, self.tf1, self.tf2);
+        let mut solver = CollisionSolver::new();
+        solver.fill([(
+            entity(1),
+            Collider {
+                tf: self.tf1,
+                shape: self.shape1,
+                group: Group::from_id(0),
+            },
+        )]);
+        let res = solver
+            .query_overlaps(
+                Collider {
+                    tf: self.tf2,
+                    shape: self.shape2,
+                    group: Group::from_id(0),
+                },
+                Group::empty(),
+            )
+            .next()
+            .is_some();
         if res != self.expected_result {
             println!("Mismatch!");
             false
