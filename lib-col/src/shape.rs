@@ -2,7 +2,7 @@
 //! * Projecting a shape onto an axis
 //! * Separating axis theorem
 
-use glam::{Affine2, Vec2, Vec4, vec2};
+use glam::{vec2, vec4, Affine2, Vec2, Vec4};
 
 pub const MAX_AXIS_NORMALS: usize = 8;
 pub const SHAPE_TOI_EPSILON: f32 = f32::EPSILON * 100.0f32;
@@ -234,14 +234,22 @@ impl Shape {
 
 /// Returns transformed rectangle normals
 pub fn rect_normals(tf: Affine2) -> [Vec2; 4] {
-    RECT_NORMALS.map(|n| tf.transform_vector2(n))
+    [
+        tf.transform_vector2(RECT_NORMALS[0]),
+        tf.transform_vector2(RECT_NORMALS[1]),
+        tf.transform_vector2(RECT_NORMALS[2]),
+        tf.transform_vector2(RECT_NORMALS[3]),
+    ]
 }
 
 /// Returns transformed rectangle points
 pub fn rect_points(size: Vec2, tf: Affine2) -> [Vec2; 4] {
-    RECT_VERTICES
-        .map(|v| v * size / 2.0)
-        .map(|v| tf.transform_point2(v))
+    [
+        tf.transform_point2(RECT_VERTICES[0] * size / 2.0),
+        tf.transform_point2(RECT_VERTICES[1] * size / 2.0),
+        tf.transform_point2(RECT_VERTICES[2] * size / 2.0),
+        tf.transform_point2(RECT_VERTICES[3] * size / 2.0),
+    ]
 }
 
 /// Projects a rectangle transformed by tf onto axis:
@@ -249,7 +257,13 @@ pub fn rect_points(size: Vec2, tf: Affine2) -> [Vec2; 4] {
 /// * `tf` -- rectangle transform
 /// * `axis` -- the axis
 pub fn project_rect(size: Vec2, tf: Affine2, axis: Vec2) -> [f32; 2] {
-    let projections = Vec4::from_array(rect_points(size, tf).map(|v| v.dot(axis)));
+    let points = rect_points(size, tf);
+    let projections = vec4(
+        points[0].dot(axis),
+        points[1].dot(axis),
+        points[2].dot(axis),
+        points[3].dot(axis),
+    );
     [projections.min_element(), projections.max_element()]
 }
 
