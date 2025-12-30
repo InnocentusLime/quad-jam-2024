@@ -162,13 +162,11 @@ fn load_entity_defs_from_object_layer(layer: &tiled::Layer) -> anyhow::Result<Ve
         entities.push(EntityDef {
             tf: EntityPosition {
                 pos: Position {
-                    x: object.x,
-                    y: object.y,
+                    x: object.x + width / 2.0,
+                    y: object.y + height / 2.0,
                 },
                 angle: object.rotation / 180.0 * std::f32::consts::PI,
             },
-            width,
-            height,
             info,
         });
     }

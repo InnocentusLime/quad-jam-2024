@@ -64,10 +64,6 @@ pub struct LevelDef {
 pub struct EntityDef {
     /// Entity's transform
     pub tf: EntityPosition,
-    /// Entity's width
-    pub width: f32,
-    /// Entity's height
-    pub height: f32,
     /// Entity's manifest
     pub info: EntityInfo,
 }
