@@ -141,26 +141,30 @@ impl CollisionSolver {
         t_max: f32,
     ) -> Option<(Entity, f32, Vec2)> {
         let query_slice = self.put_collider(query);
-        self.groups
-            .iter()
-            .filter(move |group| query.group.includes(group.1))
-            .flat_map(|group| group.0.iter())
-            .filter_map(|(entity, collider)| {
-                self.query_shape_cast_do_shapecast(&query_slice, collider, *entity, direction, t_max)
-            })
-            .min_by(|(_, toi1, _), (_, toi2, _)| f32::total_cmp(toi1, toi2))
-    }
+        let (mut toi, mut normal, mut entity) = (
+            f32::INFINITY,
+            Vec2::ZERO,
+            Entity::DANGLING,
+        );
+        for group in &self.groups {
+            if !query_slice.group.includes(group.1) {
+                continue;
+            }
+            for (cand_entity, collider_slice) in &group.0 {
+                let (cand_toi, cand_normal) = self.time_of_impact_slice(&query_slice, collider_slice, direction, t_max);
+                if cand_toi < toi {
+                    toi = cand_toi;
+                    normal = cand_normal;
+                    entity = *cand_entity;
+                }
+            }
+        }
 
-    fn query_shape_cast_do_shapecast(
-        &self,
-        query_slice: &ColliderSlice,
-        collider_slice: &ColliderSlice,
-        entity: Entity,
-        direction: Vec2,
-        t_max: f32,
-    ) -> Option<(Entity, f32, Vec2)> {
-        let (toi, normal) = self.time_of_impact_slice(&query_slice, &collider_slice, direction, t_max)?;
-        Some((entity, toi, normal))
+        if toi == f32::INFINITY {
+            None
+        } else {
+            Some((entity, toi, normal))
+        }
     }
     
     fn time_of_impact_slice(
@@ -169,7 +173,7 @@ impl CollisionSolver {
         slice2: &ColliderSlice,
         direction: Vec2,
         t_max: f32,
-    ) -> Option<(f32, Vec2)> {
+    ) -> (f32, Vec2) {
         let (mut toi, mut push_normal) = (-f32::INFINITY, Vec2::ZERO);
         let normals1 = &self.normals[slice1.normals_start..slice1.normals_end];
         for normal in normals1 {
@@ -207,12 +211,12 @@ impl CollisionSolver {
         } 
 
         if toi == f32::INFINITY {
-            return None;
+            return (toi, push_normal)
         }
         if self.is_separated_slice(slice1, slice2, (toi + SHAPE_TOI_EPSILON * 10.0) * direction) {
-            None
+            (f32::INFINITY, Vec2::ZERO)
         } else {
-            Some((toi, push_normal))
+            (toi, push_normal)
         }
     }
 
