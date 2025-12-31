@@ -73,6 +73,23 @@ pub enum Shape {
 }
 
 impl Shape {
+    pub fn write_vertices(self, tf: Affine2, out: &mut Vec<Vec2>) {
+        match self {
+            Shape::Rect { width, height } => out.extend(rect_points(
+                vec2(width, height), 
+                tf,
+            )),
+            Shape::Circle { radius } => out.extend(circle_points(radius, tf)),
+        }
+    }
+
+    pub fn write_normals(self, tf: Affine2, out: &mut Vec<Vec2>) {
+        match self {
+            Shape::Rect { .. } => out.extend(rect_normals(tf)),
+            Shape::Circle { .. } => out.extend(circle_normals(tf)),
+        }
+    }
+
     /// Tries to apply the separating axis theorem.
     /// This function tries the axes given by [Shape::separating_axes].
     /// Ref: https://en.wikipedia.org/wiki/Hyperplane_separation_theorem

@@ -43,7 +43,7 @@ impl CollisionSolver {
 
             let dr = lib_col::conv::topleft_corner_vector_to_crate(kin.dr);
             let (new_tf, collided) =
-                process_character_movement(&self.solver, dr, character, kin.slide);
+                process_character_movement(&mut self.solver, dr, character, kin.slide);
             tf.pos = lib_col::conv::crate_vector_to_topleft_corner(new_tf.translation);
             kin.collided = collided;
         }
@@ -73,8 +73,7 @@ impl CollisionSolver {
             let start = self.collision_buffer.len();
             self.collision_buffer.extend(
                 self.solver
-                    .query_overlaps(query_collider, query.filter)
-                    .map(|(e, _)| *e),
+                    .query_overlaps(query_collider, query.filter),
             );
             let end = self.collision_buffer.len();
             query.collision_slice = CollisionQuerySlice {
@@ -92,7 +91,7 @@ impl Default for CollisionSolver {
 }
 
 fn process_character_movement(
-    solver: &lib_col::CollisionSolver,
+    solver: &mut lib_col::CollisionSolver,
     mut dr: Vec2,
     mut character: lib_col::Collider,
     slide: bool,

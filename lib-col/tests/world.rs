@@ -65,7 +65,6 @@ impl TestCase for WorldTest {
             .collect::<HashSet<_>>();
         let actual = solver
             .query_overlaps(col, filter)
-            .map(|(entitiy, _)| *entitiy)
             .collect::<HashSet<_>>();
 
         actual == expected
