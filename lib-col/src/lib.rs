@@ -170,21 +170,49 @@ impl CollisionSolver {
         direction: Vec2,
         t_max: f32,
     ) -> Option<(f32, Vec2)> {
-        let normals = self.normals[slice1.normals_start..slice1.normals_end]
-            .iter()
-            .chain(&self.normals[slice2.normals_start..slice2.normals_end]);
-        let result = 
-            normals
-            .filter_map(|axis_normal| {
-                self.candidate_time_of_impact_slice(slice1, slice2, *axis_normal, direction, t_max)
-            })
-            .max_by(|(t1, _), (t2, _)| f32::total_cmp(t1, t2));
-        let (toi, normal) = result?;
+        let (mut toi, mut push_normal) = (-f32::INFINITY, Vec2::ZERO);
+        let normals1 = &self.normals[slice1.normals_start..slice1.normals_end];
+        for normal in normals1 {
+            let (cand_toi, cand_push) = self.candidate_time_of_impact_slice(
+                slice1, 
+                slice2, 
+                *normal, 
+                direction, 
+                t_max
+            );
+            if cand_toi == f32::INFINITY {
+                continue;
+            }
+            if toi < cand_toi {
+                toi = cand_toi;
+                push_normal = cand_push;
+            }
+        } 
+        let normals2 = &self.normals[slice2.normals_start..slice2.normals_end];
+        for normal in normals2 {
+            let (cand_toi, cand_push) = self.candidate_time_of_impact_slice(
+                slice1, 
+                slice2, 
+                *normal, 
+                direction, 
+                t_max
+            );
+            if cand_toi == f32::INFINITY {
+                continue;
+            }
+            if toi < cand_toi {
+                toi = cand_toi;
+                push_normal = cand_push;
+            }
+        } 
 
+        if toi == f32::INFINITY {
+            return None;
+        }
         if self.is_separated_slice(slice1, slice2, (toi + SHAPE_TOI_EPSILON * 10.0) * direction) {
             None
         } else {
-            Some((toi, normal))
+            Some((toi, push_normal))
         }
     }
 
@@ -198,7 +226,7 @@ impl CollisionSolver {
         axis_normal: Vec2,
         direction: Vec2,
         t_max: f32,
-    ) -> Option<(f32, Vec2)> {
+    ) -> (f32, Vec2) {
         let proj1 = self.project_slice(slice1, axis_normal, Vec2::ZERO);
         let proj2 = self.project_slice(slice2, axis_normal, Vec2::ZERO);
         let dproj = axis_normal.dot(direction);
@@ -206,7 +234,7 @@ impl CollisionSolver {
         // Do not process cases when movement is parallel to the
         // separation axis.
         if dproj <= SHAPE_TOI_EPSILON {
-            return None;
+            return (f32::INFINITY, Vec2::ZERO);
         }
 
         let t = if proj1[0] < proj2[0] {
@@ -222,9 +250,9 @@ impl CollisionSolver {
         };
 
         if t <= 0.0 || t > t_max {
-            None
+            (f32::INFINITY, Vec2::ZERO)
         } else {
-            Some((t, push_normal))
+            (t, push_normal)
         }
     }
 
