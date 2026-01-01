@@ -229,10 +229,10 @@ impl CollisionSolver {
         let proj1 = self.project_slice(v_slice1, axis_normal);
         let proj2 = self.project_slice(v_slice2, axis_normal);
 
-        let t = if proj1[0] < proj2[0] {
-            (proj2[0] - proj1[1]) / dproj
+        let t = if proj1.x < proj2.x {
+            (proj2.x - proj1.y) / dproj
         } else {
-            (proj1[0] - proj2[1]) / dproj
+            (proj1.x - proj2.y) / dproj
         };
 
         if t <= 0.0 || t > t_max {
@@ -288,13 +288,13 @@ impl CollisionSolver {
         let offset_slice1_proj = offset_slice1.dot_into_vec(axis);
         let proj1 = self.project_slice(slice1, axis) + offset_slice1_proj;
         let proj2 = self.project_slice(slice2, axis);
-        let (l_proj, r_proj) = if proj1[0] < proj2[0] {
+        let (l_proj, r_proj) = if proj1.x < proj2.x {
             (proj1, proj2)
         } else {
             (proj2, proj1)
         };
         
-        l_proj[1] < r_proj[0]
+        l_proj.y < r_proj.x
     }
 
     fn project_slice(
