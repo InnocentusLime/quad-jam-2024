@@ -10,7 +10,7 @@ pub mod conv;
 mod group;
 mod shape;
 
-use glam::{Affine2, Vec2};
+use glam::{vec2, Affine2, Vec2};
 use hecs::Entity;
 
 pub use group::*;
@@ -231,15 +231,17 @@ impl CollisionSolver {
         direction: Vec2,
         t_max: f32,
     ) -> (f32, Vec2) {
-        let proj1 = self.project_slice(slice1, axis_normal);
-        let proj2 = self.project_slice(slice2, axis_normal);
         let dproj = axis_normal.dot(direction);
-
         // Do not process cases when movement is parallel to the
         // separation axis.
         if dproj <= SHAPE_TOI_EPSILON {
             return (f32::INFINITY, Vec2::ZERO);
         }
+        
+        let v_slice1 = &self.vertices[slice1.verts_start..slice1.verts_end];
+        let v_slice2 = &self.vertices[slice2.verts_start..slice2.verts_end];
+        let proj1 = self.project_slice(v_slice1, axis_normal);
+        let proj2 = self.project_slice(v_slice2, axis_normal);
 
         let t = if proj1[0] < proj2[0] {
             (proj2[0] - proj1[1]) / dproj
@@ -247,16 +249,10 @@ impl CollisionSolver {
             (proj1[0] - proj2[1]) / dproj
         };
 
-        let push_normal = if dproj >= 0.0 {
-            -axis_normal
-        } else {
-            axis_normal
-        };
-
         if t <= 0.0 || t > t_max {
             (f32::INFINITY, Vec2::ZERO)
         } else {
-            (t, push_normal)
+            (t, -axis_normal)
         }
     }
 
@@ -278,14 +274,17 @@ impl CollisionSolver {
         slice2: &ColliderSlice,
         offset_slice1: Vec2,
     ) -> bool {
+        let v_slice1 = &self.vertices[slice1.verts_start..slice1.verts_end];
+        let v_slice2 = &self.vertices[slice2.verts_start..slice2.verts_end];
+
         for normal in &self.normals[slice1.normals_start..slice1.normals_end] {
-            if self.try_separating_axis_slice(slice1, slice2, *normal, offset_slice1) {
+            if self.try_separating_axis_slice(v_slice1, v_slice2, *normal, offset_slice1) {
                 return true;
             }
         }
         
         for normal in &self.normals[slice2.normals_start..slice2.normals_end] {
-            if self.try_separating_axis_slice(slice1, slice2, *normal, offset_slice1) {
+            if self.try_separating_axis_slice(v_slice1, v_slice2, *normal, offset_slice1) {
                 return true;
             }
         }
@@ -295,14 +294,13 @@ impl CollisionSolver {
 
     fn try_separating_axis_slice(
         &self,
-        slice1: &ColliderSlice,
-        slice2: &ColliderSlice,
+        slice1: &[Vec2],
+        slice2: &[Vec2],
         axis: Vec2,
         offset_slice1: Vec2,
     ) -> bool {
-        let mut proj1 = self.project_slice(slice1, axis);
-        proj1[0] += offset_slice1.dot(axis);
-        proj1[1] += offset_slice1.dot(axis);        
+        let offset_slice1_proj = offset_slice1.dot_into_vec(axis);
+        let proj1 = self.project_slice(slice1, axis) + offset_slice1_proj;
         let proj2 = self.project_slice(slice2, axis);
         let (l_proj, r_proj) = if proj1[0] < proj2[0] {
             (proj1, proj2)
@@ -315,17 +313,17 @@ impl CollisionSolver {
 
     fn project_slice(
         &self,
-        slice: &ColliderSlice,
+        slice: &[Vec2],
         axis: Vec2,
-    ) -> [f32; 2] {
+    ) -> Vec2 {
         let mut max = -f32::INFINITY;
         let mut min = f32::INFINITY;
-        for v in &self.vertices[slice.verts_start..slice.verts_end] {
+        for v in slice {
             let proj = v.dot(axis);
             max = max.max(proj);
             min = min.min(proj);
         }
-        [min, max]
+        vec2(min, max)
     }
 }
 
