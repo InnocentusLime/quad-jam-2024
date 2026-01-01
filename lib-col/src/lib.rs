@@ -23,20 +23,6 @@ pub struct Collider {
     pub group: Group,
 }
 
-impl Collider {
-    pub fn collides(&self, other: &Self) -> bool {
-        if self.group.intersection(other.group).is_empty() {
-            return false;
-        }
-
-        !self.shape.is_separated(&other.shape, self.tf, other.tf)
-    }
-
-    pub fn satisfies_filter(&self, filter: Group) -> bool {
-        self.group.includes(filter)
-    }
-}
-
 #[derive(Clone, Copy)]
 struct ColliderSlice {
     verts_start: usize,

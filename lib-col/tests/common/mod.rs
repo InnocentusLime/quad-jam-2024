@@ -1,4 +1,5 @@
 use glam::{Affine2, Vec2, vec2};
+use hecs::Entity;
 use lib_col::{Shape, rect_points};
 use svg::node::element::{Circle, Path, path::Data};
 
@@ -137,4 +138,9 @@ pub fn draw_shape(canvas: &mut svg::Document, color: &str, shape: Shape, tf: Aff
             *canvas = canvas.clone().add(circle);
         }
     }
+}
+
+#[allow(dead_code)]
+pub const fn entity(id: usize) -> Entity {
+    Entity::from_bits(1u64 << 32u64 | id as u64).unwrap()
 }
