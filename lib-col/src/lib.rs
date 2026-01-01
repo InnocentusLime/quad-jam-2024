@@ -210,8 +210,8 @@ impl CollisionSolver {
             }
         } 
 
-        if toi == f32::INFINITY {
-            return (toi, push_normal)
+        if toi == -f32::INFINITY {
+            return (f32::INFINITY, Vec2::ZERO)
         }
         if self.is_separated_slice(slice1, slice2, (toi + SHAPE_TOI_EPSILON * 10.0) * direction) {
             (f32::INFINITY, Vec2::ZERO)
@@ -231,8 +231,8 @@ impl CollisionSolver {
         direction: Vec2,
         t_max: f32,
     ) -> (f32, Vec2) {
-        let proj1 = self.project_slice(slice1, axis_normal, Vec2::ZERO);
-        let proj2 = self.project_slice(slice2, axis_normal, Vec2::ZERO);
+        let proj1 = self.project_slice(slice1, axis_normal);
+        let proj2 = self.project_slice(slice2, axis_normal);
         let dproj = axis_normal.dot(direction);
 
         // Do not process cases when movement is parallel to the
@@ -300,8 +300,10 @@ impl CollisionSolver {
         axis: Vec2,
         offset_slice1: Vec2,
     ) -> bool {
-        let proj1 = self.project_slice(slice1, axis, offset_slice1);
-        let proj2 = self.project_slice(slice2, axis, Vec2::ZERO);
+        let mut proj1 = self.project_slice(slice1, axis);
+        proj1[0] += offset_slice1.dot(axis);
+        proj1[1] += offset_slice1.dot(axis);        
+        let proj2 = self.project_slice(slice2, axis);
         let (l_proj, r_proj) = if proj1[0] < proj2[0] {
             (proj1, proj2)
         } else {
@@ -315,12 +317,11 @@ impl CollisionSolver {
         &self,
         slice: &ColliderSlice,
         axis: Vec2,
-        offset: Vec2,
     ) -> [f32; 2] {
         let mut max = -f32::INFINITY;
         let mut min = f32::INFINITY;
         for v in &self.vertices[slice.verts_start..slice.verts_end] {
-            let proj = (*v + offset).dot(axis);
+            let proj = v.dot(axis);
             max = max.max(proj);
             min = min.min(proj);
         }
