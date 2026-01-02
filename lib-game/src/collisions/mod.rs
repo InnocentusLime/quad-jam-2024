@@ -25,6 +25,14 @@ impl CollisionSolver {
         }
     }
 
+    pub fn done(&mut self) {
+        let perf = self.solver.perf();
+        dump!("Colliders: {}", perf.colliders_loaded);
+        dump!("Shapecasts: {}", perf.shapecast_query_count);
+        dump!("Projections: {}", perf.projection_count);
+        dump!("Projections (vert): {}", perf.projected_vertices);
+    }
+
     pub fn import_colliders(&mut self, world: &mut World) {
         self.solver.clear();
         let it = world.query_mut::<(&BodyTag, &Transform)>();
