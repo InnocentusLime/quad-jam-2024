@@ -6,6 +6,7 @@
 //! While the crate does use [glam::Affine2] to encode shape transforms, using the scale
 //! for shapes is not allowed.
 
+mod aabb;
 pub mod conv;
 mod group;
 mod shape;
@@ -14,6 +15,7 @@ use glam::{Affine2, Vec2, vec2};
 use hecs::Entity;
 use std::cell::Cell;
 
+pub use aabb::*;
 pub use group::*;
 pub use shape::*;
 
@@ -30,6 +32,7 @@ struct ColliderSlice {
     normals_start: usize,
     verts_end: usize,
     normals_end: usize,
+    aabb: Aabb,
     group: Group,
 }
 
@@ -108,7 +111,17 @@ impl CollisionSolver {
         let verts_end = self.vertices.len();
         let normals_end = self.normals.len();
 
+        let mut aabb = Aabb {
+            min: vec2(f32::INFINITY, f32::INFINITY),
+            max: vec2(-f32::INFINITY, -f32::INFINITY),
+        };
+        for v in &self.vertices[verts_start..verts_end] {
+            aabb.min = aabb.min.min(*v);
+            aabb.max = aabb.max.max(*v);
+        }
+
         ColliderSlice {
+            aabb,
             verts_start,
             normals_start,
             verts_end,
@@ -184,15 +197,19 @@ impl CollisionSolver {
 
     fn time_of_impact_slice(
         &self,
-        slice1: &ColliderSlice,
-        slice2: &ColliderSlice,
+        cast: &ColliderSlice,
+        target: &ColliderSlice,
         direction: Vec2,
         t_max: f32,
     ) -> (f32, Vec2) {
-        let v_slice1 = &self.vertices[slice1.verts_start..slice1.verts_end];
-        let v_slice2 = &self.vertices[slice2.verts_start..slice2.verts_end];
+        if !target.aabb.cast_rect(cast.aabb, direction, t_max) {
+            return (f32::INFINITY, Vec2::ZERO);
+        }
+
+        let v_slice1 = &self.vertices[cast.verts_start..cast.verts_end];
+        let v_slice2 = &self.vertices[target.verts_start..target.verts_end];
         let (mut toi, mut push_normal) = (-f32::INFINITY, Vec2::ZERO);
-        for normal in &self.normals[slice1.normals_start..slice1.normals_end] {
+        for normal in &self.normals[cast.normals_start..cast.normals_end] {
             let (cand_toi, cand_push) =
                 self.candidate_time_of_impact_slice(v_slice1, v_slice2, *normal, direction, t_max);
             if cand_toi == f32::INFINITY {
@@ -203,7 +220,7 @@ impl CollisionSolver {
                 push_normal = cand_push;
             }
         }
-        for normal in &self.normals[slice2.normals_start..slice2.normals_end] {
+        for normal in &self.normals[target.normals_start..target.normals_end] {
             let (cand_toi, cand_push) =
                 self.candidate_time_of_impact_slice(v_slice1, v_slice2, *normal, direction, t_max);
             if cand_toi == f32::INFINITY {
@@ -218,11 +235,7 @@ impl CollisionSolver {
         if toi == f32::INFINITY {
             return (toi, push_normal);
         }
-        if self.is_separated_slice(slice1, slice2, (toi + SHAPE_TOI_EPSILON * 10.0) * direction) {
-            (f32::INFINITY, Vec2::ZERO)
-        } else {
-            (toi, push_normal)
-        }
+        (toi, push_normal)
     }
 
     /// Computes the time of impact for a fixed axis.
