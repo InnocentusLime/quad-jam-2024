@@ -7,6 +7,7 @@
 //! for shapes is not allowed.
 
 pub mod conv;
+mod aabb;
 mod group;
 mod shape;
 
@@ -15,6 +16,7 @@ use std::cell::Cell;
 use glam::{vec2, Affine2, Vec2};
 use hecs::Entity;
 
+pub use aabb::*;
 pub use group::*;
 pub use shape::*;
 
