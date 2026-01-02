@@ -92,6 +92,7 @@ impl CollisionSolver {
     }
 
     fn put_collider(&mut self, collider: Collider) -> ColliderSlice {
+        #[cfg(feature = "dbg")]
         self.perf.update(|mut x| {
             x.colliders_loaded += 1;
             x
@@ -114,6 +115,7 @@ impl CollisionSolver {
         query: Collider,
         filter: Group,
     ) -> impl Iterator<Item = Entity> {
+        #[cfg(feature = "dbg")]
         self.perf.update(|mut x| {
             x.overlap_query_count += 1;
             x
@@ -146,6 +148,7 @@ impl CollisionSolver {
         direction: Vec2,
         t_max: f32,
     ) -> Option<(Entity, f32, Vec2)> {
+        #[cfg(feature = "dbg")]
         self.perf.update(|mut x| {
             x.shapecast_query_count += 1;
             x
@@ -285,6 +288,7 @@ impl CollisionSolver {
         slice2: &ColliderSlice,
         offset_slice1: Vec2,
     ) -> bool {
+        #[cfg(feature = "dbg")]
         self.perf.update(|mut x| {
             x.separation_query_count += 1;
             x
@@ -332,6 +336,7 @@ impl CollisionSolver {
         slice: &[Vec2],
         axis: Vec2,
     ) -> Vec2 {
+        #[cfg(feature = "dbg")]
         self.perf.update(|mut x| {
             x.projected_vertices += slice.len() as u32;
             x.projection_count += 1;

@@ -3,6 +3,9 @@ name = "lib-col"
 version = "0.4.1"
 edition = "2024"
 
+[features]
+dbg = []
+
 [dependencies]
 serde = { workspace = true }
 hecs = { workspace = true }
