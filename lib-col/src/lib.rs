@@ -342,8 +342,8 @@ impl CollisionSolver {
         let mut min = f32::INFINITY;
         for v in slice {
             let proj = v.dot(axis);
-            max = max.max(proj);
-            min = min.min(proj);
+            max = vec2(proj, max).max_element();
+            min = vec2(proj, min).min_element();
         }
         vec2(min, max)
     }
