@@ -25,6 +25,16 @@ impl CollisionSolver {
         }
     }
 
+    pub fn dbg(&mut self) {
+        dump!("Colliders: {}", self.solver.perf().colliders_loaded);
+        dump!("Shapecasts: {}", self.solver.perf().shapecast_query_count);
+        dump!("Projections: {}", self.solver.perf().projection_count);
+        dump!(
+            "Projections (vert): {}",
+            self.solver.perf().projected_vertices
+        );
+    }
+
     pub fn import_colliders(&mut self, world: &mut World) {
         self.solver.clear();
         let it = world.query_mut::<(&BodyTag, &Transform)>();

@@ -12,6 +12,7 @@ mod shape;
 
 use glam::{Affine2, Vec2, vec2};
 use hecs::Entity;
+use std::cell::Cell;
 
 pub use group::*;
 pub use shape::*;
@@ -46,6 +47,8 @@ pub struct CollisionSolver {
     groups: [GroupRefs; GROUP_COUNT],
     vertices: Vec<Vec2>,
     normals: Vec<Vec2>,
+
+    perf: Cell<CollisionCounters>,
 }
 
 impl CollisionSolver {
@@ -59,10 +62,16 @@ impl CollisionSolver {
             groups,
             vertices: Vec::with_capacity(BUFFER_CAPACITY),
             normals: Vec::with_capacity(BUFFER_CAPACITY),
+            perf: Default::default(),
         }
     }
 
+    pub fn perf(&self) -> CollisionCounters {
+        self.perf.get()
+    }
+
     pub fn clear(&mut self) {
+        self.perf = Default::default();
         self.vertices.clear();
         self.normals.clear();
         self.groups.iter_mut().for_each(|x| x.0.clear());
@@ -82,6 +91,12 @@ impl CollisionSolver {
     }
 
     fn put_collider(&mut self, collider: Collider) -> ColliderSlice {
+        #[cfg(feature = "dbg")]
+        self.perf.update(|mut x| {
+            x.colliders_loaded += 1;
+            x
+        });
+
         let verts_start = self.vertices.len();
         let normals_start = self.normals.len();
 
@@ -107,6 +122,12 @@ impl CollisionSolver {
         query: Collider,
         filter: Group,
     ) -> impl Iterator<Item = Entity> {
+        #[cfg(feature = "dbg")]
+        self.perf.update(|mut x| {
+            x.overlap_query_count += 1;
+            x
+        });
+
         let query_slice = self.put_collider(query);
         self.do_query_overlaps(query_slice, filter)
     }
@@ -131,6 +152,12 @@ impl CollisionSolver {
         direction: Vec2,
         t_max: f32,
     ) -> Option<(Entity, f32, Vec2)> {
+        #[cfg(feature = "dbg")]
+        self.perf.update(|mut x| {
+            x.shapecast_query_count += 1;
+            x
+        });
+
         let query_slice = self.put_collider(query);
         let (mut toi, mut normal, mut entity) = (f32::INFINITY, Vec2::ZERO, Entity::DANGLING);
         for group in &self.groups {
@@ -245,6 +272,12 @@ impl CollisionSolver {
         slice2: &ColliderSlice,
         offset_slice1: Vec2,
     ) -> bool {
+        #[cfg(feature = "dbg")]
+        self.perf.update(|mut x| {
+            x.separation_query_count += 1;
+            x
+        });
+
         let v_slice1 = &self.vertices[slice1.verts_start..slice1.verts_end];
         let v_slice2 = &self.vertices[slice2.verts_start..slice2.verts_end];
 
@@ -283,6 +316,13 @@ impl CollisionSolver {
     }
 
     fn project_slice(&self, slice: &[Vec2], axis: Vec2) -> Vec2 {
+        #[cfg(feature = "dbg")]
+        self.perf.update(|mut x| {
+            x.projected_vertices += slice.len() as u32;
+            x.projection_count += 1;
+            x
+        });
+
         let mut max = -f32::INFINITY;
         let mut min = f32::INFINITY;
         for v in slice {
@@ -298,4 +338,14 @@ impl Default for CollisionSolver {
     fn default() -> Self {
         CollisionSolver::new()
     }
+}
+
+#[derive(Default, Debug, Clone, Copy)]
+pub struct CollisionCounters {
+    pub colliders_loaded: u32,
+    pub overlap_query_count: u32,
+    pub shapecast_query_count: u32,
+    pub projection_count: u32,
+    pub projected_vertices: u32,
+    pub separation_query_count: u32,
 }

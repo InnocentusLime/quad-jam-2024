@@ -30,7 +30,7 @@ optional = true
 sapp-jsutils = { version = "^0.1" }
 
 [features]
-dbg = ["dep:egui", "dep:egui-macroquad"]
+dbg = ["dep:egui", "dep:egui-macroquad", "lib-col/dbg"]
 dev-env = ["dbg", "lib-asset/dev-env", "dep:rfd", "dep:serde_json"]
 
 [dev-dependencies]
