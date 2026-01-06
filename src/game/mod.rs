@@ -5,6 +5,7 @@ mod goal;
 mod player;
 mod prelude;
 mod render;
+mod shooter;
 mod stabber;
 
 use lib_asset::level::*;
@@ -43,6 +44,9 @@ async fn load_resources(resources: &mut Resources) {
     resources.load_animation_pack(AnimationPackId::Bunny).await;
     resources
         .load_animation_pack(AnimationPackId::Stabber)
+        .await;
+    resources
+        .load_animation_pack(AnimationPackId::Shooter)
         .await;
 }
 
@@ -95,6 +99,9 @@ impl Game for Project {
         if self.do_ai {
             do_auto_state_transition::<&mut StabberState>(world, resources);
             stabber::ai(dt, world, resources);
+
+            do_auto_state_transition::<&mut ShooterState>(world, resources);
+            shooter::ai(dt, world, resources);
         }
     }
 
@@ -110,6 +117,7 @@ impl Game for Project {
         }
         if self.do_ai {
             state_to_anim::<&mut StabberState>(world, resources);
+            state_to_anim::<&mut ShooterState>(world, resources);
         }
     }
 
@@ -124,6 +132,7 @@ impl Game for Project {
         goal::check(world);
 
         stabber::die_on_zero_health(world, cmds);
+        shooter::die_on_zero_health(world, cmds);
         basic_bullet::update(dt, world, resources, cmds);
 
         decide_next_state(world)
@@ -184,6 +193,7 @@ impl Game for Project {
             CharacterInfo::Damager {} => damager::init(builder, pos),
             CharacterInfo::Stabber {} => stabber::init(builder, pos),
             CharacterInfo::BasicBullet {} => basic_bullet::init(builder, pos, look),
+            CharacterInfo::Shooter {} => shooter::init(builder, pos),
         }
     }
 }

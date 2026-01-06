@@ -90,6 +90,7 @@ impl Asset for Font {
 pub enum AnimationPackId {
     Bunny,
     Stabber,
+    Shooter,
 }
 
 impl AnimationPackId {
@@ -163,6 +164,7 @@ impl Asset for HashMap<AnimationId, Animation> {
         match id {
             AnimationPackId::Bunny => "bnuuy.bin",
             AnimationPackId::Stabber => "stabber.bin",
+            AnimationPackId::Shooter => "shooter.bin",
         }
     }
 }
@@ -182,6 +184,7 @@ impl Asset for HashMap<AnimationId, Animation> {
 pub enum LevelId {
     TestRoom,
     TestBulletRoom,
+    TestShooterRoom,
 }
 
 impl Asset for LevelDef {
@@ -210,6 +213,7 @@ impl Asset for LevelDef {
         match id {
             LevelId::TestRoom => "test_room.bin",
             LevelId::TestBulletRoom => "test_bullet_room.bin",
+            LevelId::TestShooterRoom => "test_shooter_room.bin",
         }
     }
 }

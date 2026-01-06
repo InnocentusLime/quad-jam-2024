@@ -1,0 +1,217 @@
+{
+  "ShooterIdle": {
+    "is_looping": true,
+    "clips": [
+      {
+        "id": 0,
+        "track_id": 0,
+        "start": 0,
+        "len": 155,
+        "action": {
+          "DrawSprite": {
+            "layer": 1,
+            "texture_id": "WorldAtlas",
+            "local_pos": {
+              "x": -8.0,
+              "y": -8.0
+            },
+            "local_rotation": 0.0,
+            "rect": {
+              "x": 17,
+              "y": 1,
+              "w": 16,
+              "h": 16
+            },
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
+          }
+        }
+      },
+      {
+        "id": 1,
+        "track_id": 1,
+        "start": 0,
+        "len": 155,
+        "action": {
+          "Move": null
+        }
+      }
+    ],
+    "tracks": [
+      {
+        "name": "sprite",
+        "id": 0
+      },
+      {
+        "name": "move",
+        "id": 1
+      }
+    ]
+  },
+  "ShooterAttack": {
+    "is_looping": false,
+    "clips": [
+      {
+        "id": 0,
+        "track_id": 0,
+        "start": 0,
+        "len": 500,
+        "action": {
+          "DrawSprite": {
+            "layer": 1,
+            "texture_id": "WorldAtlas",
+            "local_pos": {
+              "x": -8.0,
+              "y": -8.0
+            },
+            "local_rotation": 0.0,
+            "rect": {
+              "x": 33,
+              "y": 1,
+              "w": 16,
+              "h": 16
+            },
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
+          }
+        }
+      },
+      {
+        "id": 1,
+        "track_id": 1,
+        "start": 500,
+        "len": 200,
+        "action": {
+          "AttackBox": {
+            "local_pos": {
+              "x": 15.0,
+              "y": 0.0
+            },
+            "local_rotation": 0.0,
+            "team": "Enemy",
+            "group": 2,
+            "shape": {
+              "Rect": {
+                "width": 28.0,
+                "height": 18.0
+              }
+            },
+            "rotate_with_parent": true
+          }
+        }
+      },
+      {
+        "id": 2,
+        "track_id": 0,
+        "start": 500,
+        "len": 199,
+        "action": {
+          "DrawSprite": {
+            "layer": 1,
+            "texture_id": "WorldAtlas",
+            "local_pos": {
+              "x": -8.0,
+              "y": -8.0
+            },
+            "local_rotation": 0.0,
+            "rect": {
+              "x": 291,
+              "y": 1,
+              "w": 16,
+              "h": 16
+            },
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
+          }
+        }
+      },
+      {
+        "id": 3,
+        "track_id": 0,
+        "start": 706,
+        "len": 392,
+        "action": {
+          "DrawSprite": {
+            "layer": 1,
+            "texture_id": "WorldAtlas",
+            "local_pos": {
+              "x": -8.0,
+              "y": -8.0
+            },
+            "local_rotation": 0.0,
+            "rect": {
+              "x": 33,
+              "y": 1,
+              "w": 16,
+              "h": 16
+            },
+            "sort_offset": 0.0,
+            "rotate_with_parent": false
+          }
+        }
+      },
+      {
+        "id": 4,
+        "track_id": 2,
+        "start": 494,
+        "len": 243,
+        "action": {
+          "DrawSprite": {
+            "layer": 1,
+            "texture_id": "WorldAtlas",
+            "local_pos": {
+              "x": 0.0,
+              "y": -8.0
+            },
+            "local_rotation": 0.0,
+            "rect": {
+              "x": 296,
+              "y": 1,
+              "w": 36,
+              "h": 42
+            },
+            "sort_offset": 0.0,
+            "rotate_with_parent": true
+          }
+        }
+      },
+      {
+        "id": 5,
+        "track_id": 3,
+        "start": 503,
+        "len": 203,
+        "action": {
+          "Spawn": {
+            "rotate_with_parent": true,
+            "local_pos": {
+              "x": 37.0,
+              "y": 0.0
+            },
+            "local_look": 0.0,
+            "character_info": {
+              "BasicBullet": {}
+            }
+          }
+        }
+      }
+    ],
+    "tracks": [
+      {
+        "name": "sprite",
+        "id": 0
+      },
+      {
+        "name": "hits",
+        "id": 1
+      },
+      {
+        "name": "atk",
+        "id": 2
+      },
+      {
+        "name": "spawn",
+        "id": 3
+      }
+    ]
+  }
+}

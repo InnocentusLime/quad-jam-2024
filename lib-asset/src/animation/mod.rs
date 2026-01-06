@@ -239,4 +239,6 @@ pub enum AnimationId {
     BunnyDash,
     StabberIdle,
     StabberAttack,
+    ShooterIdle,
+    ShooterAttack,
 }

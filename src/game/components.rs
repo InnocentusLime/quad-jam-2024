@@ -6,6 +6,12 @@ pub enum StabberState {
     Attacking,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ShooterState {
+    Idle,
+    Attacking,
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum PlayerState {
     Idle = 0,
