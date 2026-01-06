@@ -229,7 +229,10 @@ impl Render {
             let tile_rect = self.tilemap_tiles[*tile as usize];
             self.sprite_buffer.push(SpriteData {
                 layer: 0,
-                tf: *tf,
+                tf: Transform {
+                    pos: tf.pos - Vec2::splat(TILE_SIDE as f32) / 2.0,
+                    ..*tf
+                },
                 texture: self.tilemap_atlas,
                 rect: tile_rect,
                 color: WHITE,
