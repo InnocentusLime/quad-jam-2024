@@ -1,7 +1,7 @@
 use super::prelude::*;
 
-pub fn spawn(world: &mut World, pos: Vec2) {
-    world.spawn((
+pub fn init(builder: &mut EntityBuilder, pos: Vec2) {
+    builder.add_bundle((
         Transform::from_pos(pos),
         GoalTag { achieved: false },
         col_query::Pickup::new(

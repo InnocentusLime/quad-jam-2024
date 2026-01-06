@@ -33,8 +33,7 @@ impl CharacterData for &mut StabberState {
     }
 }
 
-pub fn spawn(world: &mut World, pos: Vec2) {
-    let mut builder = EntityBuilder::new();
+pub fn init(builder: &mut EntityBuilder, pos: Vec2) {
     builder.add_bundle(CharacterBundle::new_enemy(
         pos,
         STABBER_SHAPE,
@@ -44,7 +43,6 @@ pub fn spawn(world: &mut World, pos: Vec2) {
         DamageCooldown::new(STABBER_HIT_COOLDOWN),
         StabberState::Idle,
     ));
-    world.spawn(builder.build());
 }
 
 pub fn ai(dt: f32, world: &mut World, resources: &Resources) {

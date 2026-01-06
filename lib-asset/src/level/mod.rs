@@ -48,7 +48,7 @@ pub const TILE_SIDE: u32 = 16;
 
 /// The root of level's definition. This type contains all information
 /// required for loadin a level.
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Default, Debug, Serialize, Deserialize, PartialEq)]
 pub struct LevelDef {
     /// Next level to load after it is complete.
     pub next_level: Option<String>,
@@ -60,7 +60,7 @@ pub struct LevelDef {
 }
 
 /// Entity data. Currently, all entities are represented as squares.
-#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Default, Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub struct CharacterDef {
     /// Entity's transform
     pub tf: CharacterPosition,
@@ -82,9 +82,15 @@ pub enum CharacterInfo {
     BasicBullet {},
 }
 
+impl Default for CharacterInfo {
+    fn default() -> Self {
+        CharacterInfo::BasicBullet {}
+    }
+}
+
 /// The definition of a map. Contains the tilemap
 /// tiles and tile data.
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+#[derive(Default, Debug, Serialize, Deserialize, PartialEq)]
 pub struct MapDef {
     /// Map width
     pub width: u32,
@@ -105,7 +111,7 @@ pub struct MapDef {
 
 /// Tile data. Your tiled project should have a custom class
 /// called `Tile`. It must have the `ty` field of type `TileTy`.
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[derive(Default, Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub struct Tile {
     #[serde(default)]
     pub ty: TileTy,

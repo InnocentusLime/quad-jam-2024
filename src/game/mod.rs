@@ -11,79 +11,6 @@ use lib_asset::level::*;
 use lib_asset::{AnimationPackId, FontId, TextureId};
 use prelude::*;
 
-fn spawn_tiles(width: usize, height: usize, data: Vec<TileType>, world: &mut World) -> Entity {
-    assert_eq!(data.len(), width * height);
-
-    let storage = TileStorage::from_data(
-        width,
-        height,
-        data.into_iter().map(|ty| world.spawn((ty,))).collect(),
-    )
-    .unwrap();
-
-    for (x, y, tile) in storage.iter_poses() {
-        let xy = vec2(x as f32, y as f32);
-        world
-            .insert(
-                tile,
-                (Transform::from_pos(
-                    xy * TILE_SIDE_F32 + Vec2::splat(TILE_SIDE_F32 / 2.0),
-                ),),
-            )
-            .unwrap();
-
-        let ty = *world.get::<&TileType>(tile).unwrap();
-
-        match ty {
-            TileType::Wall => world
-                .insert(
-                    tile,
-                    (BodyTag {
-                        groups: col_group::LEVEL,
-                        shape: Shape::Rect {
-                            width: TILE_SIDE_F32,
-                            height: TILE_SIDE_F32,
-                        },
-                    },),
-                )
-                .unwrap(),
-            TileType::Ground => (),
-        }
-    }
-
-    world.spawn((storage,))
-}
-
-fn init_level(world: &mut World, level_def: &LevelDef) {
-    let tile_data = level_def
-        .map
-        .tilemap
-        .iter()
-        .map(|idx| level_def.map.tiles[idx])
-        .map(|tile| match tile.ty {
-            TileTy::Ground => TileType::Ground,
-            TileTy::Wall => TileType::Wall,
-        })
-        .collect::<Vec<_>>();
-
-    spawn_tiles(
-        level_def.map.width as usize,
-        level_def.map.height as usize,
-        tile_data,
-        world,
-    );
-    for entity in level_def.characters.iter() {
-        let pos = entity.tf.pos.to_vec2();
-        match entity.info {
-            CharacterInfo::Player {} => player::spawn(world, pos),
-            CharacterInfo::Goal {} => goal::spawn(world, pos),
-            CharacterInfo::Damager {} => damager::spawn(world, pos),
-            CharacterInfo::Stabber {} => stabber::spawn(world, pos),
-            CharacterInfo::BasicBullet {} => basic_bullet::spawn(world, pos, entity.tf.look_angle),
-        }
-    }
-}
-
 fn decide_next_state(world: &mut World) -> Option<AppState> {
     let player_dead = world
         .query_mut::<&Health>()
@@ -154,12 +81,6 @@ impl Game for Project {
         ]
     }
 
-    fn init(&mut self, resources: &lib_game::Resources, world: &mut World, _render: &mut Render) {
-        if let Some(level_data) = &resources.level {
-            init_level(world, level_data);
-        }
-    }
-
     fn input_phase(
         &mut self,
         input: &lib_game::InputModel,
@@ -221,6 +142,48 @@ impl Game for Project {
         }
 
         render::toplevel_ui(app_state, render);
+    }
+
+    fn init_tile(
+        &self,
+        resources: &Resources,
+        builder: &mut hecs::EntityBuilder,
+        tile_x: u32,
+        tile_y: u32,
+        tile: TileIdx,
+    ) {
+        let ty = resources.level.map.tiles[&tile].ty;
+        let tile_pos =
+            vec2(tile_x as f32, tile_y as f32) * TILE_SIDE_F32 + Vec2::splat(TILE_SIDE_F32 / 2.0);
+
+        builder.add(Transform::from_pos(tile_pos));
+        builder.add(ty);
+        if ty == TileTy::Wall {
+            builder.add(BodyTag {
+                groups: col_group::LEVEL,
+                shape: Shape::Rect {
+                    width: TILE_SIDE_F32,
+                    height: TILE_SIDE_F32,
+                },
+            });
+        }
+    }
+
+    fn init_character(
+        &self,
+        _resources: &Resources,
+        builder: &mut hecs::EntityBuilder,
+        def: CharacterDef,
+    ) {
+        let pos = def.tf.pos.to_vec2();
+        let look = def.tf.look_angle;
+        match def.info {
+            CharacterInfo::Player {} => player::init(builder, pos),
+            CharacterInfo::Goal {} => goal::init(builder, pos),
+            CharacterInfo::Damager {} => damager::init(builder, pos),
+            CharacterInfo::Stabber {} => stabber::init(builder, pos),
+            CharacterInfo::BasicBullet {} => basic_bullet::init(builder, pos, look),
+        }
     }
 }
 

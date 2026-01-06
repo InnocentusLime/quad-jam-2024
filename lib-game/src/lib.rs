@@ -14,6 +14,7 @@ pub mod dbg;
 pub mod sys;
 
 use hashbrown::HashMap;
+use hecs::EntityBuilder;
 
 pub use attack::*;
 pub use character::*;
@@ -93,11 +94,6 @@ pub trait Game: 'static {
     /// show up in `ddl`
     fn debug_draws(&self) -> &[(&'static str, fn(&World, &Resources))];
 
-    /// Put all the appropriate data into the ECS World.
-    /// The ECS world should be the only place where the state
-    /// is located.
-    fn init(&mut self, resources: &Resources, world: &mut World, render: &mut Render);
-
     /// Handle the user input. You also get the delta-time.
     fn input_phase(
         &mut self,
@@ -140,6 +136,17 @@ pub trait Game: 'static {
         world: &World,
         render: &mut Render,
     );
+
+    fn init_tile(
+        &self,
+        resources: &Resources,
+        builder: &mut EntityBuilder,
+        tile_x: u32,
+        tile_y: u32,
+        tile: TileIdx,
+    );
+
+    fn init_character(&self, resources: &Resources, builder: &mut EntityBuilder, def: CharacterDef);
 }
 
 impl AppState {
@@ -266,9 +273,30 @@ impl App {
         );
         self.render.set_tilemap(&level);
 
-        self.resources.level = Some(level);
         self.world.clear();
-        game.init(&self.resources, &mut self.world, &mut self.render);
+        self.resources.level = level;
+        self.spawn_tiles(game);
+        self.spawn_characters(game);
+    }
+
+    fn spawn_tiles<G: Game>(&mut self, game: &G) {
+        let level = &self.resources.level;
+        for x in 0..level.map.width {
+            for y in 0..level.map.height {
+                let mut builder = EntityBuilder::new();
+                let tile = level.map.tilemap[(x + y * level.map.width) as usize];
+                game.init_tile(&self.resources, &mut builder, x, y, tile);
+                self.world.spawn(builder.build());
+            }
+        }
+    }
+
+    fn spawn_characters<G: Game>(&mut self, game: &G) {
+        for def in self.resources.level.characters.iter() {
+            let mut builder = EntityBuilder::new();
+            game.init_character(&self.resources, &mut builder, *def);
+            self.world.spawn(builder.build());
+        }
     }
 
     fn game_present<G: Game>(&mut self, real_dt: f32, game: &G) {
@@ -410,7 +438,7 @@ impl App {
 
 pub struct Resources {
     pub resolver: FsResolver,
-    pub level: Option<LevelDef>,
+    pub level: LevelDef,
     pub animations: HashMap<AnimationId, Animation>,
     pub textures: HashMap<TextureId, Texture2D>,
     pub fonts: HashMap<FontId, Font>,
@@ -420,7 +448,7 @@ impl Resources {
     pub fn new() -> Self {
         Resources {
             resolver: FsResolver::new(),
-            level: None,
+            level: LevelDef::default(),
             animations: HashMap::new(),
             textures: HashMap::new(),
             fonts: HashMap::new(),

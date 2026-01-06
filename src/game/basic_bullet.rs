@@ -1,5 +1,3 @@
-use hecs::EntityBuilder;
-
 use super::prelude::*;
 
 const BULLET_SPEED: f32 = 32.0;
@@ -8,8 +6,7 @@ const BULLET_SHAPE: Shape = Shape::Rect {
     height: 16.0,
 };
 
-pub fn spawn(world: &mut World, pos: Vec2, look_angle: f32) {
-    let mut builder = EntityBuilder::new();
+pub fn init(builder: &mut EntityBuilder, pos: Vec2, look_angle: f32) {
     builder.add_bundle(AttackBundle::new(
         Transform::from_pos(pos),
         Team::Enemy,
@@ -22,7 +19,6 @@ pub fn spawn(world: &mut World, pos: Vec2, look_angle: f32) {
         ..CharacterBundle::new_projectile(pos, BULLET_SHAPE)
     });
     builder.add(BulletTag);
-    world.spawn(builder.build());
 }
 
 pub fn update(dt: f32, world: &mut World, resources: &Resources, cmds: &mut CommandBuffer) {
