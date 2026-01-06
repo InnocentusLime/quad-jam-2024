@@ -2,7 +2,8 @@ mod components;
 
 use crate::dump;
 pub use components::*;
-use lib_asset::level::{LevelDef, TILE_SIDE, TileIdx};
+use hecs::World;
+use lib_asset::level::{TILE_SIDE, TileIdx};
 use lib_asset::{FontId, TextureId};
 use macroquad::prelude::*;
 
@@ -46,9 +47,6 @@ pub struct Render {
 
     tilemap_atlas: TextureId,
     tilemap_tiles: Vec<Rect>,
-    tilemap_data: Vec<TileIdx>,
-    tilemap_width: usize,
-    tilemap_height: usize,
 
     pub announcement_text: Option<AnnouncementText>,
     pub sprite_buffer: Vec<SpriteData>,
@@ -61,9 +59,6 @@ impl Render {
             ui_font: FontId::Quaver,
             tilemap_atlas: TextureId::WorldAtlas,
             tilemap_tiles: Vec::new(),
-            tilemap_data: Vec::new(),
-            tilemap_width: 0,
-            tilemap_height: 0,
             announcement_text: None,
             sprite_buffer: Vec::new(),
             text_buffer: Vec::new(),
@@ -150,15 +145,6 @@ impl Render {
         }
     }
 
-    pub fn set_tilemap(&mut self, level: &LevelDef) {
-        self.tilemap_data.clear();
-        self.tilemap_data
-            .reserve((level.map.width * level.map.height) as usize);
-        self.tilemap_data.extend(level.map.tilemap.iter().copied());
-        self.tilemap_width = level.map.width as usize;
-        self.tilemap_height = level.map.height as usize;
-    }
-
     pub fn new_frame(&mut self) {
         self.announcement_text = None;
         self.sprite_buffer.clear();
@@ -238,20 +224,12 @@ impl Render {
         }
     }
 
-    pub fn put_tilemap_into_sprite_buffer(&mut self) {
-        self.sprite_buffer
-            .reserve(self.tilemap_height * self.tilemap_width);
-        for (idx, &tile_idx) in self.tilemap_data.iter().enumerate() {
-            let tile_x = (idx % self.tilemap_width) as u32;
-            let tile_y = (idx / self.tilemap_width) as u32;
-            let tile_rect = self.tilemap_tiles[tile_idx as usize];
-
+    pub fn buffer_tiles(&mut self, world: &mut World) {
+        for (_, (tf, tile)) in world.query_mut::<(&Transform, &TileIdx)>() {
+            let tile_rect = self.tilemap_tiles[*tile as usize];
             self.sprite_buffer.push(SpriteData {
                 layer: 0,
-                tf: Transform {
-                    pos: vec2((tile_x * TILE_SIDE) as f32, (tile_y * TILE_SIDE) as f32),
-                    angle: 0.0,
-                },
+                tf: *tf,
                 texture: self.tilemap_atlas,
                 rect: tile_rect,
                 color: WHITE,
