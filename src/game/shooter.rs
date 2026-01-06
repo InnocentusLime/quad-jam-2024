@@ -1,16 +1,14 @@
 use super::prelude::*;
 
-pub const STABBER_SPAWN_HEALTH: i32 = 3;
-pub const STABBER_HIT_COOLDOWN: f32 = 3.0;
-pub const STABBER_WALK_SPEED: f32 = 18.0;
-pub const STABBER_AGRO_RANGE: f32 = 36.0;
-pub const STABBER_SHAPE: Shape = Shape::Rect {
+pub const SHOOTER_SPAWN_HEALTH: i32 = 3;
+pub const SHOOTER_HIT_COOLDOWN: f32 = 3.0;
+pub const SHOOTER_SHAPE: Shape = Shape::Rect {
     width: 16.0,
     height: 16.0,
 };
 
-impl CharacterData for &mut StabberState {
-    type StateId = StabberState;
+impl CharacterData for &mut ShooterState {
+    type StateId = ShooterState;
 
     fn get_state(&self) -> Self::StateId {
         **self
@@ -20,13 +18,13 @@ impl CharacterData for &mut StabberState {
     }
     fn state_to_anim(character: &Character<Self>) -> AnimationId {
         match character.get_state() {
-            StabberState::Idle => AnimationId::StabberIdle,
-            StabberState::Attacking => AnimationId::StabberAttack,
+            ShooterState::Idle => AnimationId::ShooterIdle,
+            ShooterState::Attacking => AnimationId::ShooterAttack,
         }
     }
     fn on_anim_end(character: &mut Character<Self>) {
-        if character.get_state() == StabberState::Attacking {
-            character.set_state(StabberState::Idle);
+        if character.get_state() == ShooterState::Attacking {
+            character.set_state(ShooterState::Idle);
         }
     }
 }
@@ -34,16 +32,16 @@ impl CharacterData for &mut StabberState {
 pub fn init(builder: &mut EntityBuilder, pos: Vec2) {
     builder.add_bundle(CharacterBundle::new_enemy(
         pos,
-        STABBER_SHAPE,
-        STABBER_SPAWN_HEALTH,
+        SHOOTER_SHAPE,
+        SHOOTER_SPAWN_HEALTH,
     ));
     builder.add_bundle((
-        DamageCooldown::new(STABBER_HIT_COOLDOWN),
-        StabberState::Idle,
+        DamageCooldown::new(SHOOTER_HIT_COOLDOWN),
+        ShooterState::Idle,
     ));
 }
 
-pub fn ai(dt: f32, world: &mut World, resources: &Resources) {
+pub fn ai(_dt: f32, world: &mut World, resources: &Resources) {
     let Some((_, (player_tf, _))) = world
         .query_mut::<(&Transform, &PlayerState)>()
         .into_iter()
@@ -53,23 +51,20 @@ pub fn ai(dt: f32, world: &mut World, resources: &Resources) {
     };
     let player_tf = *player_tf;
 
-    for_each_character::<&mut StabberState>(world, resources, |_, mut character| {
+    for_each_character::<&mut ShooterState>(world, resources, |_, mut character| {
         let off_to_player = player_tf.pos - character.pos();
         let dir = off_to_player.normalize_or(Vec2::Y);
 
         character.set_walk_step(Vec2::ZERO);
-        if character.get_state() == StabberState::Idle {
+        if character.get_state() == ShooterState::Idle {
             character.set_look_direction(dir);
-            character.set_walk_step(dir * STABBER_WALK_SPEED * dt);
-            if off_to_player.length() <= STABBER_AGRO_RANGE {
-                character.set_state(StabberState::Attacking);
-            }
+            character.set_state(ShooterState::Attacking);
         }
     });
 }
 
 pub fn die_on_zero_health(world: &mut World, cmds: &mut CommandBuffer) {
-    for (entity, (health, _)) in world.query_mut::<(&Health, &StabberState)>() {
+    for (entity, (health, _)) in world.query_mut::<(&Health, &ShooterState)>() {
         if health.value > 0 {
             continue;
         }

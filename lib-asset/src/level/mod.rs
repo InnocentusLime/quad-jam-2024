@@ -80,6 +80,7 @@ pub enum CharacterInfo {
     Damager {},
     Stabber {},
     BasicBullet {},
+    Shooter {},
 }
 
 impl Default for CharacterInfo {

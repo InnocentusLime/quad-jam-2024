@@ -72,6 +72,26 @@
         {
             "color": "#ffff0000",
             "drawFill": true,
+            "id": 8,
+            "members": [
+            ],
+            "name": "Shooter",
+            "type": "class",
+            "useAs": [
+                "property",
+                "map",
+                "layer",
+                "object",
+                "tile",
+                "tileset",
+                "wangcolor",
+                "wangset",
+                "project"
+            ]
+        },
+        {
+            "color": "#ffff0000",
+            "drawFill": true,
             "id": 6,
             "members": [
             ],

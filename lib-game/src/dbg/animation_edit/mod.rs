@@ -427,7 +427,14 @@ fn shape_ui(ui: &mut Ui, shape: &mut lib_col::Shape) {
 }
 
 fn character_info_ui(ui: &mut Ui, character_info: &mut CharacterInfo) {
-    let character_tys = ["Player", "Goal", "Damager", "Stabber", "BasicBullet"];
+    let character_tys = [
+        "Player",
+        "Goal",
+        "Damager",
+        "Stabber",
+        "BasicBullet",
+        "Shooter",
+    ];
     let defaults = [
         CharacterInfo::Player {},
         CharacterInfo::Goal {},
@@ -441,6 +448,7 @@ fn character_info_ui(ui: &mut Ui, character_info: &mut CharacterInfo) {
         CharacterInfo::Damager { .. } => 2,
         CharacterInfo::Stabber { .. } => 3,
         CharacterInfo::BasicBullet { .. } => 4,
+        CharacterInfo::Shooter {} => 5,
     };
     let mut new_id = curr_id;
     ComboBox::new("info", "CharacterInfo")
@@ -467,6 +475,9 @@ fn character_info_ui(ui: &mut Ui, character_info: &mut CharacterInfo) {
             ui.label("No data");
         }
         CharacterInfo::BasicBullet {} => {
+            ui.label("No data");
+        }
+        CharacterInfo::Shooter {} => {
             ui.label("No data");
         }
     }
