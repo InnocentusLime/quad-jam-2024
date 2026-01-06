@@ -1,5 +1,3 @@
-use hecs::{EntityBuilder, Query};
-
 use super::prelude::*;
 
 pub const PLAYER_SPEED: f32 = 48.0;
@@ -15,8 +13,7 @@ pub const PLAYER_MAX_STAMINA: f32 = 100.0;
 pub const PLAYER_ATTACK_COST: f32 = 10.0;
 pub const PLAYER_DASH_COST: f32 = 25.0;
 
-pub fn spawn(world: &mut World, pos: Vec2) {
-    let mut builder = EntityBuilder::new();
+pub fn init(builder: &mut EntityBuilder, pos: Vec2) {
     builder.add_bundle(CharacterBundle::new_player(
         pos,
         PLAYER_SHAPE,
@@ -38,7 +35,6 @@ pub fn spawn(world: &mut World, pos: Vec2) {
             col_group::NONE,
         ),
     ));
-    world.spawn(builder.build());
 }
 
 pub fn controls(dt: f32, input: &InputModel, world: &mut World, resources: &Resources) {

@@ -8,6 +8,7 @@ use std::path::Path;
 use strum::VariantArray;
 
 #[derive(
+    Default,
     Debug,
     Clone,
     Copy,
@@ -21,6 +22,7 @@ use strum::VariantArray;
 )]
 pub enum TextureId {
     BunnyAtlas,
+    #[default]
     WorldAtlas,
 }
 

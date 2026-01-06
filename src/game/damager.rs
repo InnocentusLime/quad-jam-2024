@@ -1,9 +1,6 @@
-use hecs::EntityBuilder;
-
 use super::prelude::*;
 
-pub fn spawn(world: &mut World, pos: Vec2) {
-    let mut builder = EntityBuilder::new();
+pub fn init(builder: &mut EntityBuilder, pos: Vec2) {
     builder.add_bundle(AttackBundle::new(
         Transform::from_pos(pos),
         Team::Enemy,
@@ -14,5 +11,4 @@ pub fn spawn(world: &mut World, pos: Vec2) {
         50.0,
         col_group::NONE,
     ));
-    world.spawn(builder.build());
 }
