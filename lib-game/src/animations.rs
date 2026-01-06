@@ -139,7 +139,7 @@ pub(crate) fn update_invulnerability(world: &mut World, resources: &Resources) {
     });
 }
 
-pub(crate) fn draw_sprites(world: &mut World, resources: &Resources, render: &mut Render) {
+pub(crate) fn buffer_sprites(world: &mut World, resources: &Resources, render: &mut Render) {
     for_each_character::<()>(world, resources, |_, character| {
         for clip in character
             .animation
