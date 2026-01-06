@@ -72,14 +72,14 @@ fn init_level(world: &mut World, level_def: &LevelDef) {
         tile_data,
         world,
     );
-    for entity in level_def.entities.iter() {
+    for entity in level_def.characters.iter() {
         let pos = entity.tf.pos.to_vec2();
         match entity.info {
-            EntityInfo::Player {} => player::spawn(world, pos),
-            EntityInfo::Goal {} => goal::spawn(world, pos),
-            EntityInfo::Damager {} => damager::spawn(world, pos),
-            EntityInfo::Stabber {} => stabber::spawn(world, pos),
-            EntityInfo::BasicBullet {} => basic_bullet::spawn(world, pos, entity.tf.angle),
+            CharacterInfo::Player {} => player::spawn(world, pos),
+            CharacterInfo::Goal {} => goal::spawn(world, pos),
+            CharacterInfo::Damager {} => damager::spawn(world, pos),
+            CharacterInfo::Stabber {} => stabber::spawn(world, pos),
+            CharacterInfo::BasicBullet {} => basic_bullet::spawn(world, pos, entity.tf.look_angle),
         }
     }
 }

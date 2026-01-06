@@ -70,7 +70,7 @@ fn load_level_from_map(resolver: &FsResolver, map: &tiled::Map) -> anyhow::Resul
     Ok(LevelDef {
         next_level: None,
         map,
-        entities,
+        characters: entities,
     })
 }
 
@@ -137,7 +137,7 @@ fn load_mapdef_from_layer(
     })
 }
 
-fn load_entity_defs_from_object_layer(layer: &tiled::Layer) -> anyhow::Result<Vec<EntityDef>> {
+fn load_entity_defs_from_object_layer(layer: &tiled::Layer) -> anyhow::Result<Vec<CharacterDef>> {
     let Some(object_layer) = layer.as_object_layer() else {
         anyhow::bail!("Expected layer {OBJECT_LAYER:?} to be an object layer")
     };
@@ -159,13 +159,13 @@ fn load_entity_defs_from_object_layer(layer: &tiled::Layer) -> anyhow::Result<Ve
             ),
         };
 
-        entities.push(EntityDef {
-            tf: EntityPosition {
+        entities.push(CharacterDef {
+            tf: CharacterPosition {
                 pos: Position {
                     x: object.x,
                     y: object.y,
                 },
-                angle: object.rotation / 180.0 * std::f32::consts::PI,
+                look_angle: object.rotation / 180.0 * std::f32::consts::PI,
             },
             info,
         });
