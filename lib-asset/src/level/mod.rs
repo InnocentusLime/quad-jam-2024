@@ -55,17 +55,17 @@ pub struct LevelDef {
     /// The level's map definition. A map is a bunch
     /// of tiles with custom data.
     pub map: MapDef,
-    /// The entities placed on the map.
-    pub entities: Vec<EntityDef>,
+    /// The characters placed on the map.
+    pub characters: Vec<CharacterDef>,
 }
 
 /// Entity data. Currently, all entities are represented as squares.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
-pub struct EntityDef {
+pub struct CharacterDef {
     /// Entity's transform
-    pub tf: EntityPosition,
+    pub tf: CharacterPosition,
     /// Entity's manifest
-    pub info: EntityInfo,
+    pub info: CharacterInfo,
 }
 
 /// The enum containing all possible entity types for a level.
@@ -74,7 +74,7 @@ pub struct EntityDef {
 /// for variant [EntityInfo::Player] there must be a class
 /// called `Player`, that has all corresponding fields.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
-pub enum EntityInfo {
+pub enum CharacterInfo {
     Player {},
     Goal {},
     Damager {},
@@ -171,9 +171,9 @@ pub enum TileIdx {
 
 /// A library-agnostic transform representation.
 #[derive(Default, Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
-pub struct EntityPosition {
+pub struct CharacterPosition {
     /// Rotation angle in degrees
-    pub angle: f32,
+    pub look_angle: f32,
     /// Position in level units
     pub pos: Position,
 }

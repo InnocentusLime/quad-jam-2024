@@ -8,7 +8,7 @@ const BULLET_SHAPE: Shape = Shape::Rect {
     height: 16.0,
 };
 
-pub fn spawn(world: &mut World, pos: Vec2, dir_angle: f32) {
+pub fn spawn(world: &mut World, pos: Vec2, look_angle: f32) {
     let mut builder = EntityBuilder::new();
     builder.add_bundle(AttackBundle::new(
         Transform::from_pos(pos),
@@ -18,7 +18,7 @@ pub fn spawn(world: &mut World, pos: Vec2, dir_angle: f32) {
         col_group::PLAYER,
     ));
     builder.add_bundle(CharacterBundle {
-        look: CharacterLook(dir_angle),
+        look: CharacterLook(look_angle),
         ..CharacterBundle::new_projectile(pos, BULLET_SHAPE)
     });
     builder.add(BulletTag);
