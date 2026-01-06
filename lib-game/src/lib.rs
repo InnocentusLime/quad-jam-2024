@@ -271,7 +271,6 @@ impl App {
             level.map.atlas_margin,
             level.map.atlas_spacing,
         );
-        self.render.set_tilemap(&level);
 
         self.world.clear();
         self.resources.level = level;
@@ -302,7 +301,7 @@ impl App {
     fn game_present<G: Game>(&mut self, real_dt: f32, game: &G) {
         self.update_camera();
         self.render.new_frame();
-        self.render.put_tilemap_into_sprite_buffer();
+        self.render.buffer_tiles(&mut self.world);
         animations::buffer_sprites(&mut self.world, &self.resources, &mut self.render);
         game.render_export(&self.state, &self.resources, &self.world, &mut self.render);
         self.render

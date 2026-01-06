@@ -158,6 +158,7 @@ impl Game for Project {
 
         builder.add(Transform::from_pos(tile_pos));
         builder.add(ty);
+        builder.add(tile);
         if ty == TileTy::Wall {
             builder.add(BodyTag {
                 groups: col_group::LEVEL,
