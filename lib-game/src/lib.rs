@@ -225,13 +225,13 @@ impl App {
         info!("lib-game version: {}", env!("CARGO_PKG_VERSION"));
 
         loop {
+            #[cfg(feature = "dbg")]
+            debug.ui(&mut self, game);
+
             let input = InputModel::capture(&self.camera);
             let real_dt = get_frame_time();
             let do_tick = self.update_ticking(real_dt);
             self.fullscreen_toggles(&input);
-
-            #[cfg(feature = "dbg")]
-            debug.ui(&mut self, game);
 
             self.next_state(&input);
             if let Some(queued_level) = self.queued_level.take() {
