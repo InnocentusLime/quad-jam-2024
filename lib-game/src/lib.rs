@@ -342,7 +342,6 @@ impl App {
         self.cmds.run_on(&mut self.world);
 
         self.col_solver.compute_collisions(&mut self.world);
-        self.col_solver.dbg();
 
         health::collect_damage(&mut self.world, &self.col_solver);
         health::apply_damage(&mut self.world);
