@@ -239,12 +239,15 @@ impl App {
                 self.state = AppState::Active { paused: false };
             }
 
-            dump!("game state: {:?}", self.state);
-            if matches!(self.state, AppState::Active { paused: false })
-                && do_tick
-                && let Some(next_state) = self.game_update(&input, game)
-            {
-                self.state = next_state;
+            if do_tick {
+                #[cfg(feature = "dbg")]
+                debug.new_update();
+                dump!("game state: {:?}", self.state);
+                if matches!(self.state, AppState::Active { paused: false })
+                    && let Some(next_state) = self.game_update(&input, game)
+                {
+                    self.state = next_state;
+                }
             }
 
             self.game_present(real_dt, game);

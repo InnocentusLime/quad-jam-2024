@@ -17,18 +17,31 @@ impl ScreenDump {
 
     pub fn put_line(&self, args: fmt::Arguments) {
         let mut buff = self.0.lock().expect("Dangling mutex");
+        if buff.locked {
+            return;
+        }
+
         let line = buff.get_next_line();
         fmt::write(line, args).expect("failed to write a line");
     }
 
-    pub fn show(&self, ctx: &egui::Context) {
+    pub fn lock(&self) {
         let mut buff = self.0.lock().expect("Dangling mutex");
+        buff.locked = true;
+    }
+
+    pub fn reset(&self) {
+        let mut buff = self.0.lock().expect("Dangling mutex");
+        buff.reset();
+    }
+
+    pub fn show(&self, ctx: &egui::Context) {
+        let buff = self.0.lock().expect("Dangling mutex");
         Window::new("Value dump").show(ctx, |ui| {
             for line in buff.lines() {
                 ui.label(line);
             }
         });
-        buff.reset();
     }
 }
 
@@ -39,6 +52,7 @@ impl Default for ScreenDump {
 }
 
 struct ScreenDumpBuff {
+    locked: bool,
     lines: Vec<String>,
     next_line: usize,
 }
@@ -46,6 +60,7 @@ struct ScreenDumpBuff {
 impl ScreenDumpBuff {
     fn new() -> Self {
         ScreenDumpBuff {
+            locked: false,
             lines: Vec::with_capacity(DUMP_CAPACITY),
             next_line: 0,
         }
@@ -64,6 +79,7 @@ impl ScreenDumpBuff {
     fn reset(&mut self) {
         self.next_line = 0;
         self.lines.iter_mut().for_each(String::clear);
+        self.locked = false;
     }
 
     fn lines(&self) -> impl Iterator<Item = &String> {
