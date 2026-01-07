@@ -136,12 +136,17 @@ impl DebugStuff {
         }
     }
 
+    pub fn new_update(&mut self) {
+        GLOBAL_DUMP.reset();
+    }
+
     pub fn draw(&self, app: &mut App) {
         let ent_count = app.world.iter().count();
 
         dump!("Dt: {:.2}", app.accumelated_time);
         dump!("FPS: {:?}", get_fps());
         dump!("Entities: {ent_count}");
+        GLOBAL_DUMP.lock();
 
         app.render.debug_render(&app.camera, || {
             for debug_draw_name in self.enabled_debug_draws.iter() {
