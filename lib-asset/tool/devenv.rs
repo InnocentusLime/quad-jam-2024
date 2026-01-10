@@ -1,4 +1,5 @@
 use std::fs::{self, File};
+use std::io::stdout;
 use std::{path::PathBuf, process::ExitCode};
 
 use anyhow::Context;
@@ -60,7 +61,8 @@ fn dump_animations(animations: PathBuf) -> anyhow::Result<()> {
     let anims: HashMap<animation::AnimationId, animation::Animation>;
     anims = postcard::from_bytes(&anims_data)?;
 
-    println!("{:?}", anims);
+    let mut stdout = stdout().lock();
+    serde_json::to_writer_pretty(&mut stdout, &anims)?;
     Ok(())
 }
 
@@ -115,7 +117,8 @@ fn dump_map(map: PathBuf) -> anyhow::Result<()> {
     let level_data = fs::read(map)?;
     let level: level::LevelDef;
     level = postcard::from_bytes(&level_data)?;
-    println!("{:?}", level);
+    let mut stdout = stdout().lock();
+    serde_json::to_writer_pretty(&mut stdout, &level)?;
     Ok(())
 }
 
