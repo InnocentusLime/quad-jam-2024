@@ -88,6 +88,15 @@ impl Shape {
     }
 }
 
+impl Default for Shape {
+    fn default() -> Self {
+        Shape::Rect {
+            width: 0.0,
+            height: 0.0,
+        }
+    }
+}
+
 /// Returns transformed rectangle normals
 pub fn rect_normals(tf: Affine2) -> [Vec2; 4] {
     [
