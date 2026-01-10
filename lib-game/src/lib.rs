@@ -192,13 +192,17 @@ pub struct App {
 
 impl App {
     pub async fn new(conf: &Conf) -> anyhow::Result<Self> {
+        let mut resources = Resources::new();
+        resources.cfg = load_game_config(&resources.resolver).await?;
+        // TODO: log cfg
+
         Ok(Self {
             fullscreen: conf.fullscreen,
             old_size: (conf.window_width as u32, conf.window_height as u32),
 
             state: AppState::Start,
             queued_level: None,
-            resources: Resources::new(),
+            resources,
             accumelated_time: 0.0,
 
             camera: Camera2D::default(),
@@ -445,6 +449,7 @@ impl App {
 }
 
 pub struct Resources {
+    pub cfg: GameCfg,
     pub resolver: FsResolver,
     pub level: LevelDef,
     pub animations: HashMap<AnimationId, Animation>,
@@ -455,6 +460,7 @@ pub struct Resources {
 impl Resources {
     pub fn new() -> Self {
         Resources {
+            cfg: GameCfg::default(),
             resolver: FsResolver::new(),
             level: LevelDef::default(),
             animations: HashMap::new(),
@@ -475,7 +481,7 @@ impl Resources {
 
     /// **ADDITIVLY** loads an animations pack
     pub async fn load_animation_pack(&mut self, pack_id: AnimationPackId) {
-        let pack: HashMap<_, _> = self.resolver.load(pack_id).await.unwrap();
+        let pack: AnimationPack = self.resolver.load(pack_id).await.unwrap();
         self.animations.extend(pack);
     }
 }

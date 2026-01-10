@@ -128,6 +128,33 @@ impl DebugStuff {
                 }
                 self.enabled_debug_draws.remove(dd_name);
             }
+            "get" => {
+                if cmd.args.len() < 2 {
+                    error!("Not enough args. Need 2");
+                    return;
+                }
+
+                let section = &cmd.args[0];
+                let field = &cmd.args[1];
+                match app.resources.cfg.get_field(section, field) {
+                    Ok(x) => info!("{section}.{field} = {x}"),
+                    Err(e) => error!("{e:#}"),
+                }
+            }
+            "set" => {
+                if cmd.args.len() < 3 {
+                    error!("Not enough args. Need 3");
+                    return;
+                }
+
+                let section = &cmd.args[0];
+                let field = &cmd.args[1];
+                let val = &cmd.args[2];
+                match app.resources.cfg.set_field(section, field, val) {
+                    Ok(_) => info!("{section}.{field} updated"),
+                    Err(e) => error!("{e:#}"),
+                }
+            }
             unmatched => {
                 if !game.handle_command(app, &cmd) {
                     error!("Unknown command: {unmatched:?}");

@@ -23,4 +23,5 @@ serde_json = { version = "1", optional = true }
 tiled = { version = "0.14.0", default-features = false, features = [], optional = true }
 
 [features]
-dev-env = ["dep:clap", "dep:serde_json", "dep:tiled", "postcard/use-std"]
+dbg = ["dep:serde_json"]
+dev-env = ["dep:clap", "dep:tiled", "postcard/use-std", "dbg"]

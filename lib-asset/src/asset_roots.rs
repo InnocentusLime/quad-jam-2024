@@ -11,7 +11,8 @@
     strum::VariantArray,
 )]
 pub enum AssetRoot {
-    Default,
+    Base,
+    Assets,
     Animations,
     Levels,
     AsepriteProjectRoot,
@@ -22,7 +23,11 @@ pub enum AssetRoot {
 impl AssetRoot {
     pub fn default_path(self) -> &'static str {
         match self {
-            AssetRoot::Default => "assets",
+            #[cfg(not(target_family = "wasm"))]
+            AssetRoot::Base => ".",
+            #[cfg(target_family = "wasm")]
+            AssetRoot::Base => "",
+            AssetRoot::Assets => "assets",
             AssetRoot::Animations => "animations",
             AssetRoot::Levels => "levels",
             AssetRoot::AsepriteProjectRoot => "project-aseprite",

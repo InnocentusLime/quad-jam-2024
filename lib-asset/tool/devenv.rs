@@ -4,27 +4,37 @@ use std::{path::PathBuf, process::ExitCode};
 
 use anyhow::Context;
 use clap::{Parser, Subcommand};
-use hashbrown::HashMap;
+use lib_asset::animation::AnimationPack;
+use lib_asset::level::LevelDef;
 use lib_asset::*;
 use postcard::ser_flavors::io::WriteFlavor;
 
 pub fn run() -> ExitCode {
     let cli = Cli::parse();
     let mut resolver = FsResolver::new();
-    if let Some(asset_dir) = cli.assets {
-        resolver.set_root(AssetRoot::Default, asset_dir);
+    if let Some(base_dir) = cli.base {
+        resolver.set_root(AssetRoot::Base, base_dir);
     }
 
     let result = match cli.command {
-        Commands::CheckAnims { animations } => check_animations(animations),
-        Commands::CompileAnims { animations, out } => compile_animations(animations, out),
-        Commands::DumpAnims { animations } => dump_animations(animations),
-        Commands::CompileAnimsDir { dir, out } => compile_anims_dir(dir, out),
+        Commands::CompileCfg { config, out } => compile_impl::<GameCfg>(&resolver, config, out),
+        Commands::CheckCfg { config } => check_impl::<GameCfg>(&resolver, config),
+        Commands::DumpCfg { config } => dump_impl::<GameCfg>(config),
+        Commands::CheckAnims { animations } => check_impl::<AnimationPack>(&resolver, animations),
+        Commands::CompileAnims { animations, out } => {
+            compile_impl::<AnimationPack>(&resolver, animations, out)
+        }
+        Commands::DumpAnims { animations } => dump_impl::<AnimationPack>(animations),
+        Commands::CompileAnimsDir { dir, out } => {
+            compile_dir_impl::<AnimationPack>(&resolver, "json", dir, out)
+        }
         Commands::ConvertAseprite { aseprite, out } => convert_aseprite(&resolver, aseprite, out),
-        Commands::CheckMap { map } => check_map(&resolver, map),
-        Commands::CompileMap { map, out } => compile_map(&resolver, map, out),
-        Commands::DumpMap { map } => dump_map(map),
-        Commands::CompileMapsDir { dir, out } => compile_maps_dir(&resolver, dir, out),
+        Commands::CheckMap { map } => check_impl::<LevelDef>(&resolver, map),
+        Commands::CompileMap { map, out } => compile_impl::<LevelDef>(&resolver, map, out),
+        Commands::DumpMap { map } => dump_impl::<LevelDef>(map),
+        Commands::CompileMapsDir { dir, out } => {
+            compile_dir_impl::<LevelDef>(&resolver, "tmx", dir, out)
+        }
     };
 
     match result {
@@ -34,56 +44,6 @@ pub fn run() -> ExitCode {
             ExitCode::FAILURE
         }
     }
-}
-
-fn check_animations(animations: PathBuf) -> anyhow::Result<()> {
-    println!("Checking {animations:?}");
-
-    animation::aseprite_load::load_animations_project(animations)?;
-    Ok(())
-}
-
-fn compile_animations(animations: PathBuf, out: PathBuf) -> anyhow::Result<()> {
-    println!("Compiling {animations:?} into {out:?}");
-
-    let anims =
-        animation::aseprite_load::load_animations_project(animations).context("loading package")?;
-    let out = fs::File::create(out).context("opening the output")?;
-
-    postcard::serialize_with_flavor(&anims, WriteFlavor::new(out))
-        .context("writing the package")?;
-    Ok(())
-}
-
-fn dump_animations(animations: PathBuf) -> anyhow::Result<()> {
-    let anims_data = fs::read(animations)?;
-
-    let anims: HashMap<animation::AnimationId, animation::Animation>;
-    anims = postcard::from_bytes(&anims_data)?;
-
-    let mut stdout = stdout().lock();
-    serde_json::to_writer_pretty(&mut stdout, &anims)?;
-    Ok(())
-}
-
-fn compile_anims_dir(dir: PathBuf, out: PathBuf) -> anyhow::Result<()> {
-    let dir = fs::read_dir(dir)?;
-    for file in dir {
-        let file = file?.path();
-        let name = file.file_name().expect("File in DirEntry has no name");
-        let Some(extension) = file.extension() else {
-            continue;
-        };
-        if extension != "json" {
-            continue;
-        }
-
-        let mut buff = out.clone();
-        buff.push(name);
-        buff.set_extension("bin");
-        compile_animations(file, buff)?;
-    }
-    Ok(())
 }
 
 fn convert_aseprite(
@@ -96,33 +56,28 @@ fn convert_aseprite(
     serde_json::to_writer_pretty(out, &anims).context("writing to dest")
 }
 
-fn check_map(resolver: &FsResolver, map: PathBuf) -> anyhow::Result<()> {
-    println!("Checking {map:?}");
-
-    level::tiled_load::load_level(resolver, map)?;
+fn check_impl<T: DevableAsset>(resolver: &FsResolver, asset: PathBuf) -> anyhow::Result<()> {
+    println!("Checking {asset:?}");
+    T::load_dev(resolver, &asset)?;
     Ok(())
 }
 
-fn compile_map(resolver: &FsResolver, map: PathBuf, out: PathBuf) -> anyhow::Result<()> {
-    println!("Compiling {map:?} into {out:?}");
-
-    let level = level::tiled_load::load_level(resolver, map).context("loading map")?;
-    let out = fs::File::create(out).context("opening the output")?;
-
-    postcard::serialize_with_flavor(&level, WriteFlavor::new(out)).context("writing the level")?;
-    Ok(())
-}
-
-fn dump_map(map: PathBuf) -> anyhow::Result<()> {
-    let level_data = fs::read(map)?;
-    let level: level::LevelDef;
-    level = postcard::from_bytes(&level_data)?;
+fn dump_impl<T: for<'a> serde::Deserialize<'a> + serde::Serialize>(
+    asset: PathBuf,
+) -> anyhow::Result<()> {
+    let data = fs::read(asset)?;
+    let data = postcard::from_bytes(&data)?;
     let mut stdout = stdout().lock();
-    serde_json::to_writer_pretty(&mut stdout, &level)?;
+    serde_json::to_writer_pretty::<_, T>(&mut stdout, &data)?;
     Ok(())
 }
 
-fn compile_maps_dir(resolver: &FsResolver, dir: PathBuf, out: PathBuf) -> anyhow::Result<()> {
+fn compile_dir_impl<T: DevableAsset + serde::Serialize>(
+    resolver: &FsResolver,
+    file_extension: &str,
+    dir: PathBuf,
+    out: PathBuf,
+) -> anyhow::Result<()> {
     let dir = fs::read_dir(dir)?;
     for file in dir {
         let file = file?.path();
@@ -130,15 +85,28 @@ fn compile_maps_dir(resolver: &FsResolver, dir: PathBuf, out: PathBuf) -> anyhow
         let Some(extension) = file.extension() else {
             continue;
         };
-        if extension != "tmx" {
+        if extension != file_extension {
             continue;
         }
 
         let mut buff = out.clone();
         buff.push(name);
         buff.set_extension("bin");
-        compile_map(resolver, file, buff)?;
+        compile_impl::<T>(resolver, file, buff)?;
     }
+    Ok(())
+}
+
+fn compile_impl<T: DevableAsset + serde::Serialize>(
+    resolver: &FsResolver,
+    path: PathBuf,
+    out: PathBuf,
+) -> anyhow::Result<()> {
+    println!("Compiling {path:?} into {out:?}");
+
+    let val = T::load_dev(resolver, &path).context("loading")?;
+    let out = fs::File::create(out).context("opening the output")?;
+    postcard::serialize_with_flavor(&val, WriteFlavor::new(out)).context("compiling")?;
     Ok(())
 }
 
@@ -146,16 +114,37 @@ fn compile_maps_dir(resolver: &FsResolver, dir: PathBuf, out: PathBuf) -> anyhow
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Cli {
-    /// The path to the assets directory. By default,
+    /// The path to the project directory. By default,
     /// the current working directory is used.
     #[arg(long, value_name = "DIR")]
-    assets: Option<PathBuf>,
+    base: Option<PathBuf>,
     #[command(subcommand)]
     command: Commands,
 }
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Compile a game config.
+    CompileCfg {
+        /// The config to compile
+        #[arg(short, long, value_name = "FILE")]
+        config: PathBuf,
+        /// The output file
+        #[arg(short, long, value_name = "FILE")]
+        out: PathBuf,
+    },
+    /// Checks a game config.
+    CheckCfg {
+        /// The config to check
+        #[arg(short, long, value_name = "FILE")]
+        config: PathBuf,
+    },
+    /// Dumps config contents.
+    DumpCfg {
+        /// The config to dump
+        #[arg(short, long, value_name = "FILE")]
+        config: PathBuf,
+    },
     /// Check if an animation package satisfies all
     /// conventions.
     CheckAnims {

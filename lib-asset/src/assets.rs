@@ -1,8 +1,9 @@
-use crate::animation::{Animation, AnimationId};
-use crate::asset_roots::*;
+#[cfg(feature = "dev-env")]
+use crate::DevableAsset;
+use crate::animation::{AnimationId, AnimationPack};
 use crate::level::LevelDef;
 use crate::{Asset, FsResolver};
-use hashbrown::HashMap;
+use crate::{GameCfg, asset_roots::*};
 use macroquad::prelude::*;
 use std::path::Path;
 use strum::VariantArray;
@@ -28,7 +29,7 @@ pub enum TextureId {
 
 impl Asset for Texture2D {
     type AssetId = TextureId;
-    const ROOT: AssetRoot = AssetRoot::Default;
+    const ROOT: AssetRoot = AssetRoot::Assets;
 
     async fn load(_resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
         let tex = load_texture(&path.to_string_lossy()).await?;
@@ -61,7 +62,7 @@ pub enum FontId {
 
 impl Asset for Font {
     type AssetId = FontId;
-    const ROOT: AssetRoot = AssetRoot::Default;
+    const ROOT: AssetRoot = AssetRoot::Assets;
 
     async fn load(_resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
         let font = load_ttf_font(&path.to_string_lossy()).await?;
@@ -106,13 +107,10 @@ impl AnimationPackId {
     }
 }
 
-impl Asset for HashMap<AnimationId, Animation> {
-    type AssetId = AnimationPackId;
-    const ROOT: AssetRoot = AssetRoot::Animations;
-
-    #[cfg(feature = "dev-env")]
-    async fn load(resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
-        use crate::animation::aseprite_load;
+#[cfg(feature = "dev-env")]
+impl DevableAsset for AnimationPack {
+    fn load_dev(resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
+        use crate::animation::{Animation, aseprite_load};
         use log::warn;
         use std::path::PathBuf;
 
@@ -152,6 +150,16 @@ impl Asset for HashMap<AnimationId, Animation> {
             .collect();
         Ok(placeholder)
     }
+}
+
+impl Asset for AnimationPack {
+    type AssetId = AnimationPackId;
+    const ROOT: AssetRoot = AssetRoot::Animations;
+
+    #[cfg(feature = "dev-env")]
+    async fn load(resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
+        Self::load_dev(resolver, path)
+    }
 
     #[cfg(not(feature = "dev-env"))]
     async fn load(_resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
@@ -187,12 +195,9 @@ pub enum LevelId {
     TestShooterRoom,
 }
 
-impl Asset for LevelDef {
-    type AssetId = LevelId;
-    const ROOT: AssetRoot = AssetRoot::Levels;
-
-    #[cfg(feature = "dev-env")]
-    async fn load(resolver: &FsResolver, path: &Path) -> anyhow::Result<LevelDef> {
+#[cfg(feature = "dev-env")]
+impl DevableAsset for LevelDef {
+    fn load_dev(resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
         use crate::level::tiled_load;
         use std::path::PathBuf;
 
@@ -200,6 +205,16 @@ impl Asset for LevelDef {
         filename.set_extension("tmx");
         let tiled_path = resolver.get_path(AssetRoot::TiledProjectRoot, filename);
         tiled_load::load_level(resolver, tiled_path)
+    }
+}
+
+impl Asset for LevelDef {
+    type AssetId = LevelId;
+    const ROOT: AssetRoot = AssetRoot::Levels;
+
+    #[cfg(feature = "dev-env")]
+    async fn load(resolver: &FsResolver, path: &Path) -> anyhow::Result<LevelDef> {
+        Self::load_dev(resolver, path)
     }
 
     #[cfg(not(feature = "dev-env"))]
@@ -216,4 +231,42 @@ impl Asset for LevelDef {
             LevelId::TestShooterRoom => "test_shooter_room.bin",
         }
     }
+}
+
+#[cfg(feature = "dev-env")]
+impl DevableAsset for GameCfg {
+    fn load_dev(_resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
+        use std::fs::File;
+
+        let mut path = path.to_path_buf();
+        path.set_extension("json");
+        let file = File::open(path)?;
+        serde_json::from_reader(&file).map_err(Into::into)
+    }
+}
+
+impl Asset for GameCfg {
+    type AssetId = GameCfgId;
+    const ROOT: AssetRoot = AssetRoot::Base;
+
+    #[cfg(feature = "dev-env")]
+    async fn load(resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
+        Self::load_dev(resolver, path)
+    }
+
+    #[cfg(not(feature = "dev-env"))]
+    async fn load(_resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
+        use macroquad::prelude::*;
+        let data = load_file(path.to_str().unwrap()).await?;
+        postcard::from_bytes(&data).map_err(Into::into)
+    }
+
+    fn filename(_id: Self::AssetId) -> &'static str {
+        "gamecfg.bin"
+    }
+}
+
+#[derive(Debug, Clone, Copy, strum::VariantArray, strum::IntoStaticStr, PartialEq, Eq, Hash)]
+pub enum GameCfgId {
+    Cfg,
 }

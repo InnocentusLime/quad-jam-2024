@@ -20,15 +20,20 @@ EOF
 COPY /assets/ /dist/assets
 COPY /static/* /dist
 RUN cp /project/target/wasm32-unknown-unknown/wasm-release/quad-jam-2024.wasm /dist/game.wasm
+RUN /project/target/debug/asset-compiler \
+        --base /project \
+        compile-cfg \
+            -c /project/gamecfg.json \
+            -o /dist/gamecfg.bin
 RUN mkdir /dist/levels && \
     /project/target/debug/asset-compiler \
-        --assets /project/assets \
+        --base /project \
         compile-maps-dir \
             -d /project/project-tiled \
             -o /dist/levels
 RUN mkdir /dist/animations && \
     /project/target/debug/asset-compiler \
-        --assets /project/assets \
+        --base /project \
         compile-anims-dir \
             -d /project/project-animations \
             -o /dist/animations

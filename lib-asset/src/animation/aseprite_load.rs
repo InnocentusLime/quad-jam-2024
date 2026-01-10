@@ -132,7 +132,7 @@ fn collect_frames(
         let Ok(frame_id) = pieces[0].parse() else {
             bail!("first piece of the frame name must be an integer");
         };
-        let sprite_path = resolver.get_path(AssetRoot::Default, &sheet.meta.image);
+        let sprite_path = resolver.get_path(AssetRoot::Assets, &sheet.meta.image);
 
         // NOTE: we assume that the order of layer frames is the same
         //       as the desired draw order

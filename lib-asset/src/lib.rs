@@ -2,10 +2,12 @@ mod asset_roots;
 mod assets;
 
 pub mod animation;
+pub mod gamecfg;
 pub mod level;
 
 pub use asset_roots::*;
 pub use assets::*;
+pub use gamecfg::*;
 
 use anyhow::Context;
 use glam::{Vec2, vec2};
@@ -13,6 +15,10 @@ use hashbrown::HashMap;
 use strum::VariantArray;
 
 use std::path::{Path, PathBuf};
+
+pub async fn load_game_config(resolver: &FsResolver) -> anyhow::Result<GameCfg> {
+    resolver.load::<GameCfg>(GameCfgId::Cfg).await
+}
 
 pub struct FsResolver {
     roots: HashMap<AssetRoot, PathBuf>,
@@ -48,19 +54,19 @@ impl FsResolver {
         self.roots.insert(id, dir.as_ref().to_path_buf());
     }
 
-    #[cfg(not(target_family = "wasm"))]
     fn get_dir(&self, root: AssetRoot) -> impl AsRef<Path> {
-        let mut path = PathBuf::from("./");
-        path.push(&self.roots[&root]);
+        let mut path = PathBuf::new();
+        path.push(&self.roots[&AssetRoot::Base]);
+        if root != AssetRoot::Base {
+            path.push(&self.roots[&root]);
+        }
+        #[cfg(not(target_family = "wasm"))]
         match std::fs::canonicalize(&path) {
             Ok(x) => x,
             Err(e) => panic!("Failed to resolve {path:?}: {e}"),
         }
-    }
-
-    #[cfg(target_family = "wasm")]
-    fn get_dir(&self, root: AssetRoot) -> impl AsRef<Path> {
-        &self.roots[&root]
+        #[cfg(target_family = "wasm")]
+        path
     }
 
     fn get_filename<'a>(&self, root: AssetRoot, path: &'a Path) -> anyhow::Result<&'a Path> {
@@ -79,6 +85,11 @@ impl Default for FsResolver {
     fn default() -> Self {
         FsResolver::new()
     }
+}
+
+#[cfg(feature = "dev-env")]
+pub trait DevableAsset: Sized {
+    fn load_dev(resolver: &FsResolver, path: &Path) -> anyhow::Result<Self>;
 }
 
 pub trait Asset: Sized {
