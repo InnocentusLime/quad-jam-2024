@@ -8,7 +8,7 @@ use postcard::ser_flavors::io::WriteFlavor;
 #[test]
 fn test_all_maps() {
     let mut resolver = FsResolver::new();
-    resolver.set_root(AssetRoot::Default, "../assets");
+    resolver.set_root(AssetRoot::Assets, "../assets");
 
     let dir = fs::read_dir("../project-tiled").unwrap();
     for file in dir {
@@ -30,7 +30,7 @@ fn test_all_maps() {
 #[test]
 fn test_all_maps_sanity() {
     let mut resolver = FsResolver::new();
-    resolver.set_root(AssetRoot::Default, "../assets");
+    resolver.set_root(AssetRoot::Assets, "../assets");
 
     let dir = fs::read_dir("../project-tiled").unwrap();
     for file in dir {

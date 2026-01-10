@@ -3,7 +3,10 @@ pub mod aseprite_load;
 
 use crate::level::CharacterInfo;
 use crate::{Position, TextureId};
+use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
+
+pub type AnimationPack = HashMap<AnimationId, Animation>;
 
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct Animation {
