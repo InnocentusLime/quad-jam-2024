@@ -1,36 +1,20 @@
 use super::prelude::*;
 
-pub const PLAYER_SPEED: f32 = 48.0;
-pub const PLAYER_DASH_SPEED: f32 = 432.0;
-pub const PLAYER_SPAWN_HEALTH: i32 = 3;
-pub const PLAYER_HIT_COOLDOWN: f32 = 1.0;
-pub const PLAYER_SHAPE: Shape = Shape::Rect {
-    width: 16.0,
-    height: 16.0,
-};
-
-pub const PLAYER_MAX_STAMINA: f32 = 100.0;
-pub const PLAYER_ATTACK_COST: f32 = 10.0;
-pub const PLAYER_DASH_COST: f32 = 25.0;
-
-pub fn init(builder: &mut EntityBuilder, pos: Vec2) {
+pub fn init(builder: &mut EntityBuilder, pos: Vec2, resources: &Resources) {
     builder.add_bundle(CharacterBundle::new_player(
         pos,
-        PLAYER_SHAPE,
-        PLAYER_SPAWN_HEALTH,
+        resources.cfg.player.shape,
+        resources.cfg.player.max_hp,
     ));
     builder.add_bundle((
         PlayerState::Idle,
-        DamageCooldown::new(PLAYER_HIT_COOLDOWN),
+        DamageCooldown::new(resources.cfg.player.hit_cooldown),
         GrazeGain {
             value: 0.0,
-            max_value: PLAYER_MAX_STAMINA,
+            max_value: resources.cfg.player.max_stamina,
         },
         col_query::Grazing::new(
-            Shape::Rect {
-                width: 32.0,
-                height: 32.0,
-            },
+            resources.cfg.player.graze_shape,
             col_group::ATTACKS,
             col_group::NONE,
         ),
@@ -38,6 +22,7 @@ pub fn init(builder: &mut EntityBuilder, pos: Vec2) {
 }
 
 pub fn controls(dt: f32, input: &InputModel, world: &mut World, resources: &Resources) {
+    let cfg = &resources.cfg;
     let mut walk_dir = Vec2::ZERO;
     let mut do_walk = false;
     if input.left_movement_down {
@@ -61,12 +46,12 @@ pub fn controls(dt: f32, input: &InputModel, world: &mut World, resources: &Reso
     for_each_character::<PlayerData>(world, resources, |_, mut c| {
         let look_dir = (input.aim - c.pos()).normalize_or(vec2(0.0, 1.0));
 
-        if input.attack_down && can_attack(&c) {
+        if input.attack_down && can_attack(&c, cfg) {
             c.set_state(PlayerState::Attacking);
-            c.data.substract_stamina(PLAYER_ATTACK_COST);
-        } else if input.dash_pressed && can_dash(&c) {
+            c.data.substract_stamina(cfg.player.attack_cost);
+        } else if input.dash_pressed && can_dash(&c, cfg) {
             c.set_state(PlayerState::Dashing);
-            c.data.substract_stamina(PLAYER_DASH_COST);
+            c.data.substract_stamina(cfg.player.dash_cost);
         } else if do_walk && can_walk(&c) {
             c.set_state(PlayerState::Walking);
         } else if !do_walk && matches!(c.get_state(), PlayerState::Walking) {
@@ -75,8 +60,10 @@ pub fn controls(dt: f32, input: &InputModel, world: &mut World, resources: &Reso
 
         c.set_walk_step(Vec2::ZERO);
         match c.get_state() {
-            PlayerState::Walking => c.set_walk_step(walk_dir * PLAYER_SPEED * dt),
-            PlayerState::Dashing => c.set_walk_step(c.look_direction() * PLAYER_DASH_SPEED * dt),
+            PlayerState::Walking => c.set_walk_step(walk_dir * cfg.player.speed * dt),
+            PlayerState::Dashing => {
+                c.set_walk_step(c.look_direction() * cfg.player.dash_speed * dt)
+            }
             _ => (),
         }
 
@@ -86,14 +73,14 @@ pub fn controls(dt: f32, input: &InputModel, world: &mut World, resources: &Reso
     });
 }
 
-fn can_attack(c: &Character<PlayerData>) -> bool {
+fn can_attack(c: &Character<PlayerData>, cfg: &GameCfg) -> bool {
     matches!(c.get_state(), PlayerState::Idle | PlayerState::Walking)
-        && c.data.can_do_action(PLAYER_ATTACK_COST)
+        && c.data.can_do_action(cfg.player.attack_cost)
 }
 
-fn can_dash(c: &Character<PlayerData>) -> bool {
+fn can_dash(c: &Character<PlayerData>, cfg: &GameCfg) -> bool {
     matches!(c.get_state(), PlayerState::Idle | PlayerState::Walking)
-        && c.data.can_do_action(PLAYER_DASH_COST)
+        && c.data.can_do_action(cfg.player.dash_cost)
 }
 
 fn can_walk(c: &Character<PlayerData>) -> bool {

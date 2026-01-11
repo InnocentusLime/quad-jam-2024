@@ -181,19 +181,19 @@ impl Game for Project {
 
     fn init_character(
         &self,
-        _resources: &Resources,
+        resources: &Resources,
         builder: &mut hecs::EntityBuilder,
         def: CharacterDef,
     ) {
         let pos = def.tf.pos.to_vec2();
         let look = def.tf.look_angle;
         match def.info {
-            CharacterInfo::Player {} => player::init(builder, pos),
+            CharacterInfo::Player {} => player::init(builder, pos, resources),
             CharacterInfo::Goal {} => goal::init(builder, pos),
             CharacterInfo::Damager {} => damager::init(builder, pos),
-            CharacterInfo::Stabber {} => stabber::init(builder, pos),
-            CharacterInfo::BasicBullet {} => basic_bullet::init(builder, pos, look),
-            CharacterInfo::Shooter {} => shooter::init(builder, pos),
+            CharacterInfo::Stabber {} => stabber::init(builder, pos, resources),
+            CharacterInfo::BasicBullet {} => basic_bullet::init(builder, pos, look, resources),
+            CharacterInfo::Shooter {} => shooter::init(builder, pos, resources),
         }
     }
 }

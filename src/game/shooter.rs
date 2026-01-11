@@ -1,12 +1,5 @@
 use super::prelude::*;
 
-pub const SHOOTER_SPAWN_HEALTH: i32 = 3;
-pub const SHOOTER_HIT_COOLDOWN: f32 = 3.0;
-pub const SHOOTER_SHAPE: Shape = Shape::Rect {
-    width: 16.0,
-    height: 16.0,
-};
-
 impl CharacterData for &mut ShooterState {
     type StateId = ShooterState;
 
@@ -29,14 +22,14 @@ impl CharacterData for &mut ShooterState {
     }
 }
 
-pub fn init(builder: &mut EntityBuilder, pos: Vec2) {
+pub fn init(builder: &mut EntityBuilder, pos: Vec2, resources: &Resources) {
     builder.add_bundle(CharacterBundle::new_enemy(
         pos,
-        SHOOTER_SHAPE,
-        SHOOTER_SPAWN_HEALTH,
+        resources.cfg.shooter.shape,
+        resources.cfg.shooter.max_hp,
     ));
     builder.add_bundle((
-        DamageCooldown::new(SHOOTER_HIT_COOLDOWN),
+        DamageCooldown::new(resources.cfg.shooter.hit_cooldown),
         ShooterState::Idle,
     ));
 }

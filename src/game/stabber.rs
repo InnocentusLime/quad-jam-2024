@@ -1,14 +1,5 @@
 use super::prelude::*;
 
-pub const STABBER_SPAWN_HEALTH: i32 = 3;
-pub const STABBER_HIT_COOLDOWN: f32 = 3.0;
-pub const STABBER_WALK_SPEED: f32 = 18.0;
-pub const STABBER_AGRO_RANGE: f32 = 36.0;
-pub const STABBER_SHAPE: Shape = Shape::Rect {
-    width: 16.0,
-    height: 16.0,
-};
-
 impl CharacterData for &mut StabberState {
     type StateId = StabberState;
 
@@ -31,19 +22,20 @@ impl CharacterData for &mut StabberState {
     }
 }
 
-pub fn init(builder: &mut EntityBuilder, pos: Vec2) {
+pub fn init(builder: &mut EntityBuilder, pos: Vec2, resources: &Resources) {
     builder.add_bundle(CharacterBundle::new_enemy(
         pos,
-        STABBER_SHAPE,
-        STABBER_SPAWN_HEALTH,
+        resources.cfg.stabber.shape,
+        resources.cfg.stabber.max_hp,
     ));
     builder.add_bundle((
-        DamageCooldown::new(STABBER_HIT_COOLDOWN),
+        DamageCooldown::new(resources.cfg.stabber.hit_cooldown),
         StabberState::Idle,
     ));
 }
 
 pub fn ai(dt: f32, world: &mut World, resources: &Resources) {
+    let cfg = &resources.cfg;
     let Some((_, (player_tf, _))) = world
         .query_mut::<(&Transform, &PlayerState)>()
         .into_iter()
@@ -60,8 +52,8 @@ pub fn ai(dt: f32, world: &mut World, resources: &Resources) {
         character.set_walk_step(Vec2::ZERO);
         if character.get_state() == StabberState::Idle {
             character.set_look_direction(dir);
-            character.set_walk_step(dir * STABBER_WALK_SPEED * dt);
-            if off_to_player.length() <= STABBER_AGRO_RANGE {
+            character.set_walk_step(dir * cfg.stabber.speed * dt);
+            if off_to_player.length() <= cfg.stabber.attack_range {
                 character.set_state(StabberState::Attacking);
             }
         }
