@@ -803,10 +803,9 @@
             "team": "Player",
             "group": 2,
             "shape": {
-              "Rect": {
-                "width": 41.0,
-                "height": 13.0
-              }
+              "type": "Rect",
+              "width": 41.0,
+              "height": 13.0
             },
             "rotate_with_parent": true
           }

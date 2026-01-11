@@ -91,10 +91,9 @@
             "team": "Enemy",
             "group": 2,
             "shape": {
-              "Rect": {
-                "width": 28.0,
-                "height": 18.0
-              }
+              "type": "Rect",
+              "width": 28.0,
+              "height": 18.0
             },
             "rotate_with_parent": true
           }
