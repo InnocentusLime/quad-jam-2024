@@ -1,0 +1,55 @@
+{
+    "player": {
+        "speed": 48.0,
+        "dash_speed": 432.0,
+        "max_hp": 3,
+        "hit_cooldown": 1.0,
+        "shape": {
+            "Rect": {
+                "width": 16.0,
+                "height": 16.0
+            }
+        },
+        "max_stamina": 100.0,
+        "attack_cost": 10.0,
+        "dash_cost": 25.0,
+        "graze_shape": {
+            "Rect": {
+                "width": 32.0,
+                "height": 32.0
+            }
+        }
+    },
+    "basic_bullet": {
+        "speed": 32.0,
+        "graze_value": 2.0,
+        "shape": {
+            "Rect": {
+                "width": 16.0,
+                "height": 16.0
+            }
+        }
+    },
+    "shooter": {
+        "max_hp": 3,
+        "hit_cooldown": 1.0,
+        "shape": {
+            "Rect": {
+                "width": 16.0,
+                "height": 16.0
+            }
+        }
+    },
+    "stabber": {
+        "max_hp": 3,
+        "hit_cooldown": 3.0,
+        "speed": 18.0,
+        "attack_range": 36.0,
+        "shape": {
+            "Rect": {
+                "width": 16.0,
+                "height": 16.0
+            }
+        }
+    }
+}
