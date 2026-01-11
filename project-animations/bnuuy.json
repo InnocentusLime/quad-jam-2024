@@ -659,7 +659,8 @@
             "width": 41.0,
             "height": 13.0
           },
-          "rotate_with_parent": true
+          "rotate_with_parent": true,
+          "graze_value": 0.0
         }
       },
       {

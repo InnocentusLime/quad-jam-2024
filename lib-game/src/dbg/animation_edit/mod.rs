@@ -210,6 +210,7 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
                     height: 0.0,
                 },
                 rotate_with_parent: false,
+                graze_value: 0.0,
             }),
             ClipActionDiscriminants::Invulnerability => {
                 ClipAction::Invulnerability(ClipActionInvulnerability)
@@ -282,6 +283,7 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
             team,
             group,
             rotate_with_parent,
+            graze_value,
             shape,
         }) => {
             ui.horizontal(|ui| {
@@ -302,6 +304,10 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
                 ui.label("group");
             });
             ui.checkbox(rotate_with_parent, "rotate with parent");
+            ui.horizontal(|ui| {
+                ui.add(DragValue::new(graze_value).range(0.0..=30.0));
+                ui.label("graze value");
+            });
             shape_ui(ui, shape);
         }
         ClipAction::Invulnerability(_) => {

@@ -118,7 +118,7 @@ pub(crate) fn update_attack_boxes(
                         new_col_tf,
                         clip.action.team,
                         clip.action.shape,
-                        1.0,
+                        clip.action.graze_value,
                         col_group::NONE,
                     ));
                     builder.add(event);
