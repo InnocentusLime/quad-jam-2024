@@ -16,7 +16,7 @@
             "id": 7,
             "members": [
             ],
-            "name": "BasicBullet",
+            "name": "basic_bullet",
             "type": "class",
             "useAs": [
                 "property",
@@ -36,7 +36,7 @@
             "id": 3,
             "members": [
             ],
-            "name": "Damager",
+            "name": "damager",
             "type": "class",
             "useAs": [
                 "object",
@@ -49,7 +49,7 @@
             "id": 5,
             "members": [
             ],
-            "name": "Goal",
+            "name": "goal",
             "type": "class",
             "useAs": [
                 "object",
@@ -62,7 +62,7 @@
             "id": 4,
             "members": [
             ],
-            "name": "Player",
+            "name": "player",
             "type": "class",
             "useAs": [
                 "object",
@@ -75,7 +75,7 @@
             "id": 8,
             "members": [
             ],
-            "name": "Shooter",
+            "name": "shooter",
             "type": "class",
             "useAs": [
                 "property",
@@ -95,7 +95,7 @@
             "id": 6,
             "members": [
             ],
-            "name": "Stabber",
+            "name": "stabber",
             "type": "class",
             "useAs": [
                 "property",
@@ -126,12 +126,12 @@
                 },
                 {
                     "name": "ty",
-                    "propertyType": "TileTy",
+                    "propertyType": "tile_ty",
                     "type": "string",
                     "value": "Ground"
                 }
             ],
-            "name": "Tile",
+            "name": "tile",
             "type": "class",
             "useAs": [
                 "tile",
@@ -140,7 +140,7 @@
         },
         {
             "id": 1,
-            "name": "TileTy",
+            "name": "tile_ty",
             "storageType": "string",
             "type": "enum",
             "values": [

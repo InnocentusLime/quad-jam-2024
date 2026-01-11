@@ -1,6 +1,6 @@
 use egui::{Color32, Painter, Pos2, Rect, Stroke, TextStyle, Ui, WidgetText, pos2, vec2};
-use lib_asset::Position;
 use lib_asset::animation::*;
+use macroquad::math::Vec2;
 
 use super::TimelineTf;
 
@@ -365,7 +365,7 @@ fn default_action() -> ClipAction {
     ClipAction::DrawSprite(ClipActionDrawSprite {
         layer: 0,
         texture_id: lib_asset::TextureId::WorldAtlas,
-        local_pos: Position { x: 0.0, y: 0.0 },
+        local_pos: Vec2::ZERO,
         local_rotation: 0.0,
         rect: ImgRect {
             x: 0,

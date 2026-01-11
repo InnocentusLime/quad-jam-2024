@@ -23,14 +23,14 @@
 </data>
  </layer>
  <objectgroup id="3" name="Characters">
-  <object id="7" template="character.tx" type="BasicBullet" x="60.189" y="116.557" rotation="180"/>
-  <object id="8" template="character.tx" name="Player" type="Player" x="209" y="187" rotation="180"/>
-  <object id="11" template="character.tx" type="BasicBullet" x="90.3431" y="115.676" rotation="240"/>
-  <object id="12" template="character.tx" type="BasicBullet" x="70" y="140.333" rotation="240"/>
-  <object id="13" template="character.tx" type="BasicBullet" x="73.3333" y="91.6667" rotation="240"/>
-  <object id="14" template="character.tx" type="BasicBullet" x="47" y="134" rotation="240"/>
-  <object id="15" template="character.tx" type="BasicBullet" x="56.3333" y="95" rotation="240"/>
-  <object id="17" template="character.tx" type="BasicBullet" x="75.6667" y="111.333" rotation="240"/>
-  <object id="18" template="character.tx" type="BasicBullet" x="43.3333" y="114.667" rotation="240"/>
+  <object id="7" template="character.tx" type="basic_bullet" x="60.189" y="116.557" rotation="180"/>
+  <object id="8" template="character.tx" name="Player" type="player" x="209" y="187" rotation="180"/>
+  <object id="11" template="character.tx" type="basic_bullet" x="90.3431" y="115.676" rotation="240"/>
+  <object id="12" template="character.tx" type="basic_bullet" x="70" y="140.333" rotation="240"/>
+  <object id="13" template="character.tx" type="basic_bullet" x="73.3333" y="91.6667" rotation="240"/>
+  <object id="14" template="character.tx" type="basic_bullet" x="47" y="134" rotation="240"/>
+  <object id="15" template="character.tx" type="basic_bullet" x="56.3333" y="95" rotation="240"/>
+  <object id="17" template="character.tx" type="basic_bullet" x="75.6667" y="111.333" rotation="240"/>
+  <object id="18" template="character.tx" type="basic_bullet" x="43.3333" y="114.667" rotation="240"/>
  </objectgroup>
 </map>

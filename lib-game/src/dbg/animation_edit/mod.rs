@@ -3,13 +3,14 @@ mod save_ui;
 mod sequencer;
 
 use egui::{Button, ComboBox, DragValue, Label, TextEdit, WidgetText, vec2};
-use egui::{Ui, Vec2, Widget};
+use egui::{Ui, Widget};
+use macroquad::math::Vec2;
 
 use hashbrown::HashMap;
 use hecs::{Entity, World};
 use lib_asset::animation::*;
 use lib_asset::level::CharacterInfo;
-use lib_asset::{AnimationPackId, FsResolver, Position, TextureId};
+use lib_asset::{AnimationPackId, FsResolver, TextureId};
 use strum::VariantArray;
 
 use clips::*;
@@ -151,7 +152,7 @@ impl AnimationEdit {
             state: &mut self.sequencer_state,
             clips: &mut clips,
             cursor_pos: &mut play.cursor,
-            size: Vec2::new(500.0, 200.0),
+            size: egui::vec2(500.0, 200.0),
             tf: &mut self.tf,
             selected_clip: &mut self.selected_clip,
             selected_track: &mut self.selected_track,
@@ -188,7 +189,7 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
             ClipActionDiscriminants::DrawSprite => ClipAction::DrawSprite(ClipActionDrawSprite {
                 layer: 0,
                 texture_id: TextureId::BunnyAtlas,
-                local_pos: Position { x: 0.0, y: 0.0 },
+                local_pos: Vec2::ZERO,
                 local_rotation: 0.0,
                 rect: ImgRect {
                     x: 0,
@@ -200,7 +201,7 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
                 rotate_with_parent: false,
             }),
             ClipActionDiscriminants::AttackBox => ClipAction::AttackBox(ClipActionAttackBox {
-                local_pos: Position { x: 0.0, y: 0.0 },
+                local_pos: Vec2::ZERO,
                 local_rotation: 0.0,
                 team: Team::Player,
                 group: lib_col::Group::empty(),
@@ -220,7 +221,7 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
             ClipActionDiscriminants::Move => ClipAction::Move(ClipActionMove),
             ClipActionDiscriminants::Spawn => ClipAction::Spawn(ClipActionSpawn {
                 local_look: 0.0,
-                local_pos: Position { x: 0.0, y: 0.0 },
+                local_pos: Vec2::ZERO,
                 rotate_with_parent: false,
                 character_info: CharacterInfo::BasicBullet {},
             }),

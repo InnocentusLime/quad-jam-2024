@@ -7,33 +7,26 @@
         "track_id": 1,
         "start": 0,
         "len": 1002,
-        "action": {
-          "Move": null
-        }
+        "move": null
       },
       {
         "id": 7,
         "track_id": 2,
         "start": 0,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -7.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 335,
-              "y": 1,
-              "w": 14,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-7.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 335,
+            "y": 1,
+            "w": 14,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -41,24 +34,19 @@
         "track_id": 2,
         "start": 167,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -7.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 350,
-              "y": 1,
-              "w": 14,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-7.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 350,
+            "y": 1,
+            "w": 14,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -66,24 +54,19 @@
         "track_id": 2,
         "start": 334,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -7.0,
-              "y": -7.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 365,
-              "y": 1,
-              "w": 14,
-              "h": 16
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-7.0, -7.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 365,
+            "y": 1,
+            "w": 14,
+            "h": 16
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -91,24 +74,19 @@
         "track_id": 2,
         "start": 501,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -7.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 335,
-              "y": 1,
-              "w": 14,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-7.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 335,
+            "y": 1,
+            "w": 14,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -116,24 +94,19 @@
         "track_id": 2,
         "start": 668,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -7.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 380,
-              "y": 1,
-              "w": 14,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-7.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 380,
+            "y": 1,
+            "w": 14,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -141,24 +114,19 @@
         "track_id": 2,
         "start": 835,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -7.0,
-              "y": -7.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 395,
-              "y": 1,
-              "w": 14,
-              "h": 16
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-7.0, -7.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 395,
+            "y": 1,
+            "w": 14,
+            "h": 16
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -166,24 +134,19 @@
         "track_id": 3,
         "start": 0,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": 1.0,
-              "y": -4.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 173,
-              "y": 19,
-              "w": 6,
-              "h": 14
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [1.0, -4.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 173,
+            "y": 19,
+            "w": 6,
+            "h": 14
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -191,24 +154,19 @@
         "track_id": 3,
         "start": 167,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": 2.0,
-              "y": -7.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 180,
-              "y": 19,
-              "w": 8,
-              "h": 16
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [2.0, -7.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 180,
+            "y": 19,
+            "w": 8,
+            "h": 16
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -216,24 +174,19 @@
         "track_id": 3,
         "start": 334,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": 2.0,
-              "y": -6.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 189,
-              "y": 19,
-              "w": 10,
-              "h": 16
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [2.0, -6.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 189,
+            "y": 19,
+            "w": 10,
+            "h": 16
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -241,24 +194,19 @@
         "track_id": 3,
         "start": 501,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": 1.0,
-              "y": -4.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 173,
-              "y": 19,
-              "w": 6,
-              "h": 14
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [1.0, -4.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 173,
+            "y": 19,
+            "w": 6,
+            "h": 14
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -266,24 +214,19 @@
         "track_id": 3,
         "start": 668,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": 2.0,
-              "y": -7.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 180,
-              "y": 19,
-              "w": 8,
-              "h": 16
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [2.0, -7.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 180,
+            "y": 19,
+            "w": 8,
+            "h": 16
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -291,24 +234,19 @@
         "track_id": 3,
         "start": 835,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": 2.0,
-              "y": -6.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 189,
-              "y": 19,
-              "w": 10,
-              "h": 16
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [2.0, -6.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 189,
+            "y": 19,
+            "w": 10,
+            "h": 16
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       }
     ],
@@ -335,33 +273,26 @@
         "track_id": 1,
         "start": 0,
         "len": 1002,
-        "action": {
-          "Move": null
-        }
+        "move": null
       },
       {
         "id": 7,
         "track_id": 2,
         "start": 0,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -6.0,
-              "y": -7.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 195,
-              "y": 1,
-              "w": 12,
-              "h": 15
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-6.0, -7.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 195,
+            "y": 1,
+            "w": 12,
+            "h": 15
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -369,24 +300,19 @@
         "track_id": 2,
         "start": 167,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -6.0,
-              "y": -7.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 208,
-              "y": 1,
-              "w": 12,
-              "h": 15
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-6.0, -7.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 208,
+            "y": 1,
+            "w": 12,
+            "h": 15
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -394,24 +320,19 @@
         "track_id": 2,
         "start": 334,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -6.0,
-              "y": -6.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 221,
-              "y": 1,
-              "w": 12,
-              "h": 14
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-6.0, -6.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 221,
+            "y": 1,
+            "w": 12,
+            "h": 14
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -419,24 +340,19 @@
         "track_id": 2,
         "start": 501,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -6.0,
-              "y": -7.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 195,
-              "y": 1,
-              "w": 12,
-              "h": 15
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-6.0, -7.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 195,
+            "y": 1,
+            "w": 12,
+            "h": 15
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -444,24 +360,19 @@
         "track_id": 2,
         "start": 668,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -6.0,
-              "y": -7.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 234,
-              "y": 1,
-              "w": 12,
-              "h": 15
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-6.0, -7.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 234,
+            "y": 1,
+            "w": 12,
+            "h": 15
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -469,24 +380,19 @@
         "track_id": 2,
         "start": 835,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -6.0,
-              "y": -6.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 247,
-              "y": 1,
-              "w": 12,
-              "h": 14
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-6.0, -6.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 247,
+            "y": 1,
+            "w": 12,
+            "h": 14
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -494,24 +400,19 @@
         "track_id": 3,
         "start": 0,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -8.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 49,
-              "y": 19,
-              "w": 16,
-              "h": 16
-            },
-            "sort_offset": 1.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-8.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 49,
+            "y": 19,
+            "w": 16,
+            "h": 16
+          },
+          "sort_offset": 1.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -519,24 +420,19 @@
         "track_id": 3,
         "start": 167,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -9.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 66,
-              "y": 19,
-              "w": 18,
-              "h": 16
-            },
-            "sort_offset": 1.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-9.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 66,
+            "y": 19,
+            "w": 18,
+            "h": 16
+          },
+          "sort_offset": 1.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -544,24 +440,19 @@
         "track_id": 3,
         "start": 334,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -10.0,
-              "y": -7.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 85,
-              "y": 19,
-              "w": 20,
-              "h": 16
-            },
-            "sort_offset": 1.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-10.0, -7.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 85,
+            "y": 19,
+            "w": 20,
+            "h": 16
+          },
+          "sort_offset": 1.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -569,24 +460,19 @@
         "track_id": 3,
         "start": 501,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -8.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 49,
-              "y": 19,
-              "w": 16,
-              "h": 16
-            },
-            "sort_offset": 1.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-8.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 49,
+            "y": 19,
+            "w": 16,
+            "h": 16
+          },
+          "sort_offset": 1.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -594,24 +480,19 @@
         "track_id": 3,
         "start": 668,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -9.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 106,
-              "y": 19,
-              "w": 18,
-              "h": 16
-            },
-            "sort_offset": 1.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-9.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 106,
+            "y": 19,
+            "w": 18,
+            "h": 16
+          },
+          "sort_offset": 1.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -619,24 +500,19 @@
         "track_id": 3,
         "start": 835,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -10.0,
-              "y": -7.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 125,
-              "y": 19,
-              "w": 20,
-              "h": 16
-            },
-            "sort_offset": 1.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-10.0, -7.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 125,
+            "y": 19,
+            "w": 20,
+            "h": 16
+          },
+          "sort_offset": 1.0,
+          "rotate_with_parent": false
         }
       }
     ],
@@ -663,24 +539,19 @@
         "track_id": 0,
         "start": 0,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -7.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 260,
-              "y": 1,
-              "w": 14,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-7.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 260,
+            "y": 1,
+            "w": 14,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -688,24 +559,19 @@
         "track_id": 1,
         "start": 0,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -7.0,
-              "y": -4.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 146,
-              "y": 19,
-              "w": 6,
-              "h": 14
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-7.0, -4.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 146,
+            "y": 19,
+            "w": 6,
+            "h": 14
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       }
     ],
@@ -728,24 +594,19 @@
         "track_id": 0,
         "start": 0,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -6.0,
-              "y": -7.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 195,
-              "y": 1,
-              "w": 12,
-              "h": 15
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [ -6.0, -7.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 195,
+            "y": 1,
+            "w": 12,
+            "h": 15
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -753,24 +614,19 @@
         "track_id": 1,
         "start": 0,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -8.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 49,
-              "y": 19,
-              "w": 16,
-              "h": 16
-            },
-            "sort_offset": 1.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-8.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 49,
+            "y": 19,
+            "w": 16,
+            "h": 16
+          },
+          "sort_offset": 1.0,
+          "rotate_with_parent": false
         }
       }
     ],
@@ -793,22 +649,17 @@
         "track_id": 1,
         "start": 297,
         "len": 106,
-        "action": {
-          "AttackBox": {
-            "local_pos": {
-              "x": 13.0,
-              "y": 0.0
-            },
-            "local_rotation": 0.0,
-            "team": "Player",
-            "group": 2,
-            "shape": {
-              "type": "Rect",
-              "width": 41.0,
-              "height": 13.0
-            },
-            "rotate_with_parent": true
-          }
+        "attack_box": {
+          "local_pos": [13.0, 0.0],
+          "local_rotation": 0.0,
+          "team": "Player",
+          "group": 2,
+          "shape": {
+            "type": "Rect",
+            "width": 41.0,
+            "height": 13.0
+          },
+          "rotate_with_parent": true
         }
       },
       {
@@ -816,11 +667,9 @@
         "track_id": 2,
         "start": 0,
         "len": 800,
-        "action": {
-          "LockInput": {
-            "allow_walk_input": false,
-            "allow_look_input": false
-          }
+        "lock_input": {
+          "allow_walk_input": false,
+          "allow_look_input": false
         }
       },
       {
@@ -828,24 +677,19 @@
         "track_id": 3,
         "start": 0,
         "len": 100,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -8.0,
-              "y": -8.5
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 1,
-              "y": 1,
-              "w": 16,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-8.0, -8.5],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 1,
+            "y": 1,
+            "w": 16,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -853,24 +697,19 @@
         "track_id": 3,
         "start": 100,
         "len": 200,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -9.0,
-              "y": -9.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 98,
-              "y": 1,
-              "w": 18,
-              "h": 16
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-9.0, -9.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 98,
+            "y": 1,
+            "w": 18,
+            "h": 16
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -878,24 +717,19 @@
         "track_id": 3,
         "start": 300,
         "len": 100,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -6.0,
-              "y": -5.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 117,
-              "y": 1,
-              "w": 12,
-              "h": 11
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-6.0, -5.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 117,
+            "y": 1,
+            "w": 12,
+            "h": 11
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -903,24 +737,19 @@
         "track_id": 3,
         "start": 400,
         "len": 100,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -6.0,
-              "y": -5.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 130,
-              "y": 1,
-              "w": 12,
-              "h": 11
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-6.0, -5.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 130,
+            "y": 1,
+            "w": 12,
+            "h": 11
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -928,24 +757,19 @@
         "track_id": 3,
         "start": 500,
         "len": 100,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -16.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 143,
-              "y": 1,
-              "w": 32,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-16.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 143,
+            "y": 1,
+            "w": 32,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -953,24 +777,19 @@
         "track_id": 3,
         "start": 600,
         "len": 100,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -9.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 176,
-              "y": 1,
-              "w": 18,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-9.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 176,
+            "y": 1,
+            "w": 18,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -978,24 +797,19 @@
         "track_id": 3,
         "start": 700,
         "len": 100,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -8.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 1,
-              "y": 1,
-              "w": 16,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-8.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 1,
+            "y": 1,
+            "w": 16,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1003,24 +817,19 @@
         "track_id": 4,
         "start": 0,
         "len": 100,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -0.5,
-              "y": -0.5
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 1,
-              "y": 19,
-              "w": 1,
-              "h": 1
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-0.5, -0.5],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 1,
+            "y": 19,
+            "w": 1,
+            "h": 1
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1028,24 +837,19 @@
         "track_id": 4,
         "start": 100,
         "len": 200,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -5.0,
-              "y": -1.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 3,
-              "y": 19,
-              "w": 10,
-              "h": 2
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-5.0, -1.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 3,
+            "y": 19,
+            "w": 10,
+            "h": 2
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1053,24 +857,19 @@
         "track_id": 4,
         "start": 300,
         "len": 100,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -6.0,
-              "y": 6.0
-            },
-            "local_rotation": -1.5707964,
-            "rect": {
-              "x": 14,
-              "y": 19,
-              "w": 12,
-              "h": 38
-            },
-            "sort_offset": 4.0,
-            "rotate_with_parent": true
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-6.0, 6.0],
+          "local_rotation": -1.5707964,
+          "rect": {
+            "x": 14,
+            "y": 19,
+            "w": 12,
+            "h": 38
+          },
+          "sort_offset": 4.0,
+          "rotate_with_parent": true
         }
       },
       {
@@ -1078,24 +877,19 @@
         "track_id": 4,
         "start": 400,
         "len": 100,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -6.0,
-              "y": 6.0
-            },
-            "local_rotation": -1.5707964,
-            "rect": {
-              "x": 27,
-              "y": 19,
-              "w": 12,
-              "h": 38
-            },
-            "sort_offset": 4.0,
-            "rotate_with_parent": true
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-6.0, 6.0],
+          "local_rotation": -1.5707964,
+          "rect": {
+            "x": 27,
+            "y": 19,
+            "w": 12,
+            "h": 38
+          },
+          "sort_offset": 4.0,
+          "rotate_with_parent": true
         }
       },
       {
@@ -1103,24 +897,19 @@
         "track_id": 4,
         "start": 500,
         "len": 100,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": 13.0,
-              "y": 4.0
-            },
-            "local_rotation": -1.5707964,
-            "rect": {
-              "x": 40,
-              "y": 19,
-              "w": 8,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": true
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [13.0, 4.0],
+          "local_rotation": -1.5707964,
+          "rect": {
+            "x": 40,
+            "y": 19,
+            "w": 8,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": true
         }
       },
       {
@@ -1128,24 +917,19 @@
         "track_id": 4,
         "start": 600,
         "len": 100,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -0.5,
-              "y": -0.5
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 1,
-              "y": 19,
-              "w": 1,
-              "h": 1
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-0.5, -0.5],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 1,
+            "y": 19,
+            "w": 1,
+            "h": 1
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1153,24 +937,19 @@
         "track_id": 4,
         "start": 700,
         "len": 100,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -0.5,
-              "y": -0.5
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 1,
-              "y": 19,
-              "w": 1,
-              "h": 1
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-0.5, -0.5],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 1,
+            "y": 19,
+            "w": 1,
+            "h": 1
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       }
     ],
@@ -1201,24 +980,19 @@
         "track_id": 0,
         "start": 0,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -8.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 1,
-              "y": 1,
-              "w": 16,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos":[-8.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 1,
+            "y": 1,
+            "w": 16,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1226,24 +1000,19 @@
         "track_id": 0,
         "start": 167,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -9.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 18,
-              "y": 1,
-              "w": 18,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-9.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 18,
+            "y": 1,
+            "w": 18,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1251,24 +1020,19 @@
         "track_id": 0,
         "start": 334,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -10.0,
-              "y": -7.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 37,
-              "y": 1,
-              "w": 20,
-              "h": 16
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-10.0, -7.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 37,
+            "y": 1,
+            "w": 20,
+            "h": 16
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1276,24 +1040,19 @@
         "track_id": 0,
         "start": 501,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -8.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 1,
-              "y": 1,
-              "w": 16,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-8.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 1,
+            "y": 1,
+            "w": 16,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1301,24 +1060,19 @@
         "track_id": 0,
         "start": 668,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -9.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 58,
-              "y": 1,
-              "w": 18,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-9.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 58,
+            "y": 1,
+            "w": 18,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1326,24 +1080,19 @@
         "track_id": 0,
         "start": 835,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -10.0,
-              "y": -7.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 77,
-              "y": 1,
-              "w": 20,
-              "h": 16
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-10.0, -7.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 77,
+            "y": 1,
+            "w": 20,
+            "h": 16
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1351,9 +1100,7 @@
         "track_id": 1,
         "start": 0,
         "len": 1002,
-        "action": {
-          "Move": null
-        }
+        "move": null
       }
     ],
     "tracks": [
@@ -1375,24 +1122,19 @@
         "track_id": 0,
         "start": 200,
         "len": 160,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -8.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 1,
-              "y": 1,
-              "w": 16,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-8.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 1,
+            "y": 1,
+            "w": 16,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1400,29 +1142,23 @@
         "track_id": 1,
         "start": 200,
         "len": 144,
-        "action": {
-          "Invulnerability": null
-        }
+        "invulnerability": null
       },
       {
         "id": 2,
         "track_id": 2,
         "start": 200,
         "len": 144,
-        "action": {
-          "Move": null
-        }
+        "move": null
       },
       {
         "id": 3,
         "track_id": 3,
         "start": 0,
         "len": 360,
-        "action": {
-          "LockInput": {
-            "allow_walk_input": false,
-            "allow_look_input": false
-          }
+        "lock_input": {
+          "allow_walk_input": false,
+          "allow_look_input": false
         }
       },
       {
@@ -1430,24 +1166,19 @@
         "track_id": 0,
         "start": 0,
         "len": 200,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -9.0,
-              "y": -9.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 132,
-              "y": 1,
-              "w": 18,
-              "h": 16
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-9.0, -9.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 132,
+            "y": 1,
+            "w": 18,
+            "h": 16
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       }
     ],
@@ -1478,33 +1209,26 @@
         "track_id": 1,
         "start": 0,
         "len": 1002,
-        "action": {
-          "Move": null
-        }
+        "move": null
       },
       {
         "id": 7,
         "track_id": 3,
         "start": 0,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -7.0,
-              "y": -4.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 146,
-              "y": 19,
-              "w": 6,
-              "h": 14
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-7.0, -4.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 146,
+            "y": 19,
+            "w": 6,
+            "h": 14
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1512,24 +1236,19 @@
         "track_id": 3,
         "start": 167,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -10.0,
-              "y": -7.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 153,
-              "y": 19,
-              "w": 8,
-              "h": 16
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-10.0, -7.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 153,
+            "y": 19,
+            "w": 8,
+            "h": 16
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1537,24 +1256,19 @@
         "track_id": 3,
         "start": 334,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -12.0,
-              "y": -6.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 162,
-              "y": 19,
-              "w": 10,
-              "h": 16
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-12.0, -6.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 162,
+            "y": 19,
+            "w": 10,
+            "h": 16
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1562,24 +1276,19 @@
         "track_id": 3,
         "start": 501,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -7.0,
-              "y": -3.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 146,
-              "y": 19,
-              "w": 6,
-              "h": 14
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-7.0, -3.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 146,
+            "y": 19,
+            "w": 6,
+            "h": 14
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1587,24 +1296,19 @@
         "track_id": 3,
         "start": 668,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -10.0,
-              "y": -7.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 153,
-              "y": 19,
-              "w": 8,
-              "h": 16
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-10.0, -7.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 153,
+            "y": 19,
+            "w": 8,
+            "h": 16
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1612,24 +1316,19 @@
         "track_id": 3,
         "start": 835,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -12.0,
-              "y": -6.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 162,
-              "y": 19,
-              "w": 10,
-              "h": 16
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-12.0, -6.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 162,
+            "y": 19,
+            "w": 10,
+            "h": 16
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1637,24 +1336,19 @@
         "track_id": 2,
         "start": 0,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -7.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 260,
-              "y": 1,
-              "w": 14,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-7.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 260,
+            "y": 1,
+            "w": 14,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1662,24 +1356,19 @@
         "track_id": 2,
         "start": 167,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -7.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 275,
-              "y": 1,
-              "w": 14,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-7.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 275,
+            "y": 1,
+            "w": 14,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1687,24 +1376,19 @@
         "track_id": 2,
         "start": 334,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -7.0,
-              "y": -7.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 290,
-              "y": 1,
-              "w": 14,
-              "h": 16
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-7.0, -7.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 290,
+            "y": 1,
+            "w": 14,
+            "h": 16
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1712,24 +1396,19 @@
         "track_id": 2,
         "start": 501,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -7.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 260,
-              "y": 1,
-              "w": 14,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-7.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 260,
+            "y": 1,
+            "w": 14,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1737,24 +1416,19 @@
         "track_id": 2,
         "start": 668,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -7.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 305,
-              "y": 1,
-              "w": 14,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-7.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 305,
+            "y": 1,
+            "w": 14,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1762,24 +1436,19 @@
         "track_id": 2,
         "start": 835,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -7.0,
-              "y": -7.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 320,
-              "y": 1,
-              "w": 14,
-              "h": 16
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-7.0, -7.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 320,
+            "y": 1,
+            "w": 14,
+            "h": 16
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       }
     ],
@@ -1806,24 +1475,19 @@
         "track_id": 1,
         "start": 0,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": 1.0,
-              "y": -4.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 173,
-              "y": 19,
-              "w": 6,
-              "h": 14
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [1.0, -4.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 173,
+            "y": 19,
+            "w": 6,
+            "h": 14
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -1831,24 +1495,19 @@
         "track_id": 0,
         "start": 0,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -7.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 335,
-              "y": 1,
-              "w": 14,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-7.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 335,
+            "y": 1,
+            "w": 14,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       }
     ],
@@ -1871,24 +1530,19 @@
         "track_id": 0,
         "start": 0,
         "len": 167,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "BunnyAtlas",
-            "local_pos": {
-              "x": -8.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 1,
-              "y": 1,
-              "w": 16,
-              "h": 17
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "BunnyAtlas",
+          "local_pos": [-8.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 1,
+            "y": 1,
+            "w": 16,
+            "h": 17
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       }
     ],

@@ -33,61 +33,61 @@
  <tile id="17" type="Tile">
   <properties>
    <property name="description" value="Brick wall top"/>
-   <property name="ty" propertytype="TileTy" value="Wall"/>
+   <property name="ty" propertytype="tile_ty" value="Wall"/>
   </properties>
  </tile>
  <tile id="18" type="Tile">
   <properties>
    <property name="description" value="Brick wall bottom"/>
-   <property name="ty" propertytype="TileTy" value="Wall"/>
+   <property name="ty" propertytype="tile_ty" value="Wall"/>
   </properties>
  </tile>
  <tile id="19" type="Tile">
   <properties>
    <property name="description" value="Brick wall right"/>
-   <property name="ty" propertytype="TileTy" value="Wall"/>
+   <property name="ty" propertytype="tile_ty" value="Wall"/>
   </properties>
  </tile>
  <tile id="20" type="Tile">
   <properties>
    <property name="description" value="Brick wall left"/>
-   <property name="ty" propertytype="TileTy" value="Wall"/>
+   <property name="ty" propertytype="tile_ty" value="Wall"/>
   </properties>
  </tile>
  <tile id="21" type="Tile">
   <properties>
    <property name="description" value="Brick wall bot-left corner"/>
-   <property name="ty" propertytype="TileTy" value="Wall"/>
+   <property name="ty" propertytype="tile_ty" value="Wall"/>
   </properties>
  </tile>
  <tile id="22" type="Tile">
   <properties>
    <property name="description" value="Brick wall bot-right corner"/>
-   <property name="ty" propertytype="TileTy" value="Wall"/>
+   <property name="ty" propertytype="tile_ty" value="Wall"/>
   </properties>
  </tile>
  <tile id="23" type="Tile">
   <properties>
    <property name="description" value="Brick wall bot-left corner bottom half"/>
-   <property name="ty" propertytype="TileTy" value="Wall"/>
+   <property name="ty" propertytype="tile_ty" value="Wall"/>
   </properties>
  </tile>
  <tile id="24" type="Tile">
   <properties>
    <property name="description" value="Brick wall bot-right corner bottom half"/>
-   <property name="ty" propertytype="TileTy" value="Wall"/>
+   <property name="ty" propertytype="tile_ty" value="Wall"/>
   </properties>
  </tile>
  <tile id="25" type="Tile">
   <properties>
    <property name="description" value="Brick wall top left corner"/>
-   <property name="ty" propertytype="TileTy" value="Wall"/>
+   <property name="ty" propertytype="tile_ty" value="Wall"/>
   </properties>
  </tile>
  <tile id="26" type="Tile">
   <properties>
    <property name="description" value="Brick wall top-right corner"/>
-   <property name="ty" propertytype="TileTy" value="Wall"/>
+   <property name="ty" propertytype="tile_ty" value="Wall"/>
   </properties>
  </tile>
  <tile id="27" type="Tile"/>

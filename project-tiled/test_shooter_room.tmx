@@ -23,7 +23,7 @@
 </data>
  </layer>
  <objectgroup id="3" name="Characters">
-  <object id="8" template="character.tx" name="Player" type="Player" x="209" y="187" rotation="180"/>
-  <object id="19" template="character.tx" type="Shooter" x="60.3333" y="90.6667"/>
+  <object id="8" template="character.tx" name="Player" type="player" x="209" y="187" rotation="180"/>
+  <object id="19" template="character.tx" type="shooter" x="60.3333" y="90.6667"/>
  </objectgroup>
 </map>

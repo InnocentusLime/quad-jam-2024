@@ -185,7 +185,7 @@ impl Game for Project {
         builder: &mut hecs::EntityBuilder,
         def: CharacterDef,
     ) {
-        let pos = def.tf.pos.to_vec2();
+        let pos = def.tf.pos;
         let look = def.tf.look_angle;
         match def.info {
             CharacterInfo::Player {} => player::init(builder, pos, resources),

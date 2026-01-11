@@ -6,6 +6,7 @@ use std::path::Path;
 
 use crate::{FsResolver, TextureId};
 use anyhow::Context;
+use glam::vec2;
 use hashbrown::HashMap;
 use macroquad::texture::Texture2D;
 
@@ -161,10 +162,7 @@ fn load_entity_defs_from_object_layer(layer: &tiled::Layer) -> anyhow::Result<Ve
 
         entities.push(CharacterDef {
             tf: CharacterPosition {
-                pos: Position {
-                    x: object.x,
-                    y: object.y,
-                },
+                pos: vec2(object.x, object.y),
                 look_angle: object.rotation / 180.0 * std::f32::consts::PI,
             },
             info,
