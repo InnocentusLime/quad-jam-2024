@@ -79,7 +79,8 @@
             "width": 28.0,
             "height": 18.0
           },
-          "rotate_with_parent": true
+          "rotate_with_parent": true,
+          "graze_value": 0.0
         }
       },
       {

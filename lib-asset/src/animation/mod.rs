@@ -170,6 +170,7 @@ pub struct ClipActionAttackBox {
     pub group: lib_col::Group,
     pub shape: lib_col::Shape,
     pub rotate_with_parent: bool,
+    pub graze_value: f32,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
