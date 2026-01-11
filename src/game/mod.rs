@@ -52,26 +52,49 @@ async fn load_resources(resources: &mut Resources) {
 
 pub struct Project {
     do_ai: bool,
-    do_player: bool,
+    do_player_controls: bool,
+    transitions: Vec<fn(&mut World, &Resources)>,
+    ais: Vec<fn(f32, &mut World, &Resources)>,
+    anim_syncs: Vec<fn(&mut World, &Resources)>,
 }
 
 impl Project {
     pub async fn new(app: &mut App) -> Project {
         load_resources(&mut app.resources).await;
-        Project {
+
+        let mut proj = Project {
+            do_player_controls: true,
             do_ai: true,
-            do_player: true,
+            transitions: Vec::new(),
+            ais: Vec::new(),
+            anim_syncs: Vec::new(),
+        };
+        proj.register_character::<player::PlayerData>(None);
+        proj.register_character::<&mut StabberState>(Some(stabber::ai));
+        proj.register_character::<&mut ShooterState>(Some(shooter::ai));
+
+        proj
+    }
+
+    pub fn register_character<Q: Query>(&mut self, ai: Option<fn(f32, &mut World, &Resources)>)
+    where
+        for<'a> Q::Item<'a>: CharacterData,
+    {
+        self.transitions.push(do_auto_state_transition::<Q>);
+        if let Some(ai) = ai {
+            self.ais.push(ai);
         }
+        self.anim_syncs.push(state_to_anim::<Q>);
     }
 }
 
 impl Game for Project {
     fn handle_command(&mut self, _app: &mut App, cmd: &DebugCommand) -> bool {
         match cmd.command.as_str() {
+            "nopl" => self.do_player_controls = false,
+            "pl" => self.do_player_controls = true,
             "noai" => self.do_ai = false,
             "ai" => self.do_ai = true,
-            "nopl" => self.do_player = false,
-            "pl" => self.do_player = true,
             _ => return false,
         }
         true
@@ -92,16 +115,17 @@ impl Game for Project {
         resources: &lib_game::Resources,
         world: &mut World,
     ) {
-        if self.do_player {
-            do_auto_state_transition::<player::PlayerData>(world, resources);
-            player::controls(dt, input, world, resources);
-        }
         if self.do_ai {
-            do_auto_state_transition::<&mut StabberState>(world, resources);
-            stabber::ai(dt, world, resources);
+            for transition in &self.transitions {
+                transition(world, resources)
+            }
+            for ai in &self.ais {
+                ai(dt, world, resources)
+            }
+        }
 
-            do_auto_state_transition::<&mut ShooterState>(world, resources);
-            shooter::ai(dt, world, resources);
+        if self.do_player_controls {
+            player::controls(dt, input, world, resources);
         }
     }
 
@@ -112,12 +136,10 @@ impl Game for Project {
         world: &mut World,
         _cmds: &mut CommandBuffer,
     ) {
-        if self.do_player {
-            state_to_anim::<player::PlayerData>(world, resources);
-        }
         if self.do_ai {
-            state_to_anim::<&mut StabberState>(world, resources);
-            state_to_anim::<&mut ShooterState>(world, resources);
+            for anim_sync in &self.anim_syncs {
+                anim_sync(world, resources);
+            }
         }
     }
 

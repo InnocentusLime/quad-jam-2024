@@ -48,7 +48,7 @@ pub fn draw_char_state(world: &World, resources: &Resources) {
     });
 }
 
-pub fn state_to_anim<Q: Query>(world: &World, resources: &Resources)
+pub fn state_to_anim<Q: Query>(world: &mut World, resources: &Resources)
 where
     for<'a> Q::Item<'a>: CharacterData,
 {
@@ -57,7 +57,7 @@ where
     });
 }
 
-pub fn do_auto_state_transition<Q: Query>(world: &World, resources: &Resources)
+pub fn do_auto_state_transition<Q: Query>(world: &mut World, resources: &Resources)
 where
     for<'a> Q::Item<'a>: CharacterData,
 {
