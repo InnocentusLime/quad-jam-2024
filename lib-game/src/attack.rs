@@ -1,9 +1,18 @@
 use crate::{
     BodyTag, CollisionSolver, GrazeGain, GrazeValue, Health, Transform, col_group, col_query,
 };
-use hecs::{Bundle, World};
+use hecs::{Bundle, Query, World};
 use lib_asset::animation::Team;
 use lib_col::{Group, Shape};
+
+#[derive(Query)]
+pub struct AttackQuery<'a> {
+    pub tf: &'a mut Transform,
+    pub team: &'a Team,
+    pub query: &'a col_query::Damage,
+    pub graze_hitbox: &'a BodyTag,
+    pub graze_value: &'a GrazeValue,
+}
 
 pub(crate) fn update_grazing(dt: f32, world: &mut World, col_solver: &CollisionSolver) {
     for (_, (graze_q, graze_gain, health)) in

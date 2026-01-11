@@ -15,7 +15,9 @@ pub use cmd::*;
 pub use screendump::*;
 use strum::VariantArray;
 
-use crate::{App, AppState, DebugCommand, Game, Resources, dump, level_utils};
+use crate::{
+    App, AppState, AttackQuery, CharacterQuery, DebugCommand, Game, Resources, dump, level_utils,
+};
 
 pub(crate) struct DebugStuff {
     pub cmd_center: CommandCenter,
@@ -173,6 +175,7 @@ impl DebugStuff {
         dump!("Dt: {:.2}", app.accumelated_time);
         dump!("FPS: {:?}", get_fps());
         dump!("Entities: {ent_count}");
+        self.dump_archetypes(app);
         GLOBAL_DUMP.lock();
 
         app.render.debug_render(&app.camera, || {
@@ -183,5 +186,24 @@ impl DebugStuff {
         });
 
         egui_macroquad::draw();
+    }
+
+    fn dump_archetypes(&self, app: &mut App) {
+        let mut total_archetypes = 0;
+        let mut character_archetypes = 0;
+        let mut attack_archetypes = 0;
+        for arch in app.world.archetypes() {
+            total_archetypes += 1;
+            if arch.satisfies::<CharacterQuery>() {
+                character_archetypes += 1;
+            }
+            if arch.satisfies::<AttackQuery>() {
+                attack_archetypes += 1;
+            }
+        }
+
+        dump!("Total character archetypes: {character_archetypes}");
+        dump!("Total attack archetypes: {attack_archetypes}");
+        dump!("Total archetypes: {total_archetypes}");
     }
 }
