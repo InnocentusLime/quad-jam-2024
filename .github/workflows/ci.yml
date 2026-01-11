@@ -53,6 +53,14 @@ jobs:
         run: cargo build --locked --features lib-game/dbg
       - name: Check Native (shipped)
         run: cargo build --locked
+      - name: Check (asset-compiler)
+        run: cargo build --locked --features dev-env --package lib-asset --bin asset-compiler
+      - name: Check all maps
+        run: ./target/debug/asset-compiler check-map ./project-tiled/*.tmx
+      - name: Check all anims
+        run: ./target/debug/asset-compiler check-anims ./project-animations/*.json
+      - name: Check cfg
+        run: ./target/debug/asset-compiler check-cfg ./gamecfg.json
   tests:
     runs-on: ubuntu-latest
     container: rust:1.88.0-bookworm 
