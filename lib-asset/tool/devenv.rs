@@ -18,7 +18,7 @@ pub fn run() -> ExitCode {
 
     let result = match cli.command {
         Commands::CompileCfg { config, out } => compile_impl::<GameCfg>(&resolver, config, out),
-        Commands::CheckCfg { config } => check_impl::<GameCfg>(&resolver, config),
+        Commands::CheckCfg { configs } => check_impl::<GameCfg>(&resolver, configs),
         Commands::DumpCfg { config } => dump_impl::<GameCfg>(config),
         Commands::CheckAnims { animations } => check_impl::<AnimationPack>(&resolver, animations),
         Commands::CompileAnims { animations, out } => {
@@ -29,7 +29,7 @@ pub fn run() -> ExitCode {
             compile_dir_impl::<AnimationPack>(&resolver, "json", dir, out)
         }
         Commands::ConvertAseprite { aseprite, out } => convert_aseprite(&resolver, aseprite, out),
-        Commands::CheckMap { map } => check_impl::<LevelDef>(&resolver, map),
+        Commands::CheckMap { maps } => check_impl::<LevelDef>(&resolver, maps),
         Commands::CompileMap { map, out } => compile_impl::<LevelDef>(&resolver, map, out),
         Commands::DumpMap { map } => dump_impl::<LevelDef>(map),
         Commands::CompileMapsDir { dir, out } => {
@@ -56,9 +56,11 @@ fn convert_aseprite(
     serde_json::to_writer_pretty(out, &anims).context("writing to dest")
 }
 
-fn check_impl<T: DevableAsset>(resolver: &FsResolver, asset: PathBuf) -> anyhow::Result<()> {
-    println!("Checking {asset:?}");
-    T::load_dev(resolver, &asset)?;
+fn check_impl<T: DevableAsset>(resolver: &FsResolver, assets: Vec<PathBuf>) -> anyhow::Result<()> {
+    for asset in assets {
+        println!("Checking {asset:?}");
+        T::load_dev(resolver, &asset)?;
+    }
     Ok(())
 }
 
@@ -136,8 +138,8 @@ enum Commands {
     /// Checks a game config.
     CheckCfg {
         /// The config to check
-        #[arg(short, long, value_name = "FILE")]
-        config: PathBuf,
+        #[arg(value_name = "FILE")]
+        configs: Vec<PathBuf>,
     },
     /// Dumps config contents.
     DumpCfg {
@@ -149,8 +151,8 @@ enum Commands {
     /// conventions.
     CheckAnims {
         /// The package to check
-        #[arg(short, long, value_name = "FILE")]
-        animations: PathBuf,
+        #[arg(value_name = "FILE")]
+        animations: Vec<PathBuf>,
     },
     /// Convert an animation package into binary format.
     CompileAnims {
@@ -191,8 +193,8 @@ enum Commands {
     /// Check if a map satisfies all conventions
     CheckMap {
         /// The map to check
-        #[arg(short, long, value_name = "FILE")]
-        map: PathBuf,
+        #[arg(value_name = "FILE")]
+        maps: Vec<PathBuf>,
     },
     /// Convert a map into binary format
     CompileMap {
