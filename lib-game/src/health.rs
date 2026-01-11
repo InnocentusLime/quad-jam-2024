@@ -1,6 +1,6 @@
 use crate::{CollisionSolver, DamageCooldown, Health, Team, col_query};
 
-use hecs::World;
+use hecs::{CommandBuffer, World};
 
 pub fn reset(world: &mut World) {
     for (_, hp) in world.query_mut::<&mut Health>() {
@@ -48,6 +48,14 @@ pub fn collect_damage(world: &mut World, col_solver: &CollisionSolver) {
                 continue;
             }
             health.damage += 1;
+        }
+    }
+}
+
+pub fn despawn_on_zero_health(world: &mut World, cmds: &mut CommandBuffer) {
+    for (entity, health) in world.query_mut::<&Health>() {
+        if health.value <= 0 {
+            cmds.despawn(entity);
         }
     }
 }
