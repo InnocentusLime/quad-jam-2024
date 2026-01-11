@@ -25,7 +25,9 @@ pub fn game_ui(render: &mut Render, world: &World) {
     let font = FontId::Quaver;
 
     let mut player_q = world.query::<(&Health, player::PlayerData)>();
-    let (_, (player_health, player_data)) = player_q.into_iter().next().unwrap();
+    let Some((_, (player_health, player_data))) = player_q.into_iter().next() else {
+        return;
+    };
     let (game_state, game_state_color) = if player_health.value <= 0 {
         ("You are dead", RED)
     } else {

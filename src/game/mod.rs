@@ -131,8 +131,6 @@ impl Game for Project {
     ) -> Option<lib_game::AppState> {
         goal::check(world);
 
-        stabber::die_on_zero_health(world, cmds);
-        shooter::die_on_zero_health(world, cmds);
         basic_bullet::update(dt, world, resources, cmds);
 
         decide_next_state(world)

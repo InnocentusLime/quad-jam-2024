@@ -59,12 +59,3 @@ pub fn ai(dt: f32, world: &mut World, resources: &Resources) {
         }
     });
 }
-
-pub fn die_on_zero_health(world: &mut World, cmds: &mut CommandBuffer) {
-    for (entity, (health, _)) in world.query_mut::<(&Health, &StabberState)>() {
-        if health.value > 0 {
-            continue;
-        }
-        cmds.despawn(entity);
-    }
-}

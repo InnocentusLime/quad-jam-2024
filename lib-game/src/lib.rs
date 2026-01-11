@@ -354,6 +354,7 @@ impl App {
         health::apply_damage(&mut self.world);
         health::apply_cooldown(&mut self.world);
         attack::update_grazing(GAME_TICKRATE, &mut self.world, &self.col_solver);
+        health::despawn_on_zero_health(&mut self.world, &mut self.cmds);
 
         let new_state = game.update(
             GAME_TICKRATE,
