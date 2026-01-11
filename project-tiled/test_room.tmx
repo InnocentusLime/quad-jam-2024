@@ -23,10 +23,10 @@
 </data>
  </layer>
  <objectgroup id="3" name="Characters">
-  <object id="7" template="character.tx" type="BasicBullet" x="54.8153" y="96.8266" rotation="135"/>
-  <object id="9" template="character.tx" type="Damager" x="36.5" y="40"/>
-  <object id="10" template="character.tx" type="Goal" x="216" y="48"/>
-  <object id="11" template="character.tx" name="Player" type="Player" x="206.293" y="171.937" rotation="180"/>
-  <object id="12" template="character.tx" type="Stabber" x="73" y="168.333"/>
+  <object id="7" template="character.tx" type="basic_bullet" x="54.8153" y="96.8266" rotation="135"/>
+  <object id="9" template="character.tx" type="damager" x="36.5" y="40"/>
+  <object id="10" template="character.tx" type="goal" x="216" y="48"/>
+  <object id="11" template="character.tx" name="Player" type="player" x="206.293" y="171.937" rotation="180"/>
+  <object id="12" template="character.tx" type="stabber" x="73" y="168.333"/>
  </objectgroup>
 </map>

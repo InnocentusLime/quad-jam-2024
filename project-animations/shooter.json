@@ -7,24 +7,19 @@
         "track_id": 0,
         "start": 0,
         "len": 155,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "WorldAtlas",
-            "local_pos": {
-              "x": -8.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 17,
-              "y": 1,
-              "w": 16,
-              "h": 16
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "WorldAtlas",
+          "local_pos": [-8.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 17,
+            "y": 1,
+            "w": 16,
+            "h": 16
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -32,9 +27,7 @@
         "track_id": 1,
         "start": 0,
         "len": 155,
-        "action": {
-          "Move": null
-        }
+        "move": null
       }
     ],
     "tracks": [
@@ -56,24 +49,19 @@
         "track_id": 0,
         "start": 0,
         "len": 500,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "WorldAtlas",
-            "local_pos": {
-              "x": -8.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 33,
-              "y": 1,
-              "w": 16,
-              "h": 16
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "WorldAtlas",
+          "local_pos": [-8.0, 8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 33,
+            "y": 1,
+            "w": 16,
+            "h": 16
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -81,22 +69,17 @@
         "track_id": 1,
         "start": 500,
         "len": 200,
-        "action": {
-          "AttackBox": {
-            "local_pos": {
-              "x": 15.0,
-              "y": 0.0
-            },
-            "local_rotation": 0.0,
-            "team": "Enemy",
-            "group": 2,
-            "shape": {
-              "type": "Rect",
-              "width": 28.0,
-              "height": 18.0
-            },
-            "rotate_with_parent": true
-          }
+        "attack_box": {
+          "local_pos": [15.0, 0.0],
+          "local_rotation": 0.0,
+          "team": "Enemy",
+          "group": 2,
+          "shape": {
+            "type": "Rect",
+            "width": 28.0,
+            "height": 18.0
+          },
+          "rotate_with_parent": true
         }
       },
       {
@@ -104,24 +87,19 @@
         "track_id": 0,
         "start": 500,
         "len": 199,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "WorldAtlas",
-            "local_pos": {
-              "x": -8.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 291,
-              "y": 1,
-              "w": 16,
-              "h": 16
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "WorldAtlas",
+          "local_pos": [-8.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 291,
+            "y": 1,
+            "w": 16,
+            "h": 16
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -129,24 +107,19 @@
         "track_id": 0,
         "start": 706,
         "len": 392,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "WorldAtlas",
-            "local_pos": {
-              "x": -8.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 33,
-              "y": 1,
-              "w": 16,
-              "h": 16
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": false
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "WorldAtlas",
+          "local_pos": [-8.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 33,
+            "y": 1,
+            "w": 16,
+            "h": 16
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": false
         }
       },
       {
@@ -154,24 +127,19 @@
         "track_id": 2,
         "start": 494,
         "len": 243,
-        "action": {
-          "DrawSprite": {
-            "layer": 1,
-            "texture_id": "WorldAtlas",
-            "local_pos": {
-              "x": 0.0,
-              "y": -8.0
-            },
-            "local_rotation": 0.0,
-            "rect": {
-              "x": 296,
-              "y": 1,
-              "w": 36,
-              "h": 42
-            },
-            "sort_offset": 0.0,
-            "rotate_with_parent": true
-          }
+        "draw_sprite": {
+          "layer": 1,
+          "texture_id": "WorldAtlas",
+          "local_pos": [0.0, -8.0],
+          "local_rotation": 0.0,
+          "rect": {
+            "x": 296,
+            "y": 1,
+            "w": 36,
+            "h": 42
+          },
+          "sort_offset": 0.0,
+          "rotate_with_parent": true
         }
       },
       {
@@ -179,18 +147,11 @@
         "track_id": 3,
         "start": 503,
         "len": 203,
-        "action": {
-          "Spawn": {
-            "rotate_with_parent": true,
-            "local_pos": {
-              "x": 37.0,
-              "y": 0.0
-            },
-            "local_look": 0.0,
-            "character_info": {
-              "BasicBullet": {}
-            }
-          }
+        "spawn": {
+          "rotate_with_parent": true,
+          "local_pos": [37.0, 0.0],
+          "local_look": 0.0,
+          "basic_bullet": {}
         }
       }
     ],

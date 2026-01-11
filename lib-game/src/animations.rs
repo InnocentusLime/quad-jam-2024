@@ -1,9 +1,6 @@
 use hashbrown::HashMap;
 use hecs::{CommandBuffer, Entity, EntityBuilder, World};
-use lib_asset::{
-    Position,
-    level::{CharacterDef, CharacterPosition},
-};
+use lib_asset::level::{CharacterDef, CharacterPosition};
 use macroquad::prelude::*;
 
 use crate::{
@@ -101,7 +98,7 @@ pub(crate) fn update_attack_boxes(
             };
             let new_col_tf = character.transform_child(
                 clip.action.rotate_with_parent,
-                clip.action.local_pos.to_vec2(),
+                clip.action.local_pos,
                 clip.action.local_rotation,
             );
 
@@ -148,7 +145,7 @@ pub(crate) fn update_spawned<G: Game>(
             };
             let (pos, look) = character.transform_character(
                 clip.action.rotate_with_parent,
-                clip.action.local_pos.to_vec2(),
+                clip.action.local_pos,
                 clip.action.local_look,
             );
 
@@ -159,7 +156,7 @@ pub(crate) fn update_spawned<G: Game>(
             let def = CharacterDef {
                 tf: CharacterPosition {
                     look_angle: look,
-                    pos: Position { x: pos.x, y: pos.y },
+                    pos,
                 },
                 info: clip.action.character_info,
             };
@@ -194,7 +191,7 @@ pub(crate) fn buffer_sprites(world: &mut World, resources: &Resources, render: &
         {
             let tf = character.transform_child(
                 clip.action.rotate_with_parent,
-                clip.action.local_pos.to_vec2(),
+                clip.action.local_pos,
                 clip.action.local_rotation,
             );
             render.sprite_buffer.push(SpriteData {

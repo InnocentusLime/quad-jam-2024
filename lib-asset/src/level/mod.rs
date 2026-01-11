@@ -40,7 +40,8 @@ pub mod tiled_load;
 #[cfg(feature = "dev-env")]
 mod tiled_props_des;
 
-use crate::{Position, TextureId};
+use crate::TextureId;
+use glam::Vec2;
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 
@@ -74,6 +75,7 @@ pub struct CharacterDef {
 /// for variant [EntityInfo::Player] there must be a class
 /// called `Player`, that has all corresponding fields.
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "snake_case")]
 pub enum CharacterInfo {
     Player {},
     Goal {},
@@ -182,5 +184,5 @@ pub struct CharacterPosition {
     /// Rotation angle in degrees
     pub look_angle: f32,
     /// Position in level units
-    pub pos: Position,
+    pub pos: Vec2,
 }

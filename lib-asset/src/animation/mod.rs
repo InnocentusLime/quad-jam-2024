@@ -1,8 +1,9 @@
 #[cfg(feature = "dev-env")]
 pub mod aseprite_load;
 
+use crate::TextureId;
 use crate::level::CharacterInfo;
-use crate::{Position, TextureId};
+use glam::Vec2;
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 
@@ -72,6 +73,7 @@ pub struct Clip<Act = ClipAction> {
     pub track_id: u32,
     pub start: u32,
     pub len: u32,
+    #[serde(flatten)]
     pub action: Act,
 }
 
@@ -133,6 +135,7 @@ impl Clip {
     Clone, Copy, Debug, Serialize, Deserialize, strum::IntoStaticStr, strum::EnumDiscriminants,
 )]
 #[strum_discriminants(derive(strum::IntoStaticStr, strum::VariantArray))]
+#[serde(rename_all = "snake_case")]
 pub enum ClipAction {
     DrawSprite(ClipActionDrawSprite),
     AttackBox(ClipActionAttackBox),
@@ -152,7 +155,7 @@ pub struct ClipActionMove;
 pub struct ClipActionDrawSprite {
     pub layer: u32,
     pub texture_id: TextureId,
-    pub local_pos: Position,
+    pub local_pos: Vec2,
     pub local_rotation: f32,
     pub rect: ImgRect,
     pub sort_offset: f32,
@@ -161,7 +164,7 @@ pub struct ClipActionDrawSprite {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct ClipActionAttackBox {
-    pub local_pos: Position,
+    pub local_pos: Vec2,
     pub local_rotation: f32,
     pub team: Team,
     pub group: lib_col::Group,
@@ -178,8 +181,9 @@ pub struct ClipActionLockInput {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct ClipActionSpawn {
     pub rotate_with_parent: bool,
-    pub local_pos: Position,
+    pub local_pos: Vec2,
     pub local_look: f32,
+    #[serde(flatten)]
     pub character_info: CharacterInfo,
 }
 
