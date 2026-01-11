@@ -110,24 +110,36 @@ impl AnimationPackId {
 #[cfg(feature = "dev-env")]
 impl DevableAsset for AnimationPack {
     fn load_dev(resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
-        use crate::animation::{Animation, aseprite_load};
-        use log::warn;
+        use crate::animation::aseprite_load;
         use std::path::PathBuf;
 
         let mut filename: PathBuf = path.file_name().unwrap().into();
         filename.set_extension("json");
-
         let project_path = resolver.get_path(AssetRoot::AnimationsProjectRoot, &filename);
-        let aseprite_path = resolver.get_path(AssetRoot::AsepriteProjectRoot, &filename);
+        aseprite_load::load_animations_project(&project_path)
+    }
+}
 
-        match aseprite_load::load_animations_project(&project_path) {
+impl Asset for AnimationPack {
+    type AssetId = AnimationPackId;
+    const ROOT: AssetRoot = AssetRoot::Animations;
+
+    #[cfg(feature = "dev-env")]
+    async fn load(resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
+        use crate::animation::{Animation, aseprite_load};
+        use std::path::PathBuf;
+
+        // In dev-env we load from aseprite and project files.
+        // First we try to load the project. If that fails, we try to load aseprite.
+        // This way it is faster to iterate on designs.
+        match Self::load_dev(resolver, path) {
             Ok(x) => return Ok(x),
             Err(e) => warn!("Failed to load anim pack {path:?}: {e:?}"),
         }
 
-        // On native (dev-environment) we load from aseprite and project files.
-        // First we try to load the project. If that fails, we try to load aseprite.
-        // This way it is faster to iterate on designs.
+        let mut filename: PathBuf = path.file_name().unwrap().into();
+        filename.set_extension("json");
+        let aseprite_path = resolver.get_path(AssetRoot::AsepriteProjectRoot, &filename);
         match aseprite_load::load_animations_aseprite(resolver, &aseprite_path, None) {
             Ok(x) => return Ok(x),
             Err(e) => warn!("Failed to load aseprite sheet {aseprite_path:?}: {e:?}"),
@@ -149,16 +161,6 @@ impl DevableAsset for AnimationPack {
             })
             .collect();
         Ok(placeholder)
-    }
-}
-
-impl Asset for AnimationPack {
-    type AssetId = AnimationPackId;
-    const ROOT: AssetRoot = AssetRoot::Animations;
-
-    #[cfg(feature = "dev-env")]
-    async fn load(resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
-        Self::load_dev(resolver, path)
     }
 
     #[cfg(not(feature = "dev-env"))]
