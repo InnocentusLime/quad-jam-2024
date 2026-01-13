@@ -83,12 +83,10 @@ impl CollisionSolver {
     pub fn fill(&mut self, entities: impl IntoIterator<Item = (Entity, Collider)>) {
         for (ent, collider) in entities {
             let collider = self.put_collider(collider);
-            let matches = self
-                .groups
-                .iter_mut()
-                .filter(|group| collider.group.includes(group.1));
-            for group in matches {
-                group.0.push((ent, collider));
+            for group in &mut self.groups {
+                if collider.group.includes(group.1) {
+                    group.0.push((ent, collider));
+                }
             }
         }
     }
