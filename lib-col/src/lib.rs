@@ -232,8 +232,8 @@ impl CollisionSolver {
             }
         }
 
-        if toi == f32::INFINITY {
-            return (toi, push_normal);
+        if toi == -f32::INFINITY {
+            return (f32::INFINITY, push_normal);
         }
         (toi, push_normal)
     }
