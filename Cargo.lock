@@ -1211,7 +1211,7 @@ dependencies = [
 
 [[package]]
 name = "lib-col"
-version = "0.4.3"
+version = "0.4.4"
 dependencies = [
  "glam",
  "hashbrown 0.14.5",
@@ -1760,7 +1760,7 @@ dependencies = [
 
 [[package]]
 name = "quad-jam-2024"
-version = "0.23.0"
+version = "0.23.1"
 dependencies = [
  "anyhow",
  "clap",
