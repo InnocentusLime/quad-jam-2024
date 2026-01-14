@@ -197,9 +197,9 @@ impl Asset for LevelDef {
 
     fn filename(id: Self::AssetId) -> &'static str {
         match id {
-            LevelId::TestRoom => "test_room.bin",
-            LevelId::TestBulletRoom => "test_bullet_room.bin",
-            LevelId::TestShooterRoom => "test_shooter_room.bin",
+            LevelId::TestRoom => "test_room.json",
+            LevelId::TestBulletRoom => "test_bullet_room.json",
+            LevelId::TestShooterRoom => "test_shooter_room.json",
         }
     }
 }
