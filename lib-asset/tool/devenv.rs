@@ -85,7 +85,7 @@ fn compile_dir_impl<T: DevableAsset + serde::Serialize>(
 
         let mut buff = out.clone();
         buff.push(name);
-        buff.set_extension("bin");
+        buff.set_extension("json");
         compile_impl::<T>(resolver, file, buff)?;
     }
     Ok(())
