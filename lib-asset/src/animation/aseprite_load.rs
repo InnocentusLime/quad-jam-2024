@@ -24,16 +24,6 @@ pub fn load_animations_aseprite(
     Ok(anim)
 }
 
-pub fn load_animations_project(
-    path: impl AsRef<Path>,
-) -> anyhow::Result<HashMap<AnimationId, Animation>> {
-    let path = path.as_ref();
-    let anim_file = File::open(path).with_context(|| format!("loading file {path:?}"))?;
-    let anim =
-        serde_json::from_reader(anim_file).with_context(|| format!("decoding file {path:?}"))?;
-    Ok(anim)
-}
-
 fn load_animations_from_aseprite(
     resolver: &FsResolver,
     sheet: &Sheet,

@@ -6,7 +6,6 @@
 /target
 /dist
 /levels
-/animations
 /static/assets/
 # Ignored files
 */test-out.svg

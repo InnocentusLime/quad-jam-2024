@@ -4,6 +4,10 @@ use crate::animation::{AnimationId, AnimationPack};
 use crate::level::LevelDef;
 use crate::{Asset, FsResolver};
 use crate::{GameCfg, asset_roots::*};
+#[cfg(feature = "dev-env")]
+use clap::ValueEnum;
+#[cfg(feature = "dev-env")]
+use clap::builder::PossibleValue;
 use macroquad::prelude::*;
 use std::path::Path;
 use strum::VariantArray;
@@ -108,15 +112,14 @@ impl AnimationPackId {
 }
 
 #[cfg(feature = "dev-env")]
-impl DevableAsset for AnimationPack {
-    fn load_dev(resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
-        use crate::animation::aseprite_load;
-        use std::path::PathBuf;
+impl ValueEnum for AnimationPackId {
+    fn value_variants<'a>() -> &'a [Self] {
+        AnimationPackId::VARIANTS
+    }
 
-        let mut filename: PathBuf = path.file_name().unwrap().into();
-        filename.set_extension("json");
-        let project_path = resolver.get_path(AssetRoot::AnimationsProjectRoot, &filename);
-        aseprite_load::load_animations_project(&project_path)
+    fn to_possible_value(&self) -> Option<PossibleValue> {
+        let s: &str = self.into();
+        Some(PossibleValue::new(s))
     }
 }
 
@@ -124,57 +127,20 @@ impl Asset for AnimationPack {
     type AssetId = AnimationPackId;
     const ROOT: AssetRoot = AssetRoot::Animations;
 
-    #[cfg(feature = "dev-env")]
-    async fn load(resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
-        use crate::animation::{Animation, aseprite_load};
-        use std::path::PathBuf;
-
-        // In dev-env we load from aseprite and project files.
-        // First we try to load the project. If that fails, we try to load aseprite.
-        // This way it is faster to iterate on designs.
-        match Self::load_dev(resolver, path) {
-            Ok(x) => return Ok(x),
-            Err(e) => warn!("Failed to load anim pack {path:?}: {e:?}"),
-        }
-
-        let mut filename: PathBuf = path.file_name().unwrap().into();
-        filename.set_extension("json");
-        let aseprite_path = resolver.get_path(AssetRoot::AsepriteProjectRoot, &filename);
-        match aseprite_load::load_animations_aseprite(resolver, &aseprite_path, None) {
-            Ok(x) => return Ok(x),
-            Err(e) => warn!("Failed to load aseprite sheet {aseprite_path:?}: {e:?}"),
-        }
-
-        warn!("Animationed pack {path:?} will be replaced with a placeholder");
-        let pack_id = resolver.inverse_resolve::<Self>(path).unwrap();
-        let placeholder = pack_id
-            .animations()
-            .map(|x| {
-                (
-                    x,
-                    Animation {
-                        is_looping: true,
-                        clips: vec![],
-                        tracks: vec![],
-                    },
-                )
-            })
-            .collect();
-        Ok(placeholder)
-    }
-
-    #[cfg(not(feature = "dev-env"))]
     async fn load(_resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
+        use anyhow::Context;
         use macroquad::prelude::*;
-        let data = load_file(path.to_str().unwrap()).await?;
-        postcard::from_bytes(&data).map_err(Into::into)
+        let json = load_string(path.to_str().unwrap())
+            .await
+            .context("loading JSON")?;
+        serde_json::from_str(&json).context("decoding")
     }
 
     fn filename(id: Self::AssetId) -> &'static str {
         match id {
-            AnimationPackId::Bunny => "bnuuy.bin",
-            AnimationPackId::Stabber => "stabber.bin",
-            AnimationPackId::Shooter => "shooter.bin",
+            AnimationPackId::Bunny => "bnuuy.json",
+            AnimationPackId::Stabber => "stabber.json",
+            AnimationPackId::Shooter => "shooter.json",
         }
     }
 }
@@ -221,9 +187,12 @@ impl Asset for LevelDef {
 
     #[cfg(not(feature = "dev-env"))]
     async fn load(_resolver: &FsResolver, path: &Path) -> anyhow::Result<LevelDef> {
+        use anyhow::Context;
         use macroquad::prelude::*;
-        let data = load_file(path.to_str().unwrap()).await?;
-        postcard::from_bytes(&data).map_err(Into::into)
+        let json = load_string(path.to_str().unwrap())
+            .await
+            .context("loading JSON")?;
+        serde_json::from_str(&json).context("decoding")
     }
 
     fn filename(id: Self::AssetId) -> &'static str {
@@ -235,36 +204,21 @@ impl Asset for LevelDef {
     }
 }
 
-#[cfg(feature = "dev-env")]
-impl DevableAsset for GameCfg {
-    fn load_dev(_resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
-        use std::fs::File;
-
-        let mut path = path.to_path_buf();
-        path.set_extension("json");
-        let file = File::open(path)?;
-        serde_json::from_reader(&file).map_err(Into::into)
-    }
-}
-
 impl Asset for GameCfg {
     type AssetId = GameCfgId;
     const ROOT: AssetRoot = AssetRoot::Base;
 
-    #[cfg(feature = "dev-env")]
-    async fn load(resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
-        Self::load_dev(resolver, path)
-    }
-
-    #[cfg(not(feature = "dev-env"))]
     async fn load(_resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
+        use anyhow::Context;
         use macroquad::prelude::*;
-        let data = load_file(path.to_str().unwrap()).await?;
-        postcard::from_bytes(&data).map_err(Into::into)
+        let json = load_string(path.to_str().unwrap())
+            .await
+            .context("loading JSON")?;
+        serde_json::from_str(&json).context("decoding")
     }
 
     fn filename(_id: Self::AssetId) -> &'static str {
-        "gamecfg.bin"
+        "gamecfg.json"
     }
 }
 
