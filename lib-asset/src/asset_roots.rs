@@ -16,7 +16,6 @@ pub enum AssetRoot {
     Animations,
     Levels,
     AsepriteProjectRoot,
-    AnimationsProjectRoot,
     TiledProjectRoot,
 }
 
@@ -31,7 +30,6 @@ impl AssetRoot {
             AssetRoot::Animations => "animations",
             AssetRoot::Levels => "levels",
             AssetRoot::AsepriteProjectRoot => "project-aseprite",
-            AssetRoot::AnimationsProjectRoot => "project-animations",
             AssetRoot::TiledProjectRoot => "project-tiled",
         }
     }

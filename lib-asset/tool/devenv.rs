@@ -1,13 +1,11 @@
 use std::fs::{self, File};
-use std::io::stdout;
 use std::{path::PathBuf, process::ExitCode};
 
 use anyhow::Context;
 use clap::{Parser, Subcommand};
-use lib_asset::animation::AnimationPack;
+use lib_asset::animation::{Animation, AnimationPack};
 use lib_asset::level::LevelDef;
 use lib_asset::*;
-use postcard::ser_flavors::io::WriteFlavor;
 
 pub fn run() -> ExitCode {
     let cli = Cli::parse();
@@ -17,21 +15,11 @@ pub fn run() -> ExitCode {
     }
 
     let result = match cli.command {
-        Commands::CompileCfg { config, out } => compile_impl::<GameCfg>(&resolver, config, out),
-        Commands::CheckCfg { configs } => check_impl::<GameCfg>(&resolver, configs),
-        Commands::DumpCfg { config } => dump_impl::<GameCfg>(config),
-        Commands::CheckAnims { animations } => check_impl::<AnimationPack>(&resolver, animations),
-        Commands::CompileAnims { animations, out } => {
-            compile_impl::<AnimationPack>(&resolver, animations, out)
-        }
-        Commands::DumpAnims { animations } => dump_impl::<AnimationPack>(animations),
-        Commands::CompileAnimsDir { dir, out } => {
-            compile_dir_impl::<AnimationPack>(&resolver, "json", dir, out)
+        Commands::MakeEmptyAnimationPack { pack_id } => {
+            make_empty_animation_pack(&resolver, pack_id)
         }
         Commands::ConvertAseprite { aseprite, out } => convert_aseprite(&resolver, aseprite, out),
-        Commands::CheckMap { maps } => check_impl::<LevelDef>(&resolver, maps),
         Commands::CompileMap { map, out } => compile_impl::<LevelDef>(&resolver, map, out),
-        Commands::DumpMap { map } => dump_impl::<LevelDef>(map),
         Commands::CompileMapsDir { dir, out } => {
             compile_dir_impl::<LevelDef>(&resolver, "tmx", dir, out)
         }
@@ -46,6 +34,28 @@ pub fn run() -> ExitCode {
     }
 }
 
+fn make_empty_animation_pack(
+    fs_resolver: &FsResolver,
+    pack_id: AnimationPackId,
+) -> anyhow::Result<()> {
+    let out = fs_resolver.get_path(AnimationPack::ROOT, AnimationPack::filename(pack_id));
+    let out = File::create(out).context("open destination")?;
+    let anims = pack_id
+        .animations()
+        .map(|x| {
+            (
+                x,
+                Animation {
+                    is_looping: true,
+                    clips: vec![],
+                    tracks: vec![],
+                },
+            )
+        })
+        .collect::<AnimationPack>();
+    serde_json::to_writer_pretty(out, &anims).context("writing to dest")
+}
+
 fn convert_aseprite(
     fs_resolver: &FsResolver,
     aseprite: PathBuf,
@@ -54,24 +64,6 @@ fn convert_aseprite(
     let anims = animation::aseprite_load::load_animations_aseprite(fs_resolver, aseprite, None)?;
     let out = File::create(out).context("open destination")?;
     serde_json::to_writer_pretty(out, &anims).context("writing to dest")
-}
-
-fn check_impl<T: DevableAsset>(resolver: &FsResolver, assets: Vec<PathBuf>) -> anyhow::Result<()> {
-    for asset in assets {
-        println!("Checking {asset:?}");
-        T::load_dev(resolver, &asset)?;
-    }
-    Ok(())
-}
-
-fn dump_impl<T: for<'a> serde::Deserialize<'a> + serde::Serialize>(
-    asset: PathBuf,
-) -> anyhow::Result<()> {
-    let data = fs::read(asset)?;
-    let data = postcard::from_bytes(&data)?;
-    let mut stdout = stdout().lock();
-    serde_json::to_writer_pretty::<_, T>(&mut stdout, &data)?;
-    Ok(())
 }
 
 fn compile_dir_impl<T: DevableAsset + serde::Serialize>(
@@ -108,7 +100,7 @@ fn compile_impl<T: DevableAsset + serde::Serialize>(
 
     let val = T::load_dev(resolver, &path).context("loading")?;
     let out = fs::File::create(out).context("opening the output")?;
-    postcard::serialize_with_flavor(&val, WriteFlavor::new(out)).context("compiling")?;
+    serde_json::to_writer_pretty(out, &val).context("compiling")?;
     Ok(())
 }
 
@@ -126,59 +118,11 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Compile a game config.
-    CompileCfg {
-        /// The config to compile
-        #[arg(short, long, value_name = "FILE")]
-        config: PathBuf,
-        /// The output file
-        #[arg(short, long, value_name = "FILE")]
-        out: PathBuf,
-    },
-    /// Checks a game config.
-    CheckCfg {
-        /// The config to check
-        #[arg(value_name = "FILE")]
-        configs: Vec<PathBuf>,
-    },
-    /// Dumps config contents.
-    DumpCfg {
-        /// The config to dump
-        #[arg(short, long, value_name = "FILE")]
-        config: PathBuf,
-    },
-    /// Check if an animation package satisfies all
-    /// conventions.
-    CheckAnims {
-        /// The package to check
-        #[arg(value_name = "FILE")]
-        animations: Vec<PathBuf>,
-    },
-    /// Convert an animation package into binary format.
-    CompileAnims {
-        /// The animation package to compile
-        #[arg(short, long, value_name = "FILE")]
-        animations: PathBuf,
-        /// The output file
-        #[arg(short, long, value_name = "FILE")]
-        out: PathBuf,
-    },
-    /// Debug-dump a binary animation package
-    DumpAnims {
-        /// The animation package to dump
-        #[arg(short, long, value_name = "FILE")]
-        animations: PathBuf,
-    },
-    /// Build all animation packages in specified directory
-    /// and put the compiled animations in the other. Each
-    /// package called "name.json" will be turned into "name.bin".
-    CompileAnimsDir {
-        /// The directory to read the animation packages from
-        #[arg(short, long, value_name = "DIR")]
-        dir: PathBuf,
-        /// The directory to put the results into
-        #[arg(short, long, value_name = "DIR")]
-        out: PathBuf,
+    /// Creates an empty animation pack
+    MakeEmptyAnimationPack {
+        /// The animation pack id
+        #[arg(short, long, value_name = "ID")]
+        pack_id: AnimationPackId,
     },
     /// Convert an aseprite animation pack into an animation
     /// pack for the editor and the game.
@@ -190,12 +134,6 @@ enum Commands {
         #[arg(short, long, value_name = "FILE")]
         out: PathBuf,
     },
-    /// Check if a map satisfies all conventions
-    CheckMap {
-        /// The map to check
-        #[arg(value_name = "FILE")]
-        maps: Vec<PathBuf>,
-    },
     /// Convert a map into binary format
     CompileMap {
         /// The map to compile
@@ -204,12 +142,6 @@ enum Commands {
         /// The output file
         #[arg(short, long, value_name = "FILE")]
         out: PathBuf,
-    },
-    /// Debug-dump a binary map
-    DumpMap {
-        /// The map to dump
-        #[arg(short, long, value_name = "FILE")]
-        map: PathBuf,
     },
     /// Build all maps in specified directory and put
     /// the compiled maps in the other. Each map called
