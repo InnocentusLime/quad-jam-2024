@@ -1,6 +1,6 @@
 use hashbrown::HashMap;
 use hecs::{CommandBuffer, Entity, EntityBuilder, World};
-use lib_asset::level::{CharacterDef, CharacterPosition};
+use lib_asset::level::CharacterDef;
 use macroquad::prelude::*;
 
 use crate::{
@@ -143,7 +143,7 @@ pub(crate) fn update_spawned<G: Game>(
                 animation: character.animation_id(),
                 clip_id: clip.id,
             };
-            let (pos, look) = character.transform_character(
+            let (pos, look_angle) = character.transform_character(
                 clip.action.rotate_with_parent,
                 clip.action.local_pos,
                 clip.action.local_look,
@@ -154,10 +154,8 @@ pub(crate) fn update_spawned<G: Game>(
             }
 
             let def = CharacterDef {
-                tf: CharacterPosition {
-                    look_angle: look,
-                    pos,
-                },
+                look_angle,
+                pos,
                 info: clip.action.character_info,
             };
             let mut builder = EntityBuilder::new();

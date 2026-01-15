@@ -161,10 +161,8 @@ fn load_entity_defs_from_object_layer(layer: &tiled::Layer) -> anyhow::Result<Ve
         };
 
         entities.push(CharacterDef {
-            tf: CharacterPosition {
-                pos: vec2(object.x, object.y),
-                look_angle: object.rotation / 180.0 * std::f32::consts::PI,
-            },
+            pos: vec2(object.x, object.y),
+            look_angle: object.rotation / 180.0 * std::f32::consts::PI,
             info,
         });
     }

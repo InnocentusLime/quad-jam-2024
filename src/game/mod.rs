@@ -205,15 +205,15 @@ impl Game for Project {
         builder: &mut hecs::EntityBuilder,
         def: CharacterDef,
     ) {
-        let pos = def.tf.pos;
-        let look = def.tf.look_angle;
         match def.info {
-            CharacterInfo::Player {} => player::init(builder, pos, resources),
-            CharacterInfo::Goal {} => goal::init(builder, pos),
-            CharacterInfo::Damager {} => damager::init(builder, pos),
-            CharacterInfo::Stabber {} => stabber::init(builder, pos, resources),
-            CharacterInfo::BasicBullet {} => basic_bullet::init(builder, pos, look, resources),
-            CharacterInfo::Shooter {} => shooter::init(builder, pos, resources),
+            CharacterInfo::Player {} => player::init(builder, def.pos, resources),
+            CharacterInfo::Goal {} => goal::init(builder, def.pos),
+            CharacterInfo::Damager {} => damager::init(builder, def.pos),
+            CharacterInfo::Stabber {} => stabber::init(builder, def.pos, resources),
+            CharacterInfo::BasicBullet {} => {
+                basic_bullet::init(builder, def.pos, def.look_angle, resources)
+            }
+            CharacterInfo::Shooter {} => shooter::init(builder, def.pos, resources),
         }
     }
 }
