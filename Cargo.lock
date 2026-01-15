@@ -1144,6 +1144,7 @@ dependencies = [
  "macroquad",
  "serde",
  "serde_json",
+ "serde_repr",
  "strum",
  "thiserror 2.0.12",
  "tiled",
