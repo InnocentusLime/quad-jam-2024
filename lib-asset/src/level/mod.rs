@@ -1,40 +1,3 @@
-//! This module contains all the plain-data structures for
-//! representing the level. There are several conventions for that module.
-//!
-//! ## Simplicity
-//! The data must be as simple as possible, so it can be decoded from any
-//! possible format: JSON, binary, tmx, etc.
-//!
-//! ## Defaults
-//! Some editors do not include a field if it is set to its default. All
-//! fields that come from such sources must be marked with `#[serde(default)]`
-//!
-//! ## Plain-Data
-//! All fields are public and do not represent any complex data structure:
-//! * If you have a list, use a `Vec<T>`
-//! * If you have a map, use `HashMap<S, T>`
-//!
-//! ## Zero-dependency
-//! The only okay dependency is `serde`. Existing data structures may be
-//! duplicated here.
-//!
-//! ## Readability First
-//! * All fields must be named, tuple structs are not allowed
-//! * All data-containing enums must be externally tagged
-//! * If there are shorter, easier to grasp variant names than the ones
-//!   used in code -- use `serde(rename)`
-//! * Less nesting! If the code really need some nested types,
-//!   consider using `#[serde(flatten)]`
-//!
-//! ## Convergence
-//! All level data should leave in a single type.
-//!
-//! ## Object Manifests are Constructors
-//! Setting all potential fields of an object is counter-productive for
-//! level design. We want to work with templates. A manifest for an object
-//! should 1-to-1 correspond to its appropriate `spawn()` function in the
-//! game code minus the `&mut World` argument.
-
 #[cfg(feature = "dev-env")]
 pub mod tiled_load;
 #[cfg(feature = "dev-env")]
@@ -44,6 +7,7 @@ use crate::TextureId;
 use glam::Vec2;
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
+use serde_repr::{Deserialize_repr, Serialize_repr};
 
 pub const TILE_SIDE: u32 = 16;
 
@@ -66,6 +30,7 @@ pub struct CharacterDef {
     /// Entity's transform
     pub tf: CharacterPosition,
     /// Entity's manifest
+    #[serde(flatten)]
     pub info: CharacterInfo,
 }
 
@@ -114,10 +79,16 @@ pub struct MapDef {
 
 /// Tile data. Your tiled project should have a custom class
 /// called `Tile`. It must have the `ty` field of type `TileTy`.
-#[derive(Default, Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Tile {
     #[serde(default)]
     pub ty: TileTy,
+    #[serde(default = "description_unused")]
+    pub description: String,
+}
+
+fn description_unused() -> String {
+    "UNUSED".to_string()
 }
 
 /// Tile type. Your tiled project should have a custom enum
@@ -138,8 +109,8 @@ pub enum TileTy {
     PartialEq,
     Eq,
     Hash,
-    Serialize,
-    Deserialize,
+    Serialize_repr,
+    Deserialize_repr,
     strum::VariantNames,
     strum::FromRepr,
 )]
