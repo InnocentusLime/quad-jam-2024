@@ -29,18 +29,13 @@ use thiserror::Error;
 #[derive(Debug, Error)]
 pub enum Error {
     #[error("Property {property:?}: expected {expected}, found type {found_ty:?}")]
-    TypeMismatch {
+    PropertyTypeMismatch {
         expected: &'static str,
         property: String,
         found_ty: String,
     },
-    #[error("Exepcted class to be {expected_class:?}, found {found_class:?}")]
-    StructNameMismatch {
-        expected_class: String,
-        found_class: String,
-    },
     #[error("Exepcted class to be one of {expected_classes:?}, found {found_class:?}")]
-    NoSuchEnumVariant {
+    UnexpectedClass {
         expected_classes: Vec<String>,
         found_class: String,
     },
@@ -48,8 +43,8 @@ pub enum Error {
     OnlyStructEnumVariants,
     #[error("Only structs and enums can be deserialized from properties")]
     OnlyStructsAndEnums,
-    #[error("Deserializing into {ty:?} is not supported")]
-    UnsupportedType { ty: &'static str },
+    #[error("Properties of type {ty:?} are not supported")]
+    UnsupportedPropertyType { ty: &'static str },
     #[error("{msg}")]
     Custom { msg: String },
 }
@@ -271,8 +266,8 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertiesDeserializer<'de> {
         V: de::Visitor<'de>,
     {
         if name != self.ty_name {
-            return Err(Error::StructNameMismatch {
-                expected_class: name.to_string(),
+            return Err(Error::UnexpectedClass {
+                expected_classes: vec![name.to_string()],
                 found_class: self.ty_name.to_string(),
             });
         }
@@ -289,7 +284,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertiesDeserializer<'de> {
         V: de::Visitor<'de>,
     {
         if !variants.contains(&self.ty_name) {
-            return Err(Error::NoSuchEnumVariant {
+            return Err(Error::UnexpectedClass {
                 expected_classes: variants.iter().map(|x| x.to_string()).collect(),
                 found_class: self.ty_name.to_string(),
             });
@@ -358,7 +353,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::BoolValue(b) => visitor.visit_bool(*b),
-            _ => Err(Error::TypeMismatch {
+            _ => Err(Error::PropertyTypeMismatch {
                 expected: "a bool",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
@@ -372,7 +367,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::IntValue(i) => visitor.visit_i8(*i as i8),
-            _ => Err(Error::TypeMismatch {
+            _ => Err(Error::PropertyTypeMismatch {
                 expected: "an integer",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
@@ -386,7 +381,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::IntValue(i) => visitor.visit_i16(*i as i16),
-            _ => Err(Error::TypeMismatch {
+            _ => Err(Error::PropertyTypeMismatch {
                 expected: "an integer",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
@@ -400,7 +395,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::IntValue(i) => visitor.visit_i32(*i),
-            _ => Err(Error::TypeMismatch {
+            _ => Err(Error::PropertyTypeMismatch {
                 expected: "an integer",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
@@ -414,7 +409,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::IntValue(i) => visitor.visit_i64(*i as i64),
-            _ => Err(Error::TypeMismatch {
+            _ => Err(Error::PropertyTypeMismatch {
                 expected: "an integer",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
@@ -428,7 +423,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::IntValue(i) => visitor.visit_u8(*i as u8),
-            _ => Err(Error::TypeMismatch {
+            _ => Err(Error::PropertyTypeMismatch {
                 expected: "an integer",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
@@ -442,7 +437,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::IntValue(i) => visitor.visit_u16(*i as u16),
-            _ => Err(Error::TypeMismatch {
+            _ => Err(Error::PropertyTypeMismatch {
                 expected: "an integer",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
@@ -456,7 +451,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::IntValue(i) => visitor.visit_u32(*i as u32),
-            _ => Err(Error::TypeMismatch {
+            _ => Err(Error::PropertyTypeMismatch {
                 expected: "an integer",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
@@ -470,7 +465,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::IntValue(i) => visitor.visit_u64(*i as u64),
-            _ => Err(Error::TypeMismatch {
+            _ => Err(Error::PropertyTypeMismatch {
                 expected: "an integer",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
@@ -485,7 +480,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
         match self.prop {
             tiled::PropertyValue::IntValue(i) => visitor.visit_f32(*i as f32),
             tiled::PropertyValue::FloatValue(f) => visitor.visit_f32(*f),
-            _ => Err(Error::TypeMismatch {
+            _ => Err(Error::PropertyTypeMismatch {
                 expected: "an integer or float",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
@@ -500,7 +495,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
         match self.prop {
             tiled::PropertyValue::IntValue(i) => visitor.visit_f64(*i as f64),
             tiled::PropertyValue::FloatValue(f) => visitor.visit_f64(*f as f64),
-            _ => Err(Error::TypeMismatch {
+            _ => Err(Error::PropertyTypeMismatch {
                 expected: "an integer or float",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
@@ -512,7 +507,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
     where
         V: de::Visitor<'de>,
     {
-        Err(Error::UnsupportedType { ty: "char" })
+        Err(Error::UnsupportedPropertyType { ty: "char" })
     }
 
     fn deserialize_str<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -522,7 +517,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
         match self.prop {
             tiled::PropertyValue::StringValue(s) => visitor.visit_str(s.as_str()),
             tiled::PropertyValue::FileValue(s) => visitor.visit_str(s.as_str()),
-            _ => Err(Error::TypeMismatch {
+            _ => Err(Error::PropertyTypeMismatch {
                 expected: "a string or path",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
@@ -541,28 +536,28 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
     where
         V: de::Visitor<'de>,
     {
-        Err(Error::UnsupportedType { ty: "bytes" })
+        Err(Error::UnsupportedPropertyType { ty: "bytes" })
     }
 
     fn deserialize_byte_buf<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(Error::UnsupportedType { ty: "byte buf" })
+        Err(Error::UnsupportedPropertyType { ty: "byte buf" })
     }
 
     fn deserialize_option<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(Error::UnsupportedType { ty: "option" })
+        Err(Error::UnsupportedPropertyType { ty: "option" })
     }
 
     fn deserialize_unit<V>(self, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(Error::UnsupportedType { ty: "unit" })
+        Err(Error::UnsupportedPropertyType { ty: "unit" })
     }
 
     fn deserialize_unit_struct<V>(
@@ -573,7 +568,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
     where
         V: de::Visitor<'de>,
     {
-        Err(Error::UnsupportedType { ty: "unit struct" })
+        Err(Error::UnsupportedPropertyType { ty: "unit struct" })
     }
 
     fn deserialize_newtype_struct<V>(
@@ -584,7 +579,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
     where
         V: de::Visitor<'de>,
     {
-        Err(Error::UnsupportedType {
+        Err(Error::UnsupportedPropertyType {
             ty: "newtype struct",
         })
     }
@@ -593,14 +588,14 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
     where
         V: de::Visitor<'de>,
     {
-        Err(Error::UnsupportedType { ty: "seq" })
+        Err(Error::UnsupportedPropertyType { ty: "seq" })
     }
 
     fn deserialize_tuple<V>(self, _len: usize, _visitor: V) -> Result<V::Value, Self::Error>
     where
         V: de::Visitor<'de>,
     {
-        Err(Error::UnsupportedType { ty: "tuple" })
+        Err(Error::UnsupportedPropertyType { ty: "tuple" })
     }
 
     fn deserialize_tuple_struct<V>(
@@ -612,7 +607,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
     where
         V: de::Visitor<'de>,
     {
-        Err(Error::UnsupportedType { ty: "tuple struct" })
+        Err(Error::UnsupportedPropertyType { ty: "tuple struct" })
     }
 
     fn deserialize_map<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -626,7 +621,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
                     props: properties.iter(),
                 })
             }
-            _ => Err(Error::TypeMismatch {
+            _ => Err(Error::PropertyTypeMismatch {
                 expected: "a class",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
@@ -649,8 +644,8 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
                 property_type,
             } => {
                 if property_type != name {
-                    return Err(Error::StructNameMismatch {
-                        expected_class: name.to_string(),
+                    return Err(Error::UnexpectedClass {
+                        expected_classes: vec![name.to_string()],
                         found_class: property_type.to_string(),
                     });
                 }
@@ -659,7 +654,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
                     props: properties.iter(),
                 })
             }
-            _ => Err(Error::TypeMismatch {
+            _ => Err(Error::PropertyTypeMismatch {
                 expected: "a class",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
@@ -680,7 +675,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
             tiled::PropertyValue::StringValue(s) => {
                 visitor.visit_enum(de::value::StrDeserializer::new(s.as_str()))
             }
-            _ => Err(Error::TypeMismatch {
+            _ => Err(Error::PropertyTypeMismatch {
                 expected: "a string",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
@@ -694,7 +689,7 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::StringValue(s) => visitor.visit_str(s.as_str()),
-            _ => Err(Error::TypeMismatch {
+            _ => Err(Error::PropertyTypeMismatch {
                 expected: "a string",
                 property: self.name.to_string(),
                 found_ty: property_type_name(self.prop),
