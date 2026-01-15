@@ -27,8 +27,10 @@ pub struct LevelDef {
 /// Entity data. Currently, all entities are represented as squares.
 #[derive(Default, Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub struct CharacterDef {
-    /// Entity's transform
-    pub tf: CharacterPosition,
+    /// Rotation angle in degrees
+    pub look_angle: f32,
+    /// Position in level units
+    pub pos: Vec2,
     /// Entity's manifest
     #[serde(flatten)]
     pub info: CharacterInfo,
@@ -147,13 +149,4 @@ pub enum TileIdx {
     Unused14 = 27,
     Unused15 = 28,
     Unused16 = 29,
-}
-
-/// A library-agnostic transform representation.
-#[derive(Default, Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
-pub struct CharacterPosition {
-    /// Rotation angle in degrees
-    pub look_angle: f32,
-    /// Position in level units
-    pub pos: Vec2,
 }
