@@ -24,30 +24,6 @@
 //! will make sure both Tiled and code side of things are working in unison.
 
 use serde::{Deserializer, de};
-use thiserror::Error;
-
-#[derive(Debug, Error)]
-pub enum Error {
-    #[error("Property {property:?}: expected {expected}, found type {found_ty:?}")]
-    PropertyTypeMismatch {
-        expected: &'static str,
-        property: String,
-        found_ty: String,
-    },
-    #[error("Exepcted class to be one of {expected_classes:?}, found {found_class:?}")]
-    UnexpectedClass {
-        expected_classes: Vec<String>,
-        found_class: String,
-    },
-    #[error("Only struct enum variants can be deserializde from properties")]
-    OnlyStructEnumVariants,
-    #[error("Only structs and enums can be deserialized from properties")]
-    OnlyStructsAndEnums,
-    #[error("Properties of type {ty:?} are not supported")]
-    UnsupportedPropertyType { ty: &'static str },
-    #[error("{msg}")]
-    Custom { msg: String },
-}
 
 pub fn from_properties<'a, T>(ty_name: &'a str, props: &'a tiled::Properties) -> Result<T, Error>
 where
@@ -793,3 +769,70 @@ impl<'de> de::MapAccess<'de> for PropetyMapAccess<'de> {
         seed.deserialize(&mut TiledPropertyDeserializer { name: key, prop })
     }
 }
+
+#[derive(Debug)]
+pub enum Error {
+    PropertyTypeMismatch {
+        expected: &'static str,
+        property: String,
+        found_ty: String,
+    },
+    UnexpectedClass {
+        expected_classes: Vec<String>,
+        found_class: String,
+    },
+    OnlyStructEnumVariants,
+    OnlyStructsAndEnums,
+    UnsupportedPropertyType {
+        ty: &'static str,
+    },
+    Custom {
+        msg: String,
+    },
+}
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Error::PropertyTypeMismatch {
+                expected,
+                property,
+                found_ty,
+            } => {
+                write!(
+                    f,
+                    "Property {property:?}: expected {expected}, found type {found_ty:?}"
+                )
+            }
+            Error::UnexpectedClass {
+                expected_classes,
+                found_class,
+            } => {
+                write!(
+                    f,
+                    "Exepcted class to be one of {expected_classes:?}, found {found_class:?}"
+                )
+            }
+            Error::OnlyStructEnumVariants => {
+                write!(
+                    f,
+                    "Only struct enum variants can be deserialized from properties"
+                )
+            }
+            Error::OnlyStructsAndEnums => {
+                write!(
+                    f,
+                    "Only structs and enums can be deserialized from properties"
+                )
+            }
+            Error::UnsupportedPropertyType { ty } => {
+                write!(f, "Properties of type {ty:?} are not supported")
+            }
+            Error::Custom { msg } => {
+                write!(f, "{msg}")
+            }
+        }
+    }
+}
+
+impl std::error::Error for Error {}
