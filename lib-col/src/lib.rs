@@ -42,12 +42,15 @@ impl ColliderSlice {
     }
 }
 
-struct GroupRefs(Vec<(Entity, ColliderSlice)>, Group);
+struct ColliderGroup {
+    members: Vec<(Entity, ColliderSlice)>,
+    group: Group,
+}
 
 const BUFFER_CAPACITY: usize = 10_000;
 
 pub struct CollisionSolver {
-    groups: [GroupRefs; GROUP_COUNT],
+    collider_groups: [ColliderGroup; GROUP_COUNT],
     vertices: Vec<Vec2>,
     normals: Vec<Vec2>,
 
@@ -57,12 +60,12 @@ pub struct CollisionSolver {
 impl CollisionSolver {
     pub fn new() -> CollisionSolver {
         debug_assert!(GROUP_COUNT == u32::BITS as usize);
-        let groups = std::array::from_fn(|idx| {
-            let group = Group::from_id(idx as u32);
-            GroupRefs(Vec::new(), group)
+        let groups = std::array::from_fn(|idx| ColliderGroup {
+            group: Group::from_id(idx as u32),
+            members: Vec::new(),
         });
         CollisionSolver {
-            groups,
+            collider_groups: groups,
             vertices: Vec::with_capacity(BUFFER_CAPACITY),
             normals: Vec::with_capacity(BUFFER_CAPACITY),
             perf: Default::default(),
@@ -77,15 +80,17 @@ impl CollisionSolver {
         self.perf = Default::default();
         self.vertices.clear();
         self.normals.clear();
-        self.groups.iter_mut().for_each(|x| x.0.clear());
+        for group in &mut self.collider_groups {
+            group.members.clear();
+        }
     }
 
     pub fn fill(&mut self, entities: impl IntoIterator<Item = (Entity, Collider)>) {
         for (ent, collider) in entities {
             let collider = self.put_collider(collider);
-            for group in &mut self.groups {
-                if collider.group.includes(group.1) {
-                    group.0.push((ent, collider));
+            for group in &mut self.collider_groups {
+                if collider.group.includes(group.group) {
+                    group.members.push((ent, collider));
                 }
             }
         }
@@ -136,11 +141,11 @@ impl CollisionSolver {
         });
 
         let query_slice = self.put_collider(query);
-        for group in &self.groups {
-            if !query_slice.group.includes(group.1) {
+        for colliders in &self.collider_groups {
+            if !query_slice.group.includes(colliders.group) {
                 continue;
             }
-            for (cand_entity, collider_slice) in &group.0 {
+            for (cand_entity, collider_slice) in &colliders.members {
                 if !collider_slice.satisfies_filter(filter) {
                     continue;
                 }
@@ -166,11 +171,11 @@ impl CollisionSolver {
 
         let query_slice = self.put_collider(query);
         let (mut toi, mut normal, mut entity) = (f32::INFINITY, Vec2::ZERO, Entity::DANGLING);
-        for group in &self.groups {
-            if !query_slice.group.includes(group.1) {
+        for colliders in &self.collider_groups {
+            if !query_slice.group.includes(colliders.group) {
                 continue;
             }
-            for (cand_entity, collider_slice) in &group.0 {
+            for (cand_entity, collider_slice) in &colliders.members {
                 let (cand_toi, cand_normal) =
                     self.time_of_impact_slice(&query_slice, collider_slice, direction, t_max);
                 if cand_toi < toi {
