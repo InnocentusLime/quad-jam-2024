@@ -1133,7 +1133,7 @@ dependencies = [
 
 [[package]]
 name = "lib-asset"
-version = "0.11.0"
+version = "0.12.0"
 dependencies = [
  "anyhow",
  "clap",
@@ -1151,7 +1151,7 @@ dependencies = [
 
 [[package]]
 name = "lib-col"
-version = "0.4.4"
+version = "0.4.5"
 dependencies = [
  "glam",
  "hecs",
@@ -1686,7 +1686,7 @@ dependencies = [
 
 [[package]]
 name = "quad-jam-2024"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "anyhow",
  "clap",
