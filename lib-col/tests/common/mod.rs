@@ -1,6 +1,8 @@
+use std::collections::HashSet;
+
 use glam::{Affine2, Vec2, vec2};
 use hecs::Entity;
-use lib_col::{Aabb, Shape, rect_points};
+use lib_col::{Aabb, Collider, CollisionSolver, Group, Shape, rect_points};
 use svg::node::element::{Circle, Path, path::Data};
 
 const TRANSFORM_COUNT: usize = 10;
@@ -153,4 +155,15 @@ pub fn draw_aabb(canvas: &mut svg::Document, aabb: Aabb, color: &str) {
 #[allow(dead_code)]
 pub const fn entity(id: usize) -> Entity {
     Entity::from_bits(1u64 << 32u64 | id as u64).unwrap()
+}
+
+#[allow(dead_code)]
+pub fn query_overlaps_set(
+    solver: &mut CollisionSolver,
+    query: Collider,
+    filter: Group,
+) -> HashSet<Entity> {
+    let mut buff = Vec::new();
+    solver.query_overlaps(&mut buff, query, filter);
+    buff.into_iter().collect()
 }

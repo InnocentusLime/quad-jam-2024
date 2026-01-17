@@ -2,9 +2,11 @@ mod common;
 
 use common::{TestCase, draw_shape, run_tests_no_fuzz};
 use glam::{Affine2, Mat2, vec2};
-use std::collections::HashSet;
 use hecs::{Entity, World};
 use lib_col::{Collider, CollisionSolver, Group, Shape};
+use std::collections::HashSet;
+
+use crate::common::query_overlaps_set;
 
 #[derive(Debug, Clone, Copy)]
 struct WorldTest {
@@ -63,7 +65,7 @@ impl TestCase for WorldTest {
             .into_iter()
             .map(|idx| spawned[*idx])
             .collect::<HashSet<_>>();
-        let actual = solver.query_overlaps(col, filter).collect::<HashSet<_>>();
+        let actual = query_overlaps_set(&mut solver, col, filter);
 
         actual == expected
     }

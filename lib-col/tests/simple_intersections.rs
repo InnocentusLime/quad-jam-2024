@@ -5,7 +5,7 @@ use glam::{Affine2, Vec2, vec2};
 
 use lib_col::{Collider, CollisionSolver, Group, Shape};
 
-use crate::common::entity;
+use crate::common::{entity, query_overlaps_set};
 
 #[derive(Debug, Clone, Copy)]
 struct TwoShapesTest {
@@ -32,17 +32,16 @@ impl TestCase for TwoShapesTest {
                 group: Group::from_id(0),
             },
         )]);
-        let res = solver
-            .query_overlaps(
-                Collider {
-                    tf: self.tf2,
-                    shape: self.shape2,
-                    group: Group::from_id(0),
-                },
-                Group::empty(),
-            )
-            .next()
-            .is_some();
+        let res = !query_overlaps_set(
+            &mut solver,
+            Collider {
+                tf: self.tf2,
+                shape: self.shape2,
+                group: Group::from_id(0),
+            },
+            Group::empty(),
+        )
+        .is_empty();
         if res != self.expected_result {
             println!("Mismatch!");
             false

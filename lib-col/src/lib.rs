@@ -128,11 +128,7 @@ impl CollisionSolver {
         }
     }
 
-    pub fn query_overlaps(
-        &mut self,
-        query: Collider,
-        filter: Group,
-    ) -> impl Iterator<Item = Entity> {
+    pub fn query_overlaps(&mut self, output: &mut Vec<Entity>, query: Collider, filter: Group) {
         #[cfg(feature = "dbg")]
         self.perf.update(|mut x| {
             x.overlap_query_count += 1;
@@ -140,21 +136,20 @@ impl CollisionSolver {
         });
 
         let query_slice = self.put_collider(query);
-        self.do_query_overlaps(query_slice, filter)
-    }
-
-    fn do_query_overlaps(
-        &self,
-        query_slice: ColliderSlice,
-        filter: Group,
-    ) -> impl Iterator<Item = Entity> {
-        self.groups
-            .iter()
-            .filter(move |group| query_slice.group.includes(group.1))
-            .flat_map(|group| group.0.iter())
-            .filter(move |(_, col)| col.satisfies_filter(filter))
-            .filter(move |(_, col)| self.slices_collide(&query_slice, col))
-            .map(|(e, _)| *e)
+        for group in &self.groups {
+            if !query_slice.group.includes(group.1) {
+                continue;
+            }
+            for (cand_entity, collider_slice) in &group.0 {
+                if !collider_slice.satisfies_filter(filter) {
+                    continue;
+                }
+                if !self.slices_collide(&query_slice, collider_slice) {
+                    continue;
+                }
+                output.push(*cand_entity)
+            }
+        }
     }
 
     pub fn query_shape_cast(
@@ -207,7 +202,7 @@ impl CollisionSolver {
         let (mut toi, mut push_normal) = (-f32::INFINITY, Vec2::ZERO);
         let v_slice1 = &self.vertices[cast.verts_start..cast.verts_end];
         let v_slice2 = &self.vertices[target.verts_start..target.verts_end];
-        
+
         for normal in &self.normals[cast.normals_start..cast.normals_end] {
             let (cand_toi, cand_push) =
                 self.candidate_time_of_impact_slice(v_slice1, v_slice2, *normal, direction, t_max);
@@ -219,7 +214,7 @@ impl CollisionSolver {
                 push_normal = cand_push;
             }
         }
-        
+
         for normal in &self.normals[target.normals_start..target.normals_end] {
             let (cand_toi, cand_push) =
                 self.candidate_time_of_impact_slice(v_slice1, v_slice2, *normal, direction, t_max);
