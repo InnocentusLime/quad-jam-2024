@@ -2,7 +2,7 @@ mod common;
 
 use common::{TestCase, draw_shape, run_tests_no_fuzz};
 use glam::{Affine2, Mat2, vec2};
-use hashbrown::HashSet;
+use std::collections::HashSet;
 use lib_col::{Collider, CollisionSolver, Group, Shape};
 
 use crate::common::entity;
