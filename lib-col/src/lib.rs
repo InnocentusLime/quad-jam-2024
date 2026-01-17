@@ -272,6 +272,10 @@ impl CollisionSolver {
             return false;
         }
 
+        if !slice1.aabb.overlaps(slice2.aabb) {
+            return false;
+        }
+
         !self.is_separated_slice(slice1, slice2, Vec2::ZERO)
     }
 
