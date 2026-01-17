@@ -120,14 +120,30 @@ pub fn rect_points(size: Vec2, tf: Affine2) -> [Vec2; 4] {
 
 /// Returns transformed circle normals
 pub fn circle_normals(tf: Affine2) -> [Vec2; 8] {
-    CIRCLE_NORMALS.map(|n| tf.transform_vector2(n))
+    [
+        tf.transform_vector2(CIRCLE_NORMALS[0]),
+        tf.transform_vector2(CIRCLE_NORMALS[1]),
+        tf.transform_vector2(CIRCLE_NORMALS[2]),
+        tf.transform_vector2(CIRCLE_NORMALS[3]),
+        tf.transform_vector2(CIRCLE_NORMALS[4]),
+        tf.transform_vector2(CIRCLE_NORMALS[5]),
+        tf.transform_vector2(CIRCLE_NORMALS[6]),
+        tf.transform_vector2(CIRCLE_NORMALS[7]),
+    ]
 }
 
 /// Returns transformed circle points
 pub fn circle_points(radius: f32, tf: Affine2) -> [Vec2; 8] {
-    CIRCLE_VERTICES
-        .map(|v| v * radius)
-        .map(|v| tf.transform_point2(v))
+    [
+        tf.transform_point2(CIRCLE_VERTICES[0] * radius),
+        tf.transform_point2(CIRCLE_VERTICES[1] * radius),
+        tf.transform_point2(CIRCLE_VERTICES[2] * radius),
+        tf.transform_point2(CIRCLE_VERTICES[3] * radius),
+        tf.transform_point2(CIRCLE_VERTICES[4] * radius),
+        tf.transform_point2(CIRCLE_VERTICES[5] * radius),
+        tf.transform_point2(CIRCLE_VERTICES[6] * radius),
+        tf.transform_point2(CIRCLE_VERTICES[7] * radius),
+    ]
 }
 
 #[cfg(test)]
