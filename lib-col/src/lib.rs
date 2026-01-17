@@ -204,9 +204,10 @@ impl CollisionSolver {
             return (f32::INFINITY, Vec2::ZERO);
         }
 
+        let (mut toi, mut push_normal) = (-f32::INFINITY, Vec2::ZERO);
         let v_slice1 = &self.vertices[cast.verts_start..cast.verts_end];
         let v_slice2 = &self.vertices[target.verts_start..target.verts_end];
-        let (mut toi, mut push_normal) = (-f32::INFINITY, Vec2::ZERO);
+        
         for normal in &self.normals[cast.normals_start..cast.normals_end] {
             let (cand_toi, cand_push) =
                 self.candidate_time_of_impact_slice(v_slice1, v_slice2, *normal, direction, t_max);
@@ -218,6 +219,7 @@ impl CollisionSolver {
                 push_normal = cand_push;
             }
         }
+        
         for normal in &self.normals[target.normals_start..target.normals_end] {
             let (cand_toi, cand_push) =
                 self.candidate_time_of_impact_slice(v_slice1, v_slice2, *normal, direction, t_max);
@@ -231,9 +233,10 @@ impl CollisionSolver {
         }
 
         if toi == -f32::INFINITY {
-            return (f32::INFINITY, push_normal);
+            (f32::INFINITY, push_normal)
+        } else {
+            (toi, push_normal)
         }
-        (toi, push_normal)
     }
 
     /// Computes the time of impact for a fixed axis.
