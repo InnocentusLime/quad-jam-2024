@@ -77,10 +77,12 @@ impl CollisionSolver {
 
     pub fn compute_collisions_query<const ID: usize>(&mut self, world: &mut World) {
         for (_, (tf, query)) in &mut world.query::<(&Transform, &mut CollisionQuery<ID>)>() {
-            let query_collider = get_query_collider(tf, query);
             let start = self.collision_buffer.len();
-            self.collision_buffer
-                .extend(self.solver.query_overlaps(query_collider, query.filter));
+            self.solver.query_overlaps(
+                &mut self.collision_buffer,
+                get_query_collider(tf, query),
+                query.filter,
+            );
             let end = self.collision_buffer.len();
             query.collision_slice = CollisionQuerySlice {
                 off: start,

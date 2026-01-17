@@ -2,10 +2,10 @@ mod common;
 
 use common::{TestCase, draw_shape, run_tests_no_fuzz};
 use glam::{Affine2, Mat2, vec2};
-use std::collections::HashSet;
 use lib_col::{Collider, CollisionSolver, Group, Shape};
+use std::collections::HashSet;
 
-use crate::common::entity;
+use crate::common::{entity, query_overlaps_set};
 
 #[derive(Debug, Clone, Copy)]
 struct GroupTest {
@@ -37,9 +37,7 @@ impl TestCase for GroupTest {
             .iter()
             .map(|x| entity(*x))
             .collect::<HashSet<_>>();
-        let matched = solver
-            .query_overlaps(self.get_query(), Group::empty())
-            .collect::<HashSet<_>>();
+        let matched = query_overlaps_set(&mut solver, self.get_query(), Group::empty());
 
         matched == expected
     }
