@@ -68,6 +68,10 @@ impl CollisionSolver {
 
         dump!("Colliders: {}", self.solver.perf().colliders_loaded);
         dump!("Shapecasts: {}", self.solver.perf().shapecast_query_count);
+        dump!(
+            "Overlap queries: {}",
+            self.solver.perf().overlap_query_count
+        );
         dump!("Projections: {}", self.solver.perf().projection_count);
         dump!(
             "Projections (vert): {}",
