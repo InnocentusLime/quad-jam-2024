@@ -76,7 +76,7 @@ impl<'a> Sequencer<'a> {
         pointer: Pos2,
     ) {
         self.timeline_input_idle_clips(ui, timeline_rect, pointer);
-        self.timeline_input_idle_pan_and_zoom(ui);
+        self.timeline_input_idle_pan_and_zoom(ui, timeline_rect, pointer);
         self.timeline_input_idle_cursor(response, timeline_rect);
     }
 
@@ -144,7 +144,12 @@ impl<'a> Sequencer<'a> {
         }
     }
 
-    fn timeline_input_idle_pan_and_zoom(&mut self, ui: &mut Ui) {
+    fn timeline_input_idle_pan_and_zoom(
+        &mut self,
+        ui: &mut Ui,
+        timeline_rect: Rect,
+        pointer: Pos2,
+    ) {
         let mut middle_button_down = false;
         let mut space_down = false;
         let mut plus_pressed = false;
@@ -165,11 +170,12 @@ impl<'a> Sequencer<'a> {
             }
         });
 
+        let fixed_pos = self.tf.inv_tf_pos(pointer.x - timeline_rect.left());
         if plus_pressed || scroll_dir == 1 {
-            self.tf.zoom *= 1.3f32;
+            self.tf.zoom(1.3, fixed_pos);
         }
         if minus_pressed || scroll_dir == -1 {
-            self.tf.zoom /= 1.3f32;
+            self.tf.zoom(1.0 / 1.3, fixed_pos);
         }
 
         if !middle_button_down && !space_down {
@@ -428,6 +434,14 @@ impl TimelineTf {
 
     pub fn inv_tf_pos(&self, pos: f32) -> f32 {
         pos / self.zoom - self.pan
+    }
+
+    pub fn zoom(&mut self, zoom_delta: f32, fixed_pos: f32) {
+        let old_pan = self.pan;
+        let zoom_delta_recip = zoom_delta.recip();
+        let new_pan = (zoom_delta_recip - 1.0) * fixed_pos + zoom_delta_recip * old_pan;
+        self.pan = new_pan.min(0.0);
+        self.zoom *= zoom_delta;
     }
 }
 
