@@ -32,7 +32,7 @@ pub fn draw_char_state(world: &World, resources: &Resources) {
         }
 
         draw_shape_lines(
-            &character.character_q.tf,
+            character.character_q.tf,
             &character.character_q.body.shape,
             YELLOW,
         );
@@ -161,7 +161,7 @@ impl<'a, T> Character<'a, T> {
         } else {
             Transform {
                 pos: self.pos() + pos,
-                angle: angle,
+                angle,
             }
         }
     }
