@@ -176,6 +176,7 @@ fn selected_clip_ui(ui: &mut Ui, clips: &mut ClipsUi, selected_clip: &mut Option
         ui.label(format!("Track: {}", clip.track_id));
         ui.label(format!("Pos: {}", clip.start));
         ui.label(format!("Length: {}", clip.len));
+
         clip_action_ui(ui, clips.get_action_mut(clip_idx).unwrap());
     });
 }
@@ -230,6 +231,7 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
         *clip = new_clip;
     }
 
+    ui.separator();
     match clip {
         ClipAction::DrawSprite(ClipActionDrawSprite {
             layer,
