@@ -1,4 +1,6 @@
-use egui::{Color32, Key, Painter, Pos2, Rect, Response, Sense, Stroke, Ui, Vec2, Widget, pos2};
+use egui::{
+    Color32, FontId, Key, Painter, Pos2, Rect, Response, Sense, Stroke, Ui, Vec2, Widget, pos2,
+};
 use egui::{epaint, vec2};
 
 use lib_asset::animation::*;
@@ -6,6 +8,8 @@ use lib_asset::animation::*;
 use super::clips::*;
 
 pub const PIXELS_PER_UNIT: f32 = 32.0;
+pub const SIZE_BEFORE_CONT: f32 = 48.0;
+pub const TIMELINE_HEADER_HEIGHT: f32 = 32.0;
 
 pub struct Sequencer<'a> {
     pub cursor_pos: &'a mut u32,
@@ -335,7 +339,7 @@ impl<'a> Sequencer<'a> {
             painter.rect_filled(track_selection, 0.0, dark_color);
         }
 
-        self.for_each_timeline_mark(timeline_rect, |cont, idx, mark_x| {
+        self.for_each_timeline_mark(timeline_rect, |cont, idx, _, mark_x| {
             let mark_points = [
                 pos2(mark_x, timeline_rect.top()),
                 pos2(mark_x, timeline_rect.bottom()),
@@ -371,8 +375,9 @@ impl<'a> Sequencer<'a> {
     fn for_each_timeline_mark(
         &self,
         timeline_rect: Rect,
-        mut callback: impl FnMut(bool, u32, f32),
+        mut callback: impl FnMut(bool, u32, u32, f32),
     ) {
+        let size_before_cont = (self.tf.inv_tf_vector(SIZE_BEFORE_CONT).round() as u32).max(1);
         let step_size = (self.tf.inv_tf_vector(PIXELS_PER_UNIT).round() as u32).max(1);
         let min_visible_ms = self.tf.inv_tf_pos(0.0).round() as u32;
         let min_visible_step = min_visible_ms / step_size;
@@ -382,7 +387,7 @@ impl<'a> Sequencer<'a> {
             let pos = idx * step_size;
             let local_pos = self.tf.tf_pos(pos as f32);
             let mark_x = timeline_rect.left() + local_pos;
-            callback(step_size == 1, idx, mark_x);
+            callback(size_before_cont == 1, idx, pos, mark_x);
         }
     }
 }
@@ -395,10 +400,38 @@ impl<'a> Widget for Sequencer<'a> {
             return response;
         }
 
-        self.clips
-            .paint_track_labels(ui, &painter, widget_rect, *self.selected_track);
+        let mut body_rect = widget_rect;
+        let mut header_rect = widget_rect;
+        body_rect.set_top(body_rect.top() + TIMELINE_HEADER_HEIGHT);
+        header_rect.set_height(TIMELINE_HEADER_HEIGHT);
+        header_rect.set_left(header_rect.left() + TRACK_LABEL_WIDTH);
 
-        let mut timeline_rect = widget_rect;
+        painter.set_clip_rect(header_rect);
+        self.for_each_timeline_mark(header_rect, |cont, idx, ms, mark_x| {
+            if !cont && idx % 5 != 0 {
+                return;
+            }
+            let pos = egui::pos2(mark_x, header_rect.top() + TIMELINE_HEADER_HEIGHT / 4.0);
+            let mark_points = [
+                pos2(mark_x, header_rect.bottom()),
+                pos2(mark_x, header_rect.bottom() - TIMELINE_HEADER_HEIGHT / 4.3),
+            ];
+            let color = ui.visuals().weak_text_color();
+            painter.line_segment(mark_points, Stroke::new(1.0, color));
+            painter.text(
+                pos,
+                egui::Align2::CENTER_TOP,
+                ms.to_string(),
+                FontId::default(),
+                color,
+            );
+        });
+
+        painter.set_clip_rect(body_rect);
+        self.clips
+            .paint_track_labels(ui, &painter, body_rect, *self.selected_track);
+
+        let mut timeline_rect = body_rect;
         timeline_rect.set_left(timeline_rect.left() + TRACK_LABEL_WIDTH);
         painter.set_clip_rect(timeline_rect);
 
