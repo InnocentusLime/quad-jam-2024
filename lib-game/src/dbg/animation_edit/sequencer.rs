@@ -5,7 +5,7 @@ use lib_asset::animation::*;
 
 use super::clips::*;
 
-pub const PIXELS_PER_UNIT: f32 = 18.0;
+pub const PIXELS_PER_UNIT: f32 = 32.0;
 
 pub struct Sequencer<'a> {
     pub cursor_pos: &'a mut u32,
@@ -335,35 +335,18 @@ impl<'a> Sequencer<'a> {
             painter.rect_filled(track_selection, 0.0, dark_color);
         }
 
-        let mut last_painted = None;
-        let mut painted_count = 0;
-        let contigious_paint = self.tf.tf_vector(1.0) >= PIXELS_PER_UNIT;
-        for section in 1..300 {
-            let local_pos = self.tf.tf_pos(section as f32);
-            let too_close = last_painted
-                .map(|x| local_pos - x < PIXELS_PER_UNIT)
-                .unwrap_or(false);
-            if too_close {
-                continue;
-            }
-
-            let mark_x = timeline_rect.left() + local_pos;
+        self.for_each_timeline_mark(timeline_rect, |cont, idx, mark_x| {
             let mark_points = [
                 pos2(mark_x, timeline_rect.top()),
                 pos2(mark_x, timeline_rect.bottom()),
             ];
-            let color = if painted_count % 5 == 0 || contigious_paint {
+            let color = if idx % 5 == 0 || cont {
                 ui.visuals().weak_text_color()
             } else {
                 ui.visuals().extreme_bg_color
             };
-            if local_pos >= 0.0 {
-                painter.line_segment(mark_points, Stroke::new(1.0, color));
-            }
-
-            painted_count += 1;
-            last_painted = Some(local_pos);
-        }
+            painter.line_segment(mark_points, Stroke::new(1.0, color));
+        });
 
         painter.rect(
             timeline_rect,
@@ -383,6 +366,24 @@ impl<'a> Sequencer<'a> {
             ],
             Stroke::new(1.0, Color32::RED),
         );
+    }
+
+    fn for_each_timeline_mark(
+        &self,
+        timeline_rect: Rect,
+        mut callback: impl FnMut(bool, u32, f32),
+    ) {
+        let step_size = (self.tf.inv_tf_vector(PIXELS_PER_UNIT).round() as u32).max(1);
+        let min_visible_ms = self.tf.inv_tf_pos(0.0).round() as u32;
+        let min_visible_step = min_visible_ms / step_size;
+        let lines_on_screen = (timeline_rect.width() / PIXELS_PER_UNIT) as u32 + 8;
+        for idx in 0..lines_on_screen {
+            let idx = min_visible_step + idx;
+            let pos = idx * step_size;
+            let local_pos = self.tf.tf_pos(pos as f32);
+            let mark_x = timeline_rect.left() + local_pos;
+            callback(step_size == 1, idx, mark_x);
+        }
     }
 }
 
