@@ -204,7 +204,8 @@ fn selected_clip_ui(ui: &mut Ui, clips: &mut ClipsUi, selected_clip: &mut Option
             *selected_clip = None;
             return;
         };
-        ui.label(format!("Track: {}", clip.track_id));
+        let track = clips.get_track(clip.track_id).unwrap();
+        ui.label(format!("Track: {}", track.name));
         let track_y = clips.track_y(clip.track_id).unwrap();
         let (mut start, mut len) = (clip.start, clip.len);
         ui.horizontal(|ui| {
