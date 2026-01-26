@@ -299,7 +299,6 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
             });
             ui.horizontal(|ui| {
                 enum_select(ui, "team_id", "team", team);
-                ui.label("team");
             });
             ui.horizontal(|ui| {
                 group_ui(ui, group);
