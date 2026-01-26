@@ -2,7 +2,7 @@ mod clips;
 mod save_ui;
 mod sequencer;
 
-use egui::{Button, ComboBox, DragValue, Label, TextEdit, WidgetText, vec2};
+use egui::{ComboBox, DragValue, Label, Modal, WidgetText, vec2};
 use egui::{Ui, Widget};
 use macroquad::math::Vec2;
 
@@ -26,11 +26,13 @@ pub struct AnimationEdit {
     current_pack_id: AnimationPackId,
     sequencer_state: SequencerState,
     tf: TimelineTf,
-    track_label: String,
     selected_clip: Option<u32>,
     selected_track: Option<u32>,
     load_into_track: u32,
     layer_name: String,
+
+    open_track_creation_modal: bool,
+    track_label: String,
 }
 
 impl AnimationEdit {
@@ -43,13 +45,14 @@ impl AnimationEdit {
             sequencer_state: SequencerState::Idle,
             selected_clip: None,
             selected_track: None,
-            track_label: String::new(),
             tf: TimelineTf {
                 zoom: 1.0,
                 pan: 0.0,
             },
             load_into_track: 0,
             layer_name: String::new(),
+            track_label: String::new(),
+            open_track_creation_modal: false,
         }
     }
 
@@ -60,6 +63,15 @@ impl AnimationEdit {
         anims: &mut HashMap<AnimationId, Animation>,
         world: &mut World,
     ) {
+        let mut insert_pressed = false;
+        let mut delete_pressed = false;
+        let mut shift_down = false;
+        ui.input(|st| {
+            insert_pressed = st.key_pressed(egui::Key::Insert);
+            delete_pressed = st.key_pressed(egui::Key::Delete);
+            shift_down = st.modifiers.shift;
+        });
+
         ComboBox::new("playback", "playback entity")
             .selected_text(format!("{:?}", self.playback))
             .show_ui(ui, |ui| {
@@ -113,36 +125,34 @@ impl AnimationEdit {
         let mut clips = ClipsUi::new(&mut anim.tracks, &mut anim.clips);
         selected_clip_ui(ui, &mut clips, &mut self.selected_clip);
 
-        ui.horizontal(|ui| {
-            let add_resp = ui.add_enabled(self.selected_track.is_some(), Button::new("add clip"));
+        self.track_creation_modal(&mut clips, ui);
+
+        ui.horizontal(|_ui| {
+            let add_clip = insert_pressed && !shift_down;
             if let Some(track_id) = self.selected_track
-                && add_resp.clicked()
+                && add_clip
             {
                 clips.add_clip(track_id, play.cursor, 500);
             }
 
-            let delete_resp =
-                ui.add_enabled(self.selected_clip.is_some(), Button::new("delete clip"));
-            let delete_pressed = ui.input(|input| input.key_pressed(egui::Key::Delete));
+            let delete_track = delete_pressed && !shift_down;
             if let Some(idx) = self.selected_clip
-                && (delete_resp.clicked() || delete_pressed)
+                && delete_track
             {
                 clips.delete_clip(idx);
             }
         });
 
-        ui.horizontal(|ui| {
-            TextEdit::singleline(&mut self.track_label)
-                .desired_width(100.0)
-                .ui(ui);
-
-            if ui.button("Add track").clicked() {
-                clips.add_track(self.track_label.clone());
+        ui.horizontal(|_ui| {
+            let add_track = insert_pressed && shift_down;
+            if add_track && !self.open_track_creation_modal {
+                self.open_track_creation_modal = true;
+                self.track_label.clear();
             }
 
-            let resp = ui.add_enabled(self.selected_track.is_some(), Button::new("delete track"));
+            let delete_track = delete_pressed && shift_down;
             if let Some(idx) = self.selected_track
-                && resp.clicked()
+                && delete_track
             {
                 clips.delete_track(idx);
             }
@@ -158,6 +168,28 @@ impl AnimationEdit {
             selected_track: &mut self.selected_track,
         }
         .ui(ui);
+    }
+
+    fn track_creation_modal(&mut self, clips: &mut ClipsUi, ui: &mut Ui) {
+        if !self.open_track_creation_modal {
+            return;
+        }
+
+        Modal::new(egui::Id::new("New track")).show(ui.ctx(), |ui| {
+            ui.set_width(250.0);
+            ui.heading("Create track");
+            ui.text_edit_singleline(&mut self.track_label);
+
+            ui.horizontal(|ui| {
+                if ui.button("Add").clicked() {
+                    self.open_track_creation_modal = false;
+                    clips.add_track(self.track_label.clone());
+                }
+                if ui.button("Cancel").clicked() {
+                    self.open_track_creation_modal = false;
+                }
+            });
+        });
     }
 }
 
