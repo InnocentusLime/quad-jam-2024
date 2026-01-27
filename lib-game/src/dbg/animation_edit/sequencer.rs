@@ -159,12 +159,14 @@ impl<'a> Sequencer<'a> {
         let mut plus_pressed = false;
         let mut minus_pressed = false;
         let mut scroll_dir = 0i32;
+        let mut zero_pressed = false;
         ui.ctx().input(|i| {
             middle_button_down = i.pointer.button_down(egui::PointerButton::Middle);
             space_down = i.key_down(Key::Space);
             // Due to miniquad stupidity, we must use Key::Equals
             plus_pressed = i.key_pressed(Key::Equals);
             minus_pressed = i.key_pressed(Key::Minus);
+            zero_pressed = i.key_pressed(Key::Num0);
 
             if i.raw_scroll_delta.y < 0.0 {
                 scroll_dir = -1;
@@ -180,6 +182,10 @@ impl<'a> Sequencer<'a> {
         }
         if minus_pressed || scroll_dir == -1 {
             self.tf.zoom(1.0 / 1.3, fixed_pos);
+        }
+        if zero_pressed {
+            self.tf.pan = 0.0;
+            self.tf.zoom = 1.0;
         }
 
         if !middle_button_down && !space_down {
