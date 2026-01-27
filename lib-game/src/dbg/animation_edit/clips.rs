@@ -173,7 +173,10 @@ impl<'a> ClipsUi<'a> {
             return None;
         }
 
-        if self.clip_has_intersection(track_id, u32::MAX, start, len) {
+        if self
+            .clip_has_intersection(track_id, u32::MAX, start, len)
+            .is_some()
+        {
             return None;
         }
 
@@ -193,13 +196,27 @@ impl<'a> ClipsUi<'a> {
         self.clips.retain(|x| x.id != idx);
     }
 
-    pub fn set_clip_pos_len(&mut self, idx: u32, new_track_y: u32, new_pos: u32, new_len: u32) {
-        let Some(new_track) = self.track_containing_pos(new_track_y) else {
+    pub fn set_clip_pos_len(&mut self, idx: u32, new_track_y: u32, mut new_pos: u32, new_len: u32) {
+        let new_track = self
+            .track_containing_pos(new_track_y)
+            .unwrap_or(self.tracks.last().unwrap().id);
+        let Some(clip) = self.get(idx) else {
             return;
         };
 
-        if self.clip_has_intersection(new_track, idx, new_pos, new_len) {
-            return;
+        let push = self.clip_has_intersection(new_track, idx, new_pos, new_len);
+        if let Some(push) = push {
+            if clip.len == new_len {
+                new_pos = (new_pos as i32 + push) as u32;
+                if self
+                    .clip_has_intersection(new_track, idx, new_pos, new_len)
+                    .is_some()
+                {
+                    return;
+                }
+            } else {
+                return;
+            }
         }
 
         let Some(clip) = self.get_mut(idx) else {
@@ -321,19 +338,29 @@ impl<'a> ClipsUi<'a> {
             .find(|x| x.track_id == track_id && x.start <= pos && pos <= x.start + x.len)
     }
 
-    fn clip_has_intersection(&self, track_id: u32, skip: u32, pos: u32, len: u32) -> bool {
+    fn clip_has_intersection(&self, track_id: u32, skip: u32, start: u32, len: u32) -> Option<i32> {
+        let end = start + len;
+        let mut res = None::<i32>;
+        let mut update = |x: i32| match res {
+            Some(y) if x.abs() < y.abs() => res = Some(x),
+            Some(_) => (),
+            None => res = Some(x),
+        };
+
         for clip in self.clips.iter().filter(|x| x.track_id == track_id) {
             if clip.id == skip {
                 continue;
             }
-            if clip.start <= pos && clip.start + clip.len > pos {
-                return true;
+            if clip.start <= start && clip.end() > start {
+                update(clip.end() as i32 - start as i32);
+                continue;
             }
-            if pos <= clip.start && pos + len > clip.start {
-                return true;
+            if start <= clip.start && end > clip.start {
+                update(clip.start as i32 - end as i32);
+                continue;
             }
         }
-        false
+        res
     }
 }
 
