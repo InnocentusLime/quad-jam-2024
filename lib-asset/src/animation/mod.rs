@@ -78,6 +78,10 @@ pub struct Clip<Act = ClipAction> {
 }
 
 impl Clip {
+    pub fn end(&self) -> u32 {
+        self.start + self.len
+    }
+
     pub fn to_draw_sprite(self) -> Option<Clip<ClipActionDrawSprite>> {
         let ClipAction::DrawSprite(draw) = self.action else {
             return None;
