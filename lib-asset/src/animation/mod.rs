@@ -56,14 +56,14 @@ impl Animation {
         self.clips
             .iter()
             .copied()
-            .filter(move |x| x.start <= pos && pos < x.start + x.len)
+            .filter(move |x| x.contains_pos(pos))
     }
 
     pub fn inactive_clips(&self, pos: u32) -> impl Iterator<Item = Clip> {
         self.clips
             .iter()
             .copied()
-            .filter(move |x| !(x.start <= pos && pos < x.start + x.len))
+            .filter(move |x| !x.contains_pos(pos))
     }
 }
 
@@ -78,6 +78,10 @@ pub struct Clip<Act = ClipAction> {
 }
 
 impl Clip {
+    pub fn contains_pos(&self, pos: u32) -> bool {
+        self.start <= pos && pos < self.end()
+    }
+
     pub fn end(&self) -> u32 {
         self.start + self.len
     }

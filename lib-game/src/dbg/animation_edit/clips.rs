@@ -335,7 +335,7 @@ impl<'a> ClipsUi<'a> {
         let track_id = self.track_containing_pos(track_y)?;
         self.clips
             .iter()
-            .find(|x| x.track_id == track_id && x.start <= pos && pos <= x.start + x.len)
+            .find(|x| x.track_id == track_id && x.contains_pos(pos))
     }
 
     fn clip_has_intersection(&self, track_id: u32, skip: u32, start: u32, len: u32) -> Option<i32> {
