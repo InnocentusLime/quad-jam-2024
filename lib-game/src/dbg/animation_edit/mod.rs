@@ -2,7 +2,7 @@ mod clips;
 mod save_ui;
 mod sequencer;
 
-use egui::{ComboBox, DragValue, Label, Modal, WidgetText, vec2};
+use egui::{Button, ComboBox, DragValue, Label, Modal, Response, WidgetText, vec2};
 use egui::{Ui, Widget};
 use macroquad::math::Vec2;
 
@@ -33,6 +33,9 @@ pub struct AnimationEdit {
 
     open_track_creation_modal: bool,
     track_label: String,
+
+    open_global_offset_modal: bool,
+    global_offset: Vec2,
 }
 
 impl AnimationEdit {
@@ -53,6 +56,8 @@ impl AnimationEdit {
             layer_name: String::new(),
             track_label: String::new(),
             open_track_creation_modal: false,
+            open_global_offset_modal: false,
+            global_offset: Vec2::ZERO,
         }
     }
 
@@ -122,10 +127,18 @@ impl AnimationEdit {
         ui.checkbox(&mut anim.is_looping, "is looping");
         ui.checkbox(&mut play.pause, "Pause");
 
+        let poen_global_offset_button = Button::new("Global offset");
+        let global_offset_resp =
+            ui.add_enabled(!self.open_global_offset_modal, poen_global_offset_button);
+        if global_offset_resp.clicked() {
+            self.open_global_offset_modal = true;
+        }
+
         let mut clips = ClipsUi::new(&mut anim.tracks, &mut anim.clips);
         selected_clip_ui(ui, &mut clips, &mut self.selected_clip);
 
         self.track_creation_modal(&mut clips, ui);
+        self.global_offset_modal(&global_offset_resp, &mut clips, ui);
 
         ui.horizontal(|_ui| {
             let add_clip = insert_pressed && !shift_down;
@@ -190,6 +203,51 @@ impl AnimationEdit {
                 }
             });
         });
+    }
+
+    fn global_offset_modal(&mut self, response: &Response, clips: &mut ClipsUi, ui: &mut Ui) {
+        let popup_id = ui.make_persistent_id("offset_modal");
+        if response.clicked() {
+            self.global_offset = Vec2::ZERO;
+            ui.memory_mut(|mem| mem.toggle_popup(popup_id));
+        }
+
+        let popup_res = egui::popup_above_or_below_widget(
+            ui,
+            popup_id,
+            &response,
+            egui::AboveOrBelow::Below,
+            egui::PopupCloseBehavior::CloseOnClickOutside,
+            |ui| {
+                ui.horizontal(|ui| {
+                    clips.global_offset(-self.global_offset);
+                    ui.add(DragValue::new(&mut self.global_offset.x).range(-256.0..=256.0));
+                    ui.add(DragValue::new(&mut self.global_offset.y).range(-256.0..=256.0));
+                    ui.label("global offset");
+                    clips.global_offset(self.global_offset);
+                });
+
+                if ui.button("Apply").clicked() {
+                    // Close and apply the global offset
+                    return true;
+                }
+
+                // Do not close and do not apply
+                false
+            },
+        );
+
+        match popup_res {
+            None if self.open_global_offset_modal => {
+                clips.global_offset(-self.global_offset);
+                self.open_global_offset_modal = false;
+            }
+            Some(true) => {
+                self.open_global_offset_modal = false;
+                ui.memory_mut(|mem| mem.toggle_popup(popup_id));
+            }
+            _ => self.open_global_offset_modal = popup_res.is_some(),
+        }
     }
 }
 

@@ -155,6 +155,25 @@ impl<'a> ClipsUi<'a> {
         }
     }
 
+    pub fn global_offset(&mut self, off: Vec2) {
+        for clip in self.clips.iter_mut() {
+            match &mut clip.action {
+                ClipAction::DrawSprite(clip_action_draw_sprite) => {
+                    clip_action_draw_sprite.local_pos += off;
+                }
+                ClipAction::AttackBox(clip_action_attack_box) => {
+                    clip_action_attack_box.local_pos += off;
+                }
+                ClipAction::Invulnerability(_) => (),
+                ClipAction::LockInput(_) => (),
+                ClipAction::Move(_) => (),
+                ClipAction::Spawn(clip_action_spawn) => {
+                    clip_action_spawn.local_pos += off;
+                }
+            }
+        }
+    }
+
     pub fn add_track(&mut self, name: String) -> u32 {
         let id = self.next_track_id;
         self.tracks.push(Track { id, name });
