@@ -17,7 +17,7 @@ jobs:
       - name: Extract artifact
         run: docker cp quad-jam:/usr/local/apache2/htdocs/ ./dist 
       - name: Push HTML5 version to itch.io
-        uses: manleydev/butler-publish-itchio-action@v1.0.3
+        uses: yeslayla/butler-publish-itchio-action@v1.1.0  
         env:
           BUTLER_CREDENTIALS: ${{ secrets.BUTLER_TOKEN }}
           ITCH_GAME: ${{ vars.ITCH_GAME }}
