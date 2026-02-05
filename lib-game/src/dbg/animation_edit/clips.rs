@@ -140,7 +140,6 @@ impl<'a> ClipWidget<'a> {
 
 pub struct ClipsUi<'a> {
     next_track_id: u32,
-    next_clip_id: u32,
     tracks: &'a mut Vec<Track>,
     clips: &'a mut Vec<Clip>,
 }
@@ -149,7 +148,6 @@ impl<'a> ClipsUi<'a> {
     pub fn new(tracks: &'a mut Vec<Track>, clips: &'a mut Vec<Clip>) -> ClipsUi<'a> {
         ClipsUi {
             next_track_id: tracks.iter().map(|x| x.id + 1).max().unwrap_or_default(),
-            next_clip_id: clips.iter().map(|x| x.id + 1).max().unwrap_or_default(),
             tracks,
             clips,
         }
@@ -199,20 +197,18 @@ impl<'a> ClipsUi<'a> {
             return None;
         }
 
-        let id = self.next_clip_id;
+        let id = self.clips.len() as u32;
         self.clips.push(Clip {
             track_id,
-            id,
             start,
             len,
             action: default_action(),
         });
-        self.next_clip_id += 1;
         Some(id)
     }
 
     pub fn delete_clip(&mut self, idx: u32) {
-        self.clips.retain(|x| x.id != idx);
+        self.clips.remove(idx as usize);
     }
 
     pub fn set_clip_pos_len(&mut self, idx: u32, new_track_y: u32, mut new_pos: u32, new_len: u32) {
@@ -252,7 +248,7 @@ impl<'a> ClipsUi<'a> {
     }
 
     pub fn get(&self, idx: u32) -> Option<&Clip> {
-        self.clips.iter().find(|x| x.id == idx)
+        self.clips.get(idx as usize)
     }
 
     pub fn get_action_mut(&mut self, idx: u32) -> Option<&mut ClipAction> {
@@ -260,7 +256,7 @@ impl<'a> ClipsUi<'a> {
     }
 
     fn get_mut(&mut self, idx: u32) -> Option<&mut Clip> {
-        self.clips.iter_mut().find(|x| x.id == idx)
+        self.clips.get_mut(idx as usize)
     }
 
     pub fn paint_track_labels(
@@ -313,8 +309,8 @@ impl<'a> ClipsUi<'a> {
         tf: TimelineTf,
         selected_clip: Option<u32>,
     ) {
-        for clip in self.clips.iter() {
-            let selected = selected_clip.map(|x| x == clip.id).unwrap_or_default();
+        for (clip_idx, clip) in self.clips.iter().enumerate() {
+            let selected = selected_clip == Some(clip_idx as u32);
             let (track_y, track) = self
                 .tracks
                 .iter()
@@ -350,11 +346,12 @@ impl<'a> ClipsUi<'a> {
             .map(|(_, track)| track.id)
     }
 
-    pub fn clip_containing_pos(&self, track_y: u32, pos: u32) -> Option<&Clip> {
+    pub fn clip_containing_pos(&self, track_y: u32, pos: u32) -> Option<(usize, &Clip)> {
         let track_id = self.track_containing_pos(track_y)?;
         self.clips
             .iter()
-            .find(|x| x.track_id == track_id && x.contains_pos(pos))
+            .enumerate()
+            .find(|(_, x)| x.track_id == track_id && x.contains_pos(pos))
     }
 
     fn clip_has_intersection(&self, track_id: u32, skip: u32, start: u32, len: u32) -> Option<i32> {
@@ -366,8 +363,13 @@ impl<'a> ClipsUi<'a> {
             None => res = Some(x),
         };
 
-        for clip in self.clips.iter().filter(|x| x.track_id == track_id) {
-            if clip.id == skip {
+        let clips = self
+            .clips
+            .iter()
+            .enumerate()
+            .filter(|(_, x)| x.track_id == track_id);
+        for (clip_idx, clip) in clips {
+            if clip_idx as u32 == skip {
                 continue;
             }
             if clip.start <= start && clip.end() > start {

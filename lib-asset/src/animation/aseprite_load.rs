@@ -90,7 +90,6 @@ fn load_clips_from_aseprite(
             for (track_id, duration, action) in &frames[&frame_id] {
                 clips.push(Clip {
                     track_id: *track_id,
-                    id: clips.len() as u32,
                     start,
                     len: *duration,
                     action: *action,

@@ -274,7 +274,7 @@ fn selected_clip_ui(ui: &mut Ui, clips: &mut ClipsUi, selected_clip: &mut Option
             DragValue::new(&mut len).ui(ui);
             ui.label("len");
         });
-        clips.set_clip_pos_len(clip.id, track_y, start, len);
+        clips.set_clip_pos_len(clip_idx, track_y, start, len);
 
         clip_action_ui(ui, clips.get_action_mut(clip_idx).unwrap());
     });
