@@ -128,7 +128,7 @@ impl<'a, T> Character<'a, T> {
     pub fn get_input_flags(&self) -> (bool, bool) {
         self.animation
             .active_lock_input(self.anim_cursor())
-            .map(|x| (x.action.allow_walk_input, x.action.allow_look_input))
+            .map(|(_, x)| (x.action.allow_walk_input, x.action.allow_look_input))
             .next()
             .unwrap_or((true, true))
     }

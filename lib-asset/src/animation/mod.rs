@@ -25,51 +25,63 @@ impl Animation {
             .unwrap_or_default()
     }
 
-    pub fn active_draw_sprite(&self, pos: u32) -> impl Iterator<Item = Clip<ClipActionDrawSprite>> {
+    pub fn active_draw_sprite(
+        &self,
+        pos: u32,
+    ) -> impl Iterator<Item = (u32, Clip<ClipActionDrawSprite>)> {
         self.active_clips(pos).filter_map(Clip::to_draw_sprite)
     }
 
-    pub fn active_attack_box(&self, pos: u32) -> impl Iterator<Item = Clip<ClipActionAttackBox>> {
+    pub fn active_attack_box(
+        &self,
+        pos: u32,
+    ) -> impl Iterator<Item = (u32, Clip<ClipActionAttackBox>)> {
         self.active_clips(pos).filter_map(Clip::to_attack_box)
     }
 
-    pub fn active_lock_input(&self, pos: u32) -> impl Iterator<Item = Clip<ClipActionLockInput>> {
+    pub fn active_lock_input(
+        &self,
+        pos: u32,
+    ) -> impl Iterator<Item = (u32, Clip<ClipActionLockInput>)> {
         self.active_clips(pos).filter_map(Clip::to_lock_input)
     }
 
     pub fn active_invulnerability(
         &self,
         pos: u32,
-    ) -> impl Iterator<Item = Clip<ClipActionInvulnerability>> {
+    ) -> impl Iterator<Item = (u32, Clip<ClipActionInvulnerability>)> {
         self.active_clips(pos).filter_map(Clip::to_invulnerability)
     }
 
-    pub fn active_move(&self, pos: u32) -> impl Iterator<Item = Clip<ClipActionMove>> {
+    pub fn active_move(&self, pos: u32) -> impl Iterator<Item = (u32, Clip<ClipActionMove>)> {
         self.active_clips(pos).filter_map(Clip::to_move)
     }
 
-    pub fn active_spawn(&self, pos: u32) -> impl Iterator<Item = Clip<ClipActionSpawn>> {
+    pub fn active_spawn(&self, pos: u32) -> impl Iterator<Item = (u32, Clip<ClipActionSpawn>)> {
         self.active_clips(pos).filter_map(Clip::to_spawn)
     }
 
-    pub fn active_clips(&self, pos: u32) -> impl Iterator<Item = Clip> {
+    pub fn active_clips(&self, pos: u32) -> impl Iterator<Item = (u32, Clip)> {
         self.clips
             .iter()
             .copied()
-            .filter(move |x| x.contains_pos(pos))
+            .enumerate()
+            .map(|(x, y)| (x as u32, y))
+            .filter(move |(_, x)| x.contains_pos(pos))
     }
 
-    pub fn inactive_clips(&self, pos: u32) -> impl Iterator<Item = Clip> {
+    pub fn inactive_clips(&self, pos: u32) -> impl Iterator<Item = (u32, Clip)> {
         self.clips
             .iter()
             .copied()
-            .filter(move |x| !x.contains_pos(pos))
+            .enumerate()
+            .map(|(x, y)| (x as u32, y))
+            .filter(move |(_, x)| !x.contains_pos(pos))
     }
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub struct Clip<Act = ClipAction> {
-    pub id: u32,
     pub track_id: u32,
     pub start: u32,
     pub len: u32,
@@ -86,51 +98,52 @@ impl Clip {
         self.start + self.len
     }
 
-    pub fn to_draw_sprite(self) -> Option<Clip<ClipActionDrawSprite>> {
-        let ClipAction::DrawSprite(draw) = self.action else {
+    pub fn to_draw_sprite((idx, clip): (u32, Self)) -> Option<(u32, Clip<ClipActionDrawSprite>)> {
+        let ClipAction::DrawSprite(draw) = clip.action else {
             return None;
         };
-        Some(self.replace_action(draw))
+        Some((idx, clip.replace_action(draw)))
     }
 
-    pub fn to_attack_box(self) -> Option<Clip<ClipActionAttackBox>> {
-        let ClipAction::AttackBox(atk) = self.action else {
+    pub fn to_attack_box((idx, clip): (u32, Self)) -> Option<(u32, Clip<ClipActionAttackBox>)> {
+        let ClipAction::AttackBox(atk) = clip.action else {
             return None;
         };
-        Some(self.replace_action(atk))
+        Some((idx, clip.replace_action(atk)))
     }
 
-    pub fn to_lock_input(self) -> Option<Clip<ClipActionLockInput>> {
-        let ClipAction::LockInput(lock) = self.action else {
+    pub fn to_lock_input((idx, clip): (u32, Self)) -> Option<(u32, Clip<ClipActionLockInput>)> {
+        let ClipAction::LockInput(lock) = clip.action else {
             return None;
         };
-        Some(self.replace_action(lock))
+        Some((idx, clip.replace_action(lock)))
     }
 
-    pub fn to_invulnerability(self) -> Option<Clip<ClipActionInvulnerability>> {
-        let ClipAction::Invulnerability(invuln) = self.action else {
+    pub fn to_invulnerability(
+        (idx, clip): (u32, Self),
+    ) -> Option<(u32, Clip<ClipActionInvulnerability>)> {
+        let ClipAction::Invulnerability(invuln) = clip.action else {
             return None;
         };
-        Some(self.replace_action(invuln))
+        Some((idx, clip.replace_action(invuln)))
     }
 
-    pub fn to_move(self) -> Option<Clip<ClipActionMove>> {
-        let ClipAction::Move(mov) = self.action else {
+    pub fn to_move((idx, clip): (u32, Self)) -> Option<(u32, Clip<ClipActionMove>)> {
+        let ClipAction::Move(mov) = clip.action else {
             return None;
         };
-        Some(self.replace_action(mov))
+        Some((idx, clip.replace_action(mov)))
     }
 
-    pub fn to_spawn(self) -> Option<Clip<ClipActionSpawn>> {
-        let ClipAction::Spawn(spawn) = self.action else {
+    pub fn to_spawn((idx, clip): (u32, Self)) -> Option<(u32, Clip<ClipActionSpawn>)> {
+        let ClipAction::Spawn(spawn) = clip.action else {
             return None;
         };
-        Some(self.replace_action(spawn))
+        Some((idx, clip.replace_action(spawn)))
     }
 
     fn replace_action<T>(self, action: T) -> Clip<T> {
         Clip {
-            id: self.id,
             track_id: self.track_id,
             start: self.start,
             len: self.len,

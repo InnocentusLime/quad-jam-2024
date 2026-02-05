@@ -67,11 +67,11 @@ pub(crate) fn delete_clip_action_objects(
         let to_despawn = character
             .animation
             .inactive_clips(character.anim_cursor())
-            .filter_map(|clip| {
+            .filter_map(|(clip_id, _)| {
                 clip_action_objects.get(&ClipActionObject {
                     parent,
                     animation: character.animation_id(),
-                    clip_id: clip.id,
+                    clip_id: clip_id,
                 })
             });
         for entity in to_despawn {
@@ -87,14 +87,14 @@ pub(crate) fn update_attack_boxes(
     active_events: &HashMap<ClipActionObject, Entity>,
 ) {
     for_each_character::<()>(world, resources, |parent, character| {
-        for clip in character
+        for (clip_id, clip) in character
             .animation
             .active_attack_box(character.anim_cursor())
         {
             let event = ClipActionObject {
                 parent,
                 animation: character.animation_id(),
-                clip_id: clip.id,
+                clip_id: clip_id,
             };
             let new_col_tf = character.transform_child(
                 clip.action.rotate_with_parent,
@@ -137,11 +137,11 @@ pub(crate) fn update_spawned<G: Game>(
     active_events: &HashMap<ClipActionObject, Entity>,
 ) {
     for_each_character::<()>(world, resources, |parent, character| {
-        for clip in character.animation.active_spawn(character.anim_cursor()) {
+        for (clip_id, clip) in character.animation.active_spawn(character.anim_cursor()) {
             let event = ClipActionObject {
                 parent,
                 animation: character.animation_id(),
-                clip_id: clip.id,
+                clip_id: clip_id,
             };
             let (pos, look_angle) = character.transform_character(
                 clip.action.rotate_with_parent,
@@ -183,7 +183,7 @@ pub(crate) fn update_invulnerability(world: &mut World, resources: &Resources) {
 
 pub(crate) fn buffer_sprites(world: &mut World, resources: &Resources, render: &mut Render) {
     for_each_character::<()>(world, resources, |_, character| {
-        for clip in character
+        for (_, clip) in character
             .animation
             .active_draw_sprite(character.anim_cursor())
         {

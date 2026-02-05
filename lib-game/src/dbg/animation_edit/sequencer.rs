@@ -95,8 +95,8 @@ impl<'a> Sequencer<'a> {
 
         if left_button_down {
             if is_in_timeline {
-                *self.selected_clip = clip.map(|x| x.id);
-                *self.selected_track = clip.map(|x| x.track_id);
+                *self.selected_clip = clip.map(|(x, _)| x as u32);
+                *self.selected_track = clip.map(|(_, x)| x.track_id);
             } else {
                 *self.selected_clip = None;
             }
@@ -106,12 +106,12 @@ impl<'a> Sequencer<'a> {
             return;
         }
 
-        if let Some(clip) = clip {
+        if let Some((clip_id, clip)) = clip {
             let track_y = self.clips.track_y(clip.track_id).unwrap();
             let action = ClipWidget(clip).pointer_action(timeline_rect, pointer, *self.tf, track_y);
             Self::clip_action_to_cursor(ui, action);
             if left_button_down {
-                *self.state = Self::clip_action_to_new_state(track_y, clip, action);
+                *self.state = Self::clip_action_to_new_state(track_y, clip_id as u32, clip, action);
             }
         }
     }
@@ -127,19 +127,20 @@ impl<'a> Sequencer<'a> {
 
     fn clip_action_to_new_state(
         track_y: u32,
+        clip_id: u32,
         clip: &Clip,
         action: UiClipGesture,
     ) -> SequencerState {
         match action {
             UiClipGesture::Move => SequencerState::MoveClip {
-                clip_id: clip.id,
+                clip_id,
                 start_pos_x: clip.start as f32,
                 start_pos_y: track_y as f32 * CLIP_HEIGHT,
                 total_drag_delta_x: 0.0f32,
                 total_drag_delta_y: 0.0f32,
             },
             UiClipGesture::Resize { resize_left } => SequencerState::ResizeClip {
-                clip_id: clip.id,
+                clip_id,
                 resize_left,
                 start_left: clip.start as f32,
                 start_right: (clip.start + clip.len) as f32,
