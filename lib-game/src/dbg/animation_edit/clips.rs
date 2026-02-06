@@ -139,18 +139,13 @@ impl<'a> ClipWidget<'a> {
 }
 
 pub struct ClipsUi<'a> {
-    next_track_id: u32,
     tracks: &'a mut Vec<Track>,
     clips: &'a mut Vec<Clip>,
 }
 
 impl<'a> ClipsUi<'a> {
     pub fn new(tracks: &'a mut Vec<Track>, clips: &'a mut Vec<Clip>) -> ClipsUi<'a> {
-        ClipsUi {
-            next_track_id: tracks.iter().map(|x| x.id + 1).max().unwrap_or_default(),
-            tracks,
-            clips,
-        }
+        ClipsUi { tracks, clips }
     }
 
     pub fn global_offset(&mut self, off: Vec2) {
@@ -173,20 +168,23 @@ impl<'a> ClipsUi<'a> {
     }
 
     pub fn add_track(&mut self, name: String) -> u32 {
-        let id = self.next_track_id;
-        self.tracks.push(Track { id, name });
-        self.next_track_id += 1;
-
-        id
+        let id = self.tracks.len();
+        self.tracks.push(Track { name });
+        id as u32
     }
 
     pub fn delete_track(&mut self, track_id: u32) {
-        self.tracks.retain(|x| x.id != track_id);
+        self.tracks.remove(track_id as usize);
         self.clips.retain(|x| x.track_id != track_id);
+        for clip in self.clips.iter_mut() {
+            if clip.track_id > track_id {
+                clip.track_id -= 1;
+            }
+        }
     }
 
     pub fn add_clip(&mut self, track_id: u32, start: u32, len: u32) -> Option<u32> {
-        if !self.tracks.iter().any(|x| x.id == track_id) {
+        if track_id >= self.tracks.len() as u32 {
             return None;
         }
 
@@ -211,10 +209,7 @@ impl<'a> ClipsUi<'a> {
         self.clips.remove(idx as usize);
     }
 
-    pub fn set_clip_pos_len(&mut self, idx: u32, new_track_y: u32, mut new_pos: u32, new_len: u32) {
-        let new_track = self
-            .track_containing_pos(new_track_y)
-            .unwrap_or(self.tracks.last().unwrap().id);
+    pub fn set_clip_pos_len(&mut self, idx: u32, new_track: u32, mut new_pos: u32, new_len: u32) {
         let Some(clip) = self.get(idx) else {
             return;
         };
@@ -244,7 +239,7 @@ impl<'a> ClipsUi<'a> {
     }
 
     pub fn get_track(&self, idx: u32) -> Option<&Track> {
-        self.tracks.iter().find(|x| x.id == idx)
+        self.tracks.get(idx as usize)
     }
 
     pub fn get(&self, idx: u32) -> Option<&Clip> {
@@ -266,11 +261,11 @@ impl<'a> ClipsUi<'a> {
         widget_rect: Rect,
         selected_track: Option<u32>,
     ) {
-        for (y, track) in self.tracks.iter().enumerate() {
-            let selected = selected_track.map(|x| x == track.id).unwrap_or_default();
-            let top = widget_rect.top() + (y as f32) * CLIP_HEIGHT;
+        for (track_id, track) in self.tracks.iter().enumerate() {
+            let selected = selected_track == Some(track_id as u32);
+            let top = widget_rect.top() + (track_id as f32) * CLIP_HEIGHT;
             let padding = ui.spacing().button_padding;
-            let color = track_color(track.id);
+            let color = track_color(track_id as u32);
 
             let text_gal = WidgetText::from(&track.name).into_galley(
                 ui,
@@ -311,47 +306,31 @@ impl<'a> ClipsUi<'a> {
     ) {
         for (clip_idx, clip) in self.clips.iter().enumerate() {
             let selected = selected_clip == Some(clip_idx as u32);
-            let (track_y, track) = self
-                .tracks
-                .iter()
-                .enumerate()
-                .find(|(_, x)| x.id == clip.track_id)
-                .unwrap();
             let widget = ClipWidget(clip);
             widget.paint(
                 ui,
                 painter,
                 timeline_rect,
                 tf,
-                track_y as u32,
-                track_color(track.id),
+                clip.track_id,
+                track_color(clip.track_id),
                 selected,
             );
         }
     }
 
-    pub fn track_y(&self, track_id: u32) -> Option<u32> {
+    pub fn tracks(&self) -> impl IntoIterator<Item = (u32, &str)> {
         self.tracks
             .iter()
             .enumerate()
-            .find(|(_, x)| x.id == track_id)
-            .map(|(id, _)| id as u32)
-    }
-
-    pub fn track_containing_pos(&self, track_y: u32) -> Option<u32> {
-        self.tracks
-            .iter()
-            .enumerate()
-            .find(|(idx, _)| *idx as u32 == track_y)
-            .map(|(_, track)| track.id)
+            .map(|(id, track)| (id as u32, track.name.as_str()))
     }
 
     pub fn clip_containing_pos(&self, track_y: u32, pos: u32) -> Option<(usize, &Clip)> {
-        let track_id = self.track_containing_pos(track_y)?;
         self.clips
             .iter()
             .enumerate()
-            .find(|(_, x)| x.track_id == track_id && x.contains_pos(pos))
+            .find(|(_, x)| x.track_id == track_y && x.contains_pos(pos))
     }
 
     fn clip_has_intersection(&self, track_id: u32, skip: u32, start: u32, len: u32) -> Option<i32> {

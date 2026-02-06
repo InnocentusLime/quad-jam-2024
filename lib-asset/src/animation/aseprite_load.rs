@@ -34,7 +34,6 @@ fn load_animations_from_aseprite(
         .map(|(name, (is_looping, track_count, clips))| {
             let tracks = (0..track_count)
                 .map(|id| Track {
-                    id,
                     name: format!("sprites {id}"),
                 })
                 .collect();
