@@ -264,7 +264,6 @@ fn selected_clip_ui(ui: &mut Ui, clips: &mut ClipsUi, selected_clip: &mut Option
         };
         let track = clips.get_track(clip.track_id).unwrap();
         ui.label(format!("Track: {}", track.name));
-        let track_y = clips.track_y(clip.track_id).unwrap();
         let (mut start, mut len) = (clip.start, clip.len);
         ui.horizontal(|ui| {
             DragValue::new(&mut start).ui(ui);
@@ -274,7 +273,7 @@ fn selected_clip_ui(ui: &mut Ui, clips: &mut ClipsUi, selected_clip: &mut Option
             DragValue::new(&mut len).ui(ui);
             ui.label("len");
         });
-        clips.set_clip_pos_len(clip_idx, track_y, start, len);
+        clips.set_clip_pos_len(clip_idx, clip.track_id, start, len);
 
         clip_action_ui(ui, clips.get_action_mut(clip_idx).unwrap());
     });

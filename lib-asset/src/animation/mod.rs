@@ -212,7 +212,6 @@ pub struct ClipActionSpawn {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Track {
     pub name: String,
-    pub id: u32,
 }
 
 #[derive(Default, Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]

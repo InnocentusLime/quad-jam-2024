@@ -107,11 +107,12 @@ impl<'a> Sequencer<'a> {
         }
 
         if let Some((clip_id, clip)) = clip {
-            let track_y = self.clips.track_y(clip.track_id).unwrap();
-            let action = ClipWidget(clip).pointer_action(timeline_rect, pointer, *self.tf, track_y);
+            let action =
+                ClipWidget(clip).pointer_action(timeline_rect, pointer, *self.tf, clip.track_id);
             Self::clip_action_to_cursor(ui, action);
             if left_button_down {
-                *self.state = Self::clip_action_to_new_state(track_y, clip_id as u32, clip, action);
+                *self.state =
+                    Self::clip_action_to_new_state(clip.track_id, clip_id as u32, clip, action);
             }
         }
     }
@@ -203,10 +204,14 @@ impl<'a> Sequencer<'a> {
         let Some(pos) = response.interact_pointer_pos() else {
             return;
         };
-        let y_pos = ((pos.y - timeline_rect.top()) / CLIP_HEIGHT) as u32;
+        let selected_track_id = ((pos.y - timeline_rect.top()) / CLIP_HEIGHT) as u32;
         if response.clicked() {
             *self.cursor_pos = self.tf.inv_tf_pos(pos.x - timeline_rect.left()).round() as u32;
-            *self.selected_track = self.clips.track_containing_pos(y_pos);
+            for (track_id, _) in self.clips.tracks() {
+                if track_id == selected_track_id {
+                    *self.selected_track = Some(selected_track_id);
+                }
+            }
         }
     }
 
@@ -289,9 +294,8 @@ impl<'a> Sequencer<'a> {
             (final_right - final_left).round()
         };
         let new_pos = final_left.round() as u32;
-        let new_track_y = self.clips.track_y(clip.track_id).unwrap();
         self.clips
-            .set_clip_pos_len(clip_id, new_track_y, new_pos, new_len as u32);
+            .set_clip_pos_len(clip_id, clip.track_id, new_pos, new_len as u32);
         *self.state = SequencerState::ResizeClip {
             clip_id,
             start_left,
@@ -326,20 +330,18 @@ impl<'a> Sequencer<'a> {
     fn paint_timeline(&self, ui: &Ui, painter: &Painter, timeline_rect: Rect) {
         painter.rect_filled(timeline_rect, 0.0, ui.visuals().noninteractive().bg_fill);
 
-        let track = self
-            .selected_track
-            .and_then(|idx| self.clips.get_track(idx));
-        if let Some(track) = track {
-            let dark_color = darken_color(track_color(track.id));
-            let track_y = self.clips.track_y(track.id).unwrap();
-            let track_selection = Rect::from_min_size(
-                pos2(
-                    timeline_rect.left(),
-                    timeline_rect.top() + (track_y as f32) * CLIP_HEIGHT,
-                ),
-                vec2(timeline_rect.width(), CLIP_HEIGHT),
-            );
-            painter.rect_filled(track_selection, 0.0, dark_color);
+        for (track_id, _) in self.clips.tracks() {
+            if *self.selected_track == Some(track_id) {
+                let dark_color = darken_color(track_color(track_id));
+                let track_selection = Rect::from_min_size(
+                    pos2(
+                        timeline_rect.left(),
+                        timeline_rect.top() + (track_id as f32) * CLIP_HEIGHT,
+                    ),
+                    vec2(timeline_rect.width(), CLIP_HEIGHT),
+                );
+                painter.rect_filled(track_selection, 0.0, dark_color);
+            }
         }
 
         self.for_each_timeline_mark(timeline_rect, |cont, idx, _, mark_x| {
