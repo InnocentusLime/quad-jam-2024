@@ -298,7 +298,6 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
             ClipActionDiscriminants::AttackBox => ClipAction::AttackBox(ClipActionAttackBox {
                 local_pos: Vec2::ZERO,
                 local_rotation: 0.0,
-                team: Team::Player,
                 group: lib_col::Group::empty(),
                 shape: lib_col::Shape::Rect {
                     width: 0.0,
@@ -377,7 +376,6 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
         ClipAction::AttackBox(ClipActionAttackBox {
             local_pos,
             local_rotation,
-            team,
             group,
             rotate_with_parent,
             graze_value,
@@ -391,9 +389,6 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
             ui.horizontal(|ui| {
                 ui.drag_angle(local_rotation);
                 ui.label("local rotation");
-            });
-            ui.horizontal(|ui| {
-                enum_select(ui, "team_id", "team", team);
             });
             ui.horizontal(|ui| {
                 group_ui(ui, group);

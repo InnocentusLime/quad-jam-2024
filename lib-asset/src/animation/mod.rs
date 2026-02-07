@@ -188,7 +188,6 @@ pub struct ClipActionDrawSprite {
 pub struct ClipActionAttackBox {
     pub local_pos: Vec2,
     pub local_rotation: f32,
-    pub team: Team,
     pub group: lib_col::Group,
     pub shape: lib_col::Shape,
     pub rotate_with_parent: bool,
@@ -213,24 +212,6 @@ pub struct ClipActionSpawn {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Track {
     pub name: String,
-}
-
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    Serialize,
-    Deserialize,
-    strum::EnumString,
-    strum::VariantArray,
-    strum::IntoStaticStr,
-    PartialEq,
-    Eq,
-    Hash,
-)]
-pub enum Team {
-    Player,
-    Enemy,
 }
 
 // TODO: macro for generating this id AND mapping from pack to ids
