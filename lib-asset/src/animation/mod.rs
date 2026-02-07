@@ -3,7 +3,7 @@ pub mod aseprite_load;
 
 use crate::TextureId;
 use crate::level::CharacterInfo;
-use glam::Vec2;
+use glam::{UVec2, Vec2};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 
@@ -178,7 +178,8 @@ pub struct ClipActionDrawSprite {
     pub texture_id: TextureId,
     pub local_pos: Vec2,
     pub local_rotation: f32,
-    pub rect: ImgRect,
+    pub rect_pos: UVec2,
+    pub rect_size: UVec2,
     pub sort_offset: f32,
     pub rotate_with_parent: bool,
 }
@@ -212,14 +213,6 @@ pub struct ClipActionSpawn {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Track {
     pub name: String,
-}
-
-#[derive(Default, Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
-pub struct ImgRect {
-    pub x: u32,
-    pub y: u32,
-    pub w: u32,
-    pub h: u32,
 }
 
 #[derive(

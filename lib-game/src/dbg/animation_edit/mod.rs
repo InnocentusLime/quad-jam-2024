@@ -4,7 +4,7 @@ mod sequencer;
 
 use egui::{Button, ComboBox, DragValue, Label, Modal, Response, WidgetText, vec2};
 use egui::{Ui, Widget};
-use macroquad::math::Vec2;
+use macroquad::math::{UVec2, Vec2};
 
 use hashbrown::HashMap;
 use hecs::{Entity, World};
@@ -290,12 +290,8 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
                 texture_id: TextureId::BunnyAtlas,
                 local_pos: Vec2::ZERO,
                 local_rotation: 0.0,
-                rect: ImgRect {
-                    x: 0,
-                    y: 0,
-                    w: 0,
-                    h: 0,
-                },
+                rect_pos: UVec2::ZERO,
+                rect_size: UVec2::ZERO,
                 sort_offset: 0.0,
                 rotate_with_parent: false,
             }),
@@ -336,7 +332,8 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
             texture_id: current_texture_id,
             local_pos,
             local_rotation,
-            rect,
+            rect_pos,
+            rect_size,
             sort_offset,
             rotate_with_parent,
         }) => {
@@ -362,13 +359,13 @@ fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
                 ui.label("local rotation");
             });
             ui.horizontal(|ui| {
-                ui.add(DragValue::new(&mut rect.x).range(0..=512));
-                ui.add(DragValue::new(&mut rect.y).range(0..=512));
+                ui.add(DragValue::new(&mut rect_pos.x).range(0..=512));
+                ui.add(DragValue::new(&mut rect_pos.y).range(0..=512));
                 ui.label("texture rect pos");
             });
             ui.horizontal(|ui| {
-                ui.add(DragValue::new(&mut rect.w).range(0..=512));
-                ui.add(DragValue::new(&mut rect.h).range(0..=512));
+                ui.add(DragValue::new(&mut rect_size.x).range(0..=512));
+                ui.add(DragValue::new(&mut rect_size.y).range(0..=512));
                 ui.label("texture rect size");
             });
             ui.horizontal(|ui| {

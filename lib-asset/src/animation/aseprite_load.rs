@@ -2,13 +2,13 @@ use std::{fs::File, path::Path, str::FromStr};
 
 use crate::{AssetRoot, FsResolver, animation::ClipActionDrawSprite};
 use anyhow::{Context, bail, ensure};
-use glam::vec2;
+use glam::{uvec2, vec2};
 use hashbrown::HashMap;
 use log::{info, warn};
 use macroquad::texture::Texture2D;
 use serde::Deserialize;
 
-use super::{Animation, AnimationId, Clip, ClipAction, ImgRect, Track};
+use super::{Animation, AnimationId, Clip, ClipAction, Track};
 
 pub fn load_animations_aseprite(
     resolver: &FsResolver,
@@ -134,12 +134,8 @@ fn collect_frames(
                 texture_id: resolver.inverse_resolve::<Texture2D>(&sprite_path).unwrap(),
                 local_pos: vec2(-(frame.frame.w as f32) * 0.5, -(frame.frame.h as f32) * 0.5),
                 local_rotation: 0.0,
-                rect: ImgRect {
-                    x: frame.frame.x,
-                    y: frame.frame.y,
-                    w: frame.frame.w,
-                    h: frame.frame.h,
-                },
+                rect_pos: uvec2(frame.frame.x, frame.frame.y),
+                rect_size: uvec2(frame.frame.w, frame.frame.h),
                 sort_offset: 0.0f32,
                 rotate_with_parent: false,
             }),

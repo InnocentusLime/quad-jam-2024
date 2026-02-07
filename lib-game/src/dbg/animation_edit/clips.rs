@@ -1,6 +1,6 @@
 use egui::{Color32, Painter, Pos2, Rect, Stroke, TextStyle, Ui, WidgetText, pos2, vec2};
 use lib_asset::animation::*;
-use macroquad::math::Vec2;
+use macroquad::math::{UVec2, Vec2};
 
 use super::TimelineTf;
 
@@ -394,12 +394,8 @@ fn default_action() -> ClipAction {
         texture_id: lib_asset::TextureId::WorldAtlas,
         local_pos: Vec2::ZERO,
         local_rotation: 0.0,
-        rect: ImgRect {
-            x: 0,
-            y: 0,
-            w: 0,
-            h: 0,
-        },
+        rect_pos: UVec2::ZERO,
+        rect_size: UVec2::ZERO,
         sort_offset: 0.0,
         rotate_with_parent: false,
     })
