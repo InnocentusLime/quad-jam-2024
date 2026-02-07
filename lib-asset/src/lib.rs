@@ -46,7 +46,10 @@ impl FsResolver {
     }
 
     pub async fn load<A: Asset>(&self, id: A::AssetId) -> anyhow::Result<A> {
-        A::load(self, &self.get_path(A::ROOT, A::filename(id))).await
+        let path = self.get_path(A::ROOT, A::filename(id));
+        A::load(self, &path)
+            .await
+            .with_context(|| format!("load {path:?}"))
     }
 
     pub fn set_root(&mut self, id: AssetRoot, dir: impl AsRef<Path>) {
