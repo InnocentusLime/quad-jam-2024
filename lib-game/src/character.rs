@@ -1,11 +1,11 @@
 use hecs::{Bundle, Entity, Query, World};
-use lib_asset::animation::{Animation, AnimationId, Team};
+use lib_asset::animation::{Animation, AnimationId};
 use lib_col::{Group, Shape};
 use log::warn;
 use macroquad::prelude::*;
 
 use crate::{
-    AnimationPlay, BodyTag, CharacterLook, Direction, Health, KinematicControl, Resources,
+    AnimationPlay, BodyTag, CharacterLook, Direction, Health, KinematicControl, Resources, Team,
     Transform, col_group, draw_shape_lines,
 };
 

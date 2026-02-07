@@ -116,7 +116,7 @@ pub(crate) fn update_attack_boxes(
                     let mut builder = EntityBuilder::new();
                     builder.add_bundle(AttackBundle::new(
                         new_col_tf,
-                        clip.action.team,
+                        *character.character_q.team,
                         clip.action.shape,
                         clip.action.graze_value,
                         col_group::NONE,

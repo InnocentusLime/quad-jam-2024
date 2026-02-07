@@ -2,6 +2,12 @@ use hecs::Entity;
 use lib_asset::animation::{Animation, AnimationId};
 use macroquad::prelude::*;
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Team {
+    Player,
+    Enemy,
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct GrazeGain {
     pub value: f32,
