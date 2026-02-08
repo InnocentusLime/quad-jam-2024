@@ -1,8 +1,7 @@
 use crate::{
-    BodyTag, CollisionSolver, GrazeGain, GrazeValue, Health, Transform, col_group, col_query,
+    BodyTag, CollisionSolver, GrazeGain, GrazeValue, Health, Team, Transform, col_group, col_query,
 };
 use hecs::{Bundle, Query, World};
-use lib_asset::animation::Team;
 use lib_col::{Group, Shape};
 
 #[derive(Query)]

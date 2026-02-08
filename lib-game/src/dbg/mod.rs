@@ -50,12 +50,8 @@ impl DebugStuff {
         egui_macroquad::ui(|egui_ctx| {
             #[cfg(feature = "dev-env")]
             egui::Window::new("animation_edit").show(egui_ctx, |ui| {
-                self.anim_edit.ui(
-                    &app.resources.resolver,
-                    ui,
-                    &mut app.resources.animations,
-                    &mut app.world,
-                );
+                self.anim_edit
+                    .ui(ui, &mut app.resources.animations, &mut app.world);
             });
             let cmd = self.cmd_center.show(egui_ctx, get_char_pressed());
             if let Some(cmd) = cmd {

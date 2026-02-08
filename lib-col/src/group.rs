@@ -49,6 +49,12 @@ impl Group {
     }
 }
 
+impl Default for Group {
+    fn default() -> Self {
+        Group::empty()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     const GROUP_SAMPLE_COUNT: usize = 1_000_000;

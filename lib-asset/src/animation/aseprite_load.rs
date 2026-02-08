@@ -1,14 +1,17 @@
 use std::{fs::File, path::Path, str::FromStr};
 
-use crate::{AssetRoot, FsResolver, animation::ClipActionDrawSprite};
+use crate::{
+    AssetRoot, FsResolver,
+    animation::{Clips, DrawSprite},
+};
 use anyhow::{Context, bail, ensure};
-use glam::vec2;
+use glam::{uvec2, vec2};
 use hashbrown::HashMap;
 use log::{info, warn};
 use macroquad::texture::Texture2D;
 use serde::Deserialize;
 
-use super::{Animation, AnimationId, Clip, ClipAction, ImgRect, Track};
+use super::{Animation, AnimationId, Clip, Track};
 
 pub fn load_animations_aseprite(
     resolver: &FsResolver,
@@ -34,16 +37,16 @@ fn load_animations_from_aseprite(
         .map(|(name, (is_looping, track_count, clips))| {
             let tracks = (0..track_count)
                 .map(|id| Track {
-                    id,
                     name: format!("sprites {id}"),
                 })
                 .collect();
+            let draw_sprites = Clips { clips, tracks };
             (
                 name,
                 Animation {
-                    clips,
-                    tracks,
+                    draw_sprite: draw_sprites,
                     is_looping,
+                    ..Default::default()
                 },
             )
         })
@@ -55,7 +58,7 @@ fn load_clips_from_aseprite(
     resolver: &FsResolver,
     sheet: &Sheet,
     layer: Option<&str>,
-) -> anyhow::Result<HashMap<AnimationId, (bool, u32, Vec<Clip>)>> {
+) -> anyhow::Result<HashMap<AnimationId, (bool, u32, Vec<Clip<DrawSprite>>)>> {
     let version_prefix = String::from(REQUIRED_ASEPRITE_VERSION) + ".";
     let version = &sheet.meta.version;
     anyhow::ensure!(
@@ -90,7 +93,6 @@ fn load_clips_from_aseprite(
             for (track_id, duration, action) in &frames[&frame_id] {
                 clips.push(Clip {
                     track_id: *track_id,
-                    id: clips.len() as u32,
                     start,
                     len: *duration,
                     action: *action,
@@ -111,8 +113,8 @@ fn collect_frames(
     resolver: &FsResolver,
     sheet: &Sheet,
     layer: Option<&str>,
-) -> anyhow::Result<HashMap<u32, Vec<(u32, u32, ClipAction)>>> {
-    let mut result = HashMap::<u32, Vec<(u32, u32, ClipAction)>>::new();
+) -> anyhow::Result<HashMap<u32, Vec<(u32, u32, DrawSprite)>>> {
+    let mut result = HashMap::<u32, Vec<(u32, u32, DrawSprite)>>::new();
     for frame in &sheet.frames {
         let pieces = frame.filename.split('.').collect::<Vec<_>>();
         ensure!(pieces.len() == 2, "two many pieces in frame filename");
@@ -131,20 +133,16 @@ fn collect_frames(
         frames.push((
             frames.len() as u32,
             frame.duration,
-            ClipAction::DrawSprite(ClipActionDrawSprite {
+            DrawSprite {
                 layer: 1,
                 texture_id: resolver.inverse_resolve::<Texture2D>(&sprite_path).unwrap(),
                 local_pos: vec2(-(frame.frame.w as f32) * 0.5, -(frame.frame.h as f32) * 0.5),
                 local_rotation: 0.0,
-                rect: ImgRect {
-                    x: frame.frame.x,
-                    y: frame.frame.y,
-                    w: frame.frame.w,
-                    h: frame.frame.h,
-                },
+                rect_pos: uvec2(frame.frame.x, frame.frame.y),
+                rect_size: uvec2(frame.frame.w, frame.frame.h),
                 sort_offset: 0.0f32,
                 rotate_with_parent: false,
-            }),
+            },
         ))
     }
 

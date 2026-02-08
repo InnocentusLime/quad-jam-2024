@@ -1,11 +1,11 @@
 use hecs::{Bundle, Entity, Query, World};
-use lib_asset::animation::{Animation, AnimationId, Team};
+use lib_asset::animation::{Animation, AnimationId};
 use lib_col::{Group, Shape};
 use log::warn;
 use macroquad::prelude::*;
 
 use crate::{
-    AnimationPlay, BodyTag, CharacterLook, Direction, Health, KinematicControl, Resources,
+    AnimationPlay, BodyTag, CharacterLook, Direction, Health, KinematicControl, Resources, Team,
     Transform, col_group, draw_shape_lines,
 };
 
@@ -32,7 +32,7 @@ pub fn draw_char_state(world: &World, resources: &Resources) {
         }
 
         draw_shape_lines(
-            &character.character_q.tf,
+            character.character_q.tf,
             &character.character_q.body.shape,
             YELLOW,
         );
@@ -127,15 +127,17 @@ impl<'a, T> Character<'a, T> {
 
     pub fn get_input_flags(&self) -> (bool, bool) {
         self.animation
-            .active_lock_input(self.anim_cursor())
-            .map(|x| (x.action.allow_walk_input, x.action.allow_look_input))
+            .lock_input
+            .active_clips(self.anim_cursor())
+            .map(|(_, x)| (x.action.allow_walk_input, x.action.allow_look_input))
             .next()
             .unwrap_or((true, true))
     }
 
     pub fn can_move(&self) -> bool {
         self.animation
-            .active_move(self.anim_cursor())
+            .r#move
+            .active_clips(self.anim_cursor())
             .next()
             .is_some()
     }
@@ -161,7 +163,7 @@ impl<'a, T> Character<'a, T> {
         } else {
             Transform {
                 pos: self.pos() + pos,
-                angle: angle,
+                angle,
             }
         }
     }

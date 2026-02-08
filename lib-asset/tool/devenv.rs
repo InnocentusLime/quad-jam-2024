@@ -42,16 +42,7 @@ fn make_empty_animation_pack(
     let out = File::create(out).context("open destination")?;
     let anims = pack_id
         .animations()
-        .map(|x| {
-            (
-                x,
-                Animation {
-                    is_looping: true,
-                    clips: vec![],
-                    tracks: vec![],
-                },
-            )
-        })
+        .map(|x| (x, Animation::default()))
         .collect::<AnimationPack>();
     serde_json::to_writer_pretty(out, &anims).context("writing to dest")
 }

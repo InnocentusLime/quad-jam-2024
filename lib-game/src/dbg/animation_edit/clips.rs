@@ -10,15 +10,54 @@ pub const CLIP_RENDER_EPSILON: f32 = 5.0;
 pub const TRACK_LABEL_WIDTH: f32 = 100.0;
 pub const TRACK_MARK_WIDTH: f32 = 10.0;
 
+#[derive(Clone, Copy)]
+pub struct ClipPosition {
+    pub kind: ClipKind,
+    pub id: u32,
+    pub track_id: u32,
+    pub track_y: u32,
+    pub start: u32,
+    pub len: u32,
+    pub name: &'static str,
+}
+
+impl ClipPosition {
+    pub fn contains_pos(&self, pos: u32) -> bool {
+        self.start <= pos && pos < self.end()
+    }
+
+    pub fn end(&self) -> u32 {
+        self.start + self.len
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct TrackPosition<'a> {
+    pub track_y: u32,
+    pub track_id: u32,
+    pub kind: ClipKind,
+    pub name: &'a str,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, strum::VariantArray, strum::IntoStaticStr)]
+pub enum ClipKind {
+    Invulnerability = 0,
+    Move = 1,
+    DrawSprite = 2,
+    AttackBox = 3,
+    LockInput = 4,
+    Spawn = 5,
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum UiClipGesture {
     Move,
     Resize { resize_left: bool },
 }
 
-pub struct ClipWidget<'a>(pub &'a Clip);
+pub struct ClipWidget(pub ClipPosition);
 
-impl<'a> ClipWidget<'a> {
+impl ClipWidget {
     pub fn rect(&self, track_y: u32, timeline_rect: Rect, tf: TimelineTf) -> Rect {
         let top = timeline_rect.top() + (track_y as f32) * CLIP_HEIGHT;
         let left = timeline_rect.left() + tf.tf_pos(self.0.start as f32);
@@ -133,98 +172,114 @@ impl<'a> ClipWidget<'a> {
     }
 
     pub fn label(&self) -> WidgetText {
-        let s: &'static str = self.0.action.into();
-        WidgetText::from(s)
+        WidgetText::from(self.0.name)
     }
 }
 
-pub struct ClipsUi<'a> {
-    next_track_id: u32,
-    next_clip_id: u32,
-    tracks: &'a mut Vec<Track>,
-    clips: &'a mut Vec<Clip>,
-}
+pub struct ClipsUi<'a>(pub &'a mut Animation);
 
 impl<'a> ClipsUi<'a> {
-    pub fn new(tracks: &'a mut Vec<Track>, clips: &'a mut Vec<Clip>) -> ClipsUi<'a> {
-        ClipsUi {
-            next_track_id: tracks.iter().map(|x| x.id + 1).max().unwrap_or_default(),
-            next_clip_id: clips.iter().map(|x| x.id + 1).max().unwrap_or_default(),
-            tracks,
-            clips,
-        }
+    pub fn get(&self, kind: ClipKind, clip_id: u32) -> Option<ClipPosition> {
+        self.all_clips().find(|x| x.id == clip_id && x.kind == kind)
     }
 
-    pub fn add_track(&mut self, name: String) -> u32 {
-        let id = self.next_track_id;
-        self.tracks.push(Track { id, name });
-        self.next_track_id += 1;
-
-        id
+    pub fn get_track(&self, kind: ClipKind, track_id: u32) -> Option<TrackPosition<'_>> {
+        self.all_tracks()
+            .find(|x| x.kind == kind && x.track_id == track_id)
     }
 
-    pub fn delete_track(&mut self, track_id: u32) {
-        self.tracks.retain(|x| x.id != track_id);
-        self.clips.retain(|x| x.track_id != track_id);
+    pub fn track_with_y(&self, kind: ClipKind, track_y: u32) -> Option<TrackPosition<'_>> {
+        self.all_tracks()
+            .find(|x| x.kind == kind && x.track_y == track_y)
     }
 
-    pub fn add_clip(&mut self, track_id: u32, start: u32, len: u32) -> Option<u32> {
-        if !self.tracks.iter().any(|x| x.id == track_id) {
-            return None;
-        }
-
-        if self.clip_has_intersection(track_id, u32::MAX, start, len) {
-            return None;
-        }
-
-        let id = self.next_clip_id;
-        self.clips.push(Clip {
-            track_id,
-            id,
-            start,
-            len,
-            action: default_action(),
-        });
-        self.next_clip_id += 1;
-        Some(id)
+    pub fn global_offset(&mut self, off: Vec2) {
+        self.0.invulnerability.global_offset(off);
+        self.0.r#move.global_offset(off);
+        self.0.draw_sprite.global_offset(off);
+        self.0.attack_box.global_offset(off);
+        self.0.lock_input.global_offset(off);
+        self.0.spawn.global_offset(off);
     }
 
-    pub fn delete_clip(&mut self, idx: u32) {
-        self.clips.retain(|x| x.id != idx);
-    }
-
-    pub fn set_clip_pos_len(&mut self, idx: u32, new_track_y: u32, new_pos: u32, new_len: u32) {
-        let Some(new_track) = self.track_containing_pos(new_track_y) else {
-            return;
+    pub fn add_track(&mut self, kind: ClipKind, name: String) {
+        match kind {
+            ClipKind::Invulnerability => &mut self.0.invulnerability.add_track(name),
+            ClipKind::Move => &mut self.0.r#move.add_track(name),
+            ClipKind::DrawSprite => &mut self.0.draw_sprite.add_track(name),
+            ClipKind::AttackBox => &mut self.0.attack_box.add_track(name),
+            ClipKind::LockInput => &mut self.0.lock_input.add_track(name),
+            ClipKind::Spawn => &mut self.0.spawn.add_track(name),
         };
+    }
 
-        if self.clip_has_intersection(new_track, idx, new_pos, new_len) {
-            return;
+    pub fn delete_track(&mut self, kind: ClipKind, track_id: u32) {
+        match kind {
+            ClipKind::Invulnerability => self.0.invulnerability.delete_track(track_id),
+            ClipKind::Move => self.0.r#move.delete_track(track_id),
+            ClipKind::DrawSprite => self.0.draw_sprite.delete_track(track_id),
+            ClipKind::AttackBox => self.0.attack_box.delete_track(track_id),
+            ClipKind::LockInput => self.0.lock_input.delete_track(track_id),
+            ClipKind::Spawn => self.0.spawn.delete_track(track_id),
         }
-
-        let Some(clip) = self.get_mut(idx) else {
-            return;
-        };
-
-        clip.track_id = new_track;
-        clip.start = new_pos;
-        clip.len = new_len;
     }
 
-    pub fn get_track(&self, idx: u32) -> Option<&Track> {
-        self.tracks.iter().find(|x| x.id == idx)
+    pub fn add_clip(&mut self, kind: ClipKind, track_id: u32, start: u32, len: u32) {
+        match kind {
+            ClipKind::Invulnerability => self.0.invulnerability.add_clip(track_id, start, len),
+            ClipKind::Move => self.0.r#move.add_clip(track_id, start, len),
+            ClipKind::DrawSprite => self.0.draw_sprite.add_clip(track_id, start, len),
+            ClipKind::AttackBox => self.0.attack_box.add_clip(track_id, start, len),
+            ClipKind::LockInput => self.0.lock_input.add_clip(track_id, start, len),
+            ClipKind::Spawn => self.0.spawn.add_clip(track_id, start, len),
+        }
     }
 
-    pub fn get(&self, idx: u32) -> Option<&Clip> {
-        self.clips.iter().find(|x| x.id == idx)
+    pub fn delete_clip(&mut self, kind: ClipKind, clip_id: u32) {
+        match kind {
+            ClipKind::Invulnerability => self.0.invulnerability.delete_clip(clip_id),
+            ClipKind::Move => self.0.r#move.delete_clip(clip_id),
+            ClipKind::DrawSprite => self.0.draw_sprite.delete_clip(clip_id),
+            ClipKind::AttackBox => self.0.attack_box.delete_clip(clip_id),
+            ClipKind::LockInput => self.0.lock_input.delete_clip(clip_id),
+            ClipKind::Spawn => self.0.spawn.delete_clip(clip_id),
+        }
     }
 
-    pub fn get_action_mut(&mut self, idx: u32) -> Option<&mut ClipAction> {
-        self.get_mut(idx).map(|x| &mut x.action)
-    }
-
-    fn get_mut(&mut self, idx: u32) -> Option<&mut Clip> {
-        self.clips.iter_mut().find(|x| x.id == idx)
+    pub fn set_clip_pos_len(
+        &mut self,
+        kind: ClipKind,
+        idx: u32,
+        new_track: u32,
+        new_pos: u32,
+        new_len: u32,
+    ) {
+        match kind {
+            ClipKind::Invulnerability => self
+                .0
+                .invulnerability
+                .set_clip_pos_len(idx, new_track, new_pos, new_len),
+            ClipKind::Move => self
+                .0
+                .r#move
+                .set_clip_pos_len(idx, new_track, new_pos, new_len),
+            ClipKind::DrawSprite => self
+                .0
+                .draw_sprite
+                .set_clip_pos_len(idx, new_track, new_pos, new_len),
+            ClipKind::AttackBox => self
+                .0
+                .attack_box
+                .set_clip_pos_len(idx, new_track, new_pos, new_len),
+            ClipKind::LockInput => self
+                .0
+                .lock_input
+                .set_clip_pos_len(idx, new_track, new_pos, new_len),
+            ClipKind::Spawn => self
+                .0
+                .spawn
+                .set_clip_pos_len(idx, new_track, new_pos, new_len),
+        }
     }
 
     pub fn paint_track_labels(
@@ -232,15 +287,14 @@ impl<'a> ClipsUi<'a> {
         ui: &mut Ui,
         painter: &Painter,
         widget_rect: Rect,
-        selected_track: Option<u32>,
+        selected_track: Option<(ClipKind, u32)>,
     ) {
-        for (y, track) in self.tracks.iter().enumerate() {
-            let selected = selected_track.map(|x| x == track.id).unwrap_or_default();
-            let top = widget_rect.top() + (y as f32) * CLIP_HEIGHT;
+        for track in self.all_tracks() {
+            let top = widget_rect.top() + (track.track_y as f32) * CLIP_HEIGHT;
             let padding = ui.spacing().button_padding;
-            let color = track_color(track.id);
+            let color = track_color(track.track_y as u32);
 
-            let text_gal = WidgetText::from(&track.name).into_galley(
+            let text_gal = WidgetText::from(track.name).into_galley(
                 ui,
                 Some(egui::TextWrapMode::Truncate),
                 TRACK_LABEL_WIDTH - TRACK_MARK_WIDTH - 2.0 * padding.x,
@@ -251,7 +305,7 @@ impl<'a> ClipsUi<'a> {
                 pos2(widget_rect.left() + TRACK_MARK_WIDTH, top),
                 vec2(TRACK_LABEL_WIDTH - TRACK_MARK_WIDTH, CLIP_HEIGHT),
             );
-            if selected {
+            if selected_track == Some((track.kind, track.track_id)) {
                 painter.rect_filled(rect, 0.0, darken_color(color));
             }
 
@@ -275,65 +329,105 @@ impl<'a> ClipsUi<'a> {
         painter: &Painter,
         timeline_rect: Rect,
         tf: TimelineTf,
-        selected_clip: Option<u32>,
+        selected_clip: Option<(ClipKind, u32)>,
     ) {
-        for clip in self.clips.iter() {
-            let selected = selected_clip.map(|x| x == clip.id).unwrap_or_default();
-            let (track_y, track) = self
-                .tracks
-                .iter()
-                .enumerate()
-                .find(|(_, x)| x.id == clip.track_id)
-                .unwrap();
-            let widget = ClipWidget(clip);
-            widget.paint(
+        for clip in self.all_clips() {
+            ClipWidget(clip).paint(
                 ui,
                 painter,
                 timeline_rect,
                 tf,
-                track_y as u32,
-                track_color(track.id),
-                selected,
+                clip.track_y,
+                track_color(clip.track_y),
+                selected_clip == Some((clip.kind, clip.id)),
             );
         }
     }
 
-    pub fn track_y(&self, track_id: u32) -> Option<u32> {
-        self.tracks
+    pub fn clip_containing_pos(&self, track_y: u32, pos: u32) -> Option<ClipPosition> {
+        self.all_clips()
+            .find(|x| x.track_y == track_y && x.contains_pos(pos))
+    }
+
+    fn all_clips(&self) -> impl Iterator<Item = ClipPosition> {
+        let track_offsets = self.all_track_ofsets();
+        let invulns = Self::clip_positions(
+            track_offsets,
+            ClipKind::Invulnerability,
+            &self.0.invulnerability,
+        );
+        let moves = Self::clip_positions(track_offsets, ClipKind::Move, &self.0.r#move);
+        let draw_sprites =
+            Self::clip_positions(track_offsets, ClipKind::DrawSprite, &self.0.draw_sprite);
+        let attack_boxes =
+            Self::clip_positions(track_offsets, ClipKind::AttackBox, &self.0.attack_box);
+        let lock_input =
+            Self::clip_positions(track_offsets, ClipKind::LockInput, &self.0.lock_input);
+        let spawn = Self::clip_positions(track_offsets, ClipKind::Spawn, &self.0.spawn);
+
+        invulns
+            .chain(moves)
+            .chain(draw_sprites)
+            .chain(attack_boxes)
+            .chain(lock_input)
+            .chain(spawn)
+    }
+
+    fn clip_positions<T: ClipAction>(
+        track_offsets: [u32; 6],
+        kind: ClipKind,
+        clips: &Clips<T>,
+    ) -> impl Iterator<Item = ClipPosition> {
+        clips
+            .clips
             .iter()
             .enumerate()
-            .find(|(_, x)| x.id == track_id)
-            .map(|(id, _)| id as u32)
+            .map(move |(id, clip)| ClipPosition {
+                kind,
+                id: id as u32,
+                track_id: clip.track_id,
+                track_y: track_offsets[kind as usize] + clip.track_id,
+                start: clip.start,
+                len: clip.len,
+                name: clip.action.name(),
+            })
     }
 
-    pub fn track_containing_pos(&self, track_y: u32) -> Option<u32> {
-        self.tracks
-            .iter()
-            .enumerate()
-            .find(|(idx, _)| *idx as u32 == track_y)
-            .map(|(_, track)| track.id)
+    pub fn all_tracks(&self) -> impl Iterator<Item = TrackPosition<'_>> {
+        let track_offsets = self.all_track_ofsets();
+        self.all_kind_tracks().flat_map(move |(kind, tracks)| {
+            tracks
+                .iter()
+                .enumerate()
+                .map(move |(track_id, track)| TrackPosition {
+                    track_y: track_offsets[kind as usize] + track_id as u32,
+                    track_id: track_id as u32,
+                    kind,
+                    name: track.name.as_str(),
+                })
+        })
     }
 
-    pub fn clip_containing_pos(&self, track_y: u32, pos: u32) -> Option<&Clip> {
-        let track_id = self.track_containing_pos(track_y)?;
-        self.clips
-            .iter()
-            .find(|x| x.track_id == track_id && x.start <= pos && pos <= x.start + x.len)
-    }
-
-    fn clip_has_intersection(&self, track_id: u32, skip: u32, pos: u32, len: u32) -> bool {
-        for clip in self.clips.iter().filter(|x| x.track_id == track_id) {
-            if clip.id == skip {
-                continue;
-            }
-            if clip.start <= pos && clip.start + clip.len > pos {
-                return true;
-            }
-            if pos <= clip.start && pos + len > clip.start {
-                return true;
-            }
+    fn all_track_ofsets(&self) -> [u32; 6] {
+        let mut track_offsets = [0; 6];
+        let mut curr_off = 0;
+        for (idx, (_, track)) in self.all_kind_tracks().enumerate() {
+            track_offsets[idx] = curr_off;
+            curr_off += track.len() as u32;
         }
-        false
+        track_offsets
+    }
+
+    fn all_kind_tracks(&self) -> impl Iterator<Item = (ClipKind, &Vec<Track>)> {
+        [
+            (ClipKind::Invulnerability, &self.0.invulnerability.tracks),
+            (ClipKind::Move, &self.0.r#move.tracks),
+            (ClipKind::DrawSprite, &self.0.draw_sprite.tracks),
+            (ClipKind::AttackBox, &self.0.attack_box.tracks),
+            (ClipKind::LockInput, &self.0.lock_input.tracks),
+            (ClipKind::Spawn, &self.0.spawn.tracks),
+        ]
+        .into_iter()
     }
 }
 
@@ -359,21 +453,4 @@ fn invert_color(col: Color32) -> Color32 {
 
 pub fn darken_color(color: Color32) -> Color32 {
     Color32::BLACK + color.additive().linear_multiply(0.05)
-}
-
-fn default_action() -> ClipAction {
-    ClipAction::DrawSprite(ClipActionDrawSprite {
-        layer: 0,
-        texture_id: lib_asset::TextureId::WorldAtlas,
-        local_pos: Vec2::ZERO,
-        local_rotation: 0.0,
-        rect: ImgRect {
-            x: 0,
-            y: 0,
-            w: 0,
-            h: 0,
-        },
-        sort_offset: 0.0,
-        rotate_with_parent: false,
-    })
 }

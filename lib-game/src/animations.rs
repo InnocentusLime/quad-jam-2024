@@ -4,8 +4,9 @@ use lib_asset::level::CharacterDef;
 use macroquad::prelude::*;
 
 use crate::{
-    AnimationPlay, AttackBundle, ClipActionObject, Game, Render, Resources, SpriteData, Transform,
-    col_group, col_query, for_each_character,
+    AnimationPlay, AttackBundle, CLIP_ACTION_OBJECT_ATTACK, CLIP_ACTION_OBJECT_SPAWN,
+    ClipActionObject, Game, Render, Resources, SpriteData, Transform, col_group, col_query,
+    for_each_character,
 };
 
 pub const ANIMATION_TIME_UNIT: f32 = 1.0 / 1000.0;
@@ -66,12 +67,30 @@ pub(crate) fn delete_clip_action_objects(
     for_each_character::<()>(world, resources, |parent, character| {
         let to_despawn = character
             .animation
+            .attack_box
             .inactive_clips(character.anim_cursor())
-            .filter_map(|clip| {
+            .filter_map(|(clip_id, _)| {
                 clip_action_objects.get(&ClipActionObject {
                     parent,
                     animation: character.animation_id(),
-                    clip_id: clip.id,
+                    clip_id: clip_id,
+                    kind: CLIP_ACTION_OBJECT_ATTACK,
+                })
+            });
+        for entity in to_despawn {
+            cmds.despawn(*entity);
+        }
+
+        let to_despawn = character
+            .animation
+            .spawn
+            .inactive_clips(character.anim_cursor())
+            .filter_map(|(clip_id, _)| {
+                clip_action_objects.get(&ClipActionObject {
+                    parent,
+                    animation: character.animation_id(),
+                    clip_id: clip_id,
+                    kind: CLIP_ACTION_OBJECT_SPAWN,
                 })
             });
         for entity in to_despawn {
@@ -87,14 +106,16 @@ pub(crate) fn update_attack_boxes(
     active_events: &HashMap<ClipActionObject, Entity>,
 ) {
     for_each_character::<()>(world, resources, |parent, character| {
-        for clip in character
+        for (clip_id, clip) in character
             .animation
-            .active_attack_box(character.anim_cursor())
+            .attack_box
+            .active_clips(character.anim_cursor())
         {
             let event = ClipActionObject {
                 parent,
                 animation: character.animation_id(),
-                clip_id: clip.id,
+                clip_id: clip_id,
+                kind: CLIP_ACTION_OBJECT_ATTACK,
             };
             let new_col_tf = character.transform_child(
                 clip.action.rotate_with_parent,
@@ -116,7 +137,7 @@ pub(crate) fn update_attack_boxes(
                     let mut builder = EntityBuilder::new();
                     builder.add_bundle(AttackBundle::new(
                         new_col_tf,
-                        clip.action.team,
+                        *character.character_q.team,
                         clip.action.shape,
                         clip.action.graze_value,
                         col_group::NONE,
@@ -137,11 +158,16 @@ pub(crate) fn update_spawned<G: Game>(
     active_events: &HashMap<ClipActionObject, Entity>,
 ) {
     for_each_character::<()>(world, resources, |parent, character| {
-        for clip in character.animation.active_spawn(character.anim_cursor()) {
+        for (clip_id, clip) in character
+            .animation
+            .spawn
+            .active_clips(character.anim_cursor())
+        {
             let event = ClipActionObject {
                 parent,
                 animation: character.animation_id(),
-                clip_id: clip.id,
+                clip_id: clip_id,
+                kind: CLIP_ACTION_OBJECT_SPAWN,
             };
             let (pos, look_angle) = character.transform_character(
                 clip.action.rotate_with_parent,
@@ -174,7 +200,8 @@ pub(crate) fn update_invulnerability(world: &mut World, resources: &Resources) {
     for_each_character::<()>(world, resources, |_, character| {
         let is_invulnerable = character
             .animation
-            .active_invulnerability(character.anim_cursor())
+            .invulnerability
+            .active_clips(character.anim_cursor())
             .next()
             .is_some();
         character.character_q.hp.is_invulnerable = is_invulnerable;
@@ -183,9 +210,10 @@ pub(crate) fn update_invulnerability(world: &mut World, resources: &Resources) {
 
 pub(crate) fn buffer_sprites(world: &mut World, resources: &Resources, render: &mut Render) {
     for_each_character::<()>(world, resources, |_, character| {
-        for clip in character
+        for (_, clip) in character
             .animation
-            .active_draw_sprite(character.anim_cursor())
+            .draw_sprite
+            .active_clips(character.anim_cursor())
         {
             let tf = character.transform_child(
                 clip.action.rotate_with_parent,
@@ -197,10 +225,10 @@ pub(crate) fn buffer_sprites(world: &mut World, resources: &Resources, render: &
                 tf,
                 texture: clip.action.texture_id,
                 rect: Rect {
-                    x: clip.action.rect.x as f32,
-                    y: clip.action.rect.y as f32,
-                    w: clip.action.rect.w as f32,
-                    h: clip.action.rect.h as f32,
+                    x: clip.action.rect_pos.x as f32,
+                    y: clip.action.rect_pos.y as f32,
+                    w: clip.action.rect_size.x as f32,
+                    h: clip.action.rect_size.y as f32,
                 },
                 color: WHITE,
                 sort_offset: clip.action.sort_offset,
