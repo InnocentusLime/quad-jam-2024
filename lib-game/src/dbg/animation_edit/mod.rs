@@ -4,13 +4,13 @@ mod sequencer;
 
 use egui::{Button, ComboBox, DragValue, Label, Modal, Response, WidgetText, vec2};
 use egui::{Ui, Widget};
-use macroquad::math::{UVec2, Vec2};
+use macroquad::math::Vec2;
 
 use hashbrown::HashMap;
 use hecs::{Entity, World};
 use lib_asset::animation::*;
 use lib_asset::level::CharacterInfo;
-use lib_asset::{AnimationPackId, FsResolver, TextureId};
+use lib_asset::{AnimationPackId, TextureId};
 use strum::VariantArray;
 
 use clips::*;
@@ -22,16 +22,14 @@ use crate::{AnimationPlay, CharacterLook};
 pub struct AnimationEdit {
     pub playback: Entity,
     open_save_pack: bool,
-    open_load_aseprite_modal: bool,
     current_pack_id: AnimationPackId,
     sequencer_state: SequencerState,
     tf: TimelineTf,
-    selected_clip: Option<u32>,
-    selected_track: Option<u32>,
-    load_into_track: u32,
-    layer_name: String,
+    selected_clip: Option<(ClipKind, u32)>,
+    selected_track: Option<(ClipKind, u32)>,
 
     open_track_creation_modal: bool,
+    track_kind: ClipKind,
     track_label: String,
 
     open_global_offset_modal: bool,
@@ -43,17 +41,15 @@ impl AnimationEdit {
         Self {
             playback: Entity::DANGLING,
             open_save_pack: false,
-            open_load_aseprite_modal: false,
             current_pack_id: AnimationPackId::Bunny,
             sequencer_state: SequencerState::Idle,
             selected_clip: None,
             selected_track: None,
+            track_kind: ClipKind::AttackBox,
             tf: TimelineTf {
                 zoom: 1.0,
                 pan: 0.0,
             },
-            load_into_track: 0,
-            layer_name: String::new(),
             track_label: String::new(),
             open_track_creation_modal: false,
             open_global_offset_modal: false,
@@ -63,7 +59,6 @@ impl AnimationEdit {
 
     pub fn ui(
         &mut self,
-        resolver: &FsResolver,
         ui: &mut Ui,
         anims: &mut HashMap<AnimationId, Animation>,
         world: &mut World,
@@ -109,15 +104,7 @@ impl AnimationEdit {
 
         let anim = anims.entry(play.animation).or_insert_with(Default::default);
         ui.horizontal(|ui| {
-            animation_load_ui(
-                ui,
-                resolver,
-                play.animation,
-                anim,
-                &mut self.open_load_aseprite_modal,
-                &mut self.load_into_track,
-                &mut self.layer_name,
-            );
+            animation_load_ui(ui, play.animation, anim);
         });
         ui.horizontal(|ui| {
             ui.drag_angle(&mut look.0);
@@ -134,7 +121,7 @@ impl AnimationEdit {
             self.open_global_offset_modal = true;
         }
 
-        let mut clips = ClipsUi::new(&mut anim.tracks, &mut anim.clips);
+        let mut clips = ClipsUi(anim);
         selected_clip_ui(ui, &mut clips, &mut self.selected_clip);
 
         self.track_creation_modal(&mut clips, ui);
@@ -142,17 +129,17 @@ impl AnimationEdit {
 
         ui.horizontal(|_ui| {
             let add_clip = insert_pressed && !shift_down;
-            if let Some(track_id) = self.selected_track
+            if let Some((kind, track_id)) = self.selected_track
                 && add_clip
             {
-                clips.add_clip(track_id, play.cursor, 500);
+                clips.add_clip(kind, track_id, play.cursor, 500);
             }
 
             let delete_track = delete_pressed && !shift_down;
-            if let Some(idx) = self.selected_clip
+            if let Some((kind, idx)) = self.selected_clip
                 && delete_track
             {
-                clips.delete_clip(idx);
+                clips.delete_clip(kind, idx);
             }
         });
 
@@ -164,10 +151,10 @@ impl AnimationEdit {
             }
 
             let delete_track = delete_pressed && shift_down;
-            if let Some(idx) = self.selected_track
+            if let Some((kind, idx)) = self.selected_track
                 && delete_track
             {
-                clips.delete_track(idx);
+                clips.delete_track(kind, idx);
             }
         });
 
@@ -192,11 +179,12 @@ impl AnimationEdit {
             ui.set_width(250.0);
             ui.heading("Create track");
             ui.text_edit_singleline(&mut self.track_label);
+            enum_select(ui, "track_kind", "track kind", &mut self.track_kind);
 
             ui.horizontal(|ui| {
                 if ui.button("Add").clicked() {
                     self.open_track_creation_modal = false;
-                    clips.add_track(self.track_label.clone());
+                    clips.add_track(self.track_kind, self.track_label.clone());
                 }
                 if ui.button("Cancel").clicked() {
                     self.open_track_creation_modal = false;
@@ -251,18 +239,18 @@ impl AnimationEdit {
     }
 }
 
-fn selected_clip_ui(ui: &mut Ui, clips: &mut ClipsUi, selected_clip: &mut Option<u32>) {
+fn selected_clip_ui(ui: &mut Ui, clips: &mut ClipsUi, selected_clip: &mut Option<(ClipKind, u32)>) {
     ui.group(|ui| {
         ui.set_min_size(vec2(200.0, 300.0));
-        let Some(clip_idx) = *selected_clip else {
+        let Some((kind, clip_idx)) = *selected_clip else {
             ui.add_enabled(false, Label::new("No clip selected"));
             return;
         };
-        let Some(clip) = clips.get(clip_idx) else {
+        let Some(clip) = clips.get(kind, clip_idx) else {
             *selected_clip = None;
             return;
         };
-        let track = clips.get_track(clip.track_id).unwrap();
+        let track = clips.get_track(clip.kind, clip.track_id).unwrap();
         ui.label(format!("Track: {}", track.name));
         let (mut start, mut len) = (clip.start, clip.len);
         ui.horizontal(|ui| {
@@ -273,164 +261,130 @@ fn selected_clip_ui(ui: &mut Ui, clips: &mut ClipsUi, selected_clip: &mut Option
             DragValue::new(&mut len).ui(ui);
             ui.label("len");
         });
-        clips.set_clip_pos_len(clip_idx, clip.track_id, start, len);
+        clips.set_clip_pos_len(clip.kind, clip_idx, clip.track_id, start, len);
 
-        clip_action_ui(ui, clips.get_action_mut(clip_idx).unwrap());
+        clip_action_ui(ui, clips, clip);
     });
 }
 
-fn clip_action_ui(ui: &mut Ui, clip: &mut ClipAction) {
-    let old_ty: ClipActionDiscriminants = (*clip).into();
-    let mut new_ty = old_ty;
-    enum_select(ui, "action_type", "Clip Action", &mut new_ty);
-    if old_ty != new_ty {
-        let new_clip = match new_ty {
-            ClipActionDiscriminants::DrawSprite => ClipAction::DrawSprite(ClipActionDrawSprite {
-                layer: 0,
-                texture_id: TextureId::BunnyAtlas,
-                local_pos: Vec2::ZERO,
-                local_rotation: 0.0,
-                rect_pos: UVec2::ZERO,
-                rect_size: UVec2::ZERO,
-                sort_offset: 0.0,
-                rotate_with_parent: false,
-            }),
-            ClipActionDiscriminants::AttackBox => ClipAction::AttackBox(ClipActionAttackBox {
-                local_pos: Vec2::ZERO,
-                local_rotation: 0.0,
-                group: lib_col::Group::empty(),
-                shape: lib_col::Shape::Rect {
-                    width: 0.0,
-                    height: 0.0,
-                },
-                rotate_with_parent: false,
-                graze_value: 0.0,
-            }),
-            ClipActionDiscriminants::Invulnerability => {
-                ClipAction::Invulnerability(ClipActionInvulnerability)
-            }
-            ClipActionDiscriminants::LockInput => ClipAction::LockInput(ClipActionLockInput {
-                allow_walk_input: false,
-                allow_look_input: false,
-            }),
-            ClipActionDiscriminants::Move => ClipAction::Move(ClipActionMove),
-            ClipActionDiscriminants::Spawn => ClipAction::Spawn(ClipActionSpawn {
-                local_look: 0.0,
-                local_pos: Vec2::ZERO,
-                rotate_with_parent: false,
-                character_info: CharacterInfo::BasicBullet {},
-            }),
-        };
-        *clip = new_clip;
-    }
-
+fn clip_action_ui(ui: &mut Ui, clips: &mut ClipsUi, clip: ClipPosition) {
     ui.separator();
-    match clip {
-        ClipAction::DrawSprite(ClipActionDrawSprite {
-            layer,
-            texture_id: current_texture_id,
-            local_pos,
-            local_rotation,
-            rect_pos,
-            rect_size,
-            sort_offset,
-            rotate_with_parent,
-        }) => {
+
+    match clip.kind {
+        ClipKind::DrawSprite => {
+            let action = &mut clips
+                .0
+                .draw_sprite
+                .clips
+                .get_mut(clip.id as usize)
+                .unwrap()
+                .action;
+
             ui.horizontal(|ui| {
-                ui.add(DragValue::new(layer).range(0..=10));
+                ui.add(DragValue::new(&mut action.layer).range(0..=10));
                 ui.label("layer");
             });
             ComboBox::new("texture_id", "texture")
-                .selected_text(format!("{current_texture_id:?}"))
+                .selected_text(format!("{:?}", action.texture_id))
                 .show_ui(ui, |ui| {
                     for texture_id in TextureId::VARIANTS {
                         let name: &'static str = texture_id.into();
-                        ui.selectable_value(current_texture_id, *texture_id, name);
+                        let selected_value = action.texture_id;
+                        ui.selectable_value(&mut action.texture_id, selected_value, name);
                     }
                 });
             ui.horizontal(|ui| {
-                ui.add(DragValue::new(&mut local_pos.x).range(-256.0..=256.0));
-                ui.add(DragValue::new(&mut local_pos.y).range(-256.0..=256.0));
+                ui.add(DragValue::new(&mut action.local_pos.x).range(-256.0..=256.0));
+                ui.add(DragValue::new(&mut action.local_pos.y).range(-256.0..=256.0));
                 ui.label("local pos");
             });
             ui.horizontal(|ui| {
-                ui.drag_angle(local_rotation);
+                ui.drag_angle(&mut action.local_rotation);
                 ui.label("local rotation");
             });
             ui.horizontal(|ui| {
-                ui.add(DragValue::new(&mut rect_pos.x).range(0..=512));
-                ui.add(DragValue::new(&mut rect_pos.y).range(0..=512));
+                ui.add(DragValue::new(&mut action.rect_pos.x).range(0..=512));
+                ui.add(DragValue::new(&mut action.rect_pos.y).range(0..=512));
                 ui.label("texture rect pos");
             });
             ui.horizontal(|ui| {
-                ui.add(DragValue::new(&mut rect_size.x).range(0..=512));
-                ui.add(DragValue::new(&mut rect_size.y).range(0..=512));
+                ui.add(DragValue::new(&mut action.rect_size.x).range(0..=512));
+                ui.add(DragValue::new(&mut action.rect_size.y).range(0..=512));
                 ui.label("texture rect size");
             });
             ui.horizontal(|ui| {
-                ui.add(DragValue::new(sort_offset).range(-64.0..=64.0));
+                ui.add(DragValue::new(&mut action.sort_offset).range(-64.0..=64.0));
                 ui.label("sort offset");
             });
-            ui.checkbox(rotate_with_parent, "rotate with parent");
+            ui.checkbox(&mut action.rotate_with_parent, "rotate with parent");
         }
-        ClipAction::AttackBox(ClipActionAttackBox {
-            local_pos,
-            local_rotation,
-            group,
-            rotate_with_parent,
-            graze_value,
-            shape,
-        }) => {
+        ClipKind::AttackBox => {
+            let action = &mut clips
+                .0
+                .attack_box
+                .clips
+                .get_mut(clip.id as usize)
+                .unwrap()
+                .action;
+
             ui.horizontal(|ui| {
-                ui.add(DragValue::new(&mut local_pos.x).range(-256.0..=256.0));
-                ui.add(DragValue::new(&mut local_pos.y).range(-256.0..=256.0));
+                ui.add(DragValue::new(&mut action.local_pos.x).range(-256.0..=256.0));
+                ui.add(DragValue::new(&mut action.local_pos.y).range(-256.0..=256.0));
                 ui.label("local pos");
             });
             ui.horizontal(|ui| {
-                ui.drag_angle(local_rotation);
+                ui.drag_angle(&mut action.local_rotation);
                 ui.label("local rotation");
             });
             ui.horizontal(|ui| {
-                group_ui(ui, group);
+                group_ui(ui, &mut action.group);
                 ui.label("group");
             });
-            ui.checkbox(rotate_with_parent, "rotate with parent");
+            ui.checkbox(&mut action.rotate_with_parent, "rotate with parent");
             ui.horizontal(|ui| {
-                ui.add(DragValue::new(graze_value).range(0.0..=30.0));
+                ui.add(DragValue::new(&mut action.graze_value).range(0.0..=30.0));
                 ui.label("graze value");
             });
-            shape_ui(ui, shape);
+            shape_ui(ui, &mut action.shape);
         }
-        ClipAction::Invulnerability(_) => {
+        ClipKind::Invulnerability => {
             ui.label("No data");
         }
-        ClipAction::LockInput(ClipActionLockInput {
-            allow_walk_input,
-            allow_look_input,
-        }) => {
-            ui.checkbox(allow_walk_input, "allow walk input");
-            ui.checkbox(allow_look_input, "allow look input");
+        ClipKind::LockInput => {
+            let action = &mut clips
+                .0
+                .lock_input
+                .clips
+                .get_mut(clip.id as usize)
+                .unwrap()
+                .action;
+
+            ui.checkbox(&mut action.allow_walk_input, "allow walk input");
+            ui.checkbox(&mut action.allow_look_input, "allow look input");
         }
-        ClipAction::Move(_) => {
+        ClipKind::Move => {
             ui.label("No data");
         }
-        ClipAction::Spawn(ClipActionSpawn {
-            local_pos,
-            local_look,
-            rotate_with_parent,
-            character_info,
-        }) => {
+        ClipKind::Spawn => {
+            let action = &mut clips
+                .0
+                .spawn
+                .clips
+                .get_mut(clip.id as usize)
+                .unwrap()
+                .action;
+
             ui.horizontal(|ui| {
-                ui.add(DragValue::new(&mut local_pos.x).range(-256.0..=256.0));
-                ui.add(DragValue::new(&mut local_pos.y).range(-256.0..=256.0));
+                ui.add(DragValue::new(&mut action.local_pos.x).range(-256.0..=256.0));
+                ui.add(DragValue::new(&mut action.local_pos.y).range(-256.0..=256.0));
                 ui.label("local pos");
             });
             ui.horizontal(|ui| {
-                ui.drag_angle(local_look);
+                ui.drag_angle(&mut action.local_look);
                 ui.label("local look");
             });
-            ui.checkbox(rotate_with_parent, "rotate with parent");
-            character_info_ui(ui, character_info);
+            ui.checkbox(&mut action.rotate_with_parent, "rotate with parent");
+            character_info_ui(ui, &mut action.character_info);
         }
     }
 }
