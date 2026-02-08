@@ -2,6 +2,9 @@ use hecs::Entity;
 use lib_asset::animation::{Animation, AnimationId};
 use macroquad::prelude::*;
 
+pub const CLIP_ACTION_OBJECT_SPAWN: u32 = 0;
+pub const CLIP_ACTION_OBJECT_ATTACK: u32 = 1;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Team {
     Player,
@@ -99,6 +102,7 @@ impl AnimationPlay {
 pub struct ClipActionObject {
     pub parent: Entity,
     pub animation: AnimationId,
+    pub kind: u32,
     pub clip_id: u32,
 }
 

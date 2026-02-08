@@ -1,12 +1,11 @@
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
-use egui::Ui;
-use egui::{DragValue, Modal, Widget};
+use egui::{Modal, Ui};
 
 use hashbrown::HashMap;
+use lib_asset::AnimationPackId;
 use lib_asset::animation::*;
-use lib_asset::{AnimationPackId, FsResolver};
 use log::{error, info, warn};
 use rfd::FileDialog;
 use strum::VariantArray;
@@ -113,15 +112,7 @@ fn save_anim_pack(
     }
 }
 
-pub fn animation_load_ui(
-    ui: &mut Ui,
-    resolver: &FsResolver,
-    current_anim_id: AnimationId,
-    current_anim: &mut Animation,
-    open_load_aseprite_modal: &mut bool,
-    load_into_track: &mut u32,
-    layer_name: &mut String,
-) {
+pub fn animation_load_ui(ui: &mut Ui, current_anim_id: AnimationId, current_anim: &mut Animation) {
     if ui.button("Save").clicked() {
         let fname: &'static str = current_anim_id.into();
         let dst = FileDialog::new()
@@ -144,70 +135,6 @@ pub fn animation_load_ui(
             *current_anim = loaded_anim;
         }
     }
-    if ui.button("Load Aseprite").clicked() {
-        *open_load_aseprite_modal = true;
-    }
-    if *open_load_aseprite_modal {
-        *open_load_aseprite_modal = load_aseprite_modal(
-            ui,
-            resolver,
-            current_anim_id,
-            current_anim,
-            load_into_track,
-            layer_name,
-        );
-    }
-}
-
-fn load_aseprite_modal(
-    ui: &mut Ui,
-    resolver: &FsResolver,
-    current_anim_id: AnimationId,
-    current_anim: &mut Animation,
-    load_into_track: &mut u32,
-    layer_name: &mut String,
-) -> bool {
-    let mut keep_open = true;
-    Modal::new(egui::Id::new("Load Aseprite")).show(ui.ctx(), |ui| {
-        ui.horizontal(|ui| {
-            DragValue::new(load_into_track).ui(ui);
-            ui.label("load into track");
-        });
-        ui.horizontal(|ui| {
-            ui.text_edit_singleline(layer_name);
-            ui.label("layer name");
-        });
-        let load = ui
-            .horizontal(|ui| {
-                if ui.button("cancel").clicked() {
-                    keep_open = false;
-                }
-                ui.button("load").clicked()
-            })
-            .inner;
-        if load {
-            let src = FileDialog::new()
-                .set_title("Load aseprite animation")
-                .add_filter("", &["json"])
-                .pick_file();
-            let loaded_anim =
-                src.and_then(|src| load_aseprite_anim(src, resolver, current_anim_id, layer_name));
-            if let Some(loaded_anim) = loaded_anim {
-                // FIXME: there are concerns about overlapping IDs
-                current_anim
-                    .clips
-                    .retain(|x| x.track_id != *load_into_track);
-                current_anim
-                    .clips
-                    .extend(loaded_anim.clips.into_iter().map(|clip| Clip {
-                        track_id: *load_into_track,
-                        ..clip
-                    }));
-            }
-        }
-    });
-
-    keep_open
 }
 
 fn save_anim(dst: PathBuf, anim: &Animation) {
@@ -244,25 +171,4 @@ fn load_anim(src: PathBuf) -> Option<Animation> {
             None
         }
     }
-}
-
-fn load_aseprite_anim(
-    src: PathBuf,
-    resolver: &FsResolver,
-    target: AnimationId,
-    layer: &str,
-) -> Option<Animation> {
-    let mut anims = match aseprite_load::load_animations_aseprite(resolver, &src, Some(layer)) {
-        Ok(x) => x,
-        Err(e) => {
-            error!("Failed to load {src:?}: {e:#}");
-            return None;
-        }
-    };
-    let Some(anim) = anims.remove(&target) else {
-        error!("No animation for {target:?}");
-        return None;
-    };
-
-    Some(anim)
 }

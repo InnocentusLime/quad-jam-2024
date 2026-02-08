@@ -127,7 +127,8 @@ impl<'a, T> Character<'a, T> {
 
     pub fn get_input_flags(&self) -> (bool, bool) {
         self.animation
-            .active_lock_input(self.anim_cursor())
+            .lock_input
+            .active_clips(self.anim_cursor())
             .map(|(_, x)| (x.action.allow_walk_input, x.action.allow_look_input))
             .next()
             .unwrap_or((true, true))
@@ -135,7 +136,8 @@ impl<'a, T> Character<'a, T> {
 
     pub fn can_move(&self) -> bool {
         self.animation
-            .active_move(self.anim_cursor())
+            .r#move
+            .active_clips(self.anim_cursor())
             .next()
             .is_some()
     }
