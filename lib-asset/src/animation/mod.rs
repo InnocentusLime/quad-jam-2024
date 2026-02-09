@@ -12,6 +12,11 @@ pub type AnimationPack = HashMap<AnimationId, Animation>;
 #[derive(Default, Clone, Debug, Serialize, Deserialize)]
 pub struct Animation {
     pub is_looping: bool,
+    pub action_tracks: ActionsTracks,
+}
+
+#[derive(Default, Clone, Debug, Serialize, Deserialize)]
+pub struct ActionsTracks {
     pub invulnerability: Clips<Invulnerability>,
     pub r#move: Clips<Move>,
     pub draw_sprite: Clips<DrawSprite>,
@@ -23,12 +28,12 @@ pub struct Animation {
 impl Animation {
     pub fn max_pos(&self) -> u32 {
         [
-            self.invulnerability.max_pos(),
-            self.r#move.max_pos(),
-            self.draw_sprite.max_pos(),
-            self.attack_box.max_pos(),
-            self.lock_input.max_pos(),
-            self.spawn.max_pos(),
+            self.action_tracks.invulnerability.max_pos(),
+            self.action_tracks.r#move.max_pos(),
+            self.action_tracks.draw_sprite.max_pos(),
+            self.action_tracks.attack_box.max_pos(),
+            self.action_tracks.lock_input.max_pos(),
+            self.action_tracks.spawn.max_pos(),
         ]
         .into_iter()
         .max()
@@ -193,7 +198,6 @@ pub struct Clip<Action> {
     pub track_id: u32,
     pub start: u32,
     pub len: u32,
-    #[serde(flatten)]
     pub action: Action,
 }
 

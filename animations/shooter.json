@@ -1,259 +1,278 @@
 {
   "ShooterIdle": {
     "is_looping": true,
-    "attack_box": {
-      "clips": [],
-      "tracks": []
-    },
-    "draw_sprite": {
-      "clips": [
-        {
-          "track_id": 0,
-          "start": 0,
-          "len": 155,
-          "layer": 1,
-          "texture_id": "WorldAtlas",
-          "local_pos": [
-            -8.0,
-            -8.0
-          ],
-          "local_rotation": 0.0,
-          "rect": {
-            "x": 17,
-            "y": 1,
-            "w": 16,
-            "h": 16
-          },
-          "sort_offset": 0.0,
-          "rotate_with_parent": false,
-          "rect_pos": [
-            17,
-            1
-          ],
-          "rect_size": [
-            16,
-            16
-          ]
-        }
-      ],
-      "tracks": [
-        {
-          "name": "sprite"
-        }
-      ]
-    },
-    "move": {
-      "clips": [
-        {
-          "track_id": 0,
-          "start": 0,
-          "len": 155
-        }
-      ],
-      "tracks": [
-        {
-          "name": "move"
-        }
-      ]
-    },
-    "lock_input": {
-      "clips": [],
-      "tracks": []
-    },
-    "spawn": {
-      "clips": [],
-      "tracks": []
-    },
-    "invulnerability": {
-      "clips": [],
-      "tracks": []
+    "action_tracks": {
+      "attack_box": {
+        "clips": [],
+        "tracks": []
+      },
+      "draw_sprite": {
+        "clips": [
+          {
+            "track_id": 0,
+            "start": 0,
+            "len": 155,
+            "action": {
+              "layer": 1,
+              "texture_id": "WorldAtlas",
+              "local_pos": [
+                -8.0,
+                -8.0
+              ],
+              "local_rotation": 0.0,
+              "rect": {
+                "x": 17,
+                "y": 1,
+                "w": 16,
+                "h": 16
+              },
+              "sort_offset": 0.0,
+              "rotate_with_parent": false,
+              "rect_pos": [
+                17,
+                1
+              ],
+              "rect_size": [
+                16,
+                16
+              ]
+            }
+          }
+        ],
+        "tracks": [
+          {
+            "name": "sprite"
+          }
+        ]
+      },
+      "move": {
+        "clips": [
+          {
+            "track_id": 0,
+            "start": 0,
+            "len": 155,
+            "action": null
+          }
+        ],
+        "tracks": [
+          {
+            "name": "move"
+          }
+        ]
+      },
+      "lock_input": {
+        "clips": [],
+        "tracks": []
+      },
+      "spawn": {
+        "clips": [],
+        "tracks": []
+      },
+      "invulnerability": {
+        "clips": [],
+        "tracks": []
+      }
     }
   },
   "ShooterAttack": {
     "is_looping": false,
-    "attack_box": {
-      "clips": [
-        {
-          "track_id": 0,
-          "start": 500,
-          "len": 200,
-          "local_pos": [
-            15.0,
-            0.0
-          ],
-          "local_rotation": 0.0,
-          "group": 2,
-          "shape": {
-            "type": "Rect",
-            "width": 28.0,
-            "height": 18.0
+    "action_tracks": {
+      "attack_box": {
+        "clips": [
+          {
+            "track_id": 0,
+            "start": 500,
+            "len": 200,
+            "action": {
+              "local_pos": [
+                15.0,
+                0.0
+              ],
+              "local_rotation": 0.0,
+              "group": 2,
+              "shape": {
+                "type": "Rect",
+                "width": 28.0,
+                "height": 18.0
+              },
+              "rotate_with_parent": true,
+              "graze_value": 0.0
+            }
+          }
+        ],
+        "tracks": [
+          {
+            "name": "hits"
+          }
+        ]
+      },
+      "draw_sprite": {
+        "clips": [
+          {
+            "track_id": 0,
+            "start": 0,
+            "len": 500,
+            "action": {
+              "layer": 1,
+              "texture_id": "WorldAtlas",
+              "local_pos": [
+                -8.0,
+                8.0
+              ],
+              "local_rotation": 0.0,
+              "rect": {
+                "x": 33,
+                "y": 1,
+                "w": 16,
+                "h": 16
+              },
+              "sort_offset": 0.0,
+              "rotate_with_parent": false,
+              "rect_pos": [
+                33,
+                1
+              ],
+              "rect_size": [
+                16,
+                16
+              ]
+            }
           },
-          "rotate_with_parent": true,
-          "graze_value": 0.0
-        }
-      ],
-      "tracks": [
-        {
-          "name": "hits"
-        }
-      ]
-    },
-    "draw_sprite": {
-      "clips": [
-        {
-          "track_id": 0,
-          "start": 0,
-          "len": 500,
-          "layer": 1,
-          "texture_id": "WorldAtlas",
-          "local_pos": [
-            -8.0,
-            8.0
-          ],
-          "local_rotation": 0.0,
-          "rect": {
-            "x": 33,
-            "y": 1,
-            "w": 16,
-            "h": 16
+          {
+            "track_id": 0,
+            "start": 500,
+            "len": 199,
+            "action": {
+              "layer": 1,
+              "texture_id": "WorldAtlas",
+              "local_pos": [
+                -8.0,
+                -8.0
+              ],
+              "local_rotation": 0.0,
+              "rect": {
+                "x": 291,
+                "y": 1,
+                "w": 16,
+                "h": 16
+              },
+              "sort_offset": 0.0,
+              "rotate_with_parent": false,
+              "rect_pos": [
+                291,
+                1
+              ],
+              "rect_size": [
+                16,
+                16
+              ]
+            }
           },
-          "sort_offset": 0.0,
-          "rotate_with_parent": false,
-          "rect_pos": [
-            33,
-            1
-          ],
-          "rect_size": [
-            16,
-            16
-          ]
-        },
-        {
-          "track_id": 0,
-          "start": 500,
-          "len": 199,
-          "layer": 1,
-          "texture_id": "WorldAtlas",
-          "local_pos": [
-            -8.0,
-            -8.0
-          ],
-          "local_rotation": 0.0,
-          "rect": {
-            "x": 291,
-            "y": 1,
-            "w": 16,
-            "h": 16
+          {
+            "track_id": 0,
+            "start": 706,
+            "len": 392,
+            "action": {
+              "layer": 1,
+              "texture_id": "WorldAtlas",
+              "local_pos": [
+                -8.0,
+                -8.0
+              ],
+              "local_rotation": 0.0,
+              "rect": {
+                "x": 33,
+                "y": 1,
+                "w": 16,
+                "h": 16
+              },
+              "sort_offset": 0.0,
+              "rotate_with_parent": false,
+              "rect_pos": [
+                33,
+                1
+              ],
+              "rect_size": [
+                16,
+                16
+              ]
+            }
           },
-          "sort_offset": 0.0,
-          "rotate_with_parent": false,
-          "rect_pos": [
-            291,
-            1
-          ],
-          "rect_size": [
-            16,
-            16
-          ]
-        },
-        {
-          "track_id": 0,
-          "start": 706,
-          "len": 392,
-          "layer": 1,
-          "texture_id": "WorldAtlas",
-          "local_pos": [
-            -8.0,
-            -8.0
-          ],
-          "local_rotation": 0.0,
-          "rect": {
-            "x": 33,
-            "y": 1,
-            "w": 16,
-            "h": 16
+          {
+            "track_id": 1,
+            "start": 494,
+            "len": 243,
+            "action": {
+              "layer": 1,
+              "texture_id": "WorldAtlas",
+              "local_pos": [
+                0.0,
+                -8.0
+              ],
+              "local_rotation": 0.0,
+              "rect": {
+                "x": 296,
+                "y": 1,
+                "w": 36,
+                "h": 42
+              },
+              "sort_offset": 0.0,
+              "rotate_with_parent": true,
+              "rect_pos": [
+                296,
+                1
+              ],
+              "rect_size": [
+                36,
+                42
+              ]
+            }
+          }
+        ],
+        "tracks": [
+          {
+            "name": "sprite"
           },
-          "sort_offset": 0.0,
-          "rotate_with_parent": false,
-          "rect_pos": [
-            33,
-            1
-          ],
-          "rect_size": [
-            16,
-            16
-          ]
-        },
-        {
-          "track_id": 1,
-          "start": 494,
-          "len": 243,
-          "layer": 1,
-          "texture_id": "WorldAtlas",
-          "local_pos": [
-            0.0,
-            -8.0
-          ],
-          "local_rotation": 0.0,
-          "rect": {
-            "x": 296,
-            "y": 1,
-            "w": 36,
-            "h": 42
-          },
-          "sort_offset": 0.0,
-          "rotate_with_parent": true,
-          "rect_pos": [
-            296,
-            1
-          ],
-          "rect_size": [
-            36,
-            42
-          ]
-        }
-      ],
-      "tracks": [
-        {
-          "name": "sprite"
-        },
-        {
-          "name": "atk"
-        }
-      ]
-    },
-    "move": {
-      "clips": [],
-      "tracks": []
-    },
-    "lock_input": {
-      "clips": [],
-      "tracks": []
-    },
-    "spawn": {
-      "clips": [
-        {
-          "track_id": 0,
-          "start": 503,
-          "len": 203,
-          "rotate_with_parent": true,
-          "local_pos": [
-            37.0,
-            0.0
-          ],
-          "local_look": 0.0,
-          "basic_bullet": {}
-        }
-      ],
-      "tracks": [
-        {
-          "name": "spawn"
-        }
-      ]
-    },
-    "invulnerability": {
-      "clips": [],
-      "tracks": []
+          {
+            "name": "atk"
+          }
+        ]
+      },
+      "move": {
+        "clips": [],
+        "tracks": []
+      },
+      "lock_input": {
+        "clips": [],
+        "tracks": []
+      },
+      "spawn": {
+        "clips": [
+          {
+            "track_id": 0,
+            "start": 503,
+            "len": 203,
+            "action": {
+              "rotate_with_parent": true,
+              "local_pos": [
+                37.0,
+                0.0
+              ],
+              "local_look": 0.0,
+              "basic_bullet": {}
+            }
+          }
+        ],
+        "tracks": [
+          {
+            "name": "spawn"
+          }
+        ]
+      },
+      "invulnerability": {
+        "clips": [],
+        "tracks": []
+      }
     }
   }
 }

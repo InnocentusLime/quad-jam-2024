@@ -194,55 +194,73 @@ impl<'a> ClipsUi<'a> {
     }
 
     pub fn global_offset(&mut self, off: Vec2) {
-        self.0.invulnerability.global_offset(off);
-        self.0.r#move.global_offset(off);
-        self.0.draw_sprite.global_offset(off);
-        self.0.attack_box.global_offset(off);
-        self.0.lock_input.global_offset(off);
-        self.0.spawn.global_offset(off);
+        self.0.action_tracks.invulnerability.global_offset(off);
+        self.0.action_tracks.r#move.global_offset(off);
+        self.0.action_tracks.draw_sprite.global_offset(off);
+        self.0.action_tracks.attack_box.global_offset(off);
+        self.0.action_tracks.lock_input.global_offset(off);
+        self.0.action_tracks.spawn.global_offset(off);
     }
 
     pub fn add_track(&mut self, kind: ClipKind, name: String) {
         match kind {
-            ClipKind::Invulnerability => &mut self.0.invulnerability.add_track(name),
-            ClipKind::Move => &mut self.0.r#move.add_track(name),
-            ClipKind::DrawSprite => &mut self.0.draw_sprite.add_track(name),
-            ClipKind::AttackBox => &mut self.0.attack_box.add_track(name),
-            ClipKind::LockInput => &mut self.0.lock_input.add_track(name),
-            ClipKind::Spawn => &mut self.0.spawn.add_track(name),
+            ClipKind::Invulnerability => &mut self.0.action_tracks.invulnerability.add_track(name),
+            ClipKind::Move => &mut self.0.action_tracks.r#move.add_track(name),
+            ClipKind::DrawSprite => &mut self.0.action_tracks.draw_sprite.add_track(name),
+            ClipKind::AttackBox => &mut self.0.action_tracks.attack_box.add_track(name),
+            ClipKind::LockInput => &mut self.0.action_tracks.lock_input.add_track(name),
+            ClipKind::Spawn => &mut self.0.action_tracks.spawn.add_track(name),
         };
     }
 
     pub fn delete_track(&mut self, kind: ClipKind, track_id: u32) {
         match kind {
-            ClipKind::Invulnerability => self.0.invulnerability.delete_track(track_id),
-            ClipKind::Move => self.0.r#move.delete_track(track_id),
-            ClipKind::DrawSprite => self.0.draw_sprite.delete_track(track_id),
-            ClipKind::AttackBox => self.0.attack_box.delete_track(track_id),
-            ClipKind::LockInput => self.0.lock_input.delete_track(track_id),
-            ClipKind::Spawn => self.0.spawn.delete_track(track_id),
+            ClipKind::Invulnerability => {
+                self.0.action_tracks.invulnerability.delete_track(track_id)
+            }
+            ClipKind::Move => self.0.action_tracks.r#move.delete_track(track_id),
+            ClipKind::DrawSprite => self.0.action_tracks.draw_sprite.delete_track(track_id),
+            ClipKind::AttackBox => self.0.action_tracks.attack_box.delete_track(track_id),
+            ClipKind::LockInput => self.0.action_tracks.lock_input.delete_track(track_id),
+            ClipKind::Spawn => self.0.action_tracks.spawn.delete_track(track_id),
         }
     }
 
     pub fn add_clip(&mut self, kind: ClipKind, track_id: u32, start: u32, len: u32) {
         match kind {
-            ClipKind::Invulnerability => self.0.invulnerability.add_clip(track_id, start, len),
-            ClipKind::Move => self.0.r#move.add_clip(track_id, start, len),
-            ClipKind::DrawSprite => self.0.draw_sprite.add_clip(track_id, start, len),
-            ClipKind::AttackBox => self.0.attack_box.add_clip(track_id, start, len),
-            ClipKind::LockInput => self.0.lock_input.add_clip(track_id, start, len),
-            ClipKind::Spawn => self.0.spawn.add_clip(track_id, start, len),
+            ClipKind::Invulnerability => self
+                .0
+                .action_tracks
+                .invulnerability
+                .add_clip(track_id, start, len),
+            ClipKind::Move => self.0.action_tracks.r#move.add_clip(track_id, start, len),
+            ClipKind::DrawSprite => self
+                .0
+                .action_tracks
+                .draw_sprite
+                .add_clip(track_id, start, len),
+            ClipKind::AttackBox => self
+                .0
+                .action_tracks
+                .attack_box
+                .add_clip(track_id, start, len),
+            ClipKind::LockInput => self
+                .0
+                .action_tracks
+                .lock_input
+                .add_clip(track_id, start, len),
+            ClipKind::Spawn => self.0.action_tracks.spawn.add_clip(track_id, start, len),
         }
     }
 
     pub fn delete_clip(&mut self, kind: ClipKind, clip_id: u32) {
         match kind {
-            ClipKind::Invulnerability => self.0.invulnerability.delete_clip(clip_id),
-            ClipKind::Move => self.0.r#move.delete_clip(clip_id),
-            ClipKind::DrawSprite => self.0.draw_sprite.delete_clip(clip_id),
-            ClipKind::AttackBox => self.0.attack_box.delete_clip(clip_id),
-            ClipKind::LockInput => self.0.lock_input.delete_clip(clip_id),
-            ClipKind::Spawn => self.0.spawn.delete_clip(clip_id),
+            ClipKind::Invulnerability => self.0.action_tracks.invulnerability.delete_clip(clip_id),
+            ClipKind::Move => self.0.action_tracks.r#move.delete_clip(clip_id),
+            ClipKind::DrawSprite => self.0.action_tracks.draw_sprite.delete_clip(clip_id),
+            ClipKind::AttackBox => self.0.action_tracks.attack_box.delete_clip(clip_id),
+            ClipKind::LockInput => self.0.action_tracks.lock_input.delete_clip(clip_id),
+            ClipKind::Spawn => self.0.action_tracks.spawn.delete_clip(clip_id),
         }
     }
 
@@ -257,26 +275,32 @@ impl<'a> ClipsUi<'a> {
         match kind {
             ClipKind::Invulnerability => self
                 .0
+                .action_tracks
                 .invulnerability
                 .set_clip_pos_len(idx, new_track, new_pos, new_len),
             ClipKind::Move => self
                 .0
+                .action_tracks
                 .r#move
                 .set_clip_pos_len(idx, new_track, new_pos, new_len),
             ClipKind::DrawSprite => self
                 .0
+                .action_tracks
                 .draw_sprite
                 .set_clip_pos_len(idx, new_track, new_pos, new_len),
             ClipKind::AttackBox => self
                 .0
+                .action_tracks
                 .attack_box
                 .set_clip_pos_len(idx, new_track, new_pos, new_len),
             ClipKind::LockInput => self
                 .0
+                .action_tracks
                 .lock_input
                 .set_clip_pos_len(idx, new_track, new_pos, new_len),
             ClipKind::Spawn => self
                 .0
+                .action_tracks
                 .spawn
                 .set_clip_pos_len(idx, new_track, new_pos, new_len),
         }
@@ -354,16 +378,27 @@ impl<'a> ClipsUi<'a> {
         let invulns = Self::clip_positions(
             track_offsets,
             ClipKind::Invulnerability,
-            &self.0.invulnerability,
+            &self.0.action_tracks.invulnerability,
         );
-        let moves = Self::clip_positions(track_offsets, ClipKind::Move, &self.0.r#move);
-        let draw_sprites =
-            Self::clip_positions(track_offsets, ClipKind::DrawSprite, &self.0.draw_sprite);
-        let attack_boxes =
-            Self::clip_positions(track_offsets, ClipKind::AttackBox, &self.0.attack_box);
-        let lock_input =
-            Self::clip_positions(track_offsets, ClipKind::LockInput, &self.0.lock_input);
-        let spawn = Self::clip_positions(track_offsets, ClipKind::Spawn, &self.0.spawn);
+        let moves =
+            Self::clip_positions(track_offsets, ClipKind::Move, &self.0.action_tracks.r#move);
+        let draw_sprites = Self::clip_positions(
+            track_offsets,
+            ClipKind::DrawSprite,
+            &self.0.action_tracks.draw_sprite,
+        );
+        let attack_boxes = Self::clip_positions(
+            track_offsets,
+            ClipKind::AttackBox,
+            &self.0.action_tracks.attack_box,
+        );
+        let lock_input = Self::clip_positions(
+            track_offsets,
+            ClipKind::LockInput,
+            &self.0.action_tracks.lock_input,
+        );
+        let spawn =
+            Self::clip_positions(track_offsets, ClipKind::Spawn, &self.0.action_tracks.spawn);
 
         invulns
             .chain(moves)
@@ -420,12 +455,18 @@ impl<'a> ClipsUi<'a> {
 
     fn all_kind_tracks(&self) -> impl Iterator<Item = (ClipKind, &Vec<Track>)> {
         [
-            (ClipKind::Invulnerability, &self.0.invulnerability.tracks),
-            (ClipKind::Move, &self.0.r#move.tracks),
-            (ClipKind::DrawSprite, &self.0.draw_sprite.tracks),
-            (ClipKind::AttackBox, &self.0.attack_box.tracks),
-            (ClipKind::LockInput, &self.0.lock_input.tracks),
-            (ClipKind::Spawn, &self.0.spawn.tracks),
+            (
+                ClipKind::Invulnerability,
+                &self.0.action_tracks.invulnerability.tracks,
+            ),
+            (ClipKind::Move, &self.0.action_tracks.r#move.tracks),
+            (
+                ClipKind::DrawSprite,
+                &self.0.action_tracks.draw_sprite.tracks,
+            ),
+            (ClipKind::AttackBox, &self.0.action_tracks.attack_box.tracks),
+            (ClipKind::LockInput, &self.0.action_tracks.lock_input.tracks),
+            (ClipKind::Spawn, &self.0.action_tracks.spawn.tracks),
         ]
         .into_iter()
     }

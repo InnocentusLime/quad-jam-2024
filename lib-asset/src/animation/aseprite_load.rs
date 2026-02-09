@@ -2,7 +2,7 @@ use std::{fs::File, path::Path, str::FromStr};
 
 use crate::{
     AssetRoot, FsResolver,
-    animation::{Clips, DrawSprite},
+    animation::{ActionsTracks, Clips, DrawSprite},
 };
 use anyhow::{Context, bail, ensure};
 use glam::{uvec2, vec2};
@@ -40,13 +40,15 @@ fn load_animations_from_aseprite(
                     name: format!("sprites {id}"),
                 })
                 .collect();
-            let draw_sprites = Clips { clips, tracks };
+            let draw_sprite = Clips { clips, tracks };
             (
                 name,
                 Animation {
-                    draw_sprite: draw_sprites,
+                    action_tracks: ActionsTracks {
+                        draw_sprite,
+                        ..Default::default()
+                    },
                     is_looping,
-                    ..Default::default()
                 },
             )
         })

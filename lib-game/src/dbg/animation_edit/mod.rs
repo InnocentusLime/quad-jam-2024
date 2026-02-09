@@ -274,6 +274,7 @@ fn clip_action_ui(ui: &mut Ui, clips: &mut ClipsUi, clip: ClipPosition) {
         ClipKind::DrawSprite => {
             let action = &mut clips
                 .0
+                .action_tracks
                 .draw_sprite
                 .clips
                 .get_mut(clip.id as usize)
@@ -321,6 +322,7 @@ fn clip_action_ui(ui: &mut Ui, clips: &mut ClipsUi, clip: ClipPosition) {
         ClipKind::AttackBox => {
             let action = &mut clips
                 .0
+                .action_tracks
                 .attack_box
                 .clips
                 .get_mut(clip.id as usize)
@@ -353,6 +355,7 @@ fn clip_action_ui(ui: &mut Ui, clips: &mut ClipsUi, clip: ClipPosition) {
         ClipKind::LockInput => {
             let action = &mut clips
                 .0
+                .action_tracks
                 .lock_input
                 .clips
                 .get_mut(clip.id as usize)
@@ -368,6 +371,7 @@ fn clip_action_ui(ui: &mut Ui, clips: &mut ClipsUi, clip: ClipPosition) {
         ClipKind::Spawn => {
             let action = &mut clips
                 .0
+                .action_tracks
                 .spawn
                 .clips
                 .get_mut(clip.id as usize)
