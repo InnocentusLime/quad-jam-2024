@@ -67,6 +67,7 @@ pub(crate) fn delete_clip_action_objects(
     for_each_character::<()>(world, resources, |parent, character| {
         let to_despawn = character
             .animation
+            .action_tracks
             .attack_box
             .inactive_clips(character.anim_cursor())
             .filter_map(|(clip_id, _)| {
@@ -83,6 +84,7 @@ pub(crate) fn delete_clip_action_objects(
 
         let to_despawn = character
             .animation
+            .action_tracks
             .spawn
             .inactive_clips(character.anim_cursor())
             .filter_map(|(clip_id, _)| {
@@ -108,6 +110,7 @@ pub(crate) fn update_attack_boxes(
     for_each_character::<()>(world, resources, |parent, character| {
         for (clip_id, clip) in character
             .animation
+            .action_tracks
             .attack_box
             .active_clips(character.anim_cursor())
         {
@@ -160,6 +163,7 @@ pub(crate) fn update_spawned<G: Game>(
     for_each_character::<()>(world, resources, |parent, character| {
         for (clip_id, clip) in character
             .animation
+            .action_tracks
             .spawn
             .active_clips(character.anim_cursor())
         {
@@ -200,6 +204,7 @@ pub(crate) fn update_invulnerability(world: &mut World, resources: &Resources) {
     for_each_character::<()>(world, resources, |_, character| {
         let is_invulnerable = character
             .animation
+            .action_tracks
             .invulnerability
             .active_clips(character.anim_cursor())
             .next()
@@ -212,6 +217,7 @@ pub(crate) fn buffer_sprites(world: &mut World, resources: &Resources, render: &
     for_each_character::<()>(world, resources, |_, character| {
         for (_, clip) in character
             .animation
+            .action_tracks
             .draw_sprite
             .active_clips(character.anim_cursor())
         {
