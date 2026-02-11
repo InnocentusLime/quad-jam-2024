@@ -1,3 +1,6 @@
+mod actions;
+mod container;
+
 use hashbrown::HashMap;
 use hecs::{CommandBuffer, Entity, EntityBuilder, World};
 use lib_asset::level::CharacterDef;
@@ -8,6 +11,9 @@ use crate::{
     ClipActionObject, Game, Render, Resources, SpriteData, Transform, col_group, col_query,
     for_each_character,
 };
+
+pub use actions::*;
+pub use container::*;
 
 pub const ANIMATION_TIME_UNIT: f32 = 1.0 / 1000.0;
 
@@ -67,14 +73,12 @@ pub(crate) fn delete_clip_action_objects(
     for_each_character::<()>(world, resources, |parent, character| {
         let to_despawn = character
             .animation
-            .action_tracks
-            .attack_box
-            .inactive_clips(character.anim_cursor())
+            .inactive_clips::<AttackBox>(character.anim_cursor())
             .filter_map(|(clip_id, _)| {
                 clip_action_objects.get(&ClipActionObject {
                     parent,
                     animation: character.animation_id(),
-                    clip_id: clip_id,
+                    clip_id,
                     kind: CLIP_ACTION_OBJECT_ATTACK,
                 })
             });
@@ -84,14 +88,12 @@ pub(crate) fn delete_clip_action_objects(
 
         let to_despawn = character
             .animation
-            .action_tracks
-            .spawn
-            .inactive_clips(character.anim_cursor())
+            .inactive_clips::<Spawn>(character.anim_cursor())
             .filter_map(|(clip_id, _)| {
                 clip_action_objects.get(&ClipActionObject {
                     parent,
                     animation: character.animation_id(),
-                    clip_id: clip_id,
+                    clip_id,
                     kind: CLIP_ACTION_OBJECT_SPAWN,
                 })
             });
@@ -108,22 +110,20 @@ pub(crate) fn update_attack_boxes(
     active_events: &HashMap<ClipActionObject, Entity>,
 ) {
     for_each_character::<()>(world, resources, |parent, character| {
-        for (clip_id, clip) in character
+        for (clip_id, attack) in character
             .animation
-            .action_tracks
-            .attack_box
-            .active_clips(character.anim_cursor())
+            .active_clips::<AttackBox>(character.anim_cursor())
         {
             let event = ClipActionObject {
                 parent,
                 animation: character.animation_id(),
-                clip_id: clip_id,
+                clip_id,
                 kind: CLIP_ACTION_OBJECT_ATTACK,
             };
             let new_col_tf = character.transform_child(
-                clip.action.rotate_with_parent,
-                clip.action.local_pos,
-                clip.action.local_rotation,
+                attack.rotate_with_parent,
+                attack.local_pos,
+                attack.local_rotation,
             );
 
             match active_events.get(&event).copied() {
@@ -133,16 +133,16 @@ pub(crate) fn update_attack_boxes(
                         .expect("incomplete attach box components");
                     let (col_tf, col_q) = query.get().unwrap();
                     *col_tf = new_col_tf;
-                    col_q.collider = clip.action.shape;
-                    col_q.group = clip.action.group;
+                    col_q.collider = attack.shape;
+                    col_q.group = attack.group;
                 }
                 None => {
                     let mut builder = EntityBuilder::new();
                     builder.add_bundle(AttackBundle::new(
                         new_col_tf,
                         *character.character_q.team,
-                        clip.action.shape,
-                        clip.action.graze_value,
+                        attack.shape,
+                        attack.graze_value,
                         col_group::NONE,
                     ));
                     builder.add(event);
@@ -161,22 +161,20 @@ pub(crate) fn update_spawned<G: Game>(
     active_events: &HashMap<ClipActionObject, Entity>,
 ) {
     for_each_character::<()>(world, resources, |parent, character| {
-        for (clip_id, clip) in character
+        for (clip_id, spawn) in character
             .animation
-            .action_tracks
-            .spawn
-            .active_clips(character.anim_cursor())
+            .active_clips::<Spawn>(character.anim_cursor())
         {
             let event = ClipActionObject {
                 parent,
                 animation: character.animation_id(),
-                clip_id: clip_id,
+                clip_id,
                 kind: CLIP_ACTION_OBJECT_SPAWN,
             };
             let (pos, look_angle) = character.transform_character(
-                clip.action.rotate_with_parent,
-                clip.action.local_pos,
-                clip.action.local_look,
+                spawn.rotate_with_parent,
+                spawn.local_pos,
+                spawn.local_look,
             );
 
             if active_events.contains_key(&event) {
@@ -186,7 +184,7 @@ pub(crate) fn update_spawned<G: Game>(
             let def = CharacterDef {
                 look_angle,
                 pos,
-                info: clip.action.character_info,
+                info: spawn.character_info,
             };
             let mut builder = EntityBuilder::new();
             game.init_character(resources, &mut builder, def);
@@ -204,9 +202,7 @@ pub(crate) fn update_invulnerability(world: &mut World, resources: &Resources) {
     for_each_character::<()>(world, resources, |_, character| {
         let is_invulnerable = character
             .animation
-            .action_tracks
-            .invulnerability
-            .active_clips(character.anim_cursor())
+            .active_clips::<Invulnerability>(character.anim_cursor())
             .next()
             .is_some();
         character.character_q.hp.is_invulnerable = is_invulnerable;
@@ -215,29 +211,27 @@ pub(crate) fn update_invulnerability(world: &mut World, resources: &Resources) {
 
 pub(crate) fn buffer_sprites(world: &mut World, resources: &Resources, render: &mut Render) {
     for_each_character::<()>(world, resources, |_, character| {
-        for (_, clip) in character
+        for (_, draw_sprite) in character
             .animation
-            .action_tracks
-            .draw_sprite
-            .active_clips(character.anim_cursor())
+            .active_clips::<DrawSprite>(character.anim_cursor())
         {
             let tf = character.transform_child(
-                clip.action.rotate_with_parent,
-                clip.action.local_pos,
-                clip.action.local_rotation,
+                draw_sprite.rotate_with_parent,
+                draw_sprite.local_pos,
+                draw_sprite.local_rotation,
             );
             render.sprite_buffer.push(SpriteData {
-                layer: clip.action.layer,
+                layer: draw_sprite.layer,
                 tf,
-                texture: clip.action.texture_id,
+                texture: draw_sprite.texture_id,
                 rect: Rect {
-                    x: clip.action.rect_pos.x as f32,
-                    y: clip.action.rect_pos.y as f32,
-                    w: clip.action.rect_size.x as f32,
-                    h: clip.action.rect_size.y as f32,
+                    x: draw_sprite.rect_pos.x as f32,
+                    y: draw_sprite.rect_pos.y as f32,
+                    w: draw_sprite.rect_size.x as f32,
+                    h: draw_sprite.rect_size.y as f32,
                 },
                 color: WHITE,
-                sort_offset: clip.action.sort_offset,
+                sort_offset: draw_sprite.sort_offset,
             })
         }
     });

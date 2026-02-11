@@ -1,4 +1,4 @@
-mod animations;
+mod animation;
 mod attack;
 mod character;
 mod collisions;
@@ -16,13 +16,14 @@ pub mod sys;
 use hashbrown::HashMap;
 use hecs::EntityBuilder;
 
+pub use animation::*;
 pub use attack::*;
 pub use character::*;
 pub use collisions::*;
 pub use components::*;
 pub use input::*;
 pub use level_utils::*;
-pub use lib_asset::animation::*;
+pub use lib_asset::animation_manifest::AnimationId;
 pub use lib_asset::level::*;
 pub use lib_asset::*;
 pub use render::*;
@@ -309,7 +310,7 @@ impl App {
         self.update_camera();
         self.render.new_frame();
         self.render.buffer_tiles(&mut self.world);
-        animations::buffer_sprites(&mut self.world, &self.resources, &mut self.render);
+        animation::buffer_sprites(&mut self.world, &self.resources, &mut self.render);
         game.render_export(&self.state, &self.resources, &self.world, &mut self.render);
         self.render
             .render(&self.resources, &self.camera, self.render_world, real_dt);
@@ -318,15 +319,15 @@ impl App {
     fn game_update<G: Game>(&mut self, input: &InputModel, game: &mut G) -> Option<AppState> {
         game.input_phase(input, GAME_TICKRATE, &self.resources, &mut self.world);
 
-        animations::update(GAME_TICKRATE, &mut self.world, &self.resources);
-        animations::collect_clip_action_objects(&mut self.world, &mut self.clip_action_objects);
-        animations::update_attack_boxes(
+        animation::update(GAME_TICKRATE, &mut self.world, &self.resources);
+        animation::collect_clip_action_objects(&mut self.world, &mut self.clip_action_objects);
+        animation::update_attack_boxes(
             &mut self.world,
             &self.resources,
             &mut self.cmds,
             &self.clip_action_objects,
         );
-        animations::update_spawned(
+        animation::update_spawned(
             &mut self.world,
             &self.resources,
             &mut self.cmds,
@@ -334,7 +335,7 @@ impl App {
             &self.clip_action_objects,
         );
         health::reset(&mut self.world);
-        animations::update_invulnerability(&mut self.world, &self.resources);
+        animation::update_invulnerability(&mut self.world, &self.resources);
         health::update_cooldown(GAME_TICKRATE, &mut self.world);
 
         self.col_solver.import_colliders(&mut self.world);
@@ -365,7 +366,7 @@ impl App {
         );
         self.cmds.run_on(&mut self.world);
 
-        animations::delete_clip_action_objects(
+        animation::delete_clip_action_objects(
             &mut self.world,
             &self.resources,
             &mut self.cmds,
@@ -482,8 +483,12 @@ impl Resources {
 
     /// **ADDITIVLY** loads an animations pack
     pub async fn load_animation_pack(&mut self, pack_id: AnimationPackId) {
-        let pack: AnimationPack = self.resolver.load(pack_id).await.unwrap();
-        self.animations.extend(pack);
+        let pack: lib_asset::animation_manifest::AnimationPack =
+            self.resolver.load(pack_id).await.unwrap();
+        for (id, manifest) in pack {
+            let anim = Animation::from_manifest(&manifest).unwrap();
+            self.animations.insert(id, anim);
+        }
     }
 }
 

@@ -1,6 +1,6 @@
 #[cfg(feature = "dev-env")]
 use crate::DevableAsset;
-use crate::animation::{AnimationId, AnimationPack};
+use crate::animation_manifest::{AnimationId, AnimationPack};
 use crate::level::LevelDef;
 use crate::{Asset, FsResolver};
 use crate::{GameCfg, asset_roots::*};

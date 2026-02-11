@@ -1,5 +1,6 @@
+use crate::{LockInput, Move, animation::Animation};
 use hecs::{Bundle, Entity, Query, World};
-use lib_asset::animation::{Animation, AnimationId};
+use lib_asset::animation_manifest::AnimationId;
 use lib_col::{Group, Shape};
 use log::warn;
 use macroquad::prelude::*;
@@ -127,19 +128,15 @@ impl<'a, T> Character<'a, T> {
 
     pub fn get_input_flags(&self) -> (bool, bool) {
         self.animation
-            .action_tracks
-            .lock_input
-            .active_clips(self.anim_cursor())
-            .map(|(_, x)| (x.action.allow_walk_input, x.action.allow_look_input))
+            .active_clips::<LockInput>(self.anim_cursor())
+            .map(|(_, x)| (x.allow_walk_input, x.allow_look_input))
             .next()
             .unwrap_or((true, true))
     }
 
     pub fn can_move(&self) -> bool {
         self.animation
-            .action_tracks
-            .r#move
-            .active_clips(self.anim_cursor())
+            .active_clips::<Move>(self.anim_cursor())
             .next()
             .is_some()
     }

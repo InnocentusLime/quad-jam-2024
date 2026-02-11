@@ -1,5 +1,6 @@
+use crate::animation::Animation;
 use hecs::Entity;
-use lib_asset::animation::{Animation, AnimationId};
+use lib_asset::animation_manifest::AnimationId;
 use macroquad::prelude::*;
 
 pub const CLIP_ACTION_OBJECT_SPAWN: u32 = 0;

@@ -1,7 +1,7 @@
 mod asset_roots;
 mod assets;
 
-pub mod animation;
+pub mod animation_manifest;
 pub mod gamecfg;
 pub mod level;
 

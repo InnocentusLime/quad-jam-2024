@@ -1,9 +1,12 @@
+use std::any::TypeId;
+
 use egui::{
     Color32, FontId, Key, Painter, Pos2, Rect, Response, Sense, Stroke, Ui, Vec2, Widget, pos2,
 };
 use egui::{epaint, vec2};
 
 use super::clips::*;
+use crate::animation::Animation;
 
 pub const PIXELS_PER_UNIT: f32 = 32.0;
 pub const SIZE_BEFORE_CONT: f32 = 48.0;
@@ -11,9 +14,9 @@ pub const TIMELINE_HEADER_HEIGHT: f32 = 32.0;
 
 pub struct Sequencer<'a> {
     pub cursor_pos: &'a mut u32,
-    pub selected_clip: &'a mut Option<(ClipKind, u32)>,
-    pub selected_track: &'a mut Option<(ClipKind, u32)>,
-    pub clips: &'a mut ClipsUi<'a>,
+    pub selected_clip: &'a mut Option<(TypeId, u32)>,
+    pub selected_track: &'a mut Option<(TypeId, u32)>,
+    pub anim: &'a mut Animation,
     pub state: &'a mut SequencerState,
     pub tf: &'a mut TimelineTf,
     pub size: Vec2,
@@ -26,7 +29,7 @@ impl<'a> Sequencer<'a> {
         };
 
         if let Some((kind, selected_clip)) = *self.selected_clip
-            && self.clips.get(kind, selected_clip).is_none()
+            && self.anim.get_clip(kind, selected_clip).is_none()
         {
             *self.selected_clip = None;
         }
@@ -92,59 +95,78 @@ impl<'a> Sequencer<'a> {
             .input(|i| i.pointer.button_down(egui::PointerButton::Primary));
         let x_pos = self.tf.inv_tf_pos(pointer.x - timeline_rect.left()).round() as u32;
         let y_pos = ((pointer.y - timeline_rect.top()) / CLIP_HEIGHT) as u32;
-        let clip = self.clips.clip_containing_pos(y_pos, x_pos);
-        let is_in_timeline = timeline_rect.contains(pointer);
+        let pointer_in_timeline = timeline_rect.contains(pointer);
 
-        if left_button_down {
-            if is_in_timeline {
-                *self.selected_clip = clip.map(|x| (x.kind, x.id));
-                *self.selected_track = clip.map(|x| (x.kind, x.track_id));
-            } else {
-                *self.selected_clip = None;
-            }
-        }
+        self.clip_cursor(ui, pointer, timeline_rect, x_pos, y_pos);
 
-        if !is_in_timeline {
+        if !left_button_down || !pointer_in_timeline {
             return;
         }
 
-        if let Some(clip) = clip {
-            let action =
-                ClipWidget(clip).pointer_action(timeline_rect, pointer, *self.tf, clip.track_id);
-            Self::clip_action_to_cursor(ui, action);
-            if left_button_down {
-                *self.state = Self::clip_action_to_new_state(clip, action);
-            }
-        }
-    }
+        let Some((track_kind, track_id, track_y, _)) = self
+            .anim
+            .all_tracks()
+            .find(|(_, _, track_y, _)| *track_y == y_pos)
+        else {
+            *self.selected_clip = None;
+            *self.selected_track = None;
+            return;
+        };
+        *self.selected_track = Some((track_kind, track_id));
 
-    fn clip_action_to_cursor(ui: &mut Ui, action: UiClipGesture) {
-        match action {
-            UiClipGesture::Move => ui.ctx().set_cursor_icon(egui::CursorIcon::Grab),
-            UiClipGesture::Resize { .. } => {
-                ui.ctx().set_cursor_icon(egui::CursorIcon::ResizeHorizontal)
-            }
-        }
-    }
+        let Some((clip_kind, _, clip_id, _, clip)) =
+            self.anim.all_clips().find(|(kind, _, _, _, x)| {
+                *kind == track_kind && x.track_id == track_id && x.contains_pos(x_pos)
+            })
+        else {
+            *self.selected_clip = None;
+            return;
+        };
+        *self.selected_clip = Some((clip_kind, clip_id));
 
-    fn clip_action_to_new_state(clip: ClipPosition, action: UiClipGesture) -> SequencerState {
-        match action {
+        let gesture = ClipWidget(clip).gesture(timeline_rect, pointer, *self.tf, track_y);
+        *self.state = match gesture {
             UiClipGesture::Move => SequencerState::MoveClip {
-                clip_id: clip.id,
-                kind: clip.kind,
+                clip_id: clip_id,
+                kind: clip_kind,
                 start_pos_x: clip.start as f32,
-                start_pos_y: clip.track_y as f32 * CLIP_HEIGHT,
+                start_pos_y: track_y as f32 * CLIP_HEIGHT,
                 total_drag_delta_x: 0.0f32,
                 total_drag_delta_y: 0.0f32,
             },
             UiClipGesture::Resize { resize_left } => SequencerState::ResizeClip {
-                clip_id: clip.id,
-                kind: clip.kind,
+                clip_id,
+                kind: clip_kind,
                 resize_left,
                 start_left: clip.start as f32,
                 start_right: (clip.start + clip.len) as f32,
                 total_drag_delta: 0.0f32,
             },
+        };
+    }
+
+    fn clip_cursor(
+        &mut self,
+        ui: &mut Ui,
+        pointer: Pos2,
+        timeline_rect: Rect,
+        x_pos: u32,
+        y_pos: u32,
+    ) {
+        let Some((_, _, _, _, clip)) = self
+            .anim
+            .all_clips()
+            .find(|(_, _, _, clip_y, x)| *clip_y == y_pos && x.contains_pos(x_pos))
+        else {
+            *self.selected_clip = None;
+            return;
+        };
+        let gesture = ClipWidget(clip).gesture(timeline_rect, pointer, *self.tf, y_pos);
+        match gesture {
+            UiClipGesture::Move => ui.ctx().set_cursor_icon(egui::CursorIcon::Grab),
+            UiClipGesture::Resize { .. } => {
+                ui.ctx().set_cursor_icon(egui::CursorIcon::ResizeHorizontal)
+            }
         }
     }
 
@@ -202,14 +224,8 @@ impl<'a> Sequencer<'a> {
         let Some(pos) = response.interact_pointer_pos() else {
             return;
         };
-        let selected_track_y = ((pos.y - timeline_rect.top()) / CLIP_HEIGHT) as u32;
         if response.clicked() {
             *self.cursor_pos = self.tf.inv_tf_pos(pos.x - timeline_rect.left()).round() as u32;
-            for track in self.clips.all_tracks() {
-                if track.track_y == selected_track_y {
-                    *self.selected_track = Some((track.kind, track.track_id));
-                }
-            }
         }
     }
 
@@ -217,7 +233,7 @@ impl<'a> Sequencer<'a> {
         &mut self,
         ui: &mut Ui,
         response: &Response,
-        kind: ClipKind,
+        kind: TypeId,
         clip_id: u32,
         start_pos_x: f32,
         start_pos_y: f32,
@@ -235,17 +251,25 @@ impl<'a> Sequencer<'a> {
         total_drag_delta_x += response.drag_delta().x;
         total_drag_delta_y += response.drag_delta().y;
 
-        let Some(clip) = self.clips.get(kind, clip_id) else {
+        let Some(clip) = self.anim.get_clip(kind, clip_id) else {
             *self.state = SequencerState::Idle;
             return;
         };
         let new_track_y = ((start_pos_y + total_drag_delta_y).max(0.0) / CLIP_HEIGHT) as u32;
-        if let Some(new_track) = self.clips.track_with_y(kind, new_track_y) {
-            let new_pos = (start_pos_x + self.tf.inv_tf_vector(total_drag_delta_x)) as u32;
-            let new_len = clip.len;
-            self.clips
-                .set_clip_pos_len(kind, clip_id, new_track.track_id, new_pos, new_len);
-        }
+        let new_track_id = self
+            .anim
+            .all_tracks()
+            .find(|(track_kind, _, track_y, _)| *track_y == new_track_y && *track_kind == kind)
+            .map(|(_, x, _, _)| x);
+        let new_pos = (start_pos_x + self.tf.inv_tf_vector(total_drag_delta_x)) as u32;
+        let new_len = clip.len;
+        if let Some(new_track_id) = new_track_id {
+            self.anim
+                .set_clip_pos_len(kind, clip_id, new_track_id, new_pos, new_len);
+        } else {
+            self.anim
+                .set_clip_pos_len(kind, clip_id, clip.track_id, new_pos, new_len);
+        };
         *self.state = SequencerState::MoveClip {
             kind,
             clip_id,
@@ -260,7 +284,7 @@ impl<'a> Sequencer<'a> {
         &mut self,
         ui: &mut Ui,
         response: &Response,
-        kind: ClipKind,
+        kind: TypeId,
         clip_id: u32,
         start_left: f32,
         start_right: f32,
@@ -285,7 +309,7 @@ impl<'a> Sequencer<'a> {
             final_right = f32::max(final_left + 1.0, final_right + final_size_delta);
         };
 
-        let Some(clip) = self.clips.get(kind, clip_id) else {
+        let Some(clip) = self.anim.get_clip(kind, clip_id) else {
             *self.state = SequencerState::Idle;
             return;
         };
@@ -297,7 +321,7 @@ impl<'a> Sequencer<'a> {
             (final_right - final_left).round()
         };
         let new_pos = final_left.round() as u32;
-        self.clips
+        self.anim
             .set_clip_pos_len(kind, clip_id, clip.track_id, new_pos, new_len as u32);
         *self.state = SequencerState::ResizeClip {
             kind,
@@ -334,13 +358,13 @@ impl<'a> Sequencer<'a> {
     fn paint_timeline(&self, ui: &Ui, painter: &Painter, timeline_rect: Rect) {
         painter.rect_filled(timeline_rect, 0.0, ui.visuals().noninteractive().bg_fill);
 
-        for track in self.clips.all_tracks() {
-            if *self.selected_track == Some((track.kind, track.track_id)) {
-                let dark_color = darken_color(track_color(track.track_id));
+        for (track_kind, track_id, track_y, _) in self.anim.all_tracks() {
+            if *self.selected_track == Some((track_kind, track_id)) {
+                let dark_color = darken_color(track_color(track_id));
                 let track_selection = Rect::from_min_size(
                     pos2(
                         timeline_rect.left(),
-                        timeline_rect.top() + (track.track_y as f32) * CLIP_HEIGHT,
+                        timeline_rect.top() + (track_y as f32) * CLIP_HEIGHT,
                     ),
                     vec2(timeline_rect.width(), CLIP_HEIGHT),
                 );
@@ -437,8 +461,7 @@ impl<'a> Widget for Sequencer<'a> {
         });
 
         painter.set_clip_rect(body_rect);
-        self.clips
-            .paint_track_labels(ui, &painter, body_rect, *self.selected_track);
+        ClipsUi(self.anim).paint_track_labels(ui, &painter, body_rect, *self.selected_track);
 
         let mut timeline_rect = body_rect;
         timeline_rect.set_left(timeline_rect.left() + TRACK_LABEL_WIDTH);
@@ -448,8 +471,7 @@ impl<'a> Widget for Sequencer<'a> {
         self.paint_timeline(ui, &painter, timeline_rect);
 
         painter.set_clip_rect(timeline_rect.shrink(1.0));
-        self.clips
-            .paint_clips(ui, &painter, timeline_rect, *self.tf, *self.selected_clip);
+        ClipsUi(self.anim).paint_clips(ui, &painter, timeline_rect, *self.tf, *self.selected_clip);
         self.paint_timeline_cursor(&painter, timeline_rect);
 
         response
@@ -492,7 +514,7 @@ impl TimelineTf {
 pub enum SequencerState {
     Idle,
     MoveClip {
-        kind: ClipKind,
+        kind: TypeId,
         clip_id: u32,
         start_pos_x: f32,
         start_pos_y: f32,
@@ -500,7 +522,7 @@ pub enum SequencerState {
         total_drag_delta_y: f32,
     },
     ResizeClip {
-        kind: ClipKind,
+        kind: TypeId,
         clip_id: u32,
         start_left: f32,
         start_right: f32,
