@@ -3,9 +3,10 @@ use std::path::{Path, PathBuf};
 
 use egui::{Modal, Ui};
 
+use crate::animation::Animation;
 use hashbrown::HashMap;
 use lib_asset::AnimationPackId;
-use lib_asset::animation::*;
+use lib_asset::animation_manifest::AnimationId;
 use log::{error, info, warn};
 use rfd::FileDialog;
 use strum::VariantArray;
@@ -31,17 +32,26 @@ fn load_anim_pack(src: impl AsRef<Path>, anims: &mut HashMap<AnimationId, Animat
         }
     };
 
-    let pack: HashMap<_, _> = match serde_json::from_reader(&mut file) {
-        Ok(x) => {
-            info!("Loaded data to {src:?}");
-            x
+    let pack: lib_asset::animation_manifest::AnimationPack =
+        match serde_json::from_reader(&mut file) {
+            Ok(x) => {
+                info!("Loaded data to {src:?}");
+                x
+            }
+            Err(e) => {
+                error!("Failed to load from {src:?}: {e}");
+                return;
+            }
+        };
+
+    for (id, libasset_anim) in pack {
+        match Animation::from_manifest(&libasset_anim) {
+            Ok(anim) => {
+                anims.insert(id, anim);
+            }
+            Err(e) => error!("Failed to load from {src:?}: {e:#}"),
         }
-        Err(e) => {
-            error!("Failed to load from {src:?}: {e}");
-            return;
-        }
-    };
-    anims.extend(pack);
+    }
 }
 
 pub fn save_anim_pack_modal(
@@ -103,7 +113,7 @@ fn save_anim_pack(
             continue;
         };
         info!("Adding {anim_id_name}");
-        output.insert(*anim_id, anim.clone());
+        output.insert(*anim_id, anim.to_manifest());
     }
 
     match serde_json::to_writer_pretty(&mut file, &output) {
@@ -146,7 +156,7 @@ fn save_anim(dst: PathBuf, anim: &Animation) {
         }
     };
 
-    match serde_json::to_writer_pretty(&mut file, anim) {
+    match serde_json::to_writer_pretty(&mut file, &anim.to_manifest()) {
         Ok(_) => info!("Wrote data to {dst:?}"),
         Err(e) => error!("Failed to write to {dst:?}: {e}"),
     }
@@ -161,13 +171,18 @@ fn load_anim(src: PathBuf) -> Option<Animation> {
         }
     };
 
-    match serde_json::from_reader(&mut file) {
-        Ok(x) => {
-            info!("Loaded data to {src:?}");
-            x
-        }
+    let manifest: lib_asset::animation_manifest::Animation =
+        match serde_json::from_reader(&mut file) {
+            Ok(x) => x,
+            Err(e) => {
+                error!("Failed to load {src:?}: {e}");
+                return None;
+            }
+        };
+    match Animation::from_manifest(&manifest) {
+        Ok(x) => Some(x),
         Err(e) => {
-            error!("Failed to load from {src:?}: {e}");
+            error!("Failed to load {src:?}: {e:#}");
             None
         }
     }

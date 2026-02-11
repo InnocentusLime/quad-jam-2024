@@ -1,17 +1,26 @@
 use std::{fs::File, path::Path, str::FromStr};
 
-use crate::{
-    AssetRoot, FsResolver,
-    animation::{ActionsTracks, Clips, DrawSprite},
-};
+use crate::{AssetRoot, FsResolver, TextureId, animation_manifest::Clips};
 use anyhow::{Context, bail, ensure};
-use glam::{uvec2, vec2};
+use glam::{UVec2, Vec2, uvec2, vec2};
 use hashbrown::HashMap;
 use log::{info, warn};
 use macroquad::texture::Texture2D;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use super::{Animation, AnimationId, Clip, Track};
+
+#[derive(Default, Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct DrawSprite {
+    pub layer: u32,
+    pub texture_id: TextureId,
+    pub local_pos: Vec2,
+    pub local_rotation: f32,
+    pub rect_pos: UVec2,
+    pub rect_size: UVec2,
+    pub sort_offset: f32,
+    pub rotate_with_parent: bool,
+}
 
 pub fn load_animations_aseprite(
     resolver: &FsResolver,
@@ -40,14 +49,12 @@ fn load_animations_from_aseprite(
                     name: format!("sprites {id}"),
                 })
                 .collect();
-            let draw_sprite = Clips { clips, tracks };
+            let mut action_tracks = HashMap::new();
+            action_tracks.insert("draw_sprite".to_owned(), Clips { clips, tracks });
             (
                 name,
                 Animation {
-                    action_tracks: ActionsTracks {
-                        draw_sprite,
-                        ..Default::default()
-                    },
+                    action_tracks,
                     is_looping,
                 },
             )
@@ -60,7 +67,7 @@ fn load_clips_from_aseprite(
     resolver: &FsResolver,
     sheet: &Sheet,
     layer: Option<&str>,
-) -> anyhow::Result<HashMap<AnimationId, (bool, u32, Vec<Clip<DrawSprite>>)>> {
+) -> anyhow::Result<HashMap<AnimationId, (bool, u32, Vec<Clip>)>> {
     let version_prefix = String::from(REQUIRED_ASEPRITE_VERSION) + ".";
     let version = &sheet.meta.version;
     anyhow::ensure!(
@@ -97,7 +104,7 @@ fn load_clips_from_aseprite(
                     track_id: *track_id,
                     start,
                     len: *duration,
-                    action: *action,
+                    action: serde_json::to_value(action).unwrap(),
                 });
                 assert!(shared_duration.is_none() || shared_duration == Some(*duration));
                 shared_duration = Some(*duration);

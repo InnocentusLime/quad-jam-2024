@@ -1176,6 +1176,7 @@ dependencies = [
  "rand",
  "rfd",
  "sapp-jsutils",
+ "serde",
  "serde_json",
  "strum",
 ]
