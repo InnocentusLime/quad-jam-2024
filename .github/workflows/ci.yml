@@ -9,7 +9,7 @@ env:
 jobs:
   ci-build-web:
     runs-on: ubuntu-latest
-    container: rust:1.88.0-bookworm 
+    container: rust:1.93.1-bookworm 
     steps:
       - uses: actions/checkout@v5
       - uses: actions/cache@v4
@@ -20,8 +20,8 @@ jobs:
             ~/.cargo/registry/
             ~/.cargo/git/
             target/
-          key: ci-web-bookworm-1.88-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ci-web-bookworm-1.88-cargo-
+          key: ci-web-bookworm-1.93.1-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ci-web-bookworm-1.93.1-cargo-
       - shell: bash
         run: rustup target add wasm32-unknown-unknown
       - name: Check WASM (dbg-only)
@@ -30,7 +30,7 @@ jobs:
         run: cargo build --target wasm32-unknown-unknown --locked
   ci-build-native:
     runs-on: ubuntu-latest
-    container: rust:1.88.0-bookworm 
+    container: rust:1.93.1-bookworm 
     steps:
       - uses: actions/checkout@v5
       - uses: actions/cache@v4
@@ -41,8 +41,8 @@ jobs:
             ~/.cargo/registry/
             ~/.cargo/git/
             target/
-          key: ci-native-bookworm-1.88-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ci-native-bookworm-1.88-cargo-
+          key: ci-native-bookworm-1.93-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ci-native-bookworm-1.93-cargo-
       - shell: bash
         run: >
           apt-get update &&
@@ -57,7 +57,7 @@ jobs:
         run: cargo build --locked --features dev-env --package lib-asset --bin asset-compiler
   tests:
     runs-on: ubuntu-latest
-    container: rust:1.88.0-bookworm 
+    container: rust:1.93.1-bookworm 
     steps:
       - uses: actions/checkout@v5
       - uses: actions/cache@v4
@@ -68,8 +68,8 @@ jobs:
             ~/.cargo/registry/
             ~/.cargo/git/
             target/
-          key: tests-bookworm-1.88-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: tests-bookworm-1.88-cargo-
+          key: tests-bookworm-1.93-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: tests-bookworm-1.93-cargo-
       - shell: bash
         run: >
           apt-get update &&
@@ -78,7 +78,7 @@ jobs:
         run: cargo test --workspace --package "*" --features dev-env --locked
   cargo-fmt:
     runs-on: ubuntu-latest
-    container: rust:1.88.0-bookworm 
+    container: rust:1.93.1-bookworm 
     steps:
       - uses: actions/checkout@v5
       - shell: bash
