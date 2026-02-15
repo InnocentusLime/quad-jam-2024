@@ -14,7 +14,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -7.0,
                 -8.0
@@ -35,7 +34,8 @@
               "rect_size": [
                 14,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -44,7 +44,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -7.0,
                 -8.0
@@ -65,7 +64,8 @@
               "rect_size": [
                 14,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -74,7 +74,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -7.0,
                 -7.0
@@ -95,7 +94,8 @@
               "rect_size": [
                 14,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -104,7 +104,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -7.0,
                 -8.0
@@ -125,7 +124,8 @@
               "rect_size": [
                 14,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -134,7 +134,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -7.0,
                 -8.0
@@ -155,7 +154,8 @@
               "rect_size": [
                 14,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -164,7 +164,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -7.0,
                 -7.0
@@ -185,7 +184,8 @@
               "rect_size": [
                 14,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -194,7 +194,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 1.0,
                 -4.0
@@ -215,7 +214,8 @@
               "rect_size": [
                 6,
                 14
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -224,7 +224,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 2.0,
                 -7.0
@@ -245,7 +244,8 @@
               "rect_size": [
                 8,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -254,7 +254,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 2.0,
                 -6.0
@@ -275,7 +274,8 @@
               "rect_size": [
                 10,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -284,7 +284,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 1.0,
                 -4.0
@@ -305,7 +304,8 @@
               "rect_size": [
                 6,
                 14
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -314,7 +314,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 2.0,
                 -7.0
@@ -335,7 +334,8 @@
               "rect_size": [
                 8,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -344,7 +344,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 2.0,
                 -6.0
@@ -365,7 +364,8 @@
               "rect_size": [
                 10,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           }
         ],
@@ -422,7 +422,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -6.0,
                 -7.0
@@ -443,7 +442,8 @@
               "rect_size": [
                 12,
                 15
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -452,7 +452,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -6.0,
                 -7.0
@@ -473,7 +472,8 @@
               "rect_size": [
                 12,
                 15
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -482,7 +482,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -6.0,
                 -6.0
@@ -503,7 +502,8 @@
               "rect_size": [
                 12,
                 14
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -512,7 +512,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -6.0,
                 -7.0
@@ -533,7 +532,8 @@
               "rect_size": [
                 12,
                 15
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -542,7 +542,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -6.0,
                 -7.0
@@ -563,7 +562,8 @@
               "rect_size": [
                 12,
                 15
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -572,7 +572,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -6.0,
                 -6.0
@@ -593,7 +592,8 @@
               "rect_size": [
                 12,
                 14
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -602,7 +602,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -8.0,
                 -8.0
@@ -623,7 +622,8 @@
               "rect_size": [
                 16,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -632,7 +632,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -9.0,
                 -8.0
@@ -653,7 +652,8 @@
               "rect_size": [
                 18,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -662,7 +662,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -10.0,
                 -7.0
@@ -683,7 +682,8 @@
               "rect_size": [
                 20,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -692,7 +692,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -8.0,
                 -8.0
@@ -713,7 +712,8 @@
               "rect_size": [
                 16,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -722,7 +722,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -9.0,
                 -8.0
@@ -743,7 +742,8 @@
               "rect_size": [
                 18,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -752,7 +752,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -10.0,
                 -7.0
@@ -773,7 +772,8 @@
               "rect_size": [
                 20,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           }
         ],
@@ -830,7 +830,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -7.0,
                 -8.0
@@ -851,7 +850,8 @@
               "rect_size": [
                 14,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -860,7 +860,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -7.0,
                 -4.0
@@ -881,7 +880,8 @@
               "rect_size": [
                 6,
                 14
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           }
         ],
@@ -927,7 +927,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -6.0,
                 -7.0
@@ -948,7 +947,8 @@
               "rect_size": [
                 12,
                 15
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -957,7 +957,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -8.0,
                 -8.0
@@ -978,7 +977,8 @@
               "rect_size": [
                 16,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           }
         ],
@@ -1049,7 +1049,6 @@
             "len": 100,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -8.0,
                 -8.5
@@ -1070,7 +1069,8 @@
               "rect_size": [
                 16,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1079,7 +1079,6 @@
             "len": 200,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -9.0,
                 -9.0
@@ -1100,7 +1099,8 @@
               "rect_size": [
                 18,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1109,7 +1109,6 @@
             "len": 100,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -6.0,
                 -5.0
@@ -1130,7 +1129,8 @@
               "rect_size": [
                 12,
                 11
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1139,7 +1139,6 @@
             "len": 100,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -6.0,
                 -5.0
@@ -1160,7 +1159,8 @@
               "rect_size": [
                 12,
                 11
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1169,7 +1169,6 @@
             "len": 100,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -16.0,
                 -8.0
@@ -1190,7 +1189,8 @@
               "rect_size": [
                 32,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1199,7 +1199,6 @@
             "len": 100,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -9.0,
                 -8.0
@@ -1220,7 +1219,8 @@
               "rect_size": [
                 18,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1229,7 +1229,6 @@
             "len": 100,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -8.0,
                 -8.0
@@ -1250,7 +1249,8 @@
               "rect_size": [
                 16,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1259,7 +1259,6 @@
             "len": 100,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -0.5,
                 -0.5
@@ -1280,7 +1279,8 @@
               "rect_size": [
                 1,
                 1
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1289,7 +1289,6 @@
             "len": 200,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -5.0,
                 -1.0
@@ -1310,7 +1309,8 @@
               "rect_size": [
                 10,
                 2
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1319,7 +1319,6 @@
             "len": 100,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -6.0,
                 6.0
@@ -1340,7 +1339,8 @@
               "rect_size": [
                 12,
                 38
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1349,7 +1349,6 @@
             "len": 100,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -6.0,
                 6.0
@@ -1370,7 +1369,8 @@
               "rect_size": [
                 12,
                 38
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1379,7 +1379,6 @@
             "len": 100,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 13.0,
                 4.0
@@ -1400,7 +1399,8 @@
               "rect_size": [
                 8,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1409,7 +1409,6 @@
             "len": 100,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -0.5,
                 -0.5
@@ -1430,7 +1429,8 @@
               "rect_size": [
                 1,
                 1
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1439,7 +1439,6 @@
             "len": 100,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -0.5,
                 -0.5
@@ -1460,7 +1459,8 @@
               "rect_size": [
                 1,
                 1
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           }
         ],
@@ -1520,7 +1520,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -8.0,
                 -8.0
@@ -1541,7 +1540,8 @@
               "rect_size": [
                 16,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1550,7 +1550,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -9.0,
                 -8.0
@@ -1571,7 +1570,8 @@
               "rect_size": [
                 18,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1580,7 +1580,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -10.0,
                 -7.0
@@ -1601,7 +1600,8 @@
               "rect_size": [
                 20,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1610,7 +1610,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -8.0,
                 -8.0
@@ -1631,7 +1630,8 @@
               "rect_size": [
                 16,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1640,7 +1640,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -9.0,
                 -8.0
@@ -1661,7 +1660,8 @@
               "rect_size": [
                 18,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1670,7 +1670,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -10.0,
                 -7.0
@@ -1691,7 +1690,8 @@
               "rect_size": [
                 20,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           }
         ],
@@ -1745,7 +1745,6 @@
             "len": 160,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -8.0,
                 -8.0
@@ -1766,7 +1765,8 @@
               "rect_size": [
                 16,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1775,7 +1775,6 @@
             "len": 200,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -9.0,
                 -9.0
@@ -1796,7 +1795,8 @@
               "rect_size": [
                 18,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           }
         ],
@@ -1875,7 +1875,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -7.0,
                 -4.0
@@ -1896,7 +1895,8 @@
               "rect_size": [
                 6,
                 14
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1905,7 +1905,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -10.0,
                 -7.0
@@ -1926,7 +1925,8 @@
               "rect_size": [
                 8,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1935,7 +1935,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -12.0,
                 -6.0
@@ -1956,7 +1955,8 @@
               "rect_size": [
                 10,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1965,7 +1965,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -7.0,
                 -3.0
@@ -1986,7 +1985,8 @@
               "rect_size": [
                 6,
                 14
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -1995,7 +1995,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -10.0,
                 -7.0
@@ -2016,7 +2015,8 @@
               "rect_size": [
                 8,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -2025,7 +2025,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -12.0,
                 -6.0
@@ -2046,7 +2045,8 @@
               "rect_size": [
                 10,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -2055,7 +2055,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -7.0,
                 -8.0
@@ -2076,7 +2075,8 @@
               "rect_size": [
                 14,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -2085,7 +2085,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -7.0,
                 -8.0
@@ -2106,7 +2105,8 @@
               "rect_size": [
                 14,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -2115,7 +2115,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -7.0,
                 -7.0
@@ -2136,7 +2135,8 @@
               "rect_size": [
                 14,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -2145,7 +2145,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -7.0,
                 -8.0
@@ -2166,7 +2165,8 @@
               "rect_size": [
                 14,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -2175,7 +2175,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -7.0,
                 -8.0
@@ -2196,7 +2195,8 @@
               "rect_size": [
                 14,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -2205,7 +2205,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -7.0,
                 -7.0
@@ -2226,7 +2225,8 @@
               "rect_size": [
                 14,
                 16
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           }
         ],
@@ -2283,7 +2283,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 1.0,
                 -4.0
@@ -2304,7 +2303,8 @@
               "rect_size": [
                 6,
                 14
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           },
           {
@@ -2313,7 +2313,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -7.0,
                 -8.0
@@ -2334,7 +2333,8 @@
               "rect_size": [
                 14,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           }
         ],
@@ -2380,7 +2380,6 @@
             "len": 167,
             "action": {
               "layer": 1,
-              "texture_id": "BunnyAtlas",
               "local_pos": [
                 -8.0,
                 -8.0
@@ -2401,7 +2400,8 @@
               "rect_size": [
                 16,
                 17
-              ]
+              ],
+              "atlas_file": "bnuuy.png"
             }
           }
         ],

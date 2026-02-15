@@ -1,8 +1,10 @@
 #[cfg(feature = "dev-env")]
 pub mod aseprite_load;
 
+use glam::{UVec2, Vec2};
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
+use std::path::PathBuf;
 
 pub type AnimationPack = HashMap<AnimationId, Animation>;
 
@@ -60,4 +62,16 @@ pub enum AnimationId {
     StabberAttack,
     ShooterIdle,
     ShooterAttack,
+}
+
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
+pub struct DrawSprite {
+    pub layer: u32,
+    pub atlas_file: PathBuf,
+    pub local_pos: Vec2,
+    pub local_rotation: f32,
+    pub rect_pos: UVec2,
+    pub rect_size: UVec2,
+    pub sort_offset: f32,
+    pub rotate_with_parent: bool,
 }
