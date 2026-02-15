@@ -1,11 +1,9 @@
 use lib_asset::{TextureId, level::CharacterInfo};
 use macroquad::prelude::*;
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde::{Deserialize, Serialize};
 use std::any::TypeId;
 
-pub trait ClipAction:
-    std::fmt::Debug + Default + Copy + 'static + Serialize + DeserializeOwned
-{
+pub trait ClipAction: std::fmt::Debug + Default + Copy + 'static {
     fn manifest_key() -> &'static str;
 
     fn global_offset(&mut self, _off: Vec2) {}
@@ -14,6 +12,10 @@ pub trait ClipAction:
     fn editor_ui(&mut self, ui: &mut egui::Ui) {
         ui.label("No data");
     }
+
+    fn from_manifest(manifest: &serde_json::Value) -> anyhow::Result<Self>;
+
+    fn to_manifest(&self) -> serde_json::Value;
 }
 
 pub const CLIP_TYPES: [TypeId; 6] = [
@@ -32,6 +34,14 @@ impl ClipAction for Invulnerability {
     fn manifest_key() -> &'static str {
         "invulnerability"
     }
+
+    fn from_manifest(manifest: &serde_json::Value) -> anyhow::Result<Self> {
+        serde_json::from_value(manifest.clone()).map_err(anyhow::Error::from)
+    }
+
+    fn to_manifest(&self) -> serde_json::Value {
+        serde_json::to_value(&self).unwrap()
+    }
 }
 
 #[derive(Default, Debug, Clone, Copy, Serialize, Deserialize)]
@@ -40,6 +50,14 @@ pub struct Move;
 impl ClipAction for Move {
     fn manifest_key() -> &'static str {
         "move"
+    }
+
+    fn from_manifest(manifest: &serde_json::Value) -> anyhow::Result<Self> {
+        serde_json::from_value(manifest.clone()).map_err(anyhow::Error::from)
+    }
+
+    fn to_manifest(&self) -> serde_json::Value {
+        serde_json::to_value(&self).unwrap()
     }
 }
 
@@ -107,6 +125,14 @@ impl ClipAction for DrawSprite {
     fn manifest_key() -> &'static str {
         "draw_sprite"
     }
+
+    fn from_manifest(manifest: &serde_json::Value) -> anyhow::Result<Self> {
+        serde_json::from_value(manifest.clone()).map_err(anyhow::Error::from)
+    }
+
+    fn to_manifest(&self) -> serde_json::Value {
+        serde_json::to_value(&self).unwrap()
+    }
 }
 
 #[derive(Default, Debug, Clone, Copy, Serialize, Deserialize)]
@@ -152,6 +178,14 @@ impl ClipAction for AttackBox {
     fn manifest_key() -> &'static str {
         "attack_box"
     }
+
+    fn from_manifest(manifest: &serde_json::Value) -> anyhow::Result<Self> {
+        serde_json::from_value(manifest.clone()).map_err(anyhow::Error::from)
+    }
+
+    fn to_manifest(&self) -> serde_json::Value {
+        serde_json::to_value(&self).unwrap()
+    }
 }
 
 #[derive(Default, Debug, Clone, Copy, Serialize, Deserialize)]
@@ -169,6 +203,14 @@ impl ClipAction for LockInput {
 
     fn manifest_key() -> &'static str {
         "lock_input"
+    }
+
+    fn from_manifest(manifest: &serde_json::Value) -> anyhow::Result<Self> {
+        serde_json::from_value(manifest.clone()).map_err(anyhow::Error::from)
+    }
+
+    fn to_manifest(&self) -> serde_json::Value {
+        serde_json::to_value(&self).unwrap()
     }
 }
 
@@ -205,6 +247,14 @@ impl ClipAction for Spawn {
 
     fn manifest_key() -> &'static str {
         "spawn"
+    }
+
+    fn from_manifest(manifest: &serde_json::Value) -> anyhow::Result<Self> {
+        serde_json::from_value(manifest.clone()).map_err(anyhow::Error::from)
+    }
+
+    fn to_manifest(&self) -> serde_json::Value {
+        serde_json::to_value(&self).unwrap()
     }
 }
 

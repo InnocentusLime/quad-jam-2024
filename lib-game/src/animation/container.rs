@@ -325,8 +325,8 @@ impl<T: ClipAction> AnimContainer for Clips<T> {
 
         let mut clips = Vec::new();
         for (clip_id, clip) in generic.clips.iter().enumerate() {
-            let action = serde_json::from_value::<T>(clip.action.clone())
-                .with_context(|| format!("clip {clip_id}"))?;
+            let action =
+                T::from_manifest(&clip.action).with_context(|| format!("clip {clip_id}"))?;
             clips.push((
                 Clip {
                     track_id: clip.track_id,
@@ -355,7 +355,7 @@ impl<T: ClipAction> AnimContainer for Clips<T> {
                 track_id: clip.track_id,
                 start: clip.start,
                 len: clip.len,
-                action: serde_json::to_value(action).unwrap(),
+                action: action.to_manifest(),
             })
             .collect();
         lib_asset::animation_manifest::Clips { clips, tracks }
