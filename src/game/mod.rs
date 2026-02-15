@@ -39,6 +39,7 @@ async fn load_resources(resources: &mut Resources) {
 
     resources.load_font(FontId::Quaver).await;
     resources.load_texture(TextureId::BunnyAtlas).await;
+    resources.load_texture(TextureId::WorldAtlas).await;
     build_textures_atlas();
 
     resources.load_animation_pack(AnimationPackId::Bunny).await;
