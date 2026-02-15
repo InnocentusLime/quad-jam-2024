@@ -14,7 +14,7 @@ pub fn run() -> ExitCode {
     }
 
     let result = match cli.command {
-        Commands::ConvertAseprite { aseprite, out } => convert_aseprite(&resolver, aseprite, out),
+        Commands::ConvertAseprite { aseprite, out } => convert_aseprite(aseprite, out),
         Commands::CompileMap { map, out } => compile_impl::<LevelDef>(&resolver, map, out),
         Commands::CompileMapsDir { dir, out } => {
             compile_dir_impl::<LevelDef>(&resolver, "tmx", dir, out)
@@ -30,13 +30,8 @@ pub fn run() -> ExitCode {
     }
 }
 
-fn convert_aseprite(
-    fs_resolver: &FsResolver,
-    aseprite: PathBuf,
-    out: PathBuf,
-) -> anyhow::Result<()> {
-    let anims =
-        animation_manifest::aseprite_load::load_animations_aseprite(fs_resolver, aseprite, None)?;
+fn convert_aseprite(aseprite: PathBuf, out: PathBuf) -> anyhow::Result<()> {
+    let anims = animation_manifest::aseprite_load::load_animations_aseprite(aseprite, None)?;
     let out = File::create(out).context("open destination")?;
     serde_json::to_writer_pretty(out, &anims).context("writing to dest")
 }

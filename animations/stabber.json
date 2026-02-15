@@ -14,7 +14,6 @@
             "len": 155,
             "action": {
               "layer": 1,
-              "texture_id": "WorldAtlas",
               "local_pos": [
                 -8.0,
                 -8.0
@@ -35,7 +34,8 @@
               "rect_size": [
                 16,
                 16
-              ]
+              ],
+              "atlas_file": "world.png"
             }
           }
         ],
@@ -114,7 +114,6 @@
             "len": 500,
             "action": {
               "layer": 1,
-              "texture_id": "WorldAtlas",
               "local_pos": [
                 -8.0,
                 -8.0
@@ -135,7 +134,8 @@
               "rect_size": [
                 16,
                 16
-              ]
+              ],
+              "atlas_file": "world.png"
             }
           },
           {
@@ -144,7 +144,6 @@
             "len": 199,
             "action": {
               "layer": 1,
-              "texture_id": "WorldAtlas",
               "local_pos": [
                 -8.0,
                 -8.0
@@ -165,7 +164,8 @@
               "rect_size": [
                 16,
                 16
-              ]
+              ],
+              "atlas_file": "world.png"
             }
           },
           {
@@ -174,7 +174,6 @@
             "len": 392,
             "action": {
               "layer": 1,
-              "texture_id": "WorldAtlas",
               "local_pos": [
                 -8.0,
                 -8.0
@@ -195,7 +194,8 @@
               "rect_size": [
                 16,
                 16
-              ]
+              ],
+              "atlas_file": "world.png"
             }
           },
           {
@@ -204,7 +204,6 @@
             "len": 243,
             "action": {
               "layer": 1,
-              "texture_id": "WorldAtlas",
               "local_pos": [
                 0.0,
                 -8.0
@@ -225,7 +224,8 @@
               "rect_size": [
                 36,
                 42
-              ]
+              ],
+              "atlas_file": "world.png"
             }
           }
         ],

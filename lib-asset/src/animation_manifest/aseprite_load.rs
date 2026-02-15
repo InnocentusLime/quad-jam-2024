@@ -1,29 +1,14 @@
 use std::{fs::File, path::Path, str::FromStr};
 
-use crate::{AssetRoot, FsResolver, TextureId, animation_manifest::Clips};
 use anyhow::{Context, bail, ensure};
-use glam::{UVec2, Vec2, uvec2, vec2};
+use glam::{uvec2, vec2};
 use hashbrown::HashMap;
 use log::{info, warn};
-use macroquad::texture::Texture2D;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 
-use super::{Animation, AnimationId, Clip, Track};
-
-#[derive(Default, Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct DrawSprite {
-    pub layer: u32,
-    pub texture_id: TextureId,
-    pub local_pos: Vec2,
-    pub local_rotation: f32,
-    pub rect_pos: UVec2,
-    pub rect_size: UVec2,
-    pub sort_offset: f32,
-    pub rotate_with_parent: bool,
-}
+use super::{Animation, AnimationId, Clip, Clips, DrawSprite, Track};
 
 pub fn load_animations_aseprite(
-    resolver: &FsResolver,
     path: impl AsRef<Path>,
     layer: Option<&str>,
 ) -> anyhow::Result<HashMap<AnimationId, Animation>> {
@@ -31,17 +16,16 @@ pub fn load_animations_aseprite(
     let anim_file = File::open(path).with_context(|| format!("loading file {path:?}"))?;
     let sheet =
         serde_json::from_reader(anim_file).with_context(|| format!("decoding file {path:?}"))?;
-    let anim = load_animations_from_aseprite(resolver, &sheet, layer)
+    let anim = load_animations_from_aseprite(&sheet, layer)
         .with_context(|| format!("converting {path:?}"))?;
     Ok(anim)
 }
 
 fn load_animations_from_aseprite(
-    resolver: &FsResolver,
     sheet: &Sheet,
     layer: Option<&str>,
 ) -> anyhow::Result<HashMap<AnimationId, Animation>> {
-    let res = load_clips_from_aseprite(resolver, sheet, layer)?
+    let res = load_clips_from_aseprite(sheet, layer)?
         .into_iter()
         .map(|(name, (is_looping, track_count, clips))| {
             let tracks = (0..track_count)
@@ -64,7 +48,6 @@ fn load_animations_from_aseprite(
 }
 
 fn load_clips_from_aseprite(
-    resolver: &FsResolver,
     sheet: &Sheet,
     layer: Option<&str>,
 ) -> anyhow::Result<HashMap<AnimationId, (bool, u32, Vec<Clip>)>> {
@@ -75,7 +58,7 @@ fn load_clips_from_aseprite(
         "Expected version to be {REQUIRED_ASEPRITE_VERSION}. Found {version:?}",
     );
 
-    let frames = collect_frames(resolver, sheet, layer)?;
+    let frames = collect_frames(sheet, layer)?;
     let mut result = HashMap::new();
     for tag in &sheet.meta.frame_tags {
         let anim_id = match AnimationId::from_str(&tag.data) {
@@ -119,7 +102,6 @@ fn load_clips_from_aseprite(
 }
 
 fn collect_frames(
-    resolver: &FsResolver,
     sheet: &Sheet,
     layer: Option<&str>,
 ) -> anyhow::Result<HashMap<u32, Vec<(u32, u32, DrawSprite)>>> {
@@ -134,7 +116,6 @@ fn collect_frames(
         let Ok(frame_id) = pieces[0].parse() else {
             bail!("first piece of the frame name must be an integer");
         };
-        let sprite_path = resolver.get_path(AssetRoot::Assets, &sheet.meta.image);
 
         // NOTE: we assume that the order of layer frames is the same
         //       as the desired draw order
@@ -144,7 +125,7 @@ fn collect_frames(
             frame.duration,
             DrawSprite {
                 layer: 1,
-                texture_id: resolver.inverse_resolve::<Texture2D>(&sprite_path).unwrap(),
+                atlas_file: sheet.meta.image.clone().into(),
                 local_pos: vec2(-(frame.frame.w as f32) * 0.5, -(frame.frame.h as f32) * 0.5),
                 local_rotation: 0.0,
                 rect_pos: uvec2(frame.frame.x, frame.frame.y),
