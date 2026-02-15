@@ -6,20 +6,31 @@ use std::any::{Any, TypeId, type_name};
 use super::actions::*;
 
 pub trait AnimContainer: std::fmt::Debug + Any {
+    #[cfg(feature = "dev-env")]
     fn clip_count(&self) -> u32;
+    #[cfg(feature = "dev-env")]
     fn get_clip(&self, clip_id: u32) -> Option<Clip>;
+    #[cfg(feature = "dev-env")]
     fn add_clip(&mut self, track_id: u32, start: u32, len: u32);
+    #[cfg(feature = "dev-env")]
     fn delete_clip(&mut self, clip_id: u32);
 
+    #[cfg(feature = "dev-env")]
     fn offset_clip_actions(&mut self, off: Vec2);
     #[cfg(feature = "dev-env")]
     fn clip_action_editor_ui(&mut self, clip_id: u32, ui: &mut egui::Ui);
+    #[cfg(feature = "dev-env")]
     fn set_clip_pos_len(&mut self, idx: u32, new_track: u32, new_pos: u32, new_len: u32);
+    #[cfg(feature = "dev-env")]
     fn clip_has_intersection(&self, track_id: u32, skip: u32, start: u32, len: u32) -> Option<i32>;
 
+    #[cfg(feature = "dev-env")]
     fn track_count(&self) -> u32;
+    #[cfg(feature = "dev-env")]
     fn get_track(&'_ self, track_id: u32) -> Option<&Track>;
+    #[cfg(feature = "dev-env")]
     fn add_track(&mut self, name: String);
+    #[cfg(feature = "dev-env")]
     fn delete_track(&mut self, track_id: u32);
 
     fn manifest_key(&self) -> &'static str;
@@ -167,16 +178,19 @@ impl<T: ClipAction> AnimContainer for Clips<T> {
             .unwrap_or_default()
     }
 
+    #[cfg(feature = "dev-env")]
     fn offset_clip_actions(&mut self, off: Vec2) {
         for (_, action) in self.clips.iter_mut() {
             action.global_offset(off);
         }
     }
 
+    #[cfg(feature = "dev-env")]
     fn add_track(&mut self, name: String) {
         self.tracks.push(Track { name });
     }
 
+    #[cfg(feature = "dev-env")]
     fn delete_track(&mut self, track_id: u32) {
         self.tracks.remove(track_id as usize);
         self.clips.retain(|(x, _)| x.track_id != track_id);
@@ -187,10 +201,12 @@ impl<T: ClipAction> AnimContainer for Clips<T> {
         }
     }
 
+    #[cfg(feature = "dev-env")]
     fn delete_clip(&mut self, clip_id: u32) {
         self.clips.remove(clip_id as usize);
     }
 
+    #[cfg(feature = "dev-env")]
     fn set_clip_pos_len(&mut self, idx: u32, new_track: u32, mut new_pos: u32, new_len: u32) {
         debug_assert!((new_track as usize) < self.tracks.len());
         let Some((clip, _)) = self.clips.get(idx as usize) else {
@@ -221,6 +237,7 @@ impl<T: ClipAction> AnimContainer for Clips<T> {
         clip.len = new_len;
     }
 
+    #[cfg(feature = "dev-env")]
     fn add_clip(&mut self, track_id: u32, start: u32, len: u32) {
         if track_id >= self.tracks.len() as u32 {
             return;
@@ -241,6 +258,7 @@ impl<T: ClipAction> AnimContainer for Clips<T> {
         self.clips.push((new_clip, T::default()));
     }
 
+    #[cfg(feature = "dev-env")]
     fn clip_has_intersection(&self, track_id: u32, skip: u32, start: u32, len: u32) -> Option<i32> {
         let end = start + len;
         let mut res = None::<i32>;
@@ -271,19 +289,23 @@ impl<T: ClipAction> AnimContainer for Clips<T> {
         res
     }
 
+    #[cfg(feature = "dev-env")]
     fn clip_count(&self) -> u32 {
         self.clips.len() as u32
     }
 
+    #[cfg(feature = "dev-env")]
     fn get_clip(&self, clip_id: u32) -> Option<Clip> {
         let (clip, _) = self.clips.get(clip_id as usize)?;
         Some(*clip)
     }
 
+    #[cfg(feature = "dev-env")]
     fn track_count(&self) -> u32 {
         self.tracks.len() as u32
     }
 
+    #[cfg(feature = "dev-env")]
     fn get_track(&'_ self, track_id: u32) -> Option<&'_ Track> {
         self.tracks.get(track_id as usize)
     }
@@ -353,9 +375,8 @@ impl<T: ClipAction> AnimContainer for Clips<T> {
     }
 }
 
-// dev-env methods
+#[cfg(feature = "dev-env")]
 impl Animation {
-    #[cfg(feature = "dev-env")]
     pub fn clip_editor_ui(&mut self, kind: TypeId, clip_id: u32, ui: &mut egui::Ui) {
         let Some(container) = self.action_tracks.get_mut(&kind) else {
             return;
