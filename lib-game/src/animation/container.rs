@@ -3,6 +3,8 @@ use hashbrown::HashMap;
 use macroquad::prelude::*;
 use std::any::{Any, TypeId, type_name};
 
+use crate::Resources;
+
 use super::actions::*;
 
 pub trait AnimContainer: std::fmt::Debug + Any {
@@ -37,8 +39,9 @@ pub trait AnimContainer: std::fmt::Debug + Any {
     fn type_name(&self) -> &'static str;
     fn max_pos(&self) -> u32;
 
-    fn to_manifest(&self) -> lib_asset::animation_manifest::Clips;
+    fn to_manifest(&self, resources: &Resources) -> lib_asset::animation_manifest::Clips;
     fn from_manifest(
+        resources: &Resources,
         generic: &lib_asset::animation_manifest::Clips,
     ) -> anyhow::Result<Box<dyn AnimContainer>>
     where
@@ -88,7 +91,7 @@ impl Animation {
             .unwrap_or_default()
     }
 
-    pub fn to_manifest(&self) -> lib_asset::animation_manifest::Animation {
+    pub fn to_manifest(&self, resources: &Resources) -> lib_asset::animation_manifest::Animation {
         lib_asset::animation_manifest::Animation {
             is_looping: self.is_looping,
             action_tracks: self
@@ -97,7 +100,7 @@ impl Animation {
                 .map(|container| {
                     (
                         container.manifest_key().to_string(),
-                        container.to_manifest(),
+                        container.to_manifest(resources),
                     )
                 })
                 .collect(),
@@ -105,16 +108,17 @@ impl Animation {
     }
 
     pub fn from_manifest(
+        resources: &Resources,
         manifest: &lib_asset::animation_manifest::Animation,
     ) -> anyhow::Result<Self> {
         let mut action_tracks = HashMap::new();
 
-        Self::add_action_track::<Invulnerability>(&mut action_tracks, manifest)?;
-        Self::add_action_track::<Move>(&mut action_tracks, manifest)?;
-        Self::add_action_track::<DrawSprite>(&mut action_tracks, manifest)?;
-        Self::add_action_track::<AttackBox>(&mut action_tracks, manifest)?;
-        Self::add_action_track::<LockInput>(&mut action_tracks, manifest)?;
-        Self::add_action_track::<Spawn>(&mut action_tracks, manifest)?;
+        Self::add_action_track::<Invulnerability>(resources, &mut action_tracks, manifest)?;
+        Self::add_action_track::<Move>(resources, &mut action_tracks, manifest)?;
+        Self::add_action_track::<DrawSprite>(resources, &mut action_tracks, manifest)?;
+        Self::add_action_track::<AttackBox>(resources, &mut action_tracks, manifest)?;
+        Self::add_action_track::<LockInput>(resources, &mut action_tracks, manifest)?;
+        Self::add_action_track::<Spawn>(resources, &mut action_tracks, manifest)?;
         debug_assert_eq!(
             action_tracks.len(),
             CLIP_TYPES.len(),
@@ -127,6 +131,7 @@ impl Animation {
     }
 
     fn add_action_track<T: ClipAction>(
+        resources: &Resources,
         action_tracks: &mut HashMap<TypeId, Box<dyn AnimContainer>>,
         manifest: &lib_asset::animation_manifest::Animation,
     ) -> anyhow::Result<()> {
@@ -134,7 +139,7 @@ impl Animation {
         let Some(entry) = manifest.action_tracks.get(manifest_key) else {
             anyhow::bail!("No such action track: {manifest_key:?}");
         };
-        let clips = Clips::<T>::from_manifest(entry)?;
+        let clips = Clips::<T>::from_manifest(resources, entry)?;
         action_tracks.insert(TypeId::of::<T>(), clips);
         Ok(())
     }
@@ -311,6 +316,7 @@ impl<T: ClipAction> AnimContainer for Clips<T> {
     }
 
     fn from_manifest(
+        resources: &Resources,
         generic: &lib_asset::animation_manifest::Clips,
     ) -> anyhow::Result<Box<dyn AnimContainer>>
     where
@@ -325,8 +331,8 @@ impl<T: ClipAction> AnimContainer for Clips<T> {
 
         let mut clips = Vec::new();
         for (clip_id, clip) in generic.clips.iter().enumerate() {
-            let action =
-                T::from_manifest(&clip.action).with_context(|| format!("clip {clip_id}"))?;
+            let action = T::from_manifest(resources, &clip.action)
+                .with_context(|| format!("clip {clip_id}"))?;
             clips.push((
                 Clip {
                     track_id: clip.track_id,
@@ -340,7 +346,7 @@ impl<T: ClipAction> AnimContainer for Clips<T> {
         Ok(Box::new(Self { clips, tracks }))
     }
 
-    fn to_manifest(&self) -> lib_asset::animation_manifest::Clips {
+    fn to_manifest(&self, resources: &Resources) -> lib_asset::animation_manifest::Clips {
         let tracks = self
             .tracks
             .iter()
@@ -355,7 +361,7 @@ impl<T: ClipAction> AnimContainer for Clips<T> {
                 track_id: clip.track_id,
                 start: clip.start,
                 len: clip.len,
-                action: action.to_manifest(),
+                action: action.to_manifest(resources),
             })
             .collect();
         lib_asset::animation_manifest::Clips { clips, tracks }

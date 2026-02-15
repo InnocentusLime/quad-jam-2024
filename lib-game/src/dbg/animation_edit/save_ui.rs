@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 use egui::{Modal, Ui};
 
+use crate::Resources;
 use crate::animation::Animation;
 use hashbrown::HashMap;
 use lib_asset::AnimationPackId;
@@ -11,18 +12,18 @@ use log::{error, info, warn};
 use rfd::FileDialog;
 use strum::VariantArray;
 
-pub fn load_anim_pack_ui(anims: &mut HashMap<AnimationId, Animation>) {
+pub fn load_anim_pack_ui(resources: &mut Resources) {
     let src = FileDialog::new()
         .set_title("Load animation pack")
         .set_directory("project-animations")
         .add_filter("", &["json"])
         .pick_file();
     if let Some(src) = src {
-        load_anim_pack(src, anims);
+        load_anim_pack(resources, src);
     }
 }
 
-fn load_anim_pack(src: impl AsRef<Path>, anims: &mut HashMap<AnimationId, Animation>) {
+fn load_anim_pack(resources: &mut Resources, src: impl AsRef<Path>) {
     let src = src.as_ref();
     let mut file = match File::open(src) {
         Ok(file) => file,
@@ -45,9 +46,9 @@ fn load_anim_pack(src: impl AsRef<Path>, anims: &mut HashMap<AnimationId, Animat
         };
 
     for (id, libasset_anim) in pack {
-        match Animation::from_manifest(&libasset_anim) {
+        match Animation::from_manifest(resources, &libasset_anim) {
             Ok(anim) => {
-                anims.insert(id, anim);
+                resources.animations.insert(id, anim);
             }
             Err(e) => error!("Failed to load from {src:?}: {e:#}"),
         }
@@ -56,8 +57,8 @@ fn load_anim_pack(src: impl AsRef<Path>, anims: &mut HashMap<AnimationId, Animat
 
 pub fn save_anim_pack_modal(
     ui: &mut Ui,
+    resources: &Resources,
     current_pack_id: &mut AnimationPackId,
-    anims: &HashMap<AnimationId, Animation>,
 ) -> bool {
     let mut keep_open = true;
     Modal::new(egui::Id::new("Save Pack")).show(ui.ctx(), |ui| {
@@ -73,7 +74,7 @@ pub fn save_anim_pack_modal(
                     .add_filter("", &["json"])
                     .save_file();
                 if let Some(dst) = dst {
-                    save_anim_pack(dst, *current_pack_id, anims);
+                    save_anim_pack(resources, dst, *current_pack_id);
                     keep_open = false;
                 }
             }
@@ -85,11 +86,7 @@ pub fn save_anim_pack_modal(
     keep_open
 }
 
-fn save_anim_pack(
-    dst: impl AsRef<Path>,
-    pack_id: AnimationPackId,
-    anims: &HashMap<AnimationId, Animation>,
-) {
+fn save_anim_pack(resources: &Resources, dst: impl AsRef<Path>, pack_id: AnimationPackId) {
     let dst = dst.as_ref();
     let mut file = match File::create(dst) {
         Ok(file) => file,
@@ -108,12 +105,12 @@ fn save_anim_pack(
             continue;
         }
 
-        let Some(anim) = anims.get(anim_id) else {
+        let Some(anim) = resources.animations.get(anim_id) else {
             warn!("Skipping {anim_id:?}: not loaded");
             continue;
         };
         info!("Adding {anim_id_name}");
-        output.insert(*anim_id, anim.to_manifest());
+        output.insert(*anim_id, anim.to_manifest(resources));
     }
 
     match serde_json::to_writer_pretty(&mut file, &output) {
@@ -122,7 +119,7 @@ fn save_anim_pack(
     }
 }
 
-pub fn animation_load_ui(ui: &mut Ui, current_anim_id: AnimationId, current_anim: &mut Animation) {
+pub fn animation_load_ui(ui: &mut Ui, resources: &mut Resources, current_anim_id: AnimationId) {
     if ui.button("Save").clicked() {
         let fname: &'static str = current_anim_id.into();
         let dst = FileDialog::new()
@@ -131,7 +128,7 @@ pub fn animation_load_ui(ui: &mut Ui, current_anim_id: AnimationId, current_anim
             .add_filter("", &["json"])
             .save_file();
         if let Some(dst) = dst {
-            save_anim(dst, current_anim);
+            save_anim(resources, dst, current_anim_id);
         }
     }
     if ui.button("Load").clicked() {
@@ -141,13 +138,15 @@ pub fn animation_load_ui(ui: &mut Ui, current_anim_id: AnimationId, current_anim
             .set_file_name(format!("{fname}.json"))
             .add_filter("", &["json"])
             .pick_file();
-        if let Some(loaded_anim) = src.and_then(load_anim) {
-            *current_anim = loaded_anim;
+        if let Some(src) = src {
+            if let Some(loaded_anim) = load_anim(resources, src) {
+                resources.animations.insert(current_anim_id, loaded_anim);
+            }
         }
     }
 }
 
-fn save_anim(dst: PathBuf, anim: &Animation) {
+fn save_anim(resources: &Resources, dst: PathBuf, anim_id: AnimationId) {
     let mut file = match File::create(&dst) {
         Ok(file) => file,
         Err(e) => {
@@ -156,13 +155,14 @@ fn save_anim(dst: PathBuf, anim: &Animation) {
         }
     };
 
-    match serde_json::to_writer_pretty(&mut file, &anim.to_manifest()) {
+    let manifest = resources.animations[&anim_id].to_manifest(resources);
+    match serde_json::to_writer_pretty(&mut file, &manifest) {
         Ok(_) => info!("Wrote data to {dst:?}"),
         Err(e) => error!("Failed to write to {dst:?}: {e}"),
     }
 }
 
-fn load_anim(src: PathBuf) -> Option<Animation> {
+fn load_anim(resources: &Resources, src: PathBuf) -> Option<Animation> {
     let mut file = match File::open(&src) {
         Ok(file) => file,
         Err(e) => {
@@ -179,7 +179,7 @@ fn load_anim(src: PathBuf) -> Option<Animation> {
                 return None;
             }
         };
-    match Animation::from_manifest(&manifest) {
+    match Animation::from_manifest(resources, &manifest) {
         Ok(x) => Some(x),
         Err(e) => {
             error!("Failed to load {src:?}: {e:#}");
