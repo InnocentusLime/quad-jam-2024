@@ -486,7 +486,7 @@ impl Resources {
         let pack: lib_asset::animation_manifest::AnimationPack =
             self.resolver.load(pack_id).await.unwrap();
         for (id, manifest) in pack {
-            let anim = Animation::from_manifest(&manifest).unwrap();
+            let anim = Animation::from_manifest(self, &manifest).unwrap();
             self.animations.insert(id, anim);
         }
     }

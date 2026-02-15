@@ -8,7 +8,6 @@ use egui::{Button, ComboBox, DragValue, Label, Modal, Response, WidgetText, vec2
 use egui::{Ui, Widget};
 use macroquad::math::Vec2;
 
-use hashbrown::HashMap;
 use hecs::{Entity, World};
 use lib_asset::AnimationPackId;
 
@@ -16,7 +15,7 @@ use save_ui::*;
 use sequencer::*;
 
 use crate::animation::Animation;
-use crate::{AnimationId, AnimationPlay, AttackBox, CLIP_TYPES, CharacterLook};
+use crate::{AnimationPlay, AttackBox, CLIP_TYPES, CharacterLook, Resources};
 
 pub struct AnimationEdit {
     pub playback: Entity,
@@ -56,12 +55,7 @@ impl AnimationEdit {
         }
     }
 
-    pub fn ui(
-        &mut self,
-        ui: &mut Ui,
-        anims: &mut HashMap<AnimationId, Animation>,
-        world: &mut World,
-    ) {
+    pub fn ui(&mut self, ui: &mut Ui, resources: &mut Resources, world: &mut World) {
         let mut insert_pressed = false;
         let mut delete_pressed = false;
         let mut shift_down = false;
@@ -91,20 +85,24 @@ impl AnimationEdit {
 
         ui.horizontal(|ui| {
             if ui.button("Load Pack").clicked() {
-                load_anim_pack_ui(anims);
+                load_anim_pack_ui(resources);
             }
             if ui.button("Save Pack").clicked() {
                 self.open_save_pack = true;
             }
             if self.open_save_pack {
-                self.open_save_pack = save_anim_pack_modal(ui, &mut self.current_pack_id, anims);
+                self.open_save_pack =
+                    save_anim_pack_modal(ui, resources, &mut self.current_pack_id);
             }
         });
 
-        let anim = anims.entry(play.animation).or_insert_with(Default::default);
         ui.horizontal(|ui| {
-            animation_load_ui(ui, play.animation, anim);
+            animation_load_ui(ui, resources, play.animation);
         });
+        let anim = resources
+            .animations
+            .entry(play.animation)
+            .or_insert_with(Default::default);
         ui.horizontal(|ui| {
             ui.drag_angle(&mut look.0);
             ui.label("look");
