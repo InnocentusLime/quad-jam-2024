@@ -1,4 +1,5 @@
-use lib_asset::{TextureId, level::CharacterInfo};
+use anyhow::bail;
+use lib_asset::{AssetRoot, TextureId, level::CharacterInfo};
 use macroquad::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::any::TypeId;
@@ -128,8 +129,26 @@ impl ClipAction for DrawSprite {
         "draw_sprite"
     }
 
-    fn from_manifest(_resources: &Resources, manifest: &serde_json::Value) -> anyhow::Result<Self> {
-        serde_json::from_value(manifest.clone()).map_err(anyhow::Error::from)
+    fn from_manifest(resources: &Resources, manifest: &serde_json::Value) -> anyhow::Result<Self> {
+        let raw_manifest: lib_asset::animation_manifest::DrawSprite =
+            serde_json::from_value(manifest.clone())?;
+        let path = resources
+            .resolver
+            .get_path(AssetRoot::Assets, raw_manifest.atlas_file);
+        let texture_id = resources.resolver.inverse_resolve::<Texture2D>(&path)?;
+        if !resources.textures.contains_key(&texture_id) {
+            bail!("Texture {texture_id:?} is not loaded");
+        }
+        Ok(DrawSprite {
+            texture_id,
+            layer: raw_manifest.layer,
+            local_pos: raw_manifest.local_pos,
+            local_rotation: raw_manifest.local_rotation,
+            rect_pos: raw_manifest.rect_pos,
+            rect_size: raw_manifest.rect_size,
+            sort_offset: raw_manifest.sort_offset,
+            rotate_with_parent: raw_manifest.rotate_with_parent,
+        })
     }
 
     fn to_manifest(&self, _resource: &Resources) -> serde_json::Value {
