@@ -3,11 +3,11 @@ pub mod tiled_load;
 #[cfg(feature = "dev-env")]
 mod tiled_props_des;
 
-use crate::TextureId;
 use glam::Vec2;
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
 use serde_repr::{Deserialize_repr, Serialize_repr};
+use std::path::PathBuf;
 
 pub const TILE_SIDE: u32 = 16;
 
@@ -71,8 +71,8 @@ pub struct MapDef {
     /// Map's tiles in row-major order.
     /// Each index refers to an entry in `tiles`.
     pub tilemap: Vec<TileIdx>,
-    /// The asset id of the atlas
-    pub atlas: TextureId,
+    /// The filename id of the atlas
+    pub atlas_image: PathBuf,
     /// Atlas margin
     pub atlas_margin: u32,
     /// Atlas spacing between tiles
