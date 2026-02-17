@@ -98,12 +98,9 @@ fn load_mapdef_from_layer(
     let tileset = &*layer.map().tilesets()[0];
     let mut tiles = HashMap::<_, Tile>::new();
     for (tile_idx, tile_data) in tileset.tiles() {
-        let parsed_tile_idx = TileIdx::from_repr(tile_idx).ok_or_else(|| {
-            anyhow::anyhow!("Tileset {:?}, tile {tile_idx:}: unknown tile", tileset.name,)
-        })?;
         let tile = from_properties(TILE_CLASS, &tile_data.properties)
             .with_context(|| format!("Tileset {:?}, tile {tile_idx}", tileset.name))?;
-        tiles.insert(parsed_tile_idx, tile);
+        tiles.insert(tile_idx, tile);
     }
     let Some(tileset_atlas) = tileset.image.as_ref() else {
         anyhow::bail!("Image collection based tilesets are not supported");
@@ -112,12 +109,7 @@ fn load_mapdef_from_layer(
     let mut tilemap = Vec::with_capacity((layer_width * layer_height) as usize);
     for y in 0..layer_height {
         for x in 0..layer_width {
-            let tile_idx = match tile_layer.get_tile(x as i32, y as i32) {
-                None => TileIdx::Empty,
-                Some(t) => TileIdx::from_repr(t.id()).ok_or_else(|| {
-                    anyhow::anyhow!("Tileset {:?}, tile {:}: unknown tile", t.id(), tileset.name,)
-                })?,
-            };
+            let tile_idx = tile_layer.get_tile(x as i32, y as i32).map(|x| x.id());
             tilemap.push(tile_idx);
         }
     }

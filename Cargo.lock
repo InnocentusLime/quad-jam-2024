@@ -1144,7 +1144,6 @@ dependencies = [
  "macroquad",
  "serde",
  "serde_json",
- "serde_repr",
  "strum",
  "tiled",
 ]

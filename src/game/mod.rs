@@ -182,7 +182,7 @@ impl Game for Project {
         tile_y: u32,
         tile: TileIdx,
     ) {
-        let ty = resources.level.map.tiles[&tile].ty;
+        let ty = resources.level.map.tiles[&tile.0].ty;
         let tile_pos =
             vec2(tile_x as f32, tile_y as f32) * TILE_SIDE_F32 + Vec2::splat(TILE_SIDE_F32 / 2.0);
 

@@ -7,6 +7,9 @@ pub const CLIP_ACTION_OBJECT_SPAWN: u32 = 0;
 pub const CLIP_ACTION_OBJECT_ATTACK: u32 = 1;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct TileIdx(pub u32);
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Team {
     Player,
     Enemy,
