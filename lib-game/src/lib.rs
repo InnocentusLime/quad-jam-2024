@@ -290,8 +290,10 @@ impl App {
         for x in 0..level.map.width {
             for y in 0..level.map.height {
                 let mut builder = EntityBuilder::new();
-                let tile = level.map.tilemap[(x + y * level.map.width) as usize];
-                game.init_tile(&self.resources, &mut builder, x, y, tile);
+                let Some(tile) = level.map.tilemap[(x + y * level.map.width) as usize] else {
+                    continue;
+                };
+                game.init_tile(&self.resources, &mut builder, x, y, TileIdx(tile));
                 self.world.spawn(builder.build());
             }
         }

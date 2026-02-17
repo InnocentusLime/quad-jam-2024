@@ -1,9 +1,9 @@
 mod components;
 
-use crate::dump;
+use crate::{TileIdx, dump};
 pub use components::*;
 use hecs::World;
-use lib_asset::level::{TILE_SIDE, TileIdx};
+use lib_asset::level::TILE_SIDE;
 use lib_asset::{FontId, TextureId};
 use macroquad::prelude::*;
 
@@ -226,7 +226,7 @@ impl Render {
 
     pub fn buffer_tiles(&mut self, world: &mut World) {
         for (_, (tf, tile)) in world.query_mut::<(&Transform, &TileIdx)>() {
-            let tile_rect = self.tilemap_tiles[*tile as usize];
+            let tile_rect = self.tilemap_tiles[tile.0 as usize];
             self.sprite_buffer.push(SpriteData {
                 layer: 0,
                 tf: Transform {
