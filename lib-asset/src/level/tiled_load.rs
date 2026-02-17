@@ -66,7 +66,6 @@ fn load_level_from_map(map: &tiled::Map) -> anyhow::Result<LevelDef> {
     let entities = load_entity_defs_from_object_layer(entitydefs_layer)?;
 
     Ok(LevelDef {
-        next_level: None,
         map,
         characters: entities,
     })

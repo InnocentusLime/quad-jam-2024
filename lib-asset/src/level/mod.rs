@@ -14,8 +14,6 @@ pub const TILE_SIDE: u32 = 16;
 /// required for loadin a level.
 #[derive(Default, Debug, Serialize, Deserialize, PartialEq)]
 pub struct LevelDef {
-    /// Next level to load after it is complete.
-    pub next_level: Option<String>,
     /// The level's map definition. A map is a bunch
     /// of tiles with custom data.
     pub map: MapDef,
