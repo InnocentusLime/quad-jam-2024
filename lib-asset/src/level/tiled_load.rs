@@ -1,28 +1,25 @@
 //! This module contains logic for decoding [LevelDef] from a `Tiled`
 //! map file.
 
-use std::fs;
 use std::path::Path;
 
-use crate::{FsResolver, TextureId};
 use anyhow::Context;
 use glam::vec2;
 use hashbrown::HashMap;
-use macroquad::texture::Texture2D;
 
 use super::tiled_props_des::from_properties;
 use crate::level::*;
 
 /// Load a level by path through tield. For internal use only.
-pub fn load_level(resolver: &FsResolver, path: impl AsRef<Path>) -> anyhow::Result<LevelDef> {
+pub fn load_level(path: impl AsRef<Path>) -> anyhow::Result<LevelDef> {
     let mut loader = tiled::Loader::new();
     let map = loader.load_tmx_map(path)?;
-    let level = load_level_from_map(resolver, &map)?;
+    let level = load_level_from_map(&map)?;
 
     Ok(level)
 }
 
-fn load_level_from_map(resolver: &FsResolver, map: &tiled::Map) -> anyhow::Result<LevelDef> {
+fn load_level_from_map(map: &tiled::Map) -> anyhow::Result<LevelDef> {
     anyhow::ensure!(
         map.version() == REQUIRED_TILED_VERSION,
         "Unsupported tiled map version: {:?}",
@@ -61,7 +58,7 @@ fn load_level_from_map(resolver: &FsResolver, map: &tiled::Map) -> anyhow::Resul
     let Some(mapdef_layer) = layers_by_name.get(WORLD_LAYER) else {
         anyhow::bail!("World layer {WORLD_LAYER:?} not found");
     };
-    let map = load_mapdef_from_layer(resolver, mapdef_layer, width, height)?;
+    let map = load_mapdef_from_layer(mapdef_layer, width, height)?;
 
     let Some(entitydefs_layer) = layers_by_name.get(OBJECT_LAYER) else {
         anyhow::bail!("Object layer {OBJECT_LAYER:?} not found");
@@ -76,7 +73,6 @@ fn load_level_from_map(resolver: &FsResolver, map: &tiled::Map) -> anyhow::Resul
 }
 
 fn load_mapdef_from_layer(
-    resolver: &FsResolver,
     layer: &tiled::Layer,
     map_width: u32,
     map_height: u32,
@@ -112,7 +108,6 @@ fn load_mapdef_from_layer(
     let Some(tileset_atlas) = tileset.image.as_ref() else {
         anyhow::bail!("Image collection based tilesets are not supported");
     };
-    let atlas = resolve_atlas(resolver, &tileset.name, &tileset_atlas.source)?;
 
     let mut tilemap = Vec::with_capacity((layer_width * layer_height) as usize);
     for y in 0..layer_height {
@@ -132,7 +127,7 @@ fn load_mapdef_from_layer(
         height: layer_height,
         tiles,
         tilemap,
-        atlas,
+        atlas_image: tileset_atlas.source.clone(),
         atlas_margin: tileset.margin,
         atlas_spacing: tileset.spacing,
     })
@@ -168,19 +163,6 @@ fn load_entity_defs_from_object_layer(layer: &tiled::Layer) -> anyhow::Result<Ve
     }
 
     Ok(entities)
-}
-
-fn resolve_atlas(
-    resolver: &FsResolver,
-    tileset: &str,
-    atlas_path: impl AsRef<Path>,
-) -> anyhow::Result<TextureId> {
-    let atlas_path = atlas_path.as_ref();
-    let atlas_path = fs::canonicalize(atlas_path)
-        .with_context(|| format!("Canonicalizing tileset {tileset:?} atlas {atlas_path:?}"))?;
-    resolver
-        .inverse_resolve::<Texture2D>(&atlas_path)
-        .with_context(|| format!("Inverse resolving {atlas_path:?}"))
 }
 
 static REQUIRED_TILED_VERSION: &str = "1.10";

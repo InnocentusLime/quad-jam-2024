@@ -272,7 +272,6 @@ impl App {
             .load::<LevelDef>(level_id)
             .await
             .unwrap();
-        self.resources.load_texture(level.map.atlas).await;
         self.render.set_atlas(
             &self.resources,
             TextureId::WorldAtlas,
