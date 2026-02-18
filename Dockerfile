@@ -18,16 +18,14 @@ RUN <<EOF
 EOF
 # Put all files
 COPY /assets/ /dist/assets
-COPY /animations/ /dist/animations
 COPY /gamecfg.json /dist/
 COPY /static/* /dist
 RUN cp /project/target/wasm32-unknown-unknown/wasm-release/quad-jam-2024.wasm /dist/game.wasm
-RUN mkdir /dist/levels && \
-    /project/target/debug/asset-compiler \
+RUN /project/target/debug/asset-compiler \
         --base /project \
         compile-maps-dir \
             -d /project/project-tiled \
-            -o /dist/levels
+            -o /dist/assets
 
 FROM httpd:trixie 
 COPY --from=build /dist /usr/local/apache2/htdocs/ 

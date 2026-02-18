@@ -13,8 +13,6 @@
 pub enum AssetRoot {
     Base,
     Assets,
-    Animations,
-    Levels,
     AsepriteProjectRoot,
     TiledProjectRoot,
 }
@@ -27,8 +25,6 @@ impl AssetRoot {
             #[cfg(target_family = "wasm")]
             AssetRoot::Base => "",
             AssetRoot::Assets => "assets",
-            AssetRoot::Animations => "animations",
-            AssetRoot::Levels => "levels",
             AssetRoot::AsepriteProjectRoot => "project-aseprite",
             AssetRoot::TiledProjectRoot => "project-tiled",
         }
