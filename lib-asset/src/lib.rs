@@ -5,6 +5,8 @@ pub mod animation_manifest;
 pub mod gamecfg;
 pub mod level;
 
+#[cfg(not(target_family = "wasm"))]
+use anyhow::bail;
 pub use asset_roots::*;
 pub use assets::*;
 pub use gamecfg::*;
@@ -71,11 +73,18 @@ impl FsResolver {
         path
     }
 
-    fn get_filename<'a>(&self, root: AssetRoot, path: &'a Path) -> anyhow::Result<&'a Path> {
+    fn get_filename(&self, root: AssetRoot, path: &Path) -> anyhow::Result<PathBuf> {
+        #[cfg(not(target_family = "wasm"))]
+        let path = match std::fs::canonicalize(&path) {
+            Ok(x) => x,
+            Err(e) => return Err(e).context(format!("canonicalizing {path:?}")),
+        };
+        
         let dir = self.get_dir(root);
         let dir = dir.as_ref();
         path.strip_prefix(dir)
             .with_context(|| format!("Resolving against {dir:?}"))
+            .map(|x| x.to_path_buf())
     }
 
     pub fn get_path(&self, root: AssetRoot, filename: impl AsRef<Path>) -> PathBuf {
