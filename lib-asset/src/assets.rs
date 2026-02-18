@@ -172,7 +172,7 @@ impl DevableAsset for LevelDef {
         let mut filename: PathBuf = path.file_name().unwrap().into();
         filename.set_extension("tmx");
         let tiled_path = resolver.get_path(AssetRoot::TiledProjectRoot, filename);
-        tiled_load::load_level(tiled_path)
+        tiled_load::load_level(resolver, tiled_path)
     }
 }
 
