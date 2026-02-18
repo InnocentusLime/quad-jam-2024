@@ -125,7 +125,7 @@ impl ValueEnum for AnimationPackId {
 
 impl Asset for AnimationPack {
     type AssetId = AnimationPackId;
-    const ROOT: AssetRoot = AssetRoot::Animations;
+    const ROOT: AssetRoot = AssetRoot::Assets;
 
     async fn load(_resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
         use anyhow::Context;
@@ -178,7 +178,7 @@ impl DevableAsset for LevelDef {
 
 impl Asset for LevelDef {
     type AssetId = LevelId;
-    const ROOT: AssetRoot = AssetRoot::Levels;
+    const ROOT: AssetRoot = AssetRoot::Assets;
 
     #[cfg(feature = "dev-env")]
     async fn load(resolver: &FsResolver, path: &Path) -> anyhow::Result<LevelDef> {
