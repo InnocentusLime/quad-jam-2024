@@ -8,18 +8,23 @@ use glam::vec2;
 use hashbrown::HashMap;
 
 use super::tiled_props_des::from_properties;
-use crate::level::*;
+use crate::{AssetRoot, FsResolver, level::*};
 
 /// Load a level by path through tield. For internal use only.
-pub fn load_level(path: impl AsRef<Path>) -> anyhow::Result<LevelDef> {
+pub fn load_level(resolver: &FsResolver, path: impl AsRef<Path>) -> anyhow::Result<LevelDef> {
+    let path = path.as_ref();
     let mut loader = tiled::Loader::new();
     let map = loader.load_tmx_map(path)?;
-    let level = load_level_from_map(&map)?;
+    let level = load_level_from_map(path, resolver, &map)?;
 
     Ok(level)
 }
 
-fn load_level_from_map(map: &tiled::Map) -> anyhow::Result<LevelDef> {
+fn load_level_from_map(
+    map_path: &Path,
+    resolver: &FsResolver,
+    map: &tiled::Map,
+) -> anyhow::Result<LevelDef> {
     anyhow::ensure!(
         map.version() == REQUIRED_TILED_VERSION,
         "Unsupported tiled map version: {:?}",
@@ -58,12 +63,12 @@ fn load_level_from_map(map: &tiled::Map) -> anyhow::Result<LevelDef> {
     let Some(mapdef_layer) = layers_by_name.get(WORLD_LAYER) else {
         anyhow::bail!("World layer {WORLD_LAYER:?} not found");
     };
-    let map = load_mapdef_from_layer(mapdef_layer, width, height)?;
+    let map = load_mapdef_from_layer(map_path, resolver, mapdef_layer, width, height)?;
 
     let Some(entitydefs_layer) = layers_by_name.get(OBJECT_LAYER) else {
         anyhow::bail!("Object layer {OBJECT_LAYER:?} not found");
     };
-    let entities = load_entity_defs_from_object_layer(entitydefs_layer)?;
+    let entities = load_entity_defs_from_object_layer(map_path, resolver, entitydefs_layer)?;
 
     Ok(LevelDef {
         map,
@@ -72,6 +77,8 @@ fn load_level_from_map(map: &tiled::Map) -> anyhow::Result<LevelDef> {
 }
 
 fn load_mapdef_from_layer(
+    map_path: &Path,
+    resolver: &FsResolver,
     layer: &tiled::Layer,
     map_width: u32,
     map_height: u32,
@@ -97,13 +104,14 @@ fn load_mapdef_from_layer(
     let tileset = &*layer.map().tilesets()[0];
     let mut tiles = HashMap::<_, Tile>::new();
     for (tile_idx, tile_data) in tileset.tiles() {
-        let tile = from_properties(TILE_CLASS, &tile_data.properties)
+        let tile = from_properties(map_path, resolver, TILE_CLASS, &tile_data.properties)
             .with_context(|| format!("Tileset {:?}, tile {tile_idx}", tileset.name))?;
         tiles.insert(tile_idx, tile);
     }
     let Some(tileset_atlas) = tileset.image.as_ref() else {
         anyhow::bail!("Image collection based tilesets are not supported");
     };
+    let atlas_image = resolver.get_filename(AssetRoot::Assets, &tileset_atlas.source)?;
 
     let mut tilemap = Vec::with_capacity((layer_width * layer_height) as usize);
     for y in 0..layer_height {
@@ -118,13 +126,17 @@ fn load_mapdef_from_layer(
         height: layer_height,
         tiles,
         tilemap,
-        atlas_image: tileset_atlas.source.clone(),
+        atlas_image,
         atlas_margin: tileset.margin,
         atlas_spacing: tileset.spacing,
     })
 }
 
-fn load_entity_defs_from_object_layer(layer: &tiled::Layer) -> anyhow::Result<Vec<CharacterDef>> {
+fn load_entity_defs_from_object_layer(
+    map_path: &Path,
+    resolver: &FsResolver,
+    layer: &tiled::Layer,
+) -> anyhow::Result<Vec<CharacterDef>> {
     let Some(object_layer) = layer.as_object_layer() else {
         anyhow::bail!("Expected layer {OBJECT_LAYER:?} to be an object layer")
     };
@@ -136,7 +148,7 @@ fn load_entity_defs_from_object_layer(layer: &tiled::Layer) -> anyhow::Result<Ve
             "Layer {OBJECT_LAYER:?}, object {}: no class",
             object.id(),
         );
-        let info = from_properties(&object.user_type, &object.properties)
+        let info = from_properties(map_path, resolver, &object.user_type, &object.properties)
             .with_context(|| format!("Layer {OBJECT_LAYER:?}, object {}", object.id()))?;
         let _poly = match &object.shape {
             tiled::ObjectShape::Polygon { points } => points,

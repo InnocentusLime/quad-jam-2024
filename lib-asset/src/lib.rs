@@ -5,8 +5,6 @@ pub mod animation_manifest;
 pub mod gamecfg;
 pub mod level;
 
-#[cfg(not(target_family = "wasm"))]
-use anyhow::bail;
 pub use asset_roots::*;
 pub use assets::*;
 pub use gamecfg::*;
@@ -79,7 +77,7 @@ impl FsResolver {
             Ok(x) => x,
             Err(e) => return Err(e).context(format!("canonicalizing {path:?}")),
         };
-        
+
         let dir = self.get_dir(root);
         let dir = dir.as_ref();
         path.strip_prefix(dir)

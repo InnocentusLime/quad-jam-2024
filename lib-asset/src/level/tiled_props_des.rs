@@ -23,17 +23,33 @@
 //! in such way that it agrees with the Tiled project's actual defaults. This
 //! will make sure both Tiled and code side of things are working in unison.
 
+use std::path::{Path, PathBuf};
+
 use serde::{Deserializer, de};
 
-pub fn from_properties<'a, T>(ty_name: &'a str, props: &'a tiled::Properties) -> Result<T, Error>
+use crate::{AssetRoot, FsResolver};
+
+pub fn from_properties<'a, T>(
+    parent: &'a Path,
+    resolver: &'a FsResolver,
+    ty_name: &'a str,
+    props: &'a tiled::Properties,
+) -> Result<T, Error>
 where
     T: de::Deserialize<'a>,
 {
-    let mut de = TiledPropertiesDeserializer { ty_name, props };
+    let mut de = TiledPropertiesDeserializer {
+        parent,
+        resolver,
+        ty_name,
+        props,
+    };
     de::Deserialize::deserialize(&mut de)
 }
 
 struct TiledPropertiesDeserializer<'de> {
+    parent: &'de Path,
+    resolver: &'de FsResolver,
     ty_name: &'de str,
     props: &'de tiled::Properties,
 }
@@ -227,6 +243,8 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertiesDeserializer<'de> {
         V: de::Visitor<'de>,
     {
         visitor.visit_map(PropetyMapAccess {
+            parent: self.parent,
+            resolver: self.resolver,
             kv: None,
             props: self.props.iter(),
         })
@@ -284,6 +302,8 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertiesDeserializer<'de> {
 }
 
 struct TiledPropertyDeserializer<'de> {
+    parent: &'de Path,
+    resolver: &'de FsResolver,
     name: &'de str,
     prop: &'de tiled::PropertyValue,
 }
@@ -312,10 +332,15 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
             tiled::PropertyValue::IntValue(i) => visitor.visit_i32(*i),
             tiled::PropertyValue::ColorValue(_) => todo!("Colors are not supported"),
             tiled::PropertyValue::StringValue(s) => visitor.visit_str(s.as_str()),
-            tiled::PropertyValue::FileValue(s) => visitor.visit_str(s.as_str()),
+            tiled::PropertyValue::FileValue(s) => {
+                let path = resolve_file(self.parent, self.resolver, s)?;
+                visitor.visit_string(path.to_string_lossy().to_string())
+            }
             tiled::PropertyValue::ObjectValue(_) => todo!("Object values are not supported"),
             tiled::PropertyValue::ClassValue { properties, .. } => {
                 visitor.visit_map(PropetyMapAccess {
+                    parent: self.parent,
+                    resolver: self.resolver,
                     kv: None,
                     props: properties.iter(),
                 })
@@ -492,7 +517,10 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
     {
         match self.prop {
             tiled::PropertyValue::StringValue(s) => visitor.visit_str(s.as_str()),
-            tiled::PropertyValue::FileValue(s) => visitor.visit_str(s.as_str()),
+            tiled::PropertyValue::FileValue(s) => {
+                let path = resolve_file(self.parent, self.resolver, s)?;
+                visitor.visit_string(path.to_string_lossy().to_string())
+            }
             _ => Err(Error::PropertyTypeMismatch {
                 expected: "a string or path",
                 property: self.name.to_string(),
@@ -593,6 +621,8 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
         match self.prop {
             tiled::PropertyValue::ClassValue { properties, .. } => {
                 visitor.visit_map(PropetyMapAccess {
+                    parent: self.parent,
+                    resolver: self.resolver,
                     kv: None,
                     props: properties.iter(),
                 })
@@ -626,6 +656,8 @@ impl<'de> de::Deserializer<'de> for &mut TiledPropertyDeserializer<'de> {
                     });
                 }
                 visitor.visit_map(PropetyMapAccess {
+                    parent: self.parent,
+                    resolver: self.resolver,
                     kv: None,
                     props: properties.iter(),
                 })
@@ -695,6 +727,8 @@ fn property_type_name(prop: &tiled::PropertyValue) -> String {
 }
 
 struct PropetyMapAccess<'de> {
+    parent: &'de Path,
+    resolver: &'de FsResolver,
     kv: Option<(&'de str, &'de tiled::PropertyValue)>,
     props: std::collections::hash_map::Iter<'de, String, tiled::PropertyValue>,
 }
@@ -766,12 +800,18 @@ impl<'de> de::MapAccess<'de> for PropetyMapAccess<'de> {
         V: de::DeserializeSeed<'de>,
     {
         let (key, prop) = self.kv.unwrap();
-        seed.deserialize(&mut TiledPropertyDeserializer { name: key, prop })
+        seed.deserialize(&mut TiledPropertyDeserializer {
+            parent: self.parent,
+            resolver: self.resolver,
+            name: key,
+            prop,
+        })
     }
 }
 
 #[derive(Debug)]
 pub enum Error {
+    PathUnresolved(anyhow::Error),
     PropertyTypeMismatch {
         expected: &'static str,
         property: String,
@@ -831,8 +871,18 @@ impl std::fmt::Display for Error {
             Error::Custom { msg } => {
                 write!(f, "{msg}")
             }
+            Error::PathUnresolved(cause) => write!(f, "{cause:#}"),
         }
     }
 }
 
 impl std::error::Error for Error {}
+
+fn resolve_file(parent: &Path, resolver: &FsResolver, path: &str) -> Result<PathBuf, Error> {
+    let mut res = parent.to_path_buf();
+    res.pop();
+    res.push(path);
+    resolver
+        .get_filename(AssetRoot::Assets, &res)
+        .map_err(Error::PathUnresolved)
+}
