@@ -1,3 +1,11 @@
+use anyhow::Context;
+use macroquad::prelude::*;
+
+pub async fn load_game_cfg() -> anyhow::Result<GameCfg> {
+    let json = load_string("gamecfg.json").await.context("loading JSON")?;
+    serde_json::from_str(&json).context("decoding")
+}
+
 macro_rules! game_cfg {
     (
         $( $section_name:ident : $section_ty:ident {

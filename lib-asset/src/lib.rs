@@ -17,10 +17,6 @@ use strum::VariantArray;
 
 use std::path::{Path, PathBuf};
 
-pub async fn load_game_config(resolver: &FsResolver) -> anyhow::Result<GameCfg> {
-    resolver.load::<GameCfg>(GameCfgId::Cfg).await
-}
-
 pub struct FsResolver {
     roots: HashMap<AssetRoot, PathBuf>,
 }
