@@ -8,8 +8,8 @@ mod render;
 mod shooter;
 mod stabber;
 
+use lib_asset::AnimationPackId;
 use lib_asset::level::*;
-use lib_asset::{AnimationPackId, FontId, TextureId};
 use prelude::*;
 
 fn decide_next_state(world: &mut World) -> Option<AppState> {
@@ -34,12 +34,12 @@ fn decide_next_state(world: &mut World) -> Option<AppState> {
     None
 }
 
-async fn load_resources(resources: &mut Resources) {
+async fn load_resources(resources: &mut Resources) -> AssetKey {
     set_default_filter_mode(FilterMode::Nearest);
 
-    resources.load_font(FontId::Quaver).await;
-    resources.load_texture(TextureId::BunnyAtlas).await;
-    resources.load_texture(TextureId::WorldAtlas).await;
+    let ui_font = resources.load_font("quaver.ttf").await;
+    resources.load_texture("bnuuy.png").await;
+    resources.load_texture("world.png").await;
     build_textures_atlas();
 
     resources.load_animation_pack(AnimationPackId::Bunny).await;
@@ -49,10 +49,12 @@ async fn load_resources(resources: &mut Resources) {
     resources
         .load_animation_pack(AnimationPackId::Shooter)
         .await;
+    ui_font
 }
 
 pub struct Project {
     do_ai: bool,
+    ui_font: AssetKey,
     do_player_controls: bool,
     transitions: Vec<fn(&mut World, &Resources)>,
     ais: Vec<fn(f32, &mut World, &Resources)>,
@@ -61,7 +63,8 @@ pub struct Project {
 
 impl Project {
     pub async fn new(app: &mut App) -> Project {
-        load_resources(&mut app.resources).await;
+        let ui_font = load_resources(&mut app.resources).await;
+        app.render.ui_font = ui_font;
 
         let mut proj = Project {
             do_player_controls: true,
@@ -69,6 +72,7 @@ impl Project {
             transitions: Vec::new(),
             ais: Vec::new(),
             anim_syncs: Vec::new(),
+            ui_font,
         };
         proj.register_character::<player::PlayerData>(None);
         proj.register_character::<&mut StabberState>(Some(stabber::ai));
@@ -167,8 +171,8 @@ impl Game for Project {
         render: &mut Render,
     ) {
         if app_state.is_presentable() {
-            render::stabber_hp(render, world);
-            render::game_ui(render, world);
+            render::stabber_hp(render, world, self.ui_font);
+            render::game_ui(render, world, self.ui_font);
         }
 
         render::toplevel_ui(app_state, render);

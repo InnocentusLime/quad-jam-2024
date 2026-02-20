@@ -1,5 +1,3 @@
-use lib_asset::FontId;
-
 use crate::game::player;
 
 use super::prelude::*;
@@ -19,10 +17,9 @@ static START_TEXT_DESK: &str = "Controls";
 static START_HINT: &str = "Move: WASD\nShoot: Mouse + Left Button\nYou get extra score for hitting multiple enemies at once\nPRESS SPACE TO START\nGet ready to run!";
 static START_TEXT_MOBILE: &str = "Tap to start";
 
-pub fn game_ui(render: &mut Render, world: &World) {
+pub fn game_ui(render: &mut Render, world: &World, ui_font: AssetKey) {
     let off_y = 16.0;
     let ui_x = TILE_SIDE_F32 * 16.0;
-    let font = FontId::Quaver;
 
     let mut player_q = world.query::<(&Health, player::PlayerData)>();
     let Some((_, (player_health, player_data))) = player_q.into_iter().next() else {
@@ -38,7 +35,7 @@ pub fn game_ui(render: &mut Render, world: &World) {
         render,
         vec2(ui_x, off_y * 2.0),
         YELLOW,
-        font,
+        ui_font,
         16.0,
         "Health: {}",
         player_health.value
@@ -47,7 +44,7 @@ pub fn game_ui(render: &mut Render, world: &World) {
         render,
         vec2(ui_x, off_y * 3.0),
         YELLOW,
-        font,
+        ui_font,
         16.0,
         "Stamina: {:3.2}",
         player_data.graze_gain.value,
@@ -55,13 +52,13 @@ pub fn game_ui(render: &mut Render, world: &World) {
     render.put_text(
         vec2(ui_x, off_y * 6.0),
         game_state_color,
-        font,
+        ui_font,
         16.0,
         game_state,
     );
 }
 
-pub fn stabber_hp(render: &mut Render, world: &World) {
+pub fn stabber_hp(render: &mut Render, world: &World, ui_font: AssetKey) {
     for (_, (pos, health)) in &mut world
         .query::<(&Transform, &Health)>()
         .with::<&StabberState>()
@@ -71,7 +68,7 @@ pub fn stabber_hp(render: &mut Render, world: &World) {
                 render,
                 pos.pos + vec2(0.0, -16.0),
                 RED,
-                FontId::Quaver,
+                ui_font,
                 8.0,
                 "{} (invulnerable)",
                 health.value
@@ -81,7 +78,7 @@ pub fn stabber_hp(render: &mut Render, world: &World) {
                 render,
                 pos.pos + vec2(0.0, -16.0),
                 RED,
-                FontId::Quaver,
+                ui_font,
                 8.0,
                 "{}",
                 health.value

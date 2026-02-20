@@ -9,8 +9,9 @@ use egui::{Ui, Widget};
 use macroquad::math::Vec2;
 
 use hecs::{Entity, World};
-use lib_asset::AnimationPackId;
+use lib_asset::{AnimationPackId, AssetContainer};
 
+use macroquad::texture::Texture2D;
 use save_ui::*;
 use sequencer::*;
 
@@ -118,7 +119,7 @@ impl AnimationEdit {
             self.open_global_offset_modal = true;
         }
 
-        selected_clip_ui(ui, anim, &mut self.selected_clip);
+        selected_clip_ui(ui, &resources.textures, anim, &mut self.selected_clip);
 
         self.track_creation_modal(anim, ui);
         self.global_offset_modal(&global_offset_resp, anim, ui);
@@ -244,7 +245,12 @@ impl AnimationEdit {
     }
 }
 
-fn selected_clip_ui(ui: &mut Ui, anim: &mut Animation, selected_clip: &mut Option<(TypeId, u32)>) {
+fn selected_clip_ui(
+    ui: &mut Ui,
+    resources: &AssetContainer<Texture2D>,
+    anim: &mut Animation,
+    selected_clip: &mut Option<(TypeId, u32)>,
+) {
     ui.group(|ui| {
         ui.set_min_size(vec2(200.0, 300.0));
         let Some((kind, clip_id)) = *selected_clip else {
@@ -269,7 +275,7 @@ fn selected_clip_ui(ui: &mut Ui, anim: &mut Animation, selected_clip: &mut Optio
         anim.set_clip_pos_len(kind, clip_id, clip.track_id, start, len);
 
         ui.separator();
-        anim.clip_editor_ui(kind, clip_id, ui);
+        anim.clip_editor_ui(resources, kind, clip_id, ui);
     });
 }
 

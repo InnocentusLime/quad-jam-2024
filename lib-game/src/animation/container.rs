@@ -1,5 +1,7 @@
 use anyhow::Context;
 use hashbrown::HashMap;
+#[cfg(feature = "dev-env")]
+use lib_asset::AssetContainer;
 use macroquad::prelude::*;
 use std::any::{Any, TypeId, type_name};
 
@@ -20,7 +22,12 @@ pub trait AnimContainer: std::fmt::Debug + Any {
     #[cfg(feature = "dev-env")]
     fn offset_clip_actions(&mut self, off: Vec2);
     #[cfg(feature = "dev-env")]
-    fn clip_action_editor_ui(&mut self, clip_id: u32, ui: &mut egui::Ui);
+    fn clip_action_editor_ui(
+        &mut self,
+        resources: &AssetContainer<Texture2D>,
+        clip_id: u32,
+        ui: &mut egui::Ui,
+    );
     #[cfg(feature = "dev-env")]
     fn set_clip_pos_len(&mut self, idx: u32, new_track: u32, new_pos: u32, new_len: u32);
     #[cfg(feature = "dev-env")]
@@ -376,18 +383,29 @@ impl<T: ClipAction> AnimContainer for Clips<T> {
     }
 
     #[cfg(feature = "dev-env")]
-    fn clip_action_editor_ui(&mut self, clip_id: u32, ui: &mut egui::Ui) {
-        self.clips[clip_id as usize].1.editor_ui(ui);
+    fn clip_action_editor_ui(
+        &mut self,
+        resources: &AssetContainer<Texture2D>,
+        clip_id: u32,
+        ui: &mut egui::Ui,
+    ) {
+        self.clips[clip_id as usize].1.editor_ui(resources, ui);
     }
 }
 
 #[cfg(feature = "dev-env")]
 impl Animation {
-    pub fn clip_editor_ui(&mut self, kind: TypeId, clip_id: u32, ui: &mut egui::Ui) {
+    pub fn clip_editor_ui(
+        &mut self,
+        resources: &AssetContainer<Texture2D>,
+        kind: TypeId,
+        clip_id: u32,
+        ui: &mut egui::Ui,
+    ) {
         let Some(container) = self.action_tracks.get_mut(&kind) else {
             return;
         };
-        container.clip_action_editor_ui(clip_id, ui);
+        container.clip_action_editor_ui(resources, clip_id, ui);
     }
 
     pub fn get_clip(&self, kind: TypeId, clip_id: u32) -> Option<Clip> {

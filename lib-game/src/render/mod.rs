@@ -4,7 +4,7 @@ use crate::{TileIdx, dump};
 pub use components::*;
 use hecs::World;
 use lib_asset::level::TILE_SIDE;
-use lib_asset::{FontId, TextureId};
+use lib_asset::{AssetKey, INVALID_ASSET};
 use macroquad::prelude::*;
 
 use crate::{Resources, Transform};
@@ -43,9 +43,9 @@ macro_rules! put_text_fmt {
 /// It also provides a simple asset storage for quick access
 /// for the rendering code callers.
 pub struct Render {
-    ui_font: FontId,
+    pub ui_font: AssetKey,
 
-    tilemap_atlas: TextureId,
+    tilemap_atlas: AssetKey,
     tilemap_tiles: Vec<Rect>,
 
     pub announcement_text: Option<AnnouncementText>,
@@ -56,8 +56,8 @@ pub struct Render {
 impl Render {
     pub fn new() -> Self {
         Self {
-            ui_font: FontId::Quaver,
-            tilemap_atlas: TextureId::WorldAtlas,
+            ui_font: INVALID_ASSET,
+            tilemap_atlas: INVALID_ASSET,
             tilemap_tiles: Vec::new(),
             announcement_text: None,
             sprite_buffer: Vec::new(),
@@ -69,7 +69,7 @@ impl Render {
         &mut self,
         pos: Vec2,
         color: Color,
-        font: FontId,
+        font: AssetKey,
         world_font_size: f32,
         text: &str,
     ) {
@@ -90,7 +90,7 @@ impl Render {
         &mut self,
         pos: Vec2,
         color: Color,
-        font: FontId,
+        font: AssetKey,
         world_font_size: f32,
         text: std::fmt::Arguments,
     ) {
@@ -113,11 +113,11 @@ impl Render {
     pub fn set_atlas(
         &mut self,
         resources: &Resources,
-        atlas: TextureId,
+        atlas: AssetKey,
         atlas_margin: u32,
         atlas_spacing: u32,
     ) {
-        let Some(atlas_texture) = resources.textures.get(&atlas) else {
+        let Some(atlas_texture) = resources.textures.get(atlas) else {
             warn!("No such texture: {atlas:?}");
             return;
         };
@@ -193,7 +193,7 @@ impl Render {
         });
 
         for sprite in self.sprite_buffer.iter() {
-            let Some(texture) = resources.textures.get(&sprite.texture) else {
+            let Some(texture) = resources.textures.get(sprite.texture) else {
                 warn!("No texture {:?}", sprite.texture);
                 continue;
             };
@@ -215,7 +215,7 @@ impl Render {
     }
 
     fn setup_ui_camera(&mut self, resources: &Resources) {
-        match resources.fonts.get(&self.ui_font) {
+        match resources.fonts.get(self.ui_font) {
             None => {
                 warn!("No such font: {:?}", self.ui_font);
                 set_default_camera();
@@ -243,7 +243,7 @@ impl Render {
 
     fn draw_announcement_text(&mut self, resources: &Resources) {
         if let Some(announce) = self.announcement_text.as_ref() {
-            let Some(font) = resources.fonts.get(&self.ui_font) else {
+            let Some(font) = resources.fonts.get(self.ui_font) else {
                 warn!("No such font: {:?}", self.ui_font);
                 return;
             };
@@ -312,7 +312,7 @@ impl Render {
     fn draw_texts(&mut self, resources: &Resources) {
         for text in self.text_buffer.iter() {
             let tint = text.color;
-            let Some(font) = resources.fonts.get(&text.font) else {
+            let Some(font) = resources.fonts.get(text.font) else {
                 warn!("No font {:?}", text.font);
                 continue;
             };
@@ -378,7 +378,7 @@ impl Default for Render {
 pub struct SpriteData {
     pub layer: u32,
     pub tf: Transform,
-    pub texture: TextureId,
+    pub texture: AssetKey,
     pub rect: Rect,
     pub color: Color,
     pub sort_offset: f32,
@@ -409,7 +409,7 @@ struct GlyphText {
     x: f32,
     y: f32,
     color: Color,
-    font: FontId,
+    font: AssetKey,
     string: String,
     font_size: u16,
     font_scale: f32,
