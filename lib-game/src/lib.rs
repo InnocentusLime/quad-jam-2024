@@ -194,8 +194,7 @@ pub struct App {
 impl App {
     pub async fn new(conf: &Conf) -> anyhow::Result<Self> {
         let mut resources = Resources::new();
-        resources.cfg = load_game_config(&resources.resolver).await?;
-        // TODO: log cfg
+        resources.cfg = load_game_cfg().await?;
 
         Ok(Self {
             fullscreen: conf.fullscreen,

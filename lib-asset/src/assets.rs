@@ -1,6 +1,6 @@
 use crate::animation_manifest::{AnimationId, AnimationPack};
 use crate::{Asset, FsResolver};
-use crate::{GameCfg, asset_roots::*};
+use crate::asset_roots::*;
 #[cfg(feature = "dev-env")]
 use clap::ValueEnum;
 #[cfg(feature = "dev-env")]
@@ -72,27 +72,4 @@ impl Asset for AnimationPack {
             AnimationPackId::Shooter => "shooter.json",
         }
     }
-}
-
-impl Asset for GameCfg {
-    type AssetId = GameCfgId;
-    const ROOT: AssetRoot = AssetRoot::Base;
-
-    async fn load(_resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
-        use anyhow::Context;
-        use macroquad::prelude::*;
-        let json = load_string(path.to_str().unwrap())
-            .await
-            .context("loading JSON")?;
-        serde_json::from_str(&json).context("decoding")
-    }
-
-    fn filename(_id: Self::AssetId) -> &'static str {
-        "gamecfg.json"
-    }
-}
-
-#[derive(Debug, Clone, Copy, strum::VariantArray, strum::IntoStaticStr, PartialEq, Eq, Hash)]
-pub enum GameCfgId {
-    Cfg,
 }
