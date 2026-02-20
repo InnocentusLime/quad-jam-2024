@@ -13,6 +13,8 @@ pub mod dbg;
 
 pub mod sys;
 
+use std::path::{Path, PathBuf};
+
 use hashbrown::HashMap;
 use hecs::EntityBuilder;
 
@@ -272,9 +274,14 @@ impl App {
             .load::<LevelDef>(level_id)
             .await
             .unwrap();
+        let atlas = self
+            .resources
+            .textures
+            .resolve(&level.map.atlas_image)
+            .expect("Atlas not loaded");
         self.render.set_atlas(
             &self.resources,
-            TextureId::WorldAtlas,
+            atlas,
             level.map.atlas_margin,
             level.map.atlas_spacing,
         );
@@ -456,8 +463,8 @@ pub struct Resources {
     pub resolver: FsResolver,
     pub level: LevelDef,
     pub animations: HashMap<AnimationId, Animation>,
-    pub textures: HashMap<TextureId, Texture2D>,
-    pub fonts: HashMap<FontId, Font>,
+    pub textures: AssetContainer<Texture2D>,
+    pub fonts: AssetContainer<Font>,
 }
 
 impl Resources {
@@ -467,19 +474,25 @@ impl Resources {
             resolver: FsResolver::new(),
             level: LevelDef::default(),
             animations: HashMap::new(),
-            textures: HashMap::new(),
-            fonts: HashMap::new(),
+            textures: AssetContainer::new(),
+            fonts: AssetContainer::new(),
         }
     }
 
-    pub async fn load_texture(&mut self, texture_id: TextureId) {
-        let texture = self.resolver.load(texture_id).await.unwrap();
-        self.textures.insert(texture_id, texture);
+    pub async fn load_texture(&mut self, path: impl AsRef<Path>) -> AssetKey {
+        let src_path = path.as_ref();
+        let path = self.resolver.get_path(AssetRoot::Assets, src_path);
+        let path = path.to_string_lossy();
+        let texture = load_texture(&path).await.unwrap();
+        self.textures.insert(src_path, texture)
     }
 
-    pub async fn load_font(&mut self, font_id: FontId) {
-        let font = self.resolver.load(font_id).await.unwrap();
-        self.fonts.insert(font_id, font);
+    pub async fn load_font(&mut self, path: impl AsRef<Path>) -> AssetKey {
+        let src_path = path.as_ref();
+        let path = self.resolver.get_path(AssetRoot::Assets, src_path);
+        let path = path.to_string_lossy();
+        let font = load_ttf_font(&path).await.unwrap();
+        self.fonts.insert(src_path, font)
     }
 
     /// **ADDITIVLY** loads an animations pack

@@ -1,5 +1,7 @@
 use anyhow::bail;
-use lib_asset::{AssetRoot, TextureId, level::CharacterInfo};
+#[cfg(feature = "dev-env")]
+use lib_asset::AssetContainer;
+use lib_asset::{AssetKey, level::CharacterInfo};
 use macroquad::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::any::TypeId;
@@ -12,7 +14,7 @@ pub trait ClipAction: std::fmt::Debug + Default + Copy + 'static {
     fn global_offset(&mut self, _off: Vec2) {}
 
     #[cfg(feature = "dev-env")]
-    fn editor_ui(&mut self, ui: &mut egui::Ui) {
+    fn editor_ui(&mut self, _resources: &AssetContainer<Texture2D>, ui: &mut egui::Ui) {
         ui.label("No data");
     }
 
@@ -64,10 +66,10 @@ impl ClipAction for Move {
     }
 }
 
-#[derive(Default, Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Copy)]
 pub struct DrawSprite {
     pub layer: u32,
-    pub texture_id: TextureId,
+    pub texture_id: AssetKey,
     pub local_pos: Vec2,
     pub local_rotation: f32,
     pub rect_pos: UVec2,
@@ -82,21 +84,20 @@ impl ClipAction for DrawSprite {
     }
 
     #[cfg(feature = "dev-env")]
-    fn editor_ui(&mut self, ui: &mut egui::Ui) {
+    fn editor_ui(&mut self, textures: &AssetContainer<Texture2D>, ui: &mut egui::Ui) {
         use egui::*;
-        use strum::VariantArray;
+
+        let selected_path = textures.inverse_resolve(self.texture_id);
 
         ui.horizontal(|ui| {
             ui.add(DragValue::new(&mut self.layer).range(0..=10));
             ui.label("layer");
         });
         ComboBox::new("texture_id", "texture")
-            .selected_text(format!("{:?}", self.texture_id))
+            .selected_text(format!("{selected_path:?}"))
             .show_ui(ui, |ui| {
-                for texture_id in lib_asset::TextureId::VARIANTS {
-                    let name: &'static str = texture_id.into();
-                    let selected_value = self.texture_id;
-                    ui.selectable_value(&mut self.texture_id, selected_value, name);
+                for (path, key) in textures.iter() {
+                    ui.selectable_value(&mut self.texture_id, key, path.to_string_lossy());
                 }
             });
         ui.horizontal(|ui| {
@@ -132,13 +133,9 @@ impl ClipAction for DrawSprite {
     fn from_manifest(resources: &Resources, manifest: &serde_json::Value) -> anyhow::Result<Self> {
         let raw_manifest: lib_asset::animation_manifest::DrawSprite =
             serde_json::from_value(manifest.clone())?;
-        let path = resources
-            .resolver
-            .get_path(AssetRoot::Assets, raw_manifest.atlas_file);
-        let texture_id = resources.resolver.inverse_resolve::<Texture2D>(&path)?;
-        if !resources.textures.contains_key(&texture_id) {
-            bail!("Texture {texture_id:?} is not loaded");
-        }
+        let Some(texture_id) = resources.textures.resolve(&raw_manifest.atlas_file) else {
+            bail!("Texture {:?} is not loaded", raw_manifest.atlas_file);
+        };
         Ok(DrawSprite {
             texture_id,
             layer: raw_manifest.layer,
@@ -151,8 +148,19 @@ impl ClipAction for DrawSprite {
         })
     }
 
-    fn to_manifest(&self, _resource: &Resources) -> serde_json::Value {
-        serde_json::to_value(&self).unwrap()
+    fn to_manifest(&self, resources: &Resources) -> serde_json::Value {
+        let atlas_file = resources.textures.inverse_resolve(self.texture_id);
+        let raw_manifest = lib_asset::animation_manifest::DrawSprite {
+            layer: self.layer,
+            atlas_file: atlas_file.to_path_buf(),
+            local_pos: self.local_pos,
+            local_rotation: self.local_rotation,
+            rect_pos: self.rect_pos,
+            rect_size: self.rect_size,
+            sort_offset: self.sort_offset,
+            rotate_with_parent: self.rotate_with_parent,
+        };
+        serde_json::to_value(raw_manifest).unwrap()
     }
 }
 
@@ -172,7 +180,7 @@ impl ClipAction for AttackBox {
     }
 
     #[cfg(feature = "dev-env")]
-    fn editor_ui(&mut self, ui: &mut egui::Ui) {
+    fn editor_ui(&mut self, _resources: &AssetContainer<Texture2D>, ui: &mut egui::Ui) {
         use egui::*;
 
         ui.horizontal(|ui| {
@@ -217,7 +225,7 @@ pub struct LockInput {
 
 impl ClipAction for LockInput {
     #[cfg(feature = "dev-env")]
-    fn editor_ui(&mut self, ui: &mut egui::Ui) {
+    fn editor_ui(&mut self, _resources: &AssetContainer<Texture2D>, ui: &mut egui::Ui) {
         ui.checkbox(&mut self.allow_walk_input, "allow walk input");
         ui.checkbox(&mut self.allow_look_input, "allow look input");
     }
@@ -250,7 +258,7 @@ impl ClipAction for Spawn {
     }
 
     #[cfg(feature = "dev-env")]
-    fn editor_ui(&mut self, ui: &mut egui::Ui) {
+    fn editor_ui(&mut self, _resources: &AssetContainer<Texture2D>, ui: &mut egui::Ui) {
         use egui::*;
 
         ui.horizontal(|ui| {
