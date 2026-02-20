@@ -6,7 +6,30 @@ mod tiled_props_des;
 use glam::Vec2;
 use hashbrown::HashMap;
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+
+use crate::FsResolver;
+
+#[cfg(feature = "dev-env")]
+pub async fn load_level(resolver: &FsResolver, path: &Path) -> anyhow::Result<LevelDef> {
+    use crate::AssetRoot;
+    use std::path::PathBuf;
+
+    let mut filename: PathBuf = path.file_name().unwrap().into();
+    filename.set_extension("tmx");
+    let tiled_path = resolver.get_path(AssetRoot::TiledProjectRoot, filename);
+    tiled_load::load_level(resolver, tiled_path)
+}
+
+#[cfg(not(feature = "dev-env"))]
+pub async fn load_level(_resolver: &FsResolver, path: &Path) -> anyhow::Result<LevelDef> {
+    use anyhow::Context;
+    use macroquad::prelude::*;
+    let json = load_string(path.to_str().unwrap())
+        .await
+        .context("loading JSON")?;
+    serde_json::from_str(&json).context("decoding")
+}
 
 pub const TILE_SIDE: u32 = 16;
 

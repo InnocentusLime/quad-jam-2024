@@ -3,7 +3,6 @@ use std::{path::PathBuf, process::ExitCode};
 
 use anyhow::Context;
 use clap::{Parser, Subcommand};
-use lib_asset::level::LevelDef;
 use lib_asset::*;
 
 pub fn run() -> ExitCode {
@@ -15,10 +14,8 @@ pub fn run() -> ExitCode {
 
     let result = match cli.command {
         Commands::ConvertAseprite { aseprite, out } => convert_aseprite(aseprite, out),
-        Commands::CompileMap { map, out } => compile_impl::<LevelDef>(&resolver, map, out),
-        Commands::CompileMapsDir { dir, out } => {
-            compile_dir_impl::<LevelDef>(&resolver, "tmx", dir, out)
-        }
+        Commands::CompileMap { map, out } => compile_level(&resolver, map, out),
+        Commands::CompileMapsDir { dir, out } => compile_level_dir(&resolver, "tmx", dir, out),
     };
 
     match result {
@@ -36,7 +33,7 @@ fn convert_aseprite(aseprite: PathBuf, out: PathBuf) -> anyhow::Result<()> {
     serde_json::to_writer_pretty(out, &anims).context("writing to dest")
 }
 
-fn compile_dir_impl<T: DevableAsset + serde::Serialize>(
+fn compile_level_dir(
     resolver: &FsResolver,
     file_extension: &str,
     dir: PathBuf,
@@ -56,19 +53,15 @@ fn compile_dir_impl<T: DevableAsset + serde::Serialize>(
         let mut buff = out.clone();
         buff.push(name);
         buff.set_extension("json");
-        compile_impl::<T>(resolver, file, buff)?;
+        compile_level(resolver, file, buff)?;
     }
     Ok(())
 }
 
-fn compile_impl<T: DevableAsset + serde::Serialize>(
-    resolver: &FsResolver,
-    path: PathBuf,
-    out: PathBuf,
-) -> anyhow::Result<()> {
+fn compile_level(resolver: &FsResolver, path: PathBuf, out: PathBuf) -> anyhow::Result<()> {
     println!("Compiling {path:?} into {out:?}");
 
-    let val = T::load_dev(resolver, &path).context("loading")?;
+    let val = lib_asset::level::tiled_load::load_level(resolver, path).context("loading")?;
     let out = fs::File::create(out).context("opening the output")?;
     serde_json::to_writer_pretty(out, &val).context("compiling")?;
     Ok(())

@@ -5,7 +5,6 @@ mod screendump;
 
 use hashbrown::{HashMap, HashSet};
 use hecs::World;
-use lib_asset::{Asset, LevelId, level::LevelDef};
 use log::set_logger;
 use macroquad::prelude::*;
 
@@ -13,11 +12,8 @@ use macroquad::prelude::*;
 pub use animation_edit::*;
 pub use cmd::*;
 pub use screendump::*;
-use strum::VariantArray;
 
-use crate::{
-    App, AppState, AttackQuery, CharacterQuery, DebugCommand, Game, Resources, dump, level_utils,
-};
+use crate::{App, AppState, AttackQuery, CharacterQuery, DebugCommand, Game, Resources, dump};
 
 pub(crate) struct DebugStuff {
     pub cmd_center: CommandCenter,
@@ -79,25 +75,13 @@ impl DebugStuff {
             "hw" => app.render_world = false,
             "sw" => app.render_world = true,
             "reset" => app.state = AppState::Start,
-            "l" => {
-                for level_id in LevelId::VARIANTS {
-                    let l_name: &'static str = level_id.into();
-                    info!("Level {l_name}: {}", LevelDef::filename(*level_id));
-                }
-            }
             "load" => {
                 if cmd.args.is_empty() {
                     error!("Not enough args");
                     return;
                 }
 
-                let l_str = &cmd.args[0];
-                let Some(level_id) = level_utils::resolve_level(l_str) else {
-                    error!("{l_str:?} does not match any known level");
-                    return;
-                };
-
-                app.queued_level = Some(level_id);
+                app.queued_level = Some(cmd.args[0].clone().into());
             }
             "dde" => {
                 if cmd.args.is_empty() {

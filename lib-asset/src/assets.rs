@@ -1,7 +1,4 @@
-#[cfg(feature = "dev-env")]
-use crate::DevableAsset;
 use crate::animation_manifest::{AnimationId, AnimationPack};
-use crate::level::LevelDef;
 use crate::{Asset, FsResolver};
 use crate::{GameCfg, asset_roots::*};
 #[cfg(feature = "dev-env")]
@@ -73,65 +70,6 @@ impl Asset for AnimationPack {
             AnimationPackId::Bunny => "bnuuy.json",
             AnimationPackId::Stabber => "stabber.json",
             AnimationPackId::Shooter => "shooter.json",
-        }
-    }
-}
-
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    serde::Serialize,
-    serde::Deserialize,
-    PartialEq,
-    Eq,
-    Hash,
-    strum::IntoStaticStr,
-    strum::VariantArray,
-)]
-pub enum LevelId {
-    TestRoom,
-    TestBulletRoom,
-    TestShooterRoom,
-}
-
-#[cfg(feature = "dev-env")]
-impl DevableAsset for LevelDef {
-    fn load_dev(resolver: &FsResolver, path: &Path) -> anyhow::Result<Self> {
-        use crate::level::tiled_load;
-        use std::path::PathBuf;
-
-        let mut filename: PathBuf = path.file_name().unwrap().into();
-        filename.set_extension("tmx");
-        let tiled_path = resolver.get_path(AssetRoot::TiledProjectRoot, filename);
-        tiled_load::load_level(resolver, tiled_path)
-    }
-}
-
-impl Asset for LevelDef {
-    type AssetId = LevelId;
-    const ROOT: AssetRoot = AssetRoot::Assets;
-
-    #[cfg(feature = "dev-env")]
-    async fn load(resolver: &FsResolver, path: &Path) -> anyhow::Result<LevelDef> {
-        Self::load_dev(resolver, path)
-    }
-
-    #[cfg(not(feature = "dev-env"))]
-    async fn load(_resolver: &FsResolver, path: &Path) -> anyhow::Result<LevelDef> {
-        use anyhow::Context;
-        use macroquad::prelude::*;
-        let json = load_string(path.to_str().unwrap())
-            .await
-            .context("loading JSON")?;
-        serde_json::from_str(&json).context("decoding")
-    }
-
-    fn filename(id: Self::AssetId) -> &'static str {
-        match id {
-            LevelId::TestRoom => "test_room.json",
-            LevelId::TestBulletRoom => "test_bullet_room.json",
-            LevelId::TestShooterRoom => "test_shooter_room.json",
         }
     }
 }

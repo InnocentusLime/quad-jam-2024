@@ -5,7 +5,6 @@ mod collisions;
 mod components;
 mod health;
 mod input;
-mod level_utils;
 mod render;
 
 #[cfg(feature = "dbg")]
@@ -24,7 +23,6 @@ pub use character::*;
 pub use collisions::*;
 pub use components::*;
 pub use input::*;
-pub use level_utils::*;
 pub use lib_asset::animation_manifest::AnimationId;
 pub use lib_asset::level::*;
 pub use lib_asset::*;
@@ -177,7 +175,7 @@ pub struct App {
     old_size: (u32, u32),
 
     pub state: AppState,
-    pub queued_level: Option<LevelId>,
+    pub queued_level: Option<PathBuf>,
     pub resources: Resources,
     accumelated_time: f32,
 
@@ -266,14 +264,19 @@ impl App {
         }
     }
 
-    async fn load_level<G: Game>(&mut self, game: &mut G, level_id: LevelId) {
+    async fn load_level<G: Game>(&mut self, game: &mut G, level_file: PathBuf) {
         info!("Loading level");
-        let level = self
+        let path = self
             .resources
             .resolver
-            .load::<LevelDef>(level_id)
-            .await
-            .unwrap();
+            .get_path(AssetRoot::Assets, &level_file);
+        let level = match load_level(&self.resources.resolver, &path).await {
+            Ok(x) => x,
+            Err(e) => {
+                error!("{e:#}");
+                return;
+            }
+        };
         let atlas = self
             .resources
             .textures
@@ -430,7 +433,7 @@ impl App {
             }
             AppState::Start if input.confirmation_detected => {
                 self.state = AppState::Active { paused: false };
-                self.queued_level = Some(LevelId::TestRoom);
+                self.queued_level = Some("test_room.json".into());
             }
             AppState::Active { paused } if input.pause_requested => {
                 self.state = AppState::Active { paused: !paused };

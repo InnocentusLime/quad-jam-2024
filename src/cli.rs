@@ -1,10 +1,7 @@
-use std::error::Error;
+use std::path::PathBuf;
 
 use clap::Parser;
-use lib_game::{App, AppState, LevelId, resolve_level};
-use strum::VariantArray;
-
-pub type ErrBox = Box<dyn Error + Send + Sync>;
+use lib_game::{App, AppState};
 
 pub fn apply_cli(app: &mut App) {
     let args = Args::parse();
@@ -18,13 +15,6 @@ pub fn apply_cli(app: &mut App) {
 #[derive(Parser, Debug)]
 pub struct Args {
     /// Forces the game to just load a level.
-    #[arg(long, value_name = "[LEVEL NAME or LEVEL FILENAME]", value_parser=parse_level_id)]
-    pub level: Option<LevelId>,
-}
-
-fn parse_level_id(s: &str) -> Result<LevelId, ErrBox> {
-    resolve_level(s).ok_or_else(|| {
-        let levels = LevelId::VARIANTS;
-        format!("Unknown level name. Known are: {levels:?}").into()
-    })
+    #[arg(long, value_name = "[LEVEL NAME or LEVEL FILENAME]")]
+    pub level: Option<PathBuf>,
 }
