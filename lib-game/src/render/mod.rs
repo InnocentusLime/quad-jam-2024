@@ -131,8 +131,8 @@ impl Render {
         self.tilemap_tiles.clear();
         self.tilemap_tiles
             .reserve((atlas_tiles_x * atlas_tiles_y) as usize);
-        for x in 0..atlas_tiles_x {
-            for y in 0..atlas_tiles_y {
+        for y in 0..atlas_tiles_y {
+            for x in 0..atlas_tiles_x {
                 let tex_x = (TILE_SIDE + atlas_spacing) * x + atlas_margin;
                 let tex_y = (TILE_SIDE + atlas_spacing) * y + atlas_margin;
                 self.tilemap_tiles.push(Rect {
