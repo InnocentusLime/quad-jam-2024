@@ -1,10 +1,19 @@
 #[cfg(feature = "dev-env")]
 pub mod aseprite_load;
 
+use anyhow::Context;
 use glam::{UVec2, Vec2};
 use hashbrown::HashMap;
+use macroquad::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+
+pub async fn load_animation_manifest(path: &Path) -> anyhow::Result<AnimationPack> {
+    let json = load_string(path.to_str().unwrap())
+        .await
+        .context("loading JSON")?;
+    serde_json::from_str(&json).context("decoding")
+}
 
 pub type AnimationPack = HashMap<AnimationId, Animation>;
 
@@ -48,16 +57,16 @@ pub struct Track {
     Hash,
 )]
 pub enum AnimationId {
-    BunnyIdleR,
-    BunnyIdleD,
-    BunnyIdleL,
-    BunnyIdleU,
-    BunnyWalkR,
-    BunnyWalkD,
-    BunnyWalkL,
-    BunnyWalkU,
-    BunnyAttackD,
-    BunnyDash,
+    BnuuyIdleR,
+    BnuuyIdleD,
+    BnuuyIdleL,
+    BnuuyIdleU,
+    BnuuyWalkR,
+    BnuuyWalkD,
+    BnuuyWalkL,
+    BnuuyWalkU,
+    BnuuyAttackD,
+    BnuuyDash,
     StabberIdle,
     StabberAttack,
     ShooterIdle,

@@ -1,12 +1,12 @@
 use std::fs::File;
 use std::path::{Path, PathBuf};
 
-use egui::{Modal, Ui};
+use egui::Ui;
+use heck::ToPascalCase;
 
 use crate::Resources;
 use crate::animation::Animation;
 use hashbrown::HashMap;
-use lib_asset::AnimationPackId;
 use lib_asset::animation_manifest::AnimationId;
 use log::{error, info, warn};
 use rfd::FileDialog;
@@ -55,52 +55,34 @@ fn load_anim_pack(resources: &mut Resources, src: impl AsRef<Path>) {
     }
 }
 
-pub fn save_anim_pack_modal(
-    ui: &mut Ui,
-    resources: &Resources,
-    current_pack_id: &mut AnimationPackId,
-) -> bool {
-    let mut keep_open = true;
-    Modal::new(egui::Id::new("Save Pack")).show(ui.ctx(), |ui| {
-        ui.set_width(250.0);
-        ui.heading("Save animation pack");
-
-        super::enum_select(ui, "animation_pack_id", "animation pack", current_pack_id);
-        ui.horizontal(|ui| {
-            if ui.button("Save").clicked() {
-                let dst = FileDialog::new()
-                    .set_title("Save animation pack")
-                    .set_directory("project-animations")
-                    .add_filter("", &["json"])
-                    .save_file();
-                if let Some(dst) = dst {
-                    save_anim_pack(resources, dst, *current_pack_id);
-                    keep_open = false;
-                }
-            }
-            if ui.button("Cancel").clicked() {
-                keep_open = false;
-            }
-        });
-    });
-    keep_open
-}
-
-fn save_anim_pack(resources: &Resources, dst: impl AsRef<Path>, pack_id: AnimationPackId) {
-    let dst = dst.as_ref();
-    let mut file = match File::create(dst) {
+pub fn save_anim_pack_ui(resources: &mut Resources) {
+    let dst = FileDialog::new()
+        .set_title("Save animation pack")
+        .set_directory("project-animations")
+        .add_filter("", &["json"])
+        .save_file();
+    let Some(dst) = dst else { return };
+    let mut file = match File::create(&dst) {
         Ok(file) => file,
         Err(e) => {
             error!("Could not open {dst:?}: {e}");
             return;
         }
     };
+    let Some(filename) = dst.file_stem() else {
+        error!("Not file stem");
+        return;
+    };
+    let Some(filename) = filename.to_str() else {
+        error!("File stem is not a string");
+        return;
+    };
+    let pack_id_name = filename.to_pascal_case();
 
     let mut output = HashMap::new();
     for anim_id in AnimationId::VARIANTS {
         let anim_id_name: &'static str = anim_id.into();
-        let pack_id_name: &'static str = pack_id.into();
-        if !anim_id_name.starts_with(pack_id_name) {
+        if !anim_id_name.starts_with(&pack_id_name) {
             info!("Skipping {anim_id:?}");
             continue;
         }

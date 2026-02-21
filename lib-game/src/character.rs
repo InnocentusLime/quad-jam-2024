@@ -257,7 +257,7 @@ impl CharacterBundle {
             },
             play: AnimationPlay {
                 pause: false,
-                animation: AnimationId::BunnyWalkD,
+                animation: AnimationId::BnuuyWalkD,
                 total_dt: 0.0,
                 cursor: 0,
             },
@@ -277,7 +277,7 @@ impl CharacterBundle {
             },
             play: AnimationPlay {
                 pause: false,
-                animation: AnimationId::BunnyWalkD,
+                animation: AnimationId::BnuuyWalkD,
                 total_dt: 0.0,
                 cursor: 0,
             },
