@@ -5,7 +5,6 @@
 # Ignored directories
 /target
 /dist
-/levels
 /static/assets/
 # Ignored files
 */test-out.svg
