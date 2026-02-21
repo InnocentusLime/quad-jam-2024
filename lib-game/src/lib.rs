@@ -24,6 +24,7 @@ pub use collisions::*;
 pub use components::*;
 pub use input::*;
 pub use lib_asset::animation_manifest::AnimationId;
+use lib_asset::animation_manifest::load_animation_manifest;
 pub use lib_asset::level::*;
 pub use lib_asset::*;
 pub use render::*;
@@ -498,9 +499,10 @@ impl Resources {
     }
 
     /// **ADDITIVLY** loads an animations pack
-    pub async fn load_animation_pack(&mut self, pack_id: AnimationPackId) {
-        let pack: lib_asset::animation_manifest::AnimationPack =
-            self.resolver.load(pack_id).await.unwrap();
+    pub async fn load_animation_pack(&mut self, path: impl AsRef<Path>) {
+        let src_path = path.as_ref();
+        let path = self.resolver.get_path(AssetRoot::Assets, src_path);
+        let pack = load_animation_manifest(&path).await.unwrap();
         for (id, manifest) in pack {
             let anim = Animation::from_manifest(self, &manifest).unwrap();
             self.animations.insert(id, anim);

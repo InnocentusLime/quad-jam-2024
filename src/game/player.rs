@@ -101,16 +101,16 @@ impl CharacterData for PlayerData<'_> {
 
     fn state_to_anim(character: &Character<Self>) -> AnimationId {
         match (character.get_state(), character.look_dir_enum()) {
-            (PlayerState::Idle, Direction::Right) => AnimationId::BunnyIdleR,
-            (PlayerState::Idle, Direction::Down) => AnimationId::BunnyIdleD,
-            (PlayerState::Idle, Direction::Left) => AnimationId::BunnyIdleL,
-            (PlayerState::Idle, Direction::Up) => AnimationId::BunnyIdleU,
-            (PlayerState::Walking, Direction::Right) => AnimationId::BunnyWalkR,
-            (PlayerState::Walking, Direction::Down) => AnimationId::BunnyWalkD,
-            (PlayerState::Walking, Direction::Left) => AnimationId::BunnyWalkL,
-            (PlayerState::Walking, Direction::Up) => AnimationId::BunnyWalkU,
-            (PlayerState::Attacking, _) => AnimationId::BunnyAttackD,
-            (PlayerState::Dashing, _) => AnimationId::BunnyDash,
+            (PlayerState::Idle, Direction::Right) => AnimationId::BnuuyIdleR,
+            (PlayerState::Idle, Direction::Down) => AnimationId::BnuuyIdleD,
+            (PlayerState::Idle, Direction::Left) => AnimationId::BnuuyIdleL,
+            (PlayerState::Idle, Direction::Up) => AnimationId::BnuuyIdleU,
+            (PlayerState::Walking, Direction::Right) => AnimationId::BnuuyWalkR,
+            (PlayerState::Walking, Direction::Down) => AnimationId::BnuuyWalkD,
+            (PlayerState::Walking, Direction::Left) => AnimationId::BnuuyWalkL,
+            (PlayerState::Walking, Direction::Up) => AnimationId::BnuuyWalkU,
+            (PlayerState::Attacking, _) => AnimationId::BnuuyAttackD,
+            (PlayerState::Dashing, _) => AnimationId::BnuuyDash,
         }
     }
 

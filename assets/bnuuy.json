@@ -1,5 +1,5 @@
 {
-  "BunnyWalkL": {
+  "BnuuyWalkL": {
     "is_looping": true,
     "action_tracks": {
       "attack_box": {
@@ -407,7 +407,7 @@
       }
     }
   },
-  "BunnyWalkU": {
+  "BnuuyWalkU": {
     "is_looping": true,
     "action_tracks": {
       "attack_box": {
@@ -815,7 +815,7 @@
       }
     }
   },
-  "BunnyIdleR": {
+  "BnuuyIdleR": {
     "is_looping": true,
     "action_tracks": {
       "attack_box": {
@@ -912,7 +912,7 @@
       }
     }
   },
-  "BunnyIdleU": {
+  "BnuuyIdleU": {
     "is_looping": true,
     "action_tracks": {
       "attack_box": {
@@ -1009,7 +1009,7 @@
       }
     }
   },
-  "BunnyAttackD": {
+  "BnuuyAttackD": {
     "is_looping": false,
     "action_tracks": {
       "attack_box": {
@@ -1505,7 +1505,7 @@
       }
     }
   },
-  "BunnyWalkD": {
+  "BnuuyWalkD": {
     "is_looping": true,
     "action_tracks": {
       "attack_box": {
@@ -1730,7 +1730,7 @@
       }
     }
   },
-  "BunnyDash": {
+  "BnuuyDash": {
     "is_looping": false,
     "action_tracks": {
       "attack_box": {
@@ -1860,7 +1860,7 @@
       }
     }
   },
-  "BunnyWalkR": {
+  "BnuuyWalkR": {
     "is_looping": true,
     "action_tracks": {
       "attack_box": {
@@ -2268,7 +2268,7 @@
       }
     }
   },
-  "BunnyIdleL": {
+  "BnuuyIdleL": {
     "is_looping": true,
     "action_tracks": {
       "attack_box": {
@@ -2365,7 +2365,7 @@
       }
     }
   },
-  "BunnyIdleD": {
+  "BnuuyIdleD": {
     "is_looping": true,
     "action_tracks": {
       "attack_box": {

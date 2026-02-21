@@ -9,7 +9,7 @@ use egui::{Ui, Widget};
 use macroquad::math::Vec2;
 
 use hecs::{Entity, World};
-use lib_asset::{AnimationPackId, AssetContainer};
+use lib_asset::AssetContainer;
 
 use macroquad::texture::Texture2D;
 use save_ui::*;
@@ -20,8 +20,6 @@ use crate::{AnimationPlay, AttackBox, CLIP_TYPES, CharacterLook, Resources};
 
 pub struct AnimationEdit {
     pub playback: Entity,
-    open_save_pack: bool,
-    current_pack_id: AnimationPackId,
     sequencer_state: SequencerState,
     tf: TimelineTf,
     selected_clip: Option<(TypeId, u32)>,
@@ -39,8 +37,6 @@ impl AnimationEdit {
     pub fn new() -> Self {
         Self {
             playback: Entity::DANGLING,
-            open_save_pack: false,
-            current_pack_id: AnimationPackId::Bunny,
             sequencer_state: SequencerState::Idle,
             selected_clip: None,
             selected_track: None,
@@ -89,11 +85,7 @@ impl AnimationEdit {
                 load_anim_pack_ui(resources);
             }
             if ui.button("Save Pack").clicked() {
-                self.open_save_pack = true;
-            }
-            if self.open_save_pack {
-                self.open_save_pack =
-                    save_anim_pack_modal(ui, resources, &mut self.current_pack_id);
+                save_anim_pack_ui(resources);
             }
         });
 

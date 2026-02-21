@@ -8,7 +8,6 @@ mod render;
 mod shooter;
 mod stabber;
 
-use lib_asset::AnimationPackId;
 use lib_asset::level::*;
 use prelude::*;
 
@@ -42,13 +41,9 @@ async fn load_resources(resources: &mut Resources) -> AssetKey {
     resources.load_texture("world.png").await;
     build_textures_atlas();
 
-    resources.load_animation_pack(AnimationPackId::Bunny).await;
-    resources
-        .load_animation_pack(AnimationPackId::Stabber)
-        .await;
-    resources
-        .load_animation_pack(AnimationPackId::Shooter)
-        .await;
+    resources.load_animation_pack("bnuuy.json").await;
+    resources.load_animation_pack("stabber.json").await;
+    resources.load_animation_pack("shooter.json").await;
     ui_font
 }
 

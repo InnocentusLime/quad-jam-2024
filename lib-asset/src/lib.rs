@@ -1,5 +1,4 @@
 mod asset_roots;
-mod assets;
 mod containers;
 
 pub mod animation_manifest;
@@ -7,7 +6,6 @@ pub mod gamecfg;
 pub mod level;
 
 pub use asset_roots::*;
-pub use assets::*;
 pub use containers::*;
 pub use gamecfg::*;
 
