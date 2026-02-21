@@ -9,9 +9,7 @@ pub use asset_roots::*;
 pub use containers::*;
 pub use gamecfg::*;
 
-use anyhow::Context;
 use hashbrown::HashMap;
-use strum::VariantArray;
 
 use std::path::{Path, PathBuf};
 
@@ -21,31 +19,18 @@ pub struct FsResolver {
 
 impl FsResolver {
     pub fn new() -> Self {
-        let roots = AssetRoot::VARIANTS
-            .iter()
-            .map(|x| (*x, x.default_path().into()))
-            .collect();
+        let mut roots = HashMap::new();
+        roots.insert(AssetRoot::Base, AssetRoot::Base.default_path().into());
+        roots.insert(AssetRoot::Assets, AssetRoot::Assets.default_path().into());
+        roots.insert(
+            AssetRoot::AsepriteProjectRoot,
+            AssetRoot::AsepriteProjectRoot.default_path().into(),
+        );
+        roots.insert(
+            AssetRoot::TiledProjectRoot,
+            AssetRoot::TiledProjectRoot.default_path().into(),
+        );
         FsResolver { roots }
-    }
-
-    pub fn inverse_resolve<A: Asset>(&self, path: &Path) -> anyhow::Result<A::AssetId> {
-        let got_file = self.get_filename(A::ROOT, path)?;
-        let item = <A::AssetId as VariantArray>::VARIANTS
-            .iter()
-            .map(|id| (id, A::filename(*id)))
-            .find(|(_, file)| got_file.as_os_str() == std::ffi::OsStr::new(file));
-
-        match item {
-            Some((id, _)) => Ok(*id),
-            None => anyhow::bail!("{path:?} does not correspond to any asset"),
-        }
-    }
-
-    pub async fn load<A: Asset>(&self, id: A::AssetId) -> anyhow::Result<A> {
-        let path = self.get_path(A::ROOT, A::filename(id));
-        A::load(self, &path)
-            .await
-            .with_context(|| format!("load {path:?}"))
     }
 
     pub fn set_root(&mut self, id: AssetRoot, dir: impl AsRef<Path>) {
@@ -67,8 +52,14 @@ impl FsResolver {
         path
     }
 
-    fn get_filename(&self, root: AssetRoot, path: &Path) -> anyhow::Result<PathBuf> {
-        #[cfg(not(target_family = "wasm"))]
+    pub fn get_path(&self, root: AssetRoot, filename: impl AsRef<Path>) -> PathBuf {
+        PathBuf::from_iter([self.get_dir(root).as_ref(), filename.as_ref()])
+    }
+
+    #[cfg(feature = "dev-env")]
+    pub(crate) fn get_filename(&self, root: AssetRoot, path: &Path) -> anyhow::Result<PathBuf> {
+        use anyhow::Context;
+
         let path = match std::fs::canonicalize(&path) {
             Ok(x) => x,
             Err(e) => return Err(e).context(format!("canonicalizing {path:?}")),
@@ -80,31 +71,10 @@ impl FsResolver {
             .with_context(|| format!("Resolving against {dir:?}"))
             .map(|x| x.to_path_buf())
     }
-
-    pub fn get_path(&self, root: AssetRoot, filename: impl AsRef<Path>) -> PathBuf {
-        PathBuf::from_iter([self.get_dir(root).as_ref(), filename.as_ref()])
-    }
 }
 
 impl Default for FsResolver {
     fn default() -> Self {
         FsResolver::new()
     }
-}
-
-#[cfg(feature = "dev-env")]
-pub trait DevableAsset: Sized {
-    fn load_dev(resolver: &FsResolver, path: &Path) -> anyhow::Result<Self>;
-}
-
-pub trait Asset: Sized {
-    type AssetId: Copy + strum::VariantArray;
-    const ROOT: AssetRoot;
-
-    fn load(
-        resolver: &FsResolver,
-        path: &Path,
-    ) -> impl Future<Output = anyhow::Result<Self>> + Send;
-
-    fn filename(id: Self::AssetId) -> &'static str;
 }

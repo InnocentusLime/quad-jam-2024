@@ -1,15 +1,4 @@
-#[derive(
-    Debug,
-    Clone,
-    Copy,
-    serde::Serialize,
-    serde::Deserialize,
-    PartialEq,
-    Eq,
-    Hash,
-    strum::IntoStaticStr,
-    strum::VariantArray,
-)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum AssetRoot {
     Base,
     Assets,
