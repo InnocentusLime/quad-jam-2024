@@ -1,15 +1,16 @@
 mod actions;
 mod container;
 
+use std::any::TypeId;
+
 use hashbrown::HashMap;
 use hecs::{CommandBuffer, Entity, EntityBuilder, World};
 use lib_asset::level::CharacterDef;
 use macroquad::prelude::*;
 
 use crate::{
-    AnimationPlay, AttackBundle, CLIP_ACTION_OBJECT_ATTACK, CLIP_ACTION_OBJECT_SPAWN,
-    ClipActionObject, Game, Render, Resources, SpriteData, Transform, col_group, col_query,
-    for_each_character,
+    AnimationPlay, AttackBundle, ClipActionObject, Game, Render, Resources, SpriteData, Transform,
+    col_group, col_query, for_each_character,
 };
 
 pub use actions::*;
@@ -71,33 +72,18 @@ pub(crate) fn delete_clip_action_objects(
     }
 
     for_each_character::<()>(world, resources, |parent, character| {
-        let to_despawn = character
+        for (kind, clip_id) in character
             .animation
-            .inactive_clips::<AttackBox>(character.anim_cursor())
-            .filter_map(|(clip_id, _)| {
-                clip_action_objects.get(&ClipActionObject {
-                    parent,
-                    animation: character.animation_id(),
-                    clip_id,
-                    kind: CLIP_ACTION_OBJECT_ATTACK,
-                })
-            });
-        for entity in to_despawn {
-            cmds.despawn(*entity);
-        }
-
-        let to_despawn = character
-            .animation
-            .inactive_clips::<Spawn>(character.anim_cursor())
-            .filter_map(|(clip_id, _)| {
-                clip_action_objects.get(&ClipActionObject {
-                    parent,
-                    animation: character.animation_id(),
-                    clip_id,
-                    kind: CLIP_ACTION_OBJECT_SPAWN,
-                })
-            });
-        for entity in to_despawn {
+            .all_inactive_clips(character.anim_cursor())
+        {
+            let Some(entity) = clip_action_objects.get(&ClipActionObject {
+                parent,
+                kind,
+                clip_id,
+                animation: character.animation_id(),
+            }) else {
+                continue;
+            };
             cmds.despawn(*entity);
         }
     });
@@ -118,7 +104,7 @@ pub(crate) fn update_attack_boxes(
                 parent,
                 animation: character.animation_id(),
                 clip_id,
-                kind: CLIP_ACTION_OBJECT_ATTACK,
+                kind: TypeId::of::<AttackBox>(),
             };
             let new_col_tf = character.transform_child(
                 attack.rotate_with_parent,
@@ -169,7 +155,7 @@ pub(crate) fn update_spawned<G: Game>(
                 parent,
                 animation: character.animation_id(),
                 clip_id,
-                kind: CLIP_ACTION_OBJECT_SPAWN,
+                kind: TypeId::of::<Spawn>(),
             };
             let (pos, look_angle) = character.transform_character(
                 spawn.rotate_with_parent,

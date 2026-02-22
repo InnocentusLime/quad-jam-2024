@@ -1,10 +1,9 @@
+use std::any::TypeId;
+
 use crate::animation::Animation;
 use hecs::Entity;
 use lib_asset::{AssetKey, animation_manifest::AnimationId};
 use macroquad::prelude::*;
-
-pub const CLIP_ACTION_OBJECT_SPAWN: u32 = 0;
-pub const CLIP_ACTION_OBJECT_ATTACK: u32 = 1;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Sprite {
@@ -113,7 +112,7 @@ impl AnimationPlay {
 pub struct ClipActionObject {
     pub parent: Entity,
     pub animation: AnimationId,
-    pub kind: u32,
+    pub kind: TypeId,
     pub clip_id: u32,
 }
 
