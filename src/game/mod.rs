@@ -36,14 +36,14 @@ fn decide_next_state(world: &mut World) -> Option<AppState> {
 async fn load_resources(resources: &mut Resources) -> AssetKey {
     set_default_filter_mode(FilterMode::Nearest);
 
-    let ui_font = resources.load_font("quaver.ttf").await;
-    resources.load_texture("bnuuy.png").await;
-    resources.load_texture("world.png").await;
+    let ui_font = resources.load_font("font/quaver.ttf").await;
+    resources.load_texture("atlas/bnuuy.png").await;
+    resources.load_texture("atlas/world.png").await;
     build_textures_atlas();
 
-    resources.load_animation_pack("bnuuy.json").await;
-    resources.load_animation_pack("stabber.json").await;
-    resources.load_animation_pack("shooter.json").await;
+    resources.load_animation_pack("anim/bnuuy.json").await;
+    resources.load_animation_pack("anim/stabber.json").await;
+    resources.load_animation_pack("anim/shooter.json").await;
     ui_font
 }
 

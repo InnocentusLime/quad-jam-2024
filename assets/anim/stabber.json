@@ -35,7 +35,7 @@
                 16,
                 16
               ],
-              "atlas_file": "world.png"
+              "atlas_file": "atlas/world.png"
             }
           }
         ],
@@ -135,7 +135,7 @@
                 16,
                 16
               ],
-              "atlas_file": "world.png"
+              "atlas_file": "atlas/world.png"
             }
           },
           {
@@ -165,7 +165,7 @@
                 16,
                 16
               ],
-              "atlas_file": "world.png"
+              "atlas_file": "atlas/world.png"
             }
           },
           {
@@ -195,7 +195,7 @@
                 16,
                 16
               ],
-              "atlas_file": "world.png"
+              "atlas_file": "atlas/world.png"
             }
           },
           {
@@ -225,7 +225,7 @@
                 36,
                 42
               ],
-              "atlas_file": "world.png"
+              "atlas_file": "atlas/world.png"
             }
           }
         ],
