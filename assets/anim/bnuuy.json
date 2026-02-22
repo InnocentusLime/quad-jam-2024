@@ -2,7 +2,11 @@
   "BnuuyWalkL": {
     "is_looping": true,
     "action_tracks": {
-      "attack_box": {
+      "invulnerability": {
+        "clips": [],
+        "tracks": []
+      },
+      "spawn": {
         "clips": [],
         "tracks": []
       },
@@ -13,20 +17,13 @@
             "start": 0,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -7.0,
                 -8.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 335,
-                "y": 1,
-                "w": 14,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 335,
                 1
@@ -35,7 +32,8 @@
                 14,
                 17
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -43,20 +41,13 @@
             "start": 167,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -7.0,
                 -8.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 350,
-                "y": 1,
-                "w": 14,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 350,
                 1
@@ -65,7 +56,8 @@
                 14,
                 17
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -73,20 +65,13 @@
             "start": 334,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -7.0,
                 -7.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 365,
-                "y": 1,
-                "w": 14,
-                "h": 16
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 365,
                 1
@@ -95,7 +80,8 @@
                 14,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -103,20 +89,13 @@
             "start": 501,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -7.0,
                 -8.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 335,
-                "y": 1,
-                "w": 14,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 335,
                 1
@@ -125,7 +104,8 @@
                 14,
                 17
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -133,20 +113,13 @@
             "start": 668,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -7.0,
                 -8.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 380,
-                "y": 1,
-                "w": 14,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 380,
                 1
@@ -155,7 +128,8 @@
                 14,
                 17
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -163,20 +137,13 @@
             "start": 835,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -7.0,
                 -7.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 395,
-                "y": 1,
-                "w": 14,
-                "h": 16
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 395,
                 1
@@ -185,7 +152,8 @@
                 14,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -193,20 +161,13 @@
             "start": 0,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 1.0,
                 -4.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 173,
-                "y": 19,
-                "w": 6,
-                "h": 14
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 173,
                 19
@@ -215,7 +176,8 @@
                 6,
                 14
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           },
           {
@@ -223,20 +185,13 @@
             "start": 167,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 2.0,
                 -7.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 180,
-                "y": 19,
-                "w": 8,
-                "h": 16
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 180,
                 19
@@ -245,7 +200,8 @@
                 8,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           },
           {
@@ -253,20 +209,13 @@
             "start": 334,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 2.0,
                 -6.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 189,
-                "y": 19,
-                "w": 10,
-                "h": 16
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 189,
                 19
@@ -275,7 +224,8 @@
                 10,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           },
           {
@@ -283,20 +233,13 @@
             "start": 501,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 1.0,
                 -4.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 173,
-                "y": 19,
-                "w": 6,
-                "h": 14
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 173,
                 19
@@ -305,7 +248,8 @@
                 6,
                 14
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           },
           {
@@ -313,20 +257,13 @@
             "start": 668,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 2.0,
                 -7.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 180,
-                "y": 19,
-                "w": 8,
-                "h": 16
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 180,
                 19
@@ -335,7 +272,8 @@
                 8,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           },
           {
@@ -343,20 +281,13 @@
             "start": 835,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 2.0,
                 -6.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 189,
-                "y": 19,
-                "w": 10,
-                "h": 16
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 189,
                 19
@@ -365,7 +296,8 @@
                 10,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           }
         ],
@@ -377,6 +309,14 @@
             "name": "sprites 1"
           }
         ]
+      },
+      "attack_box": {
+        "clips": [],
+        "tracks": []
+      },
+      "lock_input": {
+        "clips": [],
+        "tracks": []
       },
       "move": {
         "clips": [
@@ -392,25 +332,17 @@
             "name": "move"
           }
         ]
-      },
-      "lock_input": {
-        "clips": [],
-        "tracks": []
-      },
-      "spawn": {
-        "clips": [],
-        "tracks": []
-      },
-      "invulnerability": {
-        "clips": [],
-        "tracks": []
       }
     }
   },
   "BnuuyWalkU": {
     "is_looping": true,
     "action_tracks": {
-      "attack_box": {
+      "invulnerability": {
+        "clips": [],
+        "tracks": []
+      },
+      "spawn": {
         "clips": [],
         "tracks": []
       },
@@ -421,20 +353,13 @@
             "start": 0,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -6.0,
                 -7.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 195,
-                "y": 1,
-                "w": 12,
-                "h": 15
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 195,
                 1
@@ -443,7 +368,8 @@
                 12,
                 15
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -451,20 +377,13 @@
             "start": 167,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -6.0,
                 -7.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 208,
-                "y": 1,
-                "w": 12,
-                "h": 15
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 208,
                 1
@@ -473,7 +392,8 @@
                 12,
                 15
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -481,20 +401,13 @@
             "start": 334,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -6.0,
                 -6.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 221,
-                "y": 1,
-                "w": 12,
-                "h": 14
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 221,
                 1
@@ -503,7 +416,8 @@
                 12,
                 14
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -511,20 +425,13 @@
             "start": 501,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -6.0,
                 -7.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 195,
-                "y": 1,
-                "w": 12,
-                "h": 15
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 195,
                 1
@@ -533,7 +440,8 @@
                 12,
                 15
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -541,20 +449,13 @@
             "start": 668,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -6.0,
                 -7.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 234,
-                "y": 1,
-                "w": 12,
-                "h": 15
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 234,
                 1
@@ -563,7 +464,8 @@
                 12,
                 15
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -571,20 +473,13 @@
             "start": 835,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -6.0,
                 -6.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 247,
-                "y": 1,
-                "w": 12,
-                "h": 14
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 247,
                 1
@@ -593,7 +488,8 @@
                 12,
                 14
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -601,20 +497,13 @@
             "start": 0,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -8.0,
                 -8.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 49,
-                "y": 19,
-                "w": 16,
-                "h": 16
-              },
-              "sort_offset": 1.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 49,
                 19
@@ -623,7 +512,8 @@
                 16,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           },
           {
@@ -631,20 +521,13 @@
             "start": 167,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -9.0,
                 -8.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 66,
-                "y": 19,
-                "w": 18,
-                "h": 16
-              },
-              "sort_offset": 1.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 66,
                 19
@@ -653,7 +536,8 @@
                 18,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           },
           {
@@ -661,20 +545,13 @@
             "start": 334,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -10.0,
                 -7.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 85,
-                "y": 19,
-                "w": 20,
-                "h": 16
-              },
-              "sort_offset": 1.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 85,
                 19
@@ -683,7 +560,8 @@
                 20,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           },
           {
@@ -691,20 +569,13 @@
             "start": 501,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -8.0,
                 -8.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 49,
-                "y": 19,
-                "w": 16,
-                "h": 16
-              },
-              "sort_offset": 1.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 49,
                 19
@@ -713,7 +584,8 @@
                 16,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           },
           {
@@ -721,20 +593,13 @@
             "start": 668,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -9.0,
                 -8.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 106,
-                "y": 19,
-                "w": 18,
-                "h": 16
-              },
-              "sort_offset": 1.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 106,
                 19
@@ -743,7 +608,8 @@
                 18,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           },
           {
@@ -751,20 +617,13 @@
             "start": 835,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -10.0,
                 -7.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 125,
-                "y": 19,
-                "w": 20,
-                "h": 16
-              },
-              "sort_offset": 1.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 125,
                 19
@@ -773,7 +632,8 @@
                 20,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           }
         ],
@@ -785,6 +645,14 @@
             "name": "sprites 1"
           }
         ]
+      },
+      "attack_box": {
+        "clips": [],
+        "tracks": []
+      },
+      "lock_input": {
+        "clips": [],
+        "tracks": []
       },
       "move": {
         "clips": [
@@ -800,25 +668,17 @@
             "name": "move"
           }
         ]
-      },
-      "lock_input": {
-        "clips": [],
-        "tracks": []
-      },
-      "spawn": {
-        "clips": [],
-        "tracks": []
-      },
-      "invulnerability": {
-        "clips": [],
-        "tracks": []
       }
     }
   },
   "BnuuyIdleR": {
     "is_looping": true,
     "action_tracks": {
-      "attack_box": {
+      "invulnerability": {
+        "clips": [],
+        "tracks": []
+      },
+      "spawn": {
         "clips": [],
         "tracks": []
       },
@@ -829,20 +689,13 @@
             "start": 0,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -7.0,
                 -8.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 260,
-                "y": 1,
-                "w": 14,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 260,
                 1
@@ -851,7 +704,8 @@
                 14,
                 17
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -859,20 +713,13 @@
             "start": 0,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -7.0,
                 -4.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 146,
-                "y": 19,
-                "w": 6,
-                "h": 14
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 146,
                 19
@@ -881,7 +728,8 @@
                 6,
                 14
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           }
         ],
@@ -894,7 +742,7 @@
           }
         ]
       },
-      "move": {
+      "attack_box": {
         "clips": [],
         "tracks": []
       },
@@ -902,11 +750,7 @@
         "clips": [],
         "tracks": []
       },
-      "spawn": {
-        "clips": [],
-        "tracks": []
-      },
-      "invulnerability": {
+      "move": {
         "clips": [],
         "tracks": []
       }
@@ -915,7 +759,11 @@
   "BnuuyIdleU": {
     "is_looping": true,
     "action_tracks": {
-      "attack_box": {
+      "invulnerability": {
+        "clips": [],
+        "tracks": []
+      },
+      "spawn": {
         "clips": [],
         "tracks": []
       },
@@ -926,20 +774,13 @@
             "start": 0,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -6.0,
                 -7.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 195,
-                "y": 1,
-                "w": 12,
-                "h": 15
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 195,
                 1
@@ -948,7 +789,8 @@
                 12,
                 15
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -956,20 +798,13 @@
             "start": 0,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -8.0,
                 -8.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 49,
-                "y": 19,
-                "w": 16,
-                "h": 16
-              },
-              "sort_offset": 1.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 49,
                 19
@@ -978,7 +813,8 @@
                 16,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           }
         ],
@@ -991,7 +827,7 @@
           }
         ]
       },
-      "move": {
+      "attack_box": {
         "clips": [],
         "tracks": []
       },
@@ -999,11 +835,7 @@
         "clips": [],
         "tracks": []
       },
-      "spawn": {
-        "clips": [],
-        "tracks": []
-      },
-      "invulnerability": {
+      "move": {
         "clips": [],
         "tracks": []
       }
@@ -1012,6 +844,362 @@
   "BnuuyAttackD": {
     "is_looping": false,
     "action_tracks": {
+      "invulnerability": {
+        "clips": [],
+        "tracks": []
+      },
+      "spawn": {
+        "clips": [],
+        "tracks": []
+      },
+      "draw_sprite": {
+        "clips": [
+          {
+            "track_id": 0,
+            "start": 0,
+            "len": 100,
+            "action": {
+              "atlas_file": "atlas/bnuuy.png",
+              "layer": 1,
+              "local_pos": [
+                -8.0,
+                -8.5
+              ],
+              "local_rotation": 0.0,
+              "rect_pos": [
+                1,
+                1
+              ],
+              "rect_size": [
+                16,
+                17
+              ],
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
+            }
+          },
+          {
+            "track_id": 0,
+            "start": 100,
+            "len": 200,
+            "action": {
+              "atlas_file": "atlas/bnuuy.png",
+              "layer": 1,
+              "local_pos": [
+                -9.0,
+                -9.0
+              ],
+              "local_rotation": 0.0,
+              "rect_pos": [
+                98,
+                1
+              ],
+              "rect_size": [
+                18,
+                16
+              ],
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
+            }
+          },
+          {
+            "track_id": 0,
+            "start": 300,
+            "len": 100,
+            "action": {
+              "atlas_file": "atlas/bnuuy.png",
+              "layer": 1,
+              "local_pos": [
+                -6.0,
+                -5.0
+              ],
+              "local_rotation": 0.0,
+              "rect_pos": [
+                117,
+                1
+              ],
+              "rect_size": [
+                12,
+                11
+              ],
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
+            }
+          },
+          {
+            "track_id": 0,
+            "start": 400,
+            "len": 100,
+            "action": {
+              "atlas_file": "atlas/bnuuy.png",
+              "layer": 1,
+              "local_pos": [
+                -6.0,
+                -5.0
+              ],
+              "local_rotation": 0.0,
+              "rect_pos": [
+                130,
+                1
+              ],
+              "rect_size": [
+                12,
+                11
+              ],
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
+            }
+          },
+          {
+            "track_id": 0,
+            "start": 500,
+            "len": 100,
+            "action": {
+              "atlas_file": "atlas/bnuuy.png",
+              "layer": 1,
+              "local_pos": [
+                -16.0,
+                -8.0
+              ],
+              "local_rotation": 0.0,
+              "rect_pos": [
+                143,
+                1
+              ],
+              "rect_size": [
+                32,
+                17
+              ],
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
+            }
+          },
+          {
+            "track_id": 0,
+            "start": 600,
+            "len": 100,
+            "action": {
+              "atlas_file": "atlas/bnuuy.png",
+              "layer": 1,
+              "local_pos": [
+                -9.0,
+                -8.0
+              ],
+              "local_rotation": 0.0,
+              "rect_pos": [
+                176,
+                1
+              ],
+              "rect_size": [
+                18,
+                17
+              ],
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
+            }
+          },
+          {
+            "track_id": 0,
+            "start": 700,
+            "len": 100,
+            "action": {
+              "atlas_file": "atlas/bnuuy.png",
+              "layer": 1,
+              "local_pos": [
+                -8.0,
+                -8.0
+              ],
+              "local_rotation": 0.0,
+              "rect_pos": [
+                1,
+                1
+              ],
+              "rect_size": [
+                16,
+                17
+              ],
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
+            }
+          },
+          {
+            "track_id": 1,
+            "start": 0,
+            "len": 100,
+            "action": {
+              "atlas_file": "atlas/bnuuy.png",
+              "layer": 1,
+              "local_pos": [
+                -0.5,
+                -0.5
+              ],
+              "local_rotation": 0.0,
+              "rect_pos": [
+                1,
+                19
+              ],
+              "rect_size": [
+                1,
+                1
+              ],
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
+            }
+          },
+          {
+            "track_id": 1,
+            "start": 100,
+            "len": 200,
+            "action": {
+              "atlas_file": "atlas/bnuuy.png",
+              "layer": 1,
+              "local_pos": [
+                -5.0,
+                -1.0
+              ],
+              "local_rotation": 0.0,
+              "rect_pos": [
+                3,
+                19
+              ],
+              "rect_size": [
+                10,
+                2
+              ],
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
+            }
+          },
+          {
+            "track_id": 1,
+            "start": 300,
+            "len": 100,
+            "action": {
+              "atlas_file": "atlas/bnuuy.png",
+              "layer": 1,
+              "local_pos": [
+                -6.0,
+                6.0
+              ],
+              "local_rotation": -1.5707963705062866,
+              "rect_pos": [
+                14,
+                19
+              ],
+              "rect_size": [
+                12,
+                38
+              ],
+              "rotate_with_parent": true,
+              "sort_offset": 4.0
+            }
+          },
+          {
+            "track_id": 1,
+            "start": 400,
+            "len": 100,
+            "action": {
+              "atlas_file": "atlas/bnuuy.png",
+              "layer": 1,
+              "local_pos": [
+                -6.0,
+                6.0
+              ],
+              "local_rotation": -1.5707963705062866,
+              "rect_pos": [
+                27,
+                19
+              ],
+              "rect_size": [
+                12,
+                38
+              ],
+              "rotate_with_parent": true,
+              "sort_offset": 4.0
+            }
+          },
+          {
+            "track_id": 1,
+            "start": 500,
+            "len": 100,
+            "action": {
+              "atlas_file": "atlas/bnuuy.png",
+              "layer": 1,
+              "local_pos": [
+                13.0,
+                4.0
+              ],
+              "local_rotation": -1.5707963705062866,
+              "rect_pos": [
+                40,
+                19
+              ],
+              "rect_size": [
+                8,
+                17
+              ],
+              "rotate_with_parent": true,
+              "sort_offset": 0.0
+            }
+          },
+          {
+            "track_id": 1,
+            "start": 600,
+            "len": 100,
+            "action": {
+              "atlas_file": "atlas/bnuuy.png",
+              "layer": 1,
+              "local_pos": [
+                -0.5,
+                -0.5
+              ],
+              "local_rotation": 0.0,
+              "rect_pos": [
+                1,
+                19
+              ],
+              "rect_size": [
+                1,
+                1
+              ],
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
+            }
+          },
+          {
+            "track_id": 1,
+            "start": 700,
+            "len": 100,
+            "action": {
+              "atlas_file": "atlas/bnuuy.png",
+              "layer": 1,
+              "local_pos": [
+                -0.5,
+                -0.5
+              ],
+              "local_rotation": 0.0,
+              "rect_pos": [
+                1,
+                19
+              ],
+              "rect_size": [
+                1,
+                1
+              ],
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
+            }
+          }
+        ],
+        "tracks": [
+          {
+            "name": "sprites 0"
+          },
+          {
+            "name": "sprites 1"
+          }
+        ]
+      },
       "attack_box": {
         "clips": [
           {
@@ -1019,19 +1207,19 @@
             "start": 297,
             "len": 106,
             "action": {
+              "graze_value": 0.0,
+              "group": 2,
               "local_pos": [
                 13.0,
                 0.0
               ],
               "local_rotation": 0.0,
-              "group": 2,
-              "shape": {
-                "type": "Rect",
-                "width": 41.0,
-                "height": 13.0
-              },
               "rotate_with_parent": true,
-              "graze_value": 0.0
+              "shape": {
+                "height": 13.0,
+                "type": "Rect",
+                "width": 41.0
+              }
             }
           }
         ],
@@ -1041,442 +1229,6 @@
           }
         ]
       },
-      "draw_sprite": {
-        "clips": [
-          {
-            "track_id": 0,
-            "start": 0,
-            "len": 100,
-            "action": {
-              "layer": 1,
-              "local_pos": [
-                -8.0,
-                -8.5
-              ],
-              "local_rotation": 0.0,
-              "rect": {
-                "x": 1,
-                "y": 1,
-                "w": 16,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
-              "rect_pos": [
-                1,
-                1
-              ],
-              "rect_size": [
-                16,
-                17
-              ],
-              "atlas_file": "atlas/bnuuy.png"
-            }
-          },
-          {
-            "track_id": 0,
-            "start": 100,
-            "len": 200,
-            "action": {
-              "layer": 1,
-              "local_pos": [
-                -9.0,
-                -9.0
-              ],
-              "local_rotation": 0.0,
-              "rect": {
-                "x": 98,
-                "y": 1,
-                "w": 18,
-                "h": 16
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
-              "rect_pos": [
-                98,
-                1
-              ],
-              "rect_size": [
-                18,
-                16
-              ],
-              "atlas_file": "atlas/bnuuy.png"
-            }
-          },
-          {
-            "track_id": 0,
-            "start": 300,
-            "len": 100,
-            "action": {
-              "layer": 1,
-              "local_pos": [
-                -6.0,
-                -5.0
-              ],
-              "local_rotation": 0.0,
-              "rect": {
-                "x": 117,
-                "y": 1,
-                "w": 12,
-                "h": 11
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
-              "rect_pos": [
-                117,
-                1
-              ],
-              "rect_size": [
-                12,
-                11
-              ],
-              "atlas_file": "atlas/bnuuy.png"
-            }
-          },
-          {
-            "track_id": 0,
-            "start": 400,
-            "len": 100,
-            "action": {
-              "layer": 1,
-              "local_pos": [
-                -6.0,
-                -5.0
-              ],
-              "local_rotation": 0.0,
-              "rect": {
-                "x": 130,
-                "y": 1,
-                "w": 12,
-                "h": 11
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
-              "rect_pos": [
-                130,
-                1
-              ],
-              "rect_size": [
-                12,
-                11
-              ],
-              "atlas_file": "atlas/bnuuy.png"
-            }
-          },
-          {
-            "track_id": 0,
-            "start": 500,
-            "len": 100,
-            "action": {
-              "layer": 1,
-              "local_pos": [
-                -16.0,
-                -8.0
-              ],
-              "local_rotation": 0.0,
-              "rect": {
-                "x": 143,
-                "y": 1,
-                "w": 32,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
-              "rect_pos": [
-                143,
-                1
-              ],
-              "rect_size": [
-                32,
-                17
-              ],
-              "atlas_file": "atlas/bnuuy.png"
-            }
-          },
-          {
-            "track_id": 0,
-            "start": 600,
-            "len": 100,
-            "action": {
-              "layer": 1,
-              "local_pos": [
-                -9.0,
-                -8.0
-              ],
-              "local_rotation": 0.0,
-              "rect": {
-                "x": 176,
-                "y": 1,
-                "w": 18,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
-              "rect_pos": [
-                176,
-                1
-              ],
-              "rect_size": [
-                18,
-                17
-              ],
-              "atlas_file": "atlas/bnuuy.png"
-            }
-          },
-          {
-            "track_id": 0,
-            "start": 700,
-            "len": 100,
-            "action": {
-              "layer": 1,
-              "local_pos": [
-                -8.0,
-                -8.0
-              ],
-              "local_rotation": 0.0,
-              "rect": {
-                "x": 1,
-                "y": 1,
-                "w": 16,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
-              "rect_pos": [
-                1,
-                1
-              ],
-              "rect_size": [
-                16,
-                17
-              ],
-              "atlas_file": "atlas/bnuuy.png"
-            }
-          },
-          {
-            "track_id": 1,
-            "start": 0,
-            "len": 100,
-            "action": {
-              "layer": 1,
-              "local_pos": [
-                -0.5,
-                -0.5
-              ],
-              "local_rotation": 0.0,
-              "rect": {
-                "x": 1,
-                "y": 19,
-                "w": 1,
-                "h": 1
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
-              "rect_pos": [
-                1,
-                19
-              ],
-              "rect_size": [
-                1,
-                1
-              ],
-              "atlas_file": "atlas/bnuuy.png"
-            }
-          },
-          {
-            "track_id": 1,
-            "start": 100,
-            "len": 200,
-            "action": {
-              "layer": 1,
-              "local_pos": [
-                -5.0,
-                -1.0
-              ],
-              "local_rotation": 0.0,
-              "rect": {
-                "x": 3,
-                "y": 19,
-                "w": 10,
-                "h": 2
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
-              "rect_pos": [
-                3,
-                19
-              ],
-              "rect_size": [
-                10,
-                2
-              ],
-              "atlas_file": "atlas/bnuuy.png"
-            }
-          },
-          {
-            "track_id": 1,
-            "start": 300,
-            "len": 100,
-            "action": {
-              "layer": 1,
-              "local_pos": [
-                -6.0,
-                6.0
-              ],
-              "local_rotation": -1.5707964,
-              "rect": {
-                "x": 14,
-                "y": 19,
-                "w": 12,
-                "h": 38
-              },
-              "sort_offset": 4.0,
-              "rotate_with_parent": true,
-              "rect_pos": [
-                14,
-                19
-              ],
-              "rect_size": [
-                12,
-                38
-              ],
-              "atlas_file": "atlas/bnuuy.png"
-            }
-          },
-          {
-            "track_id": 1,
-            "start": 400,
-            "len": 100,
-            "action": {
-              "layer": 1,
-              "local_pos": [
-                -6.0,
-                6.0
-              ],
-              "local_rotation": -1.5707964,
-              "rect": {
-                "x": 27,
-                "y": 19,
-                "w": 12,
-                "h": 38
-              },
-              "sort_offset": 4.0,
-              "rotate_with_parent": true,
-              "rect_pos": [
-                27,
-                19
-              ],
-              "rect_size": [
-                12,
-                38
-              ],
-              "atlas_file": "atlas/bnuuy.png"
-            }
-          },
-          {
-            "track_id": 1,
-            "start": 500,
-            "len": 100,
-            "action": {
-              "layer": 1,
-              "local_pos": [
-                13.0,
-                4.0
-              ],
-              "local_rotation": -1.5707964,
-              "rect": {
-                "x": 40,
-                "y": 19,
-                "w": 8,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": true,
-              "rect_pos": [
-                40,
-                19
-              ],
-              "rect_size": [
-                8,
-                17
-              ],
-              "atlas_file": "atlas/bnuuy.png"
-            }
-          },
-          {
-            "track_id": 1,
-            "start": 600,
-            "len": 100,
-            "action": {
-              "layer": 1,
-              "local_pos": [
-                -0.5,
-                -0.5
-              ],
-              "local_rotation": 0.0,
-              "rect": {
-                "x": 1,
-                "y": 19,
-                "w": 1,
-                "h": 1
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
-              "rect_pos": [
-                1,
-                19
-              ],
-              "rect_size": [
-                1,
-                1
-              ],
-              "atlas_file": "atlas/bnuuy.png"
-            }
-          },
-          {
-            "track_id": 1,
-            "start": 700,
-            "len": 100,
-            "action": {
-              "layer": 1,
-              "local_pos": [
-                -0.5,
-                -0.5
-              ],
-              "local_rotation": 0.0,
-              "rect": {
-                "x": 1,
-                "y": 19,
-                "w": 1,
-                "h": 1
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
-              "rect_pos": [
-                1,
-                19
-              ],
-              "rect_size": [
-                1,
-                1
-              ],
-              "atlas_file": "atlas/bnuuy.png"
-            }
-          }
-        ],
-        "tracks": [
-          {
-            "name": "sprites 0"
-          },
-          {
-            "name": "sprites 1"
-          }
-        ]
-      },
-      "move": {
-        "clips": [],
-        "tracks": []
-      },
       "lock_input": {
         "clips": [
           {
@@ -1484,8 +1236,8 @@
             "start": 0,
             "len": 800,
             "action": {
-              "allow_walk_input": false,
-              "allow_look_input": false
+              "allow_look_input": false,
+              "allow_walk_input": false
             }
           }
         ],
@@ -1495,11 +1247,7 @@
           }
         ]
       },
-      "spawn": {
-        "clips": [],
-        "tracks": []
-      },
-      "invulnerability": {
+      "move": {
         "clips": [],
         "tracks": []
       }
@@ -1508,7 +1256,11 @@
   "BnuuyWalkD": {
     "is_looping": true,
     "action_tracks": {
-      "attack_box": {
+      "invulnerability": {
+        "clips": [],
+        "tracks": []
+      },
+      "spawn": {
         "clips": [],
         "tracks": []
       },
@@ -1519,20 +1271,13 @@
             "start": 0,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -8.0,
                 -8.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 1,
-                "y": 1,
-                "w": 16,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 1,
                 1
@@ -1541,7 +1286,8 @@
                 16,
                 17
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -1549,20 +1295,13 @@
             "start": 167,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -9.0,
                 -8.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 18,
-                "y": 1,
-                "w": 18,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 18,
                 1
@@ -1571,7 +1310,8 @@
                 18,
                 17
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -1579,20 +1319,13 @@
             "start": 334,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -10.0,
                 -7.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 37,
-                "y": 1,
-                "w": 20,
-                "h": 16
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 37,
                 1
@@ -1601,7 +1334,8 @@
                 20,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -1609,20 +1343,13 @@
             "start": 501,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -8.0,
                 -8.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 1,
-                "y": 1,
-                "w": 16,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 1,
                 1
@@ -1631,7 +1358,8 @@
                 16,
                 17
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -1639,20 +1367,13 @@
             "start": 668,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -9.0,
                 -8.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 58,
-                "y": 1,
-                "w": 18,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 58,
                 1
@@ -1661,7 +1382,8 @@
                 18,
                 17
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -1669,20 +1391,13 @@
             "start": 835,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -10.0,
                 -7.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 77,
-                "y": 1,
-                "w": 20,
-                "h": 16
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 77,
                 1
@@ -1691,7 +1406,8 @@
                 20,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           }
         ],
@@ -1700,6 +1416,14 @@
             "name": "sprites"
           }
         ]
+      },
+      "attack_box": {
+        "clips": [],
+        "tracks": []
+      },
+      "lock_input": {
+        "clips": [],
+        "tracks": []
       },
       "move": {
         "clips": [
@@ -1715,134 +1439,12 @@
             "name": "move"
           }
         ]
-      },
-      "lock_input": {
-        "clips": [],
-        "tracks": []
-      },
-      "spawn": {
-        "clips": [],
-        "tracks": []
-      },
-      "invulnerability": {
-        "clips": [],
-        "tracks": []
       }
     }
   },
   "BnuuyDash": {
     "is_looping": false,
     "action_tracks": {
-      "attack_box": {
-        "clips": [],
-        "tracks": []
-      },
-      "draw_sprite": {
-        "clips": [
-          {
-            "track_id": 0,
-            "start": 200,
-            "len": 160,
-            "action": {
-              "layer": 1,
-              "local_pos": [
-                -8.0,
-                -8.0
-              ],
-              "local_rotation": 0.0,
-              "rect": {
-                "x": 1,
-                "y": 1,
-                "w": 16,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
-              "rect_pos": [
-                1,
-                1
-              ],
-              "rect_size": [
-                16,
-                17
-              ],
-              "atlas_file": "atlas/bnuuy.png"
-            }
-          },
-          {
-            "track_id": 0,
-            "start": 0,
-            "len": 200,
-            "action": {
-              "layer": 1,
-              "local_pos": [
-                -9.0,
-                -9.0
-              ],
-              "local_rotation": 0.0,
-              "rect": {
-                "x": 132,
-                "y": 1,
-                "w": 18,
-                "h": 16
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
-              "rect_pos": [
-                132,
-                1
-              ],
-              "rect_size": [
-                18,
-                16
-              ],
-              "atlas_file": "atlas/bnuuy.png"
-            }
-          }
-        ],
-        "tracks": [
-          {
-            "name": "sprites"
-          }
-        ]
-      },
-      "move": {
-        "clips": [
-          {
-            "track_id": 0,
-            "start": 200,
-            "len": 144,
-            "action": null
-          }
-        ],
-        "tracks": [
-          {
-            "name": "move"
-          }
-        ]
-      },
-      "lock_input": {
-        "clips": [
-          {
-            "track_id": 0,
-            "start": 0,
-            "len": 360,
-            "action": {
-              "allow_walk_input": false,
-              "allow_look_input": false
-            }
-          }
-        ],
-        "tracks": [
-          {
-            "name": "lock"
-          }
-        ]
-      },
-      "spawn": {
-        "clips": [],
-        "tracks": []
-      },
       "invulnerability": {
         "clips": [
           {
@@ -1857,13 +1459,115 @@
             "name": "invuln"
           }
         ]
+      },
+      "spawn": {
+        "clips": [],
+        "tracks": []
+      },
+      "draw_sprite": {
+        "clips": [
+          {
+            "track_id": 0,
+            "start": 200,
+            "len": 160,
+            "action": {
+              "atlas_file": "atlas/bnuuy.png",
+              "layer": 1,
+              "local_pos": [
+                -8.0,
+                -8.0
+              ],
+              "local_rotation": 0.0,
+              "rect_pos": [
+                1,
+                1
+              ],
+              "rect_size": [
+                16,
+                17
+              ],
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
+            }
+          },
+          {
+            "track_id": 0,
+            "start": 0,
+            "len": 200,
+            "action": {
+              "atlas_file": "atlas/bnuuy.png",
+              "layer": 1,
+              "local_pos": [
+                -9.0,
+                -9.0
+              ],
+              "local_rotation": 0.0,
+              "rect_pos": [
+                132,
+                1
+              ],
+              "rect_size": [
+                18,
+                16
+              ],
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
+            }
+          }
+        ],
+        "tracks": [
+          {
+            "name": "sprites"
+          }
+        ]
+      },
+      "attack_box": {
+        "clips": [],
+        "tracks": []
+      },
+      "lock_input": {
+        "clips": [
+          {
+            "track_id": 0,
+            "start": 0,
+            "len": 360,
+            "action": {
+              "allow_look_input": false,
+              "allow_walk_input": false
+            }
+          }
+        ],
+        "tracks": [
+          {
+            "name": "lock"
+          }
+        ]
+      },
+      "move": {
+        "clips": [
+          {
+            "track_id": 0,
+            "start": 200,
+            "len": 144,
+            "action": null
+          }
+        ],
+        "tracks": [
+          {
+            "name": "move"
+          }
+        ]
       }
     }
   },
   "BnuuyWalkR": {
     "is_looping": true,
     "action_tracks": {
-      "attack_box": {
+      "invulnerability": {
+        "clips": [],
+        "tracks": []
+      },
+      "spawn": {
         "clips": [],
         "tracks": []
       },
@@ -1874,20 +1578,13 @@
             "start": 0,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -7.0,
                 -4.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 146,
-                "y": 19,
-                "w": 6,
-                "h": 14
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 146,
                 19
@@ -1896,7 +1593,8 @@
                 6,
                 14
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           },
           {
@@ -1904,20 +1602,13 @@
             "start": 167,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -10.0,
                 -7.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 153,
-                "y": 19,
-                "w": 8,
-                "h": 16
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 153,
                 19
@@ -1926,7 +1617,8 @@
                 8,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           },
           {
@@ -1934,20 +1626,13 @@
             "start": 334,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -12.0,
                 -6.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 162,
-                "y": 19,
-                "w": 10,
-                "h": 16
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 162,
                 19
@@ -1956,7 +1641,8 @@
                 10,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           },
           {
@@ -1964,20 +1650,13 @@
             "start": 501,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -7.0,
                 -3.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 146,
-                "y": 19,
-                "w": 6,
-                "h": 14
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 146,
                 19
@@ -1986,7 +1665,8 @@
                 6,
                 14
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           },
           {
@@ -1994,20 +1674,13 @@
             "start": 668,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -10.0,
                 -7.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 153,
-                "y": 19,
-                "w": 8,
-                "h": 16
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 153,
                 19
@@ -2016,7 +1689,8 @@
                 8,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           },
           {
@@ -2024,20 +1698,13 @@
             "start": 835,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -12.0,
                 -6.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 162,
-                "y": 19,
-                "w": 10,
-                "h": 16
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 162,
                 19
@@ -2046,7 +1713,8 @@
                 10,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           },
           {
@@ -2054,20 +1722,13 @@
             "start": 0,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -7.0,
                 -8.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 260,
-                "y": 1,
-                "w": 14,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 260,
                 1
@@ -2076,7 +1737,8 @@
                 14,
                 17
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -2084,20 +1746,13 @@
             "start": 167,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -7.0,
                 -8.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 275,
-                "y": 1,
-                "w": 14,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 275,
                 1
@@ -2106,7 +1761,8 @@
                 14,
                 17
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -2114,20 +1770,13 @@
             "start": 334,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -7.0,
                 -7.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 290,
-                "y": 1,
-                "w": 14,
-                "h": 16
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 290,
                 1
@@ -2136,7 +1785,8 @@
                 14,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -2144,20 +1794,13 @@
             "start": 501,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -7.0,
                 -8.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 260,
-                "y": 1,
-                "w": 14,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 260,
                 1
@@ -2166,7 +1809,8 @@
                 14,
                 17
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -2174,20 +1818,13 @@
             "start": 668,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -7.0,
                 -8.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 305,
-                "y": 1,
-                "w": 14,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 305,
                 1
@@ -2196,7 +1833,8 @@
                 14,
                 17
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -2204,20 +1842,13 @@
             "start": 835,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -7.0,
                 -7.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 320,
-                "y": 1,
-                "w": 14,
-                "h": 16
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 320,
                 1
@@ -2226,7 +1857,8 @@
                 14,
                 16
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           }
         ],
@@ -2238,6 +1870,14 @@
             "name": "sprites 0"
           }
         ]
+      },
+      "attack_box": {
+        "clips": [],
+        "tracks": []
+      },
+      "lock_input": {
+        "clips": [],
+        "tracks": []
       },
       "move": {
         "clips": [
@@ -2253,25 +1893,17 @@
             "name": "move"
           }
         ]
-      },
-      "lock_input": {
-        "clips": [],
-        "tracks": []
-      },
-      "spawn": {
-        "clips": [],
-        "tracks": []
-      },
-      "invulnerability": {
-        "clips": [],
-        "tracks": []
       }
     }
   },
   "BnuuyIdleL": {
     "is_looping": true,
     "action_tracks": {
-      "attack_box": {
+      "invulnerability": {
+        "clips": [],
+        "tracks": []
+      },
+      "spawn": {
         "clips": [],
         "tracks": []
       },
@@ -2282,20 +1914,13 @@
             "start": 0,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 1.0,
                 -4.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 173,
-                "y": 19,
-                "w": 6,
-                "h": 14
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 173,
                 19
@@ -2304,7 +1929,8 @@
                 6,
                 14
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           },
           {
@@ -2312,20 +1938,13 @@
             "start": 0,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -7.0,
                 -8.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 335,
-                "y": 1,
-                "w": 14,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 335,
                 1
@@ -2334,7 +1953,8 @@
                 14,
                 17
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 2.0
             }
           }
         ],
@@ -2347,7 +1967,7 @@
           }
         ]
       },
-      "move": {
+      "attack_box": {
         "clips": [],
         "tracks": []
       },
@@ -2355,11 +1975,7 @@
         "clips": [],
         "tracks": []
       },
-      "spawn": {
-        "clips": [],
-        "tracks": []
-      },
-      "invulnerability": {
+      "move": {
         "clips": [],
         "tracks": []
       }
@@ -2368,7 +1984,11 @@
   "BnuuyIdleD": {
     "is_looping": true,
     "action_tracks": {
-      "attack_box": {
+      "invulnerability": {
+        "clips": [],
+        "tracks": []
+      },
+      "spawn": {
         "clips": [],
         "tracks": []
       },
@@ -2379,20 +1999,13 @@
             "start": 0,
             "len": 167,
             "action": {
+              "atlas_file": "atlas/bnuuy.png",
               "layer": 1,
               "local_pos": [
                 -8.0,
                 -8.0
               ],
               "local_rotation": 0.0,
-              "rect": {
-                "x": 1,
-                "y": 1,
-                "w": 16,
-                "h": 17
-              },
-              "sort_offset": 0.0,
-              "rotate_with_parent": false,
               "rect_pos": [
                 1,
                 1
@@ -2401,7 +2014,8 @@
                 16,
                 17
               ],
-              "atlas_file": "atlas/bnuuy.png"
+              "rotate_with_parent": false,
+              "sort_offset": 0.0
             }
           }
         ],
@@ -2411,7 +2025,7 @@
           }
         ]
       },
-      "move": {
+      "attack_box": {
         "clips": [],
         "tracks": []
       },
@@ -2419,11 +2033,7 @@
         "clips": [],
         "tracks": []
       },
-      "spawn": {
-        "clips": [],
-        "tracks": []
-      },
-      "invulnerability": {
+      "move": {
         "clips": [],
         "tracks": []
       }
