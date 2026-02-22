@@ -10,9 +10,7 @@ use crate::Resources;
 use super::actions::*;
 
 pub trait AnimContainer: std::fmt::Debug + Any {
-    #[cfg(feature = "dev-env")]
     fn clip_count(&self) -> u32;
-    #[cfg(feature = "dev-env")]
     fn get_clip(&self, clip_id: u32) -> Option<Clip>;
     #[cfg(feature = "dev-env")]
     fn add_clip(&mut self, track_id: u32, start: u32, len: u32);
@@ -171,6 +169,20 @@ impl Animation {
             .map(|(idx, (_, action))| (idx as u32, action))
     }
 
+    pub fn all_inactive_clips(&self, pos: u32) -> impl Iterator<Item = (TypeId, u32)> {
+        CLIP_TYPES.into_iter().flat_map(move |kind| {
+            let container = &self.action_tracks[&kind];
+            (0..container.clip_count()).filter_map(move |clip_id| {
+                let clip = container.get_clip(clip_id).unwrap();
+                if clip.contains_pos(pos) {
+                    None
+                } else {
+                    Some((kind, clip_id))
+                }
+            })
+        })
+    }
+
     pub fn action_track<T: ClipAction>(&self) -> &Clips<T> {
         let container = &self.action_tracks[&TypeId::of::<T>()];
         let container: &dyn AnimContainer = container.as_ref();
@@ -301,12 +313,10 @@ impl<T: ClipAction> AnimContainer for Clips<T> {
         res
     }
 
-    #[cfg(feature = "dev-env")]
     fn clip_count(&self) -> u32 {
         self.clips.len() as u32
     }
 
-    #[cfg(feature = "dev-env")]
     fn get_clip(&self, clip_id: u32) -> Option<Clip> {
         let (clip, _) = self.clips.get(clip_id as usize)?;
         Some(*clip)
