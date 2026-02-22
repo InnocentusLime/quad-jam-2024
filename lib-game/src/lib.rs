@@ -361,6 +361,12 @@ impl App {
 
         animation::update(GAME_TICKRATE, &mut self.world, &self.resources);
         animation::collect_clip_action_objects(&mut self.world, &mut self.clip_action_objects);
+        animation::delete_clip_action_objects(
+            &mut self.world,
+            &self.resources,
+            &mut self.cmds,
+            &mut self.clip_action_objects,
+        );
         animation::update_attack_boxes(
             &mut self.world,
             &self.resources,
@@ -412,12 +418,6 @@ impl App {
         );
         self.cmds.run_on(&mut self.world);
 
-        animation::delete_clip_action_objects(
-            &mut self.world,
-            &self.resources,
-            &mut self.cmds,
-            &mut self.clip_action_objects,
-        );
         self.world.flush();
 
         new_state
