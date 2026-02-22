@@ -139,15 +139,6 @@ pub trait Game: 'static {
         render: &mut Render,
     );
 
-    fn init_tile(
-        &self,
-        resources: &Resources,
-        builder: &mut EntityBuilder,
-        tile_x: u32,
-        tile_y: u32,
-        tile: TileIdx,
-    );
-
     fn init_character(&self, resources: &Resources, builder: &mut EntityBuilder, def: CharacterDef);
 }
 
@@ -282,28 +273,67 @@ impl App {
             .textures
             .resolve(&level.map.atlas_image)
             .expect("Atlas not loaded");
-        self.render.set_atlas(
-            &self.resources,
-            atlas,
-            level.map.atlas_margin,
-            level.map.atlas_spacing,
-        );
 
         self.world.clear();
         self.resources.level = level;
-        self.spawn_tiles(game);
+        self.spawn_tiles(atlas);
         self.spawn_characters(game);
     }
 
-    fn spawn_tiles<G: Game>(&mut self, game: &G) {
+    fn spawn_tiles(&mut self, atlas_key: AssetKey) {
+        const TILE_SIDE_F32: f32 = TILE_SIDE as f32;
+
+        let atlas = self.resources.textures.get(atlas_key).unwrap();
         let level = &self.resources.level;
-        for x in 0..level.map.width {
-            for y in 0..level.map.height {
+        let map_def = &level.map;
+        let (tiles_in_x, _) = get_tile_count_in_atlas(
+            atlas.width() as u32,
+            atlas.height() as u32,
+            map_def.atlas_margin,
+            map_def.atlas_spacing,
+        );
+        for tile_x in 0..level.map.width {
+            for tile_y in 0..level.map.height {
                 let mut builder = EntityBuilder::new();
-                let Some(tile) = level.map.tilemap[(x + y * level.map.width) as usize] else {
+                let Some(tile) = level.map.tilemap[(tile_x + tile_y * level.map.width) as usize]
+                else {
                     continue;
                 };
-                game.init_tile(&self.resources, &mut builder, x, y, TileIdx(tile));
+
+                let tile_tex_x = (tile % tiles_in_x) as f32;
+                let tile_tex_y = (tile / tiles_in_x) as f32;
+
+                let tile_pos = vec2(tile_x as f32, tile_y as f32) * TILE_SIDE_F32
+                    + Vec2::splat(TILE_SIDE_F32 / 2.0);
+                let ty = level.map.tiles[&tile].ty;
+                if ty == TileTy::Wall {
+                    builder.add(BodyTag {
+                        groups: col_group::LEVEL,
+                        shape: Shape::Rect {
+                            width: TILE_SIDE_F32,
+                            height: TILE_SIDE_F32,
+                        },
+                    });
+                }
+                builder.add_bundle((
+                    Transform::from_pos(tile_pos),
+                    ty,
+                    Sprite {
+                        layer: 0,
+                        texture: atlas_key,
+                        rect: Rect {
+                            x: (TILE_SIDE_F32 + map_def.atlas_spacing as f32) * tile_tex_x
+                                + map_def.atlas_margin as f32,
+                            y: (TILE_SIDE_F32 + map_def.atlas_spacing as f32) * tile_tex_y
+                                + map_def.atlas_margin as f32,
+                            w: TILE_SIDE_F32,
+                            h: TILE_SIDE_F32,
+                        },
+                        color: WHITE,
+                        sort_offset: 0.0,
+                        local_offset: Vec2::splat(-TILE_SIDE_F32 / 2.0),
+                    },
+                ));
                 self.world.spawn(builder.build());
             }
         }
@@ -321,7 +351,6 @@ impl App {
         self.update_camera();
         self.render.new_frame();
         self.render.buffer_sprites(&mut self.world);
-        self.render.buffer_tiles(&mut self.world);
         animation::buffer_sprites(&mut self.world, &self.resources, &mut self.render);
         game.render_export(&self.state, &self.resources, &self.world, &mut self.render);
         self.render
@@ -514,5 +543,75 @@ impl Resources {
 impl Default for Resources {
     fn default() -> Self {
         Resources::new()
+    }
+}
+
+fn get_tile_count_in_atlas(
+    mut atlas_width: u32,
+    mut atlas_height: u32,
+    atlas_margin: u32,
+    atlas_spacing: u32,
+) -> (u32, u32) {
+    assert!(atlas_height >= TILE_SIDE + 2 * atlas_margin);
+    assert!(atlas_width >= TILE_SIDE + 2 * atlas_margin);
+
+    // Remove margins and the leading tile
+    atlas_width -= TILE_SIDE + 2 * atlas_margin;
+    atlas_height -= TILE_SIDE + 2 * atlas_margin;
+
+    let tiles_x = atlas_width / (TILE_SIDE + atlas_spacing);
+    let tiles_y = atlas_height / (TILE_SIDE + atlas_spacing);
+
+    // Add the leading tiles back
+    (tiles_x + 1, tiles_y + 1)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{TILE_SIDE, get_tile_count_in_atlas};
+
+    const SAMPLE_COUNT: usize = 1000;
+
+    #[derive(Clone, Copy)]
+    struct TileCountTestSample {
+        tiles_x: u32,
+        tiles_y: u32,
+        margin: u32,
+        spacing: u32,
+    }
+
+    impl TileCountTestSample {
+        fn width(&self) -> u32 {
+            self.tiles_x * (TILE_SIDE + self.spacing) + 2 * self.margin
+        }
+
+        fn height(&self) -> u32 {
+            self.tiles_y * (TILE_SIDE + self.spacing) + 2 * self.margin
+        }
+    }
+
+    #[test]
+    fn test_get_tile_count_in_atlas() {
+        for _ in 0..SAMPLE_COUNT {
+            let sample = TileCountTestSample {
+                tiles_x: rand::random_range(1..100),
+                tiles_y: rand::random_range(1..100),
+                margin: rand::random_range(0..10),
+                spacing: rand::random_range(0..3),
+            };
+            let (other_tiles_x, other_tiles_y) = get_tile_count_in_atlas(
+                sample.width(),
+                sample.height(),
+                sample.margin,
+                sample.spacing,
+            );
+            assert_eq!(
+                (other_tiles_x, other_tiles_y),
+                (sample.tiles_x, sample.tiles_y),
+                "margin={} spacing={}",
+                sample.margin,
+                sample.spacing,
+            );
+        }
     }
 }
