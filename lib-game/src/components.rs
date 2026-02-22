@@ -17,9 +17,6 @@ pub struct Sprite {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct TileIdx(pub u32);
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Team {
     Player,
     Enemy,

@@ -1,9 +1,8 @@
 mod components;
 
-use crate::{Sprite, TileIdx, dump};
+use crate::{Sprite, dump};
 pub use components::*;
 use hecs::World;
-use lib_asset::level::TILE_SIDE;
 use lib_asset::{AssetKey, INVALID_ASSET};
 use macroquad::prelude::*;
 
@@ -45,9 +44,6 @@ macro_rules! put_text_fmt {
 pub struct Render {
     pub ui_font: AssetKey,
 
-    tilemap_atlas: AssetKey,
-    tilemap_tiles: Vec<Rect>,
-
     pub announcement_text: Option<AnnouncementText>,
     pub sprite_buffer: Vec<SpriteData>,
     text_buffer: Vec<GlyphText>,
@@ -57,8 +53,6 @@ impl Render {
     pub fn new() -> Self {
         Self {
             ui_font: INVALID_ASSET,
-            tilemap_atlas: INVALID_ASSET,
-            tilemap_tiles: Vec::new(),
             announcement_text: None,
             sprite_buffer: Vec::new(),
             text_buffer: Vec::new(),
@@ -105,44 +99,6 @@ impl Render {
             font_scale,
             font_scale_aspect,
         })
-    }
-
-    /// * `atlas`: the atlas texture key
-    /// * `atlas_margin`: space around the whole tileset
-    /// * `atlas_spacing`: space between tiles
-    pub fn set_atlas(
-        &mut self,
-        resources: &Resources,
-        atlas: AssetKey,
-        atlas_margin: u32,
-        atlas_spacing: u32,
-    ) {
-        let Some(atlas_texture) = resources.textures.get(atlas) else {
-            warn!("No such texture: {atlas:?}");
-            return;
-        };
-
-        let atlas_width = atlas_texture.width() as u32;
-        let atlas_height = atlas_texture.height() as u32;
-        let (atlas_tiles_x, atlas_tiles_y) =
-            get_tile_count_in_atlas(atlas_width, atlas_height, atlas_margin, atlas_spacing);
-
-        self.tilemap_atlas = atlas;
-        self.tilemap_tiles.clear();
-        self.tilemap_tiles
-            .reserve((atlas_tiles_x * atlas_tiles_y) as usize);
-        for y in 0..atlas_tiles_y {
-            for x in 0..atlas_tiles_x {
-                let tex_x = (TILE_SIDE + atlas_spacing) * x + atlas_margin;
-                let tex_y = (TILE_SIDE + atlas_spacing) * y + atlas_margin;
-                self.tilemap_tiles.push(Rect {
-                    x: tex_x as f32,
-                    y: tex_y as f32,
-                    w: TILE_SIDE as f32,
-                    h: TILE_SIDE as f32,
-                });
-            }
-        }
     }
 
     pub fn new_frame(&mut self) {
@@ -236,23 +192,6 @@ impl Render {
                 rect: sprite.rect,
                 color: sprite.color,
                 sort_offset: sprite.sort_offset,
-            });
-        }
-    }
-
-    pub fn buffer_tiles(&mut self, world: &mut World) {
-        for (_, (tf, tile)) in world.query_mut::<(&Transform, &TileIdx)>() {
-            let tile_rect = self.tilemap_tiles[tile.0 as usize];
-            self.sprite_buffer.push(SpriteData {
-                layer: 0,
-                tf: Transform {
-                    pos: tf.pos - Vec2::splat(TILE_SIDE as f32) / 2.0,
-                    ..*tf
-                },
-                texture: self.tilemap_atlas,
-                rect: tile_rect,
-                color: WHITE,
-                sort_offset: 0.0,
             });
         }
     }
@@ -400,26 +339,6 @@ pub struct SpriteData {
     pub sort_offset: f32,
 }
 
-fn get_tile_count_in_atlas(
-    mut atlas_width: u32,
-    mut atlas_height: u32,
-    atlas_margin: u32,
-    atlas_spacing: u32,
-) -> (u32, u32) {
-    assert!(atlas_height >= TILE_SIDE + 2 * atlas_margin);
-    assert!(atlas_width >= TILE_SIDE + 2 * atlas_margin);
-
-    // Remove margins and the leading tile
-    atlas_width -= TILE_SIDE + 2 * atlas_margin;
-    atlas_height -= TILE_SIDE + 2 * atlas_margin;
-
-    let tiles_x = atlas_width / (TILE_SIDE + atlas_spacing);
-    let tiles_y = atlas_height / (TILE_SIDE + atlas_spacing);
-
-    // Add the leading tiles back
-    (tiles_x + 1, tiles_y + 1)
-}
-
 #[derive(Clone, Debug)]
 struct GlyphText {
     x: f32,
@@ -430,54 +349,4 @@ struct GlyphText {
     font_size: u16,
     font_scale: f32,
     font_scale_aspect: f32,
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{TILE_SIDE, get_tile_count_in_atlas};
-
-    const SAMPLE_COUNT: usize = 1000;
-
-    #[derive(Clone, Copy)]
-    struct TileCountTestSample {
-        tiles_x: u32,
-        tiles_y: u32,
-        margin: u32,
-        spacing: u32,
-    }
-
-    impl TileCountTestSample {
-        fn width(&self) -> u32 {
-            self.tiles_x * (TILE_SIDE + self.spacing) + 2 * self.margin
-        }
-
-        fn height(&self) -> u32 {
-            self.tiles_y * (TILE_SIDE + self.spacing) + 2 * self.margin
-        }
-    }
-
-    #[test]
-    fn test_get_tile_count_in_atlas() {
-        for _ in 0..SAMPLE_COUNT {
-            let sample = TileCountTestSample {
-                tiles_x: rand::random_range(1..100),
-                tiles_y: rand::random_range(1..100),
-                margin: rand::random_range(0..10),
-                spacing: rand::random_range(0..3),
-            };
-            let (other_tiles_x, other_tiles_y) = get_tile_count_in_atlas(
-                sample.width(),
-                sample.height(),
-                sample.margin,
-                sample.spacing,
-            );
-            assert_eq!(
-                (other_tiles_x, other_tiles_y),
-                (sample.tiles_x, sample.tiles_y),
-                "margin={} spacing={}",
-                sample.margin,
-                sample.spacing,
-            );
-        }
-    }
 }

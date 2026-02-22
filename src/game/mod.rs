@@ -173,32 +173,6 @@ impl Game for Project {
         render::toplevel_ui(app_state, render);
     }
 
-    fn init_tile(
-        &self,
-        resources: &Resources,
-        builder: &mut hecs::EntityBuilder,
-        tile_x: u32,
-        tile_y: u32,
-        tile: TileIdx,
-    ) {
-        let ty = resources.level.map.tiles[&tile.0].ty;
-        let tile_pos =
-            vec2(tile_x as f32, tile_y as f32) * TILE_SIDE_F32 + Vec2::splat(TILE_SIDE_F32 / 2.0);
-
-        builder.add(Transform::from_pos(tile_pos));
-        builder.add(ty);
-        builder.add(tile);
-        if ty == TileTy::Wall {
-            builder.add(BodyTag {
-                groups: col_group::LEVEL,
-                shape: Shape::Rect {
-                    width: TILE_SIDE_F32,
-                    height: TILE_SIDE_F32,
-                },
-            });
-        }
-    }
-
     fn init_character(
         &self,
         resources: &Resources,
