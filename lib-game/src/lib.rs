@@ -320,6 +320,7 @@ impl App {
     fn game_present<G: Game>(&mut self, real_dt: f32, game: &G) {
         self.update_camera();
         self.render.new_frame();
+        self.render.buffer_sprites(&mut self.world);
         self.render.buffer_tiles(&mut self.world);
         animation::buffer_sprites(&mut self.world, &self.resources, &mut self.render);
         game.render_export(&self.state, &self.resources, &self.world, &mut self.render);

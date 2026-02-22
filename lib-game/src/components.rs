@@ -1,10 +1,20 @@
 use crate::animation::Animation;
 use hecs::Entity;
-use lib_asset::animation_manifest::AnimationId;
+use lib_asset::{AssetKey, animation_manifest::AnimationId};
 use macroquad::prelude::*;
 
 pub const CLIP_ACTION_OBJECT_SPAWN: u32 = 0;
 pub const CLIP_ACTION_OBJECT_ATTACK: u32 = 1;
+
+#[derive(Debug, Clone, Copy)]
+pub struct Sprite {
+    pub layer: u32,
+    pub texture: AssetKey,
+    pub rect: Rect,
+    pub color: Color,
+    pub sort_offset: f32,
+    pub local_offset: Vec2,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct TileIdx(pub u32);

@@ -1,6 +1,6 @@
 mod components;
 
-use crate::{TileIdx, dump};
+use crate::{Sprite, TileIdx, dump};
 pub use components::*;
 use hecs::World;
 use lib_asset::level::TILE_SIDE;
@@ -221,6 +221,22 @@ impl Render {
                 set_default_camera();
             }
             Some(font) => set_camera(&Self::get_ui_cam(font)),
+        }
+    }
+
+    pub fn buffer_sprites(&mut self, world: &mut World) {
+        for (_, (tf, sprite)) in world.query_mut::<(&Transform, &Sprite)>() {
+            self.sprite_buffer.push(SpriteData {
+                layer: sprite.layer,
+                tf: Transform {
+                    pos: tf.pos + sprite.local_offset,
+                    angle: tf.angle,
+                },
+                texture: sprite.texture,
+                rect: sprite.rect,
+                color: sprite.color,
+                sort_offset: sprite.sort_offset,
+            });
         }
     }
 
