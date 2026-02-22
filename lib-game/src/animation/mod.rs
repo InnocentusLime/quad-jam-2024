@@ -9,8 +9,8 @@ use lib_asset::level::CharacterDef;
 use macroquad::prelude::*;
 
 use crate::{
-    AnimationPlay, AttackBundle, ClipActionObject, Game, Render, Resources, SpriteData, Transform,
-    col_group, col_query, for_each_character,
+    AnimationPlay, AttackBundle, ClipActionObject, Game, Resources, Sprite, Transform, col_group,
+    col_query, for_each_character,
 };
 
 pub use actions::*;
@@ -195,30 +195,56 @@ pub(crate) fn update_invulnerability(world: &mut World, resources: &Resources) {
     });
 }
 
-pub(crate) fn buffer_sprites(world: &mut World, resources: &Resources, render: &mut Render) {
-    for_each_character::<()>(world, resources, |_, character| {
-        for (_, draw_sprite) in character
+pub(crate) fn update_draw_sprites(
+    world: &mut World,
+    resources: &Resources,
+    cmds: &mut CommandBuffer,
+    active_events: &HashMap<ClipActionObject, Entity>,
+) {
+    for_each_character::<()>(world, resources, |parent, character| {
+        for (clip_id, draw_sprite) in character
             .animation
             .active_clips::<DrawSprite>(character.anim_cursor())
         {
-            let tf = character.transform_child(
+            let event = ClipActionObject {
+                parent,
+                animation: character.animation_id(),
+                clip_id,
+                kind: TypeId::of::<DrawSprite>(),
+            };
+            let new_sprite_tf = character.transform_child(
                 draw_sprite.rotate_with_parent,
                 draw_sprite.local_pos,
                 draw_sprite.local_rotation,
             );
-            render.sprite_buffer.push(SpriteData {
-                layer: draw_sprite.layer,
-                tf,
-                texture: draw_sprite.texture_id,
-                rect: Rect {
-                    x: draw_sprite.rect_pos.x as f32,
-                    y: draw_sprite.rect_pos.y as f32,
-                    w: draw_sprite.rect_size.x as f32,
-                    h: draw_sprite.rect_size.y as f32,
-                },
-                color: WHITE,
-                sort_offset: draw_sprite.sort_offset,
-            })
+            match active_events.get(&event).copied() {
+                Some(ent) => {
+                    let mut query = world
+                        .query_one::<(&mut Transform, &mut Sprite)>(ent)
+                        .expect("incomplete attach box components");
+                    let (col_tf, _) = query.get().unwrap();
+                    *col_tf = new_sprite_tf;
+                }
+                None => {
+                    let mut builder = EntityBuilder::new();
+                    builder.add(new_sprite_tf);
+                    builder.add(Sprite {
+                        layer: draw_sprite.layer,
+                        texture: draw_sprite.texture_id,
+                        rect: Rect {
+                            x: draw_sprite.rect_pos.x as f32,
+                            y: draw_sprite.rect_pos.y as f32,
+                            w: draw_sprite.rect_size.x as f32,
+                            h: draw_sprite.rect_size.y as f32,
+                        },
+                        color: WHITE,
+                        sort_offset: draw_sprite.sort_offset,
+                        local_offset: Vec2::ZERO,
+                    });
+                    builder.add(event);
+                    cmds.spawn(builder.build());
+                }
+            }
         }
     });
 }

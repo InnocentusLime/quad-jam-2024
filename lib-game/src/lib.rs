@@ -351,7 +351,6 @@ impl App {
         self.update_camera();
         self.render.new_frame();
         self.render.buffer_sprites(&mut self.world);
-        animation::buffer_sprites(&mut self.world, &self.resources, &mut self.render);
         game.render_export(&self.state, &self.resources, &self.world, &mut self.render);
         self.render
             .render(&self.resources, &self.camera, self.render_world, real_dt);
@@ -373,6 +372,12 @@ impl App {
             &self.resources,
             &mut self.cmds,
             game,
+            &self.clip_action_objects,
+        );
+        animation::update_draw_sprites(
+            &mut self.world,
+            &self.resources,
+            &mut self.cmds,
             &self.clip_action_objects,
         );
         health::reset(&mut self.world);
