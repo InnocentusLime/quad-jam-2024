@@ -1,7 +1,7 @@
 use crate::{
     BodyTag, CollisionSolver, GrazeGain, GrazeValue, Health, Team, Transform, col_group, col_query,
 };
-use hecs::{Bundle, Query, World};
+use hecs::{EntityBuilder, Query, World};
 use lib_col::{Group, Shape};
 
 #[derive(Query)]
@@ -31,26 +31,22 @@ pub(crate) fn update_grazing(dt: f32, world: &mut World, col_solver: &CollisionS
     }
 }
 
-#[derive(Bundle)]
-pub struct AttackBundle {
-    pub tf: Transform,
-    pub team: Team,
-    pub query: col_query::Damage,
-    pub hitbox: BodyTag,
-    pub graze_value: GrazeValue,
-}
-
-impl AttackBundle {
-    pub fn new(tf: Transform, team: Team, shape: Shape, graze_value: f32, filter: Group) -> Self {
-        AttackBundle {
-            tf,
-            team,
-            query: col_query::Damage::new(shape, col_group::CHARACTERS, filter),
-            hitbox: BodyTag {
-                groups: col_group::ATTACKS,
-                shape,
-            },
-            graze_value: GrazeValue(graze_value),
-        }
-    }
+pub fn build_attack(
+    builder: &mut EntityBuilder,
+    tf: Transform,
+    team: Team,
+    shape: Shape,
+    graze_value: f32,
+    filter: Group,
+) {
+    builder.add_bundle((
+        tf,
+        team,
+        col_query::Damage::new(shape, col_group::CHARACTERS, filter),
+        BodyTag {
+            groups: col_group::ATTACKS,
+            shape,
+        },
+        GrazeValue(graze_value),
+    ));
 }

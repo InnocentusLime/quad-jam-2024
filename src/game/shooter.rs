@@ -23,11 +23,12 @@ impl CharacterData for &mut ShooterState {
 }
 
 pub fn init(builder: &mut EntityBuilder, pos: Vec2, resources: &Resources) {
-    builder.add_bundle(CharacterBundle::new_enemy(
+    build_enemy(
+        builder,
         pos,
         resources.cfg.shooter.shape,
         resources.cfg.shooter.max_hp,
-    ));
+    );
     builder.add_bundle((
         DamageCooldown::new(resources.cfg.shooter.hit_cooldown),
         ShooterState::Idle,

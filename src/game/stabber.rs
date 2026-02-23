@@ -23,11 +23,12 @@ impl CharacterData for &mut StabberState {
 }
 
 pub fn init(builder: &mut EntityBuilder, pos: Vec2, resources: &Resources) {
-    builder.add_bundle(CharacterBundle::new_enemy(
+    build_enemy(
+        builder,
         pos,
         resources.cfg.stabber.shape,
         resources.cfg.stabber.max_hp,
-    ));
+    );
     builder.add_bundle((
         DamageCooldown::new(resources.cfg.stabber.hit_cooldown),
         StabberState::Idle,

@@ -1,5 +1,5 @@
 use crate::{LockInput, Move, animation::Animation};
-use hecs::{Bundle, Entity, Query, World};
+use hecs::{Entity, EntityBuilder, Query, World};
 use lib_asset::animation_manifest::AnimationId;
 use lib_col::{Group, Shape};
 use log::warn;
@@ -218,69 +218,51 @@ pub struct CharacterQuery<'a> {
     pub body: &'a BodyTag,
 }
 
-#[derive(Bundle)]
-pub struct CharacterBundle {
-    pub tf: Transform,
-    pub kinematic: KinematicControl,
-    pub play: AnimationPlay,
-    pub look: CharacterLook,
-    pub hp: Health,
-    pub team: Team,
-    pub body: BodyTag,
+pub fn build_player(builder: &mut EntityBuilder, pos: Vec2, shape: Shape, spawn_health: i32) {
+    build_character(
+        builder,
+        pos,
+        col_group::PLAYER,
+        shape,
+        spawn_health,
+        Team::Player,
+    )
 }
 
-impl CharacterBundle {
-    pub fn new_enemy(pos: Vec2, shape: Shape, spawn_health: i32) -> Self {
-        Self::new_creature(pos, col_group::NONE, shape, spawn_health, Team::Enemy)
-    }
+pub fn build_enemy(builder: &mut EntityBuilder, pos: Vec2, shape: Shape, spawn_health: i32) {
+    build_character(
+        builder,
+        pos,
+        col_group::NONE,
+        shape,
+        spawn_health,
+        Team::Enemy,
+    )
+}
 
-    pub fn new_player(pos: Vec2, shape: Shape, spawn_health: i32) -> Self {
-        Self::new_creature(pos, col_group::PLAYER, shape, spawn_health, Team::Player)
-    }
-
-    pub fn new_creature(
-        pos: Vec2,
-        group: Group,
-        shape: Shape,
-        spawn_health: i32,
-        team: Team,
-    ) -> Self {
-        CharacterBundle {
-            team,
-            tf: Transform::from_pos(pos),
-            look: CharacterLook(0.0),
-            hp: Health::new(spawn_health),
-            kinematic: KinematicControl::new_slide(col_group::LEVEL),
-            body: BodyTag {
-                groups: col_group::CHARACTERS.union(group),
-                shape,
-            },
-            play: AnimationPlay {
-                pause: false,
-                animation: AnimationId::BnuuyWalkD,
-                total_dt: 0.0,
-                cursor: 0,
-            },
-        }
-    }
-
-    pub fn new_projectile(pos: Vec2, shape: Shape) -> Self {
-        CharacterBundle {
-            team: Team::Enemy,
-            tf: Transform::from_pos(pos),
-            look: CharacterLook(0.0),
-            hp: Health::new(1),
-            kinematic: KinematicControl::new_nonslide(col_group::LEVEL),
-            body: BodyTag {
-                groups: col_group::ATTACKS,
-                shape,
-            },
-            play: AnimationPlay {
-                pause: false,
-                animation: AnimationId::BnuuyWalkD,
-                total_dt: 0.0,
-                cursor: 0,
-            },
-        }
-    }
+pub fn build_character(
+    builder: &mut EntityBuilder,
+    pos: Vec2,
+    group: Group,
+    shape: Shape,
+    spawn_health: i32,
+    team: Team,
+) {
+    builder.add_bundle((
+        team,
+        Transform::from_pos(pos),
+        CharacterLook(0.0),
+        Health::new(spawn_health),
+        KinematicControl::new_slide(col_group::LEVEL),
+        BodyTag {
+            groups: col_group::CHARACTERS.union(group),
+            shape,
+        },
+        AnimationPlay {
+            pause: false,
+            animation: AnimationId::BnuuyWalkD,
+            total_dt: 0.0,
+            cursor: 0,
+        },
+    ));
 }
