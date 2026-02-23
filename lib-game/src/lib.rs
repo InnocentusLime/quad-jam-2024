@@ -20,7 +20,6 @@ use hecs::EntityBuilder;
 
 pub use animation::*;
 pub use attack::*;
-pub use projectile::*;
 pub use character::*;
 pub use collisions::*;
 pub use components::*;
@@ -29,6 +28,7 @@ pub use lib_asset::animation_manifest::AnimationId;
 use lib_asset::animation_manifest::load_animation_manifest;
 pub use lib_asset::level::*;
 pub use lib_asset::*;
+pub use projectile::*;
 pub use render::*;
 
 #[macro_export]

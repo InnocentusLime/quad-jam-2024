@@ -1,11 +1,12 @@
 use super::prelude::*;
 
 pub fn init(builder: &mut EntityBuilder, pos: Vec2, resources: &Resources) {
-    builder.add_bundle(CharacterBundle::new_player(
+    build_player(
+        builder,
         pos,
         resources.cfg.player.shape,
         resources.cfg.player.max_hp,
-    ));
+    );
     builder.add_bundle((
         PlayerState::Idle,
         DamageCooldown::new(resources.cfg.player.hit_cooldown),

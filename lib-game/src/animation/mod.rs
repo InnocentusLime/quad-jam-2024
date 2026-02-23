@@ -9,7 +9,7 @@ use lib_asset::level::CharacterDef;
 use macroquad::prelude::*;
 
 use crate::{
-    AnimationPlay, AttackBundle, ClipActionObject, Game, Resources, Sprite, Transform, col_group,
+    AnimationPlay, ClipActionObject, Game, Resources, Sprite, Transform, build_attack, col_group,
     col_query, for_each_character,
 };
 
@@ -124,13 +124,14 @@ pub(crate) fn update_attack_boxes(
                 }
                 None => {
                     let mut builder = EntityBuilder::new();
-                    builder.add_bundle(AttackBundle::new(
+                    build_attack(
+                        &mut builder,
                         new_col_tf,
                         *character.character_q.team,
                         attack.shape,
                         attack.graze_value,
                         col_group::NONE,
-                    ));
+                    );
                     builder.add(event);
                     cmds.spawn(builder.build());
                 }
