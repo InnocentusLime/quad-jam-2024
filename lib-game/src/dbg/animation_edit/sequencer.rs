@@ -158,7 +158,6 @@ impl<'a> Sequencer<'a> {
             .all_clips()
             .find(|(_, _, _, clip_y, x)| *clip_y == y_pos && x.contains_pos(x_pos))
         else {
-            *self.selected_clip = None;
             return;
         };
         let gesture = ClipWidget(clip).gesture(timeline_rect, pointer, *self.tf, y_pos);
