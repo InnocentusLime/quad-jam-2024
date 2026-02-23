@@ -24,6 +24,3 @@ pub enum PlayerState {
 pub struct GoalTag {
     pub achieved: bool,
 }
-
-#[derive(Debug, Clone, Copy)]
-pub struct BulletTag;

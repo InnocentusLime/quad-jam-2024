@@ -6,6 +6,12 @@ use lib_asset::{AssetKey, animation_manifest::AnimationId};
 use macroquad::prelude::*;
 
 #[derive(Debug, Clone, Copy)]
+pub struct ProjectileData {
+    pub dir: Vec2,
+    pub speed: f32,
+}
+
+#[derive(Debug, Clone, Copy)]
 pub struct Sprite {
     pub layer: u32,
     pub texture: AssetKey,
