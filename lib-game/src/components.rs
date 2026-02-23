@@ -1,8 +1,4 @@
-use std::any::TypeId;
-
-use crate::animation::Animation;
-use hecs::Entity;
-use lib_asset::{AssetKey, animation_manifest::AnimationId};
+use lib_asset::AssetKey;
 use macroquad::prelude::*;
 
 #[derive(Debug, Clone, Copy)]
@@ -96,30 +92,6 @@ impl Transform {
     pub fn from_xy(x: f32, y: f32) -> Self {
         Self::from_pos(vec2(x, y))
     }
-}
-
-pub struct AnimationPlay {
-    pub animation: AnimationId,
-    pub total_dt: f32,
-    pub cursor: u32,
-    pub pause: bool,
-}
-
-impl AnimationPlay {
-    pub fn is_done(&self, animation: &Animation) -> bool {
-        if animation.is_looping {
-            return false;
-        }
-        self.cursor == animation.max_pos()
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct ClipActionObject {
-    pub parent: Entity,
-    pub animation: AnimationId,
-    pub kind: TypeId,
-    pub clip_id: u32,
 }
 
 #[derive(Debug, Clone, Copy)]

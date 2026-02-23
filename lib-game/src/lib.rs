@@ -1,11 +1,5 @@
-mod animation;
-mod attack;
-mod character;
 mod collisions;
 mod components;
-mod health;
-mod input;
-mod projectile;
 mod render;
 
 #[cfg(feature = "dbg")]
@@ -13,22 +7,11 @@ pub mod dbg;
 
 pub mod sys;
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
-use hashbrown::HashMap;
-use hecs::EntityBuilder;
-
-pub use animation::*;
-pub use attack::*;
-pub use character::*;
 pub use collisions::*;
 pub use components::*;
-pub use input::*;
-pub use lib_asset::animation_manifest::AnimationId;
-use lib_asset::animation_manifest::load_animation_manifest;
-pub use lib_asset::level::*;
 pub use lib_asset::*;
-pub use projectile::*;
 pub use render::*;
 
 #[macro_export]
@@ -53,7 +36,7 @@ pub struct DebugCommand {
     pub args: Vec<String>,
 }
 
-use hecs::{CommandBuffer, Entity, World};
+use hecs::{CommandBuffer, World};
 use macroquad::prelude::*;
 
 const GAME_TICKRATE: f32 = 1.0 / 60.0;
@@ -90,23 +73,6 @@ pub enum NextState {
 pub trait Game: 'static {
     fn handle_command(&mut self, app: &mut App, cmd: &DebugCommand) -> bool;
 
-    /// Return the list of the debug draws. Debug draws are batches
-    /// of (usually, macroquad) draw calls to assist you at debugging
-    /// the game logic.
-    ///
-    /// These debug draws can be used in `dde` and `ddd` and will
-    /// show up in `ddl`
-    fn debug_draws(&self) -> &[(&'static str, fn(&World, &Resources))];
-
-    /// Handle the user input. You also get the delta-time.
-    fn input_phase(
-        &mut self,
-        input: &InputModel,
-        dt: f32,
-        resources: &Resources,
-        world: &mut World,
-    );
-
     /// Set up all physics queries. This can be considered as a sort of
     /// pre-update phase.
     /// This phase accepts a command buffer. The commands get executed right
@@ -130,29 +96,7 @@ pub trait Game: 'static {
         world: &mut World,
         collisions: &CollisionSolver,
         cmds: &mut CommandBuffer,
-    ) -> Option<AppState>;
-
-    /// Export the game world for rendering.
-    fn render_export(
-        &self,
-        state: &AppState,
-        resources: &Resources,
-        world: &World,
-        render: &mut Render,
     );
-
-    fn init_character(&self, resources: &Resources, builder: &mut EntityBuilder, def: CharacterDef);
-}
-
-impl AppState {
-    /// Gives a hint whether the user should start
-    /// rendering the game state or not
-    pub fn is_presentable(&self) -> bool {
-        matches!(
-            self,
-            AppState::Active { .. } | AppState::GameOver | AppState::Win | AppState::DebugFreeze
-        )
-    }
 }
 
 /// The app run all the boilerplate code to make the game tick.
@@ -165,50 +109,30 @@ impl AppState {
 /// * Integration with log-rs
 /// * Drawing of the `dump!` macro
 pub struct App {
-    fullscreen: bool,
-    old_size: (u32, u32),
-
-    pub state: AppState,
-    pub queued_level: Option<PathBuf>,
     pub resources: Resources,
     accumelated_time: f32,
 
-    camera: Camera2D,
     pub render: Render,
     col_solver: CollisionSolver,
-    clip_action_objects: HashMap<ClipActionObject, Entity>,
     pub world: World,
     cmds: CommandBuffer,
 
     render_world: bool,
-    #[allow(unused)]
-    freeze: bool,
 }
 
 impl App {
-    pub async fn new(conf: &Conf) -> anyhow::Result<Self> {
-        let mut resources = Resources::new();
-        resources.cfg = load_game_cfg().await?;
-
-        Ok(Self {
-            fullscreen: conf.fullscreen,
-            old_size: (conf.window_width as u32, conf.window_height as u32),
-
-            state: AppState::Start,
-            queued_level: None,
-            resources,
+    pub fn new() -> Self {
+        Self {
+            resources: Resources::new(),
             accumelated_time: 0.0,
 
-            camera: Camera2D::default(),
             render: Render::new(),
             col_solver: CollisionSolver::new(),
-            clip_action_objects: HashMap::new(),
             world: World::new(),
             cmds: CommandBuffer::new(),
 
             render_world: true,
-            freeze: false,
-        })
+        }
     }
 
     /// Just runs the game. This is what you call after loading all the resources.
@@ -226,29 +150,14 @@ impl App {
             #[cfg(feature = "dbg")]
             debug.ui(&mut self, game);
 
-            let input = InputModel::capture(&self.camera);
             let real_dt = get_frame_time();
-            let do_tick = self.update_ticking(real_dt);
-            self.fullscreen_toggles(&input);
-
-            self.next_state(&input);
-            if let Some(queued_level) = self.queued_level.take() {
-                self.load_level(game, queued_level).await;
-                self.state = AppState::Active { paused: false };
-            }
-
-            if do_tick {
+            if self.update_ticking(real_dt) {
                 #[cfg(feature = "dbg")]
                 debug.new_update();
-                dump!("game state: {:?}", self.state);
-                if matches!(self.state, AppState::Active { paused: false })
-                    && let Some(next_state) = self.game_update(&input, game)
-                {
-                    self.state = next_state;
-                }
+                self.game_update(game);
             }
 
-            self.game_present(real_dt, game);
+            self.game_present(real_dt);
 
             #[cfg(feature = "dbg")]
             debug.draw(&mut self);
@@ -257,142 +166,14 @@ impl App {
         }
     }
 
-    async fn load_level<G: Game>(&mut self, game: &mut G, level_file: PathBuf) {
-        info!("Loading level");
-        let path = self
-            .resources
-            .resolver
-            .get_path(AssetRoot::Assets, &level_file);
-        let level = match load_level(&self.resources.resolver, &path).await {
-            Ok(x) => x,
-            Err(e) => {
-                error!("{e:#}");
-                return;
-            }
-        };
-        let atlas = self
-            .resources
-            .textures
-            .resolve(&level.map.atlas_image)
-            .expect("Atlas not loaded");
-
-        self.world.clear();
-        self.resources.level = level;
-        self.spawn_tiles(atlas);
-        self.spawn_characters(game);
-    }
-
-    fn spawn_tiles(&mut self, atlas_key: AssetKey) {
-        const TILE_SIDE_F32: f32 = TILE_SIDE as f32;
-
-        let atlas = self.resources.textures.get(atlas_key).unwrap();
-        let level = &self.resources.level;
-        let map_def = &level.map;
-        let (tiles_in_x, _) = get_tile_count_in_atlas(
-            atlas.width() as u32,
-            atlas.height() as u32,
-            map_def.atlas_margin,
-            map_def.atlas_spacing,
-        );
-        for tile_x in 0..level.map.width {
-            for tile_y in 0..level.map.height {
-                let mut builder = EntityBuilder::new();
-                let Some(tile) = level.map.tilemap[(tile_x + tile_y * level.map.width) as usize]
-                else {
-                    continue;
-                };
-
-                let tile_tex_x = (tile % tiles_in_x) as f32;
-                let tile_tex_y = (tile / tiles_in_x) as f32;
-
-                let tile_pos = vec2(tile_x as f32, tile_y as f32) * TILE_SIDE_F32
-                    + Vec2::splat(TILE_SIDE_F32 / 2.0);
-                let ty = level.map.tiles[&tile].ty;
-                if ty == TileTy::Wall {
-                    builder.add(BodyTag {
-                        groups: col_group::LEVEL,
-                        shape: Shape::Rect {
-                            width: TILE_SIDE_F32,
-                            height: TILE_SIDE_F32,
-                        },
-                    });
-                }
-                builder.add_bundle((
-                    Transform::from_pos(tile_pos),
-                    ty,
-                    Sprite {
-                        layer: 0,
-                        texture: atlas_key,
-                        rect: Rect {
-                            x: (TILE_SIDE_F32 + map_def.atlas_spacing as f32) * tile_tex_x
-                                + map_def.atlas_margin as f32,
-                            y: (TILE_SIDE_F32 + map_def.atlas_spacing as f32) * tile_tex_y
-                                + map_def.atlas_margin as f32,
-                            w: TILE_SIDE_F32,
-                            h: TILE_SIDE_F32,
-                        },
-                        color: WHITE,
-                        sort_offset: 0.0,
-                        local_offset: Vec2::splat(-TILE_SIDE_F32 / 2.0),
-                    },
-                ));
-                self.world.spawn(builder.build());
-            }
-        }
-    }
-
-    fn spawn_characters<G: Game>(&mut self, game: &G) {
-        for def in self.resources.level.characters.iter() {
-            let mut builder = EntityBuilder::new();
-            game.init_character(&self.resources, &mut builder, *def);
-            self.world.spawn(builder.build());
-        }
-    }
-
-    fn game_present<G: Game>(&mut self, real_dt: f32, game: &G) {
-        self.update_camera();
+    fn game_present(&mut self, real_dt: f32) {
         self.render.new_frame();
         self.render.buffer_sprites(&mut self.world);
-        game.render_export(&self.state, &self.resources, &self.world, &mut self.render);
         self.render
-            .render(&self.resources, &self.camera, self.render_world, real_dt);
+            .render(&self.resources, self.render_world, real_dt);
     }
 
-    fn game_update<G: Game>(&mut self, input: &InputModel, game: &mut G) -> Option<AppState> {
-        game.input_phase(input, GAME_TICKRATE, &self.resources, &mut self.world);
-        projectile::ai(GAME_TICKRATE, &mut self.world);
-
-        animation::update(GAME_TICKRATE, &mut self.world, &self.resources);
-        animation::collect_clip_action_objects(&mut self.world, &mut self.clip_action_objects);
-        animation::delete_clip_action_objects(
-            &mut self.world,
-            &self.resources,
-            &mut self.cmds,
-            &mut self.clip_action_objects,
-        );
-        animation::update_attack_boxes(
-            &mut self.world,
-            &self.resources,
-            &mut self.cmds,
-            &self.clip_action_objects,
-        );
-        animation::update_spawned(
-            &mut self.world,
-            &self.resources,
-            &mut self.cmds,
-            game,
-            &self.clip_action_objects,
-        );
-        animation::update_draw_sprites(
-            &mut self.world,
-            &self.resources,
-            &mut self.cmds,
-            &self.clip_action_objects,
-        );
-        health::reset(&mut self.world);
-        animation::update_invulnerability(&mut self.world, &self.resources);
-        health::update_cooldown(GAME_TICKRATE, &mut self.world);
-
+    fn game_update<G: Game>(&mut self, game: &mut G) {
         self.col_solver.import_colliders(&mut self.world);
         self.col_solver.export_kinematic_moves(&mut self.world);
 
@@ -406,14 +187,7 @@ impl App {
 
         self.col_solver.compute_collisions(&mut self.world);
 
-        health::collect_damage(&mut self.world, &self.col_solver);
-        health::apply_damage(&mut self.world);
-        health::apply_cooldown(&mut self.world);
-        attack::update_grazing(GAME_TICKRATE, &mut self.world, &self.col_solver);
-        health::despawn_on_zero_health(&mut self.world, &mut self.cmds);
-        projectile::despawn_on_hit(&mut self.world, &mut self.cmds);
-
-        let new_state = game.update(
+        game.update(
             GAME_TICKRATE,
             &self.resources,
             &mut self.world,
@@ -423,23 +197,6 @@ impl App {
         self.cmds.run_on(&mut self.world);
 
         self.world.flush();
-
-        new_state
-    }
-
-    fn fullscreen_toggles(&mut self, input: &InputModel) {
-        if !input.fullscreen_toggle_requested {
-            return;
-        }
-
-        // NOTE: macroquad does not update window config when it goes fullscreen
-        set_fullscreen(!self.fullscreen);
-
-        if self.fullscreen {
-            miniquad::window::set_window_size(self.old_size.0, self.old_size.1);
-        }
-
-        self.fullscreen = !self.fullscreen;
     }
 
     fn update_ticking(&mut self, real_dt: f32) -> bool {
@@ -456,68 +213,18 @@ impl App {
             false
         }
     }
-
-    fn next_state(&mut self, input: &InputModel) {
-        if self.state == AppState::DebugFreeze {
-            return;
-        }
-
-        /* Normal state transitions */
-        match self.state {
-            AppState::GameDone | AppState::GameOver if input.confirmation_detected => {
-                self.state = AppState::Start;
-            }
-            AppState::Win if input.confirmation_detected => {
-                self.state = AppState::GameDone;
-            }
-            AppState::Start if input.confirmation_detected => {
-                self.state = AppState::Active { paused: false };
-                self.queued_level = Some("test_room.json".into());
-            }
-            AppState::Active { paused } if input.pause_requested => {
-                self.state = AppState::Active { paused: !paused };
-            }
-            _ => (),
-        }
-    }
-
-    fn update_camera(&mut self) {
-        let view_height = 17.0 * TILE_SIDE as f32;
-        let view_width = ((screen_width() / screen_height()) * view_height).floor();
-        self.camera = Camera2D::from_display_rect(Rect {
-            x: 0.0,
-            y: 0.0,
-            w: view_width,
-            h: view_height,
-        });
-        self.camera.zoom.y *= -1.0;
-
-        // FIXME: magic numbers!
-        self.camera.target = vec2(
-            (0.5 * TILE_SIDE as f32) * 16.0,
-            (0.5 * TILE_SIDE as f32) * 17.0,
-        );
-    }
 }
 
 pub struct Resources {
-    pub cfg: GameCfg,
     pub resolver: FsResolver,
-    pub level: LevelDef,
-    pub animations: HashMap<AnimationId, Animation>,
     pub textures: AssetContainer<Texture2D>,
-    pub fonts: AssetContainer<Font>,
 }
 
 impl Resources {
     pub fn new() -> Self {
         Resources {
-            cfg: GameCfg::default(),
             resolver: FsResolver::new(),
-            level: LevelDef::default(),
-            animations: HashMap::new(),
             textures: AssetContainer::new(),
-            fonts: AssetContainer::new(),
         }
     }
 
@@ -528,99 +235,10 @@ impl Resources {
         let texture = load_texture(&path).await.unwrap();
         self.textures.insert(src_path, texture)
     }
-
-    pub async fn load_font(&mut self, path: impl AsRef<Path>) -> AssetKey {
-        let src_path = path.as_ref();
-        let path = self.resolver.get_path(AssetRoot::Assets, src_path);
-        let path = path.to_string_lossy();
-        let font = load_ttf_font(&path).await.unwrap();
-        self.fonts.insert(src_path, font)
-    }
-
-    /// **ADDITIVLY** loads an animations pack
-    pub async fn load_animation_pack(&mut self, path: impl AsRef<Path>) {
-        let src_path = path.as_ref();
-        let path = self.resolver.get_path(AssetRoot::Assets, src_path);
-        let pack = load_animation_manifest(&path).await.unwrap();
-        for (id, manifest) in pack {
-            let anim = Animation::from_manifest(self, &manifest).unwrap();
-            self.animations.insert(id, anim);
-        }
-    }
 }
 
 impl Default for Resources {
     fn default() -> Self {
         Resources::new()
-    }
-}
-
-fn get_tile_count_in_atlas(
-    mut atlas_width: u32,
-    mut atlas_height: u32,
-    atlas_margin: u32,
-    atlas_spacing: u32,
-) -> (u32, u32) {
-    assert!(atlas_height >= TILE_SIDE + 2 * atlas_margin);
-    assert!(atlas_width >= TILE_SIDE + 2 * atlas_margin);
-
-    // Remove margins and the leading tile
-    atlas_width -= TILE_SIDE + 2 * atlas_margin;
-    atlas_height -= TILE_SIDE + 2 * atlas_margin;
-
-    let tiles_x = atlas_width / (TILE_SIDE + atlas_spacing);
-    let tiles_y = atlas_height / (TILE_SIDE + atlas_spacing);
-
-    // Add the leading tiles back
-    (tiles_x + 1, tiles_y + 1)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{TILE_SIDE, get_tile_count_in_atlas};
-
-    const SAMPLE_COUNT: usize = 1000;
-
-    #[derive(Clone, Copy)]
-    struct TileCountTestSample {
-        tiles_x: u32,
-        tiles_y: u32,
-        margin: u32,
-        spacing: u32,
-    }
-
-    impl TileCountTestSample {
-        fn width(&self) -> u32 {
-            self.tiles_x * (TILE_SIDE + self.spacing) + 2 * self.margin
-        }
-
-        fn height(&self) -> u32 {
-            self.tiles_y * (TILE_SIDE + self.spacing) + 2 * self.margin
-        }
-    }
-
-    #[test]
-    fn test_get_tile_count_in_atlas() {
-        for _ in 0..SAMPLE_COUNT {
-            let sample = TileCountTestSample {
-                tiles_x: rand::random_range(1..100),
-                tiles_y: rand::random_range(1..100),
-                margin: rand::random_range(0..10),
-                spacing: rand::random_range(0..3),
-            };
-            let (other_tiles_x, other_tiles_y) = get_tile_count_in_atlas(
-                sample.width(),
-                sample.height(),
-                sample.margin,
-                sample.spacing,
-            );
-            assert_eq!(
-                (other_tiles_x, other_tiles_y),
-                (sample.tiles_x, sample.tiles_y),
-                "margin={} spacing={}",
-                sample.margin,
-                sample.spacing,
-            );
-        }
     }
 }

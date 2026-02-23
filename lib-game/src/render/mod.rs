@@ -3,117 +3,30 @@ mod components;
 use crate::{Sprite, dump};
 pub use components::*;
 use hecs::World;
-use lib_asset::{AssetKey, INVALID_ASSET};
+use lib_asset::AssetKey;
 use macroquad::prelude::*;
 
 use crate::{Resources, Transform};
 
-const FONT_SCALE: f32 = 1.0;
-const MAIN_FONT_SIZE: u16 = 32;
-const HINT_FONT_SIZE: u16 = 16;
-const VERTICAL_ORIENT_HORIZONTAL_PADDING: f32 = 16.0;
-pub static ORIENTATION_TEXT: &str = "Wrong Orientation";
-pub static ORIENTATION_HINT: &str = "Please re-orient your device\ninto landscape";
-
-#[macro_export]
-macro_rules! put_text_fmt {
-    (
-        $render: expr,
-        $pos: expr,
-        $color: expr,
-        $font: expr,
-        $world_font_size: expr,
-        $fmt: expr,
-        $($args:tt)*
-    ) => {
-        ($render).put_text_fmt(
-            $pos,
-            $color,
-            $font,
-            $world_font_size,
-            format_args!($fmt, $($args)*)
-        );
-    };
-}
-
-/// Render does rendering stuff. When it comes to the world
-/// drawing, all the data is taken from its own world -- "export world".
-///
-/// It also provides a simple asset storage for quick access
-/// for the rendering code callers.
 pub struct Render {
-    pub ui_font: AssetKey,
-
     pub announcement_text: Option<AnnouncementText>,
     pub sprite_buffer: Vec<SpriteData>,
-    text_buffer: Vec<GlyphText>,
 }
 
 impl Render {
     pub fn new() -> Self {
         Self {
-            ui_font: INVALID_ASSET,
             announcement_text: None,
             sprite_buffer: Vec::new(),
-            text_buffer: Vec::new(),
         }
-    }
-
-    pub fn put_text(
-        &mut self,
-        pos: Vec2,
-        color: Color,
-        font: AssetKey,
-        world_font_size: f32,
-        text: &str,
-    ) {
-        let (font_size, font_scale, font_scale_aspect) = camera_font_scale(world_font_size);
-        self.text_buffer.push(GlyphText {
-            x: pos.x,
-            y: pos.y,
-            color,
-            font,
-            string: text.to_string(),
-            font_size,
-            font_scale,
-            font_scale_aspect,
-        })
-    }
-
-    pub fn put_text_fmt(
-        &mut self,
-        pos: Vec2,
-        color: Color,
-        font: AssetKey,
-        world_font_size: f32,
-        text: std::fmt::Arguments,
-    ) {
-        let (font_size, font_scale, font_scale_aspect) = camera_font_scale(world_font_size);
-        self.text_buffer.push(GlyphText {
-            x: pos.x,
-            y: pos.y,
-            color,
-            font,
-            string: text.to_string(),
-            font_size,
-            font_scale,
-            font_scale_aspect,
-        })
     }
 
     pub fn new_frame(&mut self) {
         self.announcement_text = None;
         self.sprite_buffer.clear();
-        self.text_buffer.clear();
     }
 
-    pub fn render(
-        &mut self,
-        resources: &Resources,
-        camera: &dyn Camera,
-        render_world: bool,
-        _dt: f32,
-    ) {
+    pub fn render(&mut self, resources: &Resources, render_world: bool, _dt: f32) {
         clear_background(Color {
             r: 0.0,
             g: 0.0,
@@ -122,20 +35,14 @@ impl Render {
         });
 
         if render_world {
-            set_camera(camera);
             self.draw_sprites(resources);
-            self.draw_texts(resources);
         }
-
-        self.setup_ui_camera(resources);
-        self.draw_announcement_text(resources);
     }
 
-    pub fn debug_render<F>(&mut self, camera: &dyn Camera, code: F)
+    pub fn debug_render<F>(&mut self, code: F)
     where
         F: FnOnce(),
     {
-        set_camera(camera);
         code();
     }
 
@@ -170,16 +77,6 @@ impl Render {
         }
     }
 
-    fn setup_ui_camera(&mut self, resources: &Resources) {
-        match resources.fonts.get(self.ui_font) {
-            None => {
-                warn!("No such font: {:?}", self.ui_font);
-                set_default_camera();
-            }
-            Some(font) => set_camera(&Self::get_ui_cam(font)),
-        }
-    }
-
     pub fn buffer_sprites(&mut self, world: &mut World) {
         for (_, (tf, sprite)) in world.query_mut::<(&Transform, &Sprite)>() {
             self.sprite_buffer.push(SpriteData {
@@ -194,132 +91,6 @@ impl Render {
                 sort_offset: sprite.sort_offset,
             });
         }
-    }
-
-    fn draw_announcement_text(&mut self, resources: &Resources) {
-        if let Some(announce) = self.announcement_text.as_ref() {
-            let Some(font) = resources.fonts.get(self.ui_font) else {
-                warn!("No such font: {:?}", self.ui_font);
-                return;
-            };
-
-            let view_rect = Self::ui_view_rect(font);
-
-            draw_rectangle(
-                view_rect.x,
-                view_rect.y,
-                view_rect.w,
-                view_rect.h,
-                Color {
-                    r: 0.0,
-                    g: 0.0,
-                    b: 0.12,
-                    a: 0.5,
-                },
-            );
-
-            let center = get_text_center(
-                announce.heading,
-                Some(font),
-                MAIN_FONT_SIZE,
-                FONT_SCALE,
-                0.0,
-            );
-            draw_text_ex(
-                announce.heading,
-                view_rect.left() + view_rect.w / 2.0 - center.x,
-                view_rect.top() + view_rect.h / 2.0 - center.y,
-                TextParams {
-                    font: Some(font),
-                    font_size: MAIN_FONT_SIZE,
-                    color: Color::from_hex(0xDDFBFF),
-                    font_scale: FONT_SCALE,
-                    ..Default::default()
-                },
-            );
-
-            let Some(hint) = announce.body else {
-                return;
-            };
-            let center = get_text_center(
-                Self::find_longest_line(hint),
-                Some(font),
-                HINT_FONT_SIZE,
-                FONT_SCALE,
-                0.0,
-            );
-            draw_multiline_text_ex(
-                hint,
-                view_rect.left() + view_rect.w / 2.0 - center.x,
-                view_rect.top() + view_rect.h / 2.0 - center.y + (MAIN_FONT_SIZE as f32) * 1.5,
-                None,
-                TextParams {
-                    font: Some(font),
-                    font_size: HINT_FONT_SIZE,
-                    color: Color::from_hex(0xDDFBFF),
-                    font_scale: FONT_SCALE,
-                    ..Default::default()
-                },
-            );
-        }
-    }
-
-    fn draw_texts(&mut self, resources: &Resources) {
-        for text in self.text_buffer.iter() {
-            let tint = text.color;
-            let Some(font) = resources.fonts.get(text.font) else {
-                warn!("No font {:?}", text.font);
-                continue;
-            };
-
-            draw_text_ex(
-                &text.string,
-                text.x,
-                text.y,
-                TextParams {
-                    font: Some(font),
-                    font_size: text.font_size,
-                    font_scale: text.font_scale,
-                    font_scale_aspect: text.font_scale_aspect,
-                    rotation: 0.0,
-                    color: tint,
-                },
-            );
-        }
-    }
-
-    fn find_longest_line(text: &str) -> &str {
-        text.split('\n').max_by_key(|x| x.len()).unwrap_or("")
-    }
-
-    fn ui_view_rect(font: &Font) -> Rect {
-        // Special case for misoriented mobile devices
-        if screen_height() > screen_width() {
-            let measure = measure_text(ORIENTATION_TEXT, Some(font), MAIN_FONT_SIZE, FONT_SCALE);
-            let view_width = measure.width + 2.0 * VERTICAL_ORIENT_HORIZONTAL_PADDING;
-
-            return Rect {
-                x: -VERTICAL_ORIENT_HORIZONTAL_PADDING,
-                y: 0.0,
-                w: view_width,
-                h: view_width * (screen_height() / screen_width()),
-            };
-        }
-
-        let view_height = (MAIN_FONT_SIZE as f32) * 12.0;
-        Rect {
-            x: 0.0,
-            y: 0.0,
-            w: view_height * (screen_width() / screen_height()),
-            h: view_height,
-        }
-    }
-
-    fn get_ui_cam(font: &Font) -> Camera2D {
-        let mut cam = Camera2D::from_display_rect(Self::ui_view_rect(font));
-        cam.zoom.y *= -1.0;
-
-        cam
     }
 }
 
@@ -337,16 +108,4 @@ pub struct SpriteData {
     pub rect: Rect,
     pub color: Color,
     pub sort_offset: f32,
-}
-
-#[derive(Clone, Debug)]
-struct GlyphText {
-    x: f32,
-    y: f32,
-    color: Color,
-    font: AssetKey,
-    string: String,
-    font_size: u16,
-    font_scale: f32,
-    font_scale_aspect: f32,
 }

@@ -2,8 +2,6 @@
 pub enum AssetRoot {
     Base,
     Assets,
-    AsepriteProjectRoot,
-    TiledProjectRoot,
 }
 
 impl AssetRoot {
@@ -14,8 +12,6 @@ impl AssetRoot {
             #[cfg(target_family = "wasm")]
             AssetRoot::Base => "",
             AssetRoot::Assets => "assets",
-            AssetRoot::AsepriteProjectRoot => "project-aseprite",
-            AssetRoot::TiledProjectRoot => "project-tiled",
         }
     }
 }

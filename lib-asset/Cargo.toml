@@ -3,24 +3,17 @@ name = "lib-asset"
 version = "0.12.0"
 edition = "2024"
 
-[[bin]]
-name = "asset-compiler"
-path = "tool/main.rs"
-
 [dependencies]
 glam = { workspace = true }
 log = { workspace = true }
 anyhow = { workspace = true }
-strum = { workspace = true }
 serde = { workspace = true }
 hashbrown = { workspace = true, features = ["serde"] }
 macroquad = { workspace = true }
 lib-col = { path = "../lib-col" }
-clap = { version = "4", features = ["derive"], optional = true }
 serde_json = "1" 
-tiled = { version = "0.15.0", default-features = false, features = [], optional = true }
 slab = "0.4"
 
 [features]
 dbg = []
-dev-env = ["dep:clap", "dep:tiled", "dbg"]
+dev-env = ["dbg"]

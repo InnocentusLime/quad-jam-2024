@@ -1,5 +1,3 @@
-#[cfg(feature = "dev-env")]
-mod animation_edit;
 mod cmd;
 mod screendump;
 
@@ -8,81 +6,46 @@ use hecs::World;
 use log::set_logger;
 use macroquad::prelude::*;
 
-#[cfg(feature = "dev-env")]
-pub use animation_edit::*;
 pub use cmd::*;
 pub use screendump::*;
 
-use crate::{App, AppState, AttackQuery, CharacterQuery, DebugCommand, Game, Resources, dump};
+use crate::{App, DebugCommand, Game, Resources, dump};
 
 pub(crate) struct DebugStuff {
     pub cmd_center: CommandCenter,
     pub debug_draws: HashMap<String, fn(&World, &Resources)>,
     pub enabled_debug_draws: HashSet<String>,
-    #[cfg(feature = "dev-env")]
-    anim_edit: AnimationEdit,
+    pub force_freeze: bool,
 }
 
 impl DebugStuff {
-    pub(crate) fn new<G: Game>(game: &mut G) -> Self {
+    pub(crate) fn new<G: Game>(_game: &mut G) -> Self {
         set_logger(&*GLOBAL_CON as &dyn log::Log).expect("failed to init logger");
-
-        let debug_draws = game
-            .debug_draws()
-            .iter()
-            .map(|(name, payload)| (name.to_string(), *payload))
-            .collect::<HashMap<_, _>>();
 
         Self {
             cmd_center: CommandCenter::new(),
-            debug_draws,
+            debug_draws: HashMap::new(),
             enabled_debug_draws: HashSet::new(),
-            #[cfg(feature = "dev-env")]
-            anim_edit: AnimationEdit::new(),
+            force_freeze: false,
         }
     }
 
     pub fn ui<G: Game>(&mut self, app: &mut App, game: &mut G) {
         egui_macroquad::ui(|egui_ctx| {
-            #[cfg(feature = "dev-env")]
-            egui::Window::new("animation_edit").show(egui_ctx, |ui| {
-                self.anim_edit.ui(ui, &mut app.resources, &mut app.world);
-            });
             let cmd = self.cmd_center.show(egui_ctx, get_char_pressed());
             if let Some(cmd) = cmd {
                 self.handle_command(app, game, cmd);
             }
             GLOBAL_DUMP.show(egui_ctx);
         });
-
-        if (self.should_pause() || app.freeze) && app.state == (AppState::Active { paused: false })
-        {
-            app.state = AppState::DebugFreeze;
-        }
-        if !(self.should_pause() || app.freeze) && app.state == AppState::DebugFreeze {
-            app.state = AppState::Active { paused: false };
-        }
-    }
-
-    fn should_pause(&self) -> bool {
-        self.cmd_center.should_pause()
     }
 
     fn handle_command<G: Game>(&mut self, app: &mut App, game: &mut G, cmd: DebugCommand) {
         match cmd.command.as_str() {
-            "f" => app.freeze = true,
-            "uf" => app.freeze = false,
+            "f" => self.force_freeze = true,
+            "uf" => self.force_freeze = false,
             "hw" => app.render_world = false,
             "sw" => app.render_world = true,
-            "reset" => app.state = AppState::Start,
-            "load" => {
-                if cmd.args.is_empty() {
-                    error!("Not enough args");
-                    return;
-                }
-
-                app.queued_level = Some(cmd.args[0].clone().into());
-            }
             "dde" => {
                 if cmd.args.is_empty() {
                     error!("Not enough args");
@@ -109,33 +72,6 @@ impl DebugStuff {
                 }
                 self.enabled_debug_draws.remove(dd_name);
             }
-            "get" => {
-                if cmd.args.len() < 2 {
-                    error!("Not enough args. Need 2");
-                    return;
-                }
-
-                let section = &cmd.args[0];
-                let field = &cmd.args[1];
-                match app.resources.cfg.get_field(section, field) {
-                    Ok(x) => info!("{section}.{field} = {x}"),
-                    Err(e) => error!("{e:#}"),
-                }
-            }
-            "set" => {
-                if cmd.args.len() < 3 {
-                    error!("Not enough args. Need 3");
-                    return;
-                }
-
-                let section = &cmd.args[0];
-                let field = &cmd.args[1];
-                let val = &cmd.args[2];
-                match app.resources.cfg.set_field(section, field, val) {
-                    Ok(_) => info!("{section}.{field} updated"),
-                    Err(e) => error!("{e:#}"),
-                }
-            }
             unmatched => {
                 if !game.handle_command(app, &cmd) {
                     error!("Unknown command: {unmatched:?}");
@@ -157,7 +93,7 @@ impl DebugStuff {
         self.dump_archetypes(app);
         GLOBAL_DUMP.lock();
 
-        app.render.debug_render(&app.camera, || {
+        app.render.debug_render(|| {
             for debug_draw_name in self.enabled_debug_draws.iter() {
                 let draw = self.debug_draws[debug_draw_name];
                 draw(&app.world, &app.resources);
@@ -169,20 +105,10 @@ impl DebugStuff {
 
     fn dump_archetypes(&self, app: &mut App) {
         let mut total_archetypes = 0;
-        let mut character_archetypes = 0;
-        let mut attack_archetypes = 0;
-        for arch in app.world.archetypes() {
+        for _arch in app.world.archetypes() {
             total_archetypes += 1;
-            if arch.satisfies::<CharacterQuery>() {
-                character_archetypes += 1;
-            }
-            if arch.satisfies::<AttackQuery>() {
-                attack_archetypes += 1;
-            }
         }
 
-        dump!("Total character archetypes: {character_archetypes}");
-        dump!("Total attack archetypes: {attack_archetypes}");
         dump!("Total archetypes: {total_archetypes}");
     }
 }
