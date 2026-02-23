@@ -5,6 +5,7 @@ mod collisions;
 mod components;
 mod health;
 mod input;
+mod projectile;
 mod render;
 
 #[cfg(feature = "dbg")]
@@ -19,6 +20,7 @@ use hecs::EntityBuilder;
 
 pub use animation::*;
 pub use attack::*;
+pub use projectile::*;
 pub use character::*;
 pub use collisions::*;
 pub use components::*;
@@ -358,6 +360,7 @@ impl App {
 
     fn game_update<G: Game>(&mut self, input: &InputModel, game: &mut G) -> Option<AppState> {
         game.input_phase(input, GAME_TICKRATE, &self.resources, &mut self.world);
+        projectile::ai(GAME_TICKRATE, &mut self.world);
 
         animation::update(GAME_TICKRATE, &mut self.world, &self.resources);
         animation::collect_clip_action_objects(&mut self.world, &mut self.clip_action_objects);
@@ -408,6 +411,7 @@ impl App {
         health::apply_cooldown(&mut self.world);
         attack::update_grazing(GAME_TICKRATE, &mut self.world, &self.col_solver);
         health::despawn_on_zero_health(&mut self.world, &mut self.cmds);
+        projectile::despawn_on_hit(&mut self.world, &mut self.cmds);
 
         let new_state = game.update(
             GAME_TICKRATE,

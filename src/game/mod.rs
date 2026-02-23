@@ -145,15 +145,13 @@ impl Game for Project {
 
     fn update(
         &mut self,
-        dt: f32,
-        resources: &lib_game::Resources,
+        _dt: f32,
+        _resources: &lib_game::Resources,
         world: &mut World,
         _collisions: &CollisionSolver,
-        cmds: &mut CommandBuffer,
+        _cmds: &mut CommandBuffer,
     ) -> Option<lib_game::AppState> {
         goal::check(world);
-
-        basic_bullet::update(dt, world, resources, cmds);
 
         decide_next_state(world)
     }
