@@ -36,7 +36,7 @@ pub struct AttackBundle {
     pub tf: Transform,
     pub team: Team,
     pub query: col_query::Damage,
-    pub graze_hitbox: BodyTag,
+    pub hitbox: BodyTag,
     pub graze_value: GrazeValue,
 }
 
@@ -46,7 +46,7 @@ impl AttackBundle {
             tf,
             team,
             query: col_query::Damage::new(shape, col_group::CHARACTERS, filter),
-            graze_hitbox: BodyTag {
+            hitbox: BodyTag {
                 groups: col_group::ATTACKS,
                 shape,
             },
