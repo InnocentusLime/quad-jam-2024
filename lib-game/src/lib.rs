@@ -39,23 +39,6 @@ pub struct DebugCommand {
 use hecs::{CommandBuffer, World};
 use macroquad::prelude::*;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum AppState {
-    Start,
-    Active { paused: bool },
-    GameOver,
-    Win,
-    GameDone,
-    PleaseRotate,
-    DebugFreeze,
-}
-
-#[derive(Debug)]
-pub enum NextState {
-    Load(String),
-    AppState(AppState),
-}
-
 /// The trait containing all callbacks for the game,
 /// that is run inside the App. It is usually best to
 /// only keep configuration stuff inside this struct.
