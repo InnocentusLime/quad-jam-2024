@@ -51,7 +51,7 @@ use macroquad::prelude::*;
 /// 5. Handling of the physics queries
 /// 6. Game::update
 /// 7. Game::render
-pub trait Game: 'static {
+pub trait State: 'static {
     fn handle_command(&mut self, app: &mut App, cmd: &DebugCommand) -> bool;
 
     /// Set up all physics queries. This can be considered as a sort of
@@ -77,7 +77,7 @@ pub trait Game: 'static {
         world: &mut World,
         collisions: &CollisionSolver,
         cmds: &mut CommandBuffer,
-    );
+    ) -> Option<Box<dyn State>>;
 }
 
 /// The app run all the boilerplate code to make the game tick.
@@ -114,9 +114,9 @@ impl App {
 
     /// Just runs the game. This is what you call after loading all the resources.
     /// This method will run forever as it provides the application loop.
-    pub async fn run<G: Game>(mut self, game: &mut G) {
+    pub async fn run(mut self, mut state: Box<dyn State>) {
         #[cfg(feature = "dbg")]
-        let mut debug = dbg::DebugStuff::new(game);
+        let mut debug = dbg::DebugStuff::new();
 
         sys::done_loading();
 
@@ -125,14 +125,16 @@ impl App {
 
         loop {
             #[cfg(feature = "dbg")]
-            debug.ui(&mut self, game);
+            debug.ui(&mut self, &mut *state);
 
             let dt = get_frame_time();
             #[cfg(feature = "dbg")]
             debug.new_update();
-            self.game_update(game, dt);
+            if let Some(new_state) = self.update(&mut *state, dt) {
+                state = new_state;
+            }
 
-            self.game_present(dt);
+            self.render(dt);
 
             #[cfg(feature = "dbg")]
             debug.draw(&mut self);
@@ -141,28 +143,23 @@ impl App {
         }
     }
 
-    fn game_present(&mut self, real_dt: f32) {
+    fn render(&mut self, real_dt: f32) {
         self.render.new_frame();
         self.render.buffer_sprites(&mut self.world);
         self.render
             .render(&self.resources, self.render_world, real_dt);
     }
 
-    fn game_update<G: Game>(&mut self, game: &mut G, dt: f32) {
+    fn update(&mut self, state: &mut dyn State, dt: f32) -> Option<Box<dyn State>> {
         self.col_solver.import_colliders(&mut self.world);
         self.col_solver.export_kinematic_moves(&mut self.world);
 
-        game.plan_collision_queries(
-            dt,
-            &self.resources,
-            &mut self.world,
-            &mut self.cmds,
-        );
+        state.plan_collision_queries(dt, &self.resources, &mut self.world, &mut self.cmds);
         self.cmds.run_on(&mut self.world);
 
         self.col_solver.compute_collisions(&mut self.world);
 
-        game.update(
+        let res = state.update(
             dt,
             &self.resources,
             &mut self.world,
@@ -172,6 +169,7 @@ impl App {
         self.cmds.run_on(&mut self.world);
 
         self.world.flush();
+        res
     }
 }
 

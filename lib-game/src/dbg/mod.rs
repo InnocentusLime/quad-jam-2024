@@ -9,7 +9,7 @@ use macroquad::prelude::*;
 pub use cmd::*;
 pub use screendump::*;
 
-use crate::{App, DebugCommand, Game, Resources, dump};
+use crate::{App, DebugCommand, Resources, State, dump};
 
 pub(crate) struct DebugStuff {
     pub cmd_center: CommandCenter,
@@ -19,7 +19,7 @@ pub(crate) struct DebugStuff {
 }
 
 impl DebugStuff {
-    pub(crate) fn new<G: Game>(_game: &mut G) -> Self {
+    pub(crate) fn new() -> Self {
         set_logger(&*GLOBAL_CON as &dyn log::Log).expect("failed to init logger");
 
         Self {
@@ -30,17 +30,17 @@ impl DebugStuff {
         }
     }
 
-    pub fn ui<G: Game>(&mut self, app: &mut App, game: &mut G) {
+    pub fn ui(&mut self, app: &mut App, state: &mut dyn State) {
         egui_macroquad::ui(|egui_ctx| {
             let cmd = self.cmd_center.show(egui_ctx, get_char_pressed());
             if let Some(cmd) = cmd {
-                self.handle_command(app, game, cmd);
+                self.handle_command(app, state, cmd);
             }
             GLOBAL_DUMP.show(egui_ctx);
         });
     }
 
-    fn handle_command<G: Game>(&mut self, app: &mut App, game: &mut G, cmd: DebugCommand) {
+    fn handle_command(&mut self, app: &mut App, state: &mut dyn State, cmd: DebugCommand) {
         match cmd.command.as_str() {
             "f" => self.force_freeze = true,
             "uf" => self.force_freeze = false,
@@ -73,7 +73,7 @@ impl DebugStuff {
                 self.enabled_debug_draws.remove(dd_name);
             }
             unmatched => {
-                if !game.handle_command(app, &cmd) {
+                if !state.handle_command(app, &cmd) {
                     error!("Unknown command: {unmatched:?}");
                 }
             }

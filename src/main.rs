@@ -1,6 +1,6 @@
 mod game;
 
-use game::Project;
+use game::MainGame;
 use macroquad::prelude::*;
 
 fn window_conf() -> Conf {
@@ -24,6 +24,5 @@ async fn main() {
 
     set_max_level(STATIC_MAX_LEVEL);
 
-    let mut project = Project::new();
-    lib_game::App::new().run(&mut project).await;
+    lib_game::App::new().run(Box::new(MainGame::new())).await;
 }
