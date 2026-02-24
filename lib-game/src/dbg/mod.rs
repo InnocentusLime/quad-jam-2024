@@ -30,6 +30,10 @@ impl DebugStuff {
         }
     }
 
+    pub fn should_pause(&self) -> bool {
+        self.cmd_center.should_pause() || self.force_freeze
+    }
+
     pub fn ui(&mut self, app: &mut App, state: &mut dyn State) {
         egui_macroquad::ui(|egui_ctx| {
             let cmd = self.cmd_center.show(egui_ctx, get_char_pressed());

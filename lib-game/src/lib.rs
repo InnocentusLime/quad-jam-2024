@@ -125,11 +125,19 @@ impl App {
 
         loop {
             #[cfg(feature = "dbg")]
-            debug.ui(&mut self, &mut *state);
+            {
+                debug.ui(&mut self, &mut *state);
+                debug.new_update();
+            }
 
             let dt = get_frame_time();
             #[cfg(feature = "dbg")]
-            debug.new_update();
+            if !debug.should_pause() {
+                if let Some(new_state) = self.update(&mut *state, dt) {
+                    state = new_state;
+                }
+            }
+            #[cfg(not(feature = "dbg"))]
             if let Some(new_state) = self.update(&mut *state, dt) {
                 state = new_state;
             }
