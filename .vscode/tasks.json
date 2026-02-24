@@ -13,20 +13,6 @@
             ]
         },
         {
-            "label": "Test level",
-            "type": "shell",
-            "command": "cargo",
-            "problemMatcher": [],
-            "args": [
-                "run", 
-                "--features", 
-                "dev-env", 
-                "--",
-                "--level",
-                "${input:level}"
-            ],
-        },
-        {
             "label": "Run webapp",
             "type": "shell",
             "command": "docker",
@@ -55,13 +41,6 @@
             "command": "docker",
             "problemMatcher": [],
             "args": ["build", "-t", "quad-jam", "."]
-        }
-    ],
-    "inputs": [
-        {
-            "id": "level",
-            "description": "What level to test",
-            "type": "promptString"  
         }
     ]
 }
