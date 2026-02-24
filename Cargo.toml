@@ -37,11 +37,6 @@ glam = { version = "0.30", features = ["serde"] }
 [patch.crates-io]
 macroquad = { git = "https://github.com/InnocentusLime/macroquad.git", rev = "d37736c42bc4328e2fd6f2ebcd3f19d88320732e" }
 
-[profile.release]
-opt-level = 3
-codegen-units = 1 # Compile the entire crate as one unit. marginal improvements.
-lto = "thin"      # Do a second optimization pass over the entire program, including dependencies. marginal improvements.
-
 [profile.dev.package."*"]
 opt-level = 3
 
@@ -49,7 +44,9 @@ opt-level = 3
 opt-level = 3
 
 [profile.wasm-release]
-inherits = "release" # Use release profile as default values.
-opt-level = "z"      # Optimize with size in mind (also try "s", sometimes it is better).
-strip = true  # Strip all debugging information from the binary to reduce file size.
+inherits = "release"
+codegen-units = 1
+lto = "thin"
+opt-level = "z"
+strip = true
 panic = "abort"
