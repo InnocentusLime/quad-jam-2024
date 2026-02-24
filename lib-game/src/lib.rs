@@ -39,8 +39,6 @@ pub struct DebugCommand {
 use hecs::{CommandBuffer, World};
 use macroquad::prelude::*;
 
-const GAME_TICKRATE: f32 = 1.0 / 60.0;
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AppState {
     Start,
@@ -110,8 +108,6 @@ pub trait Game: 'static {
 /// * Drawing of the `dump!` macro
 pub struct App {
     pub resources: Resources,
-    accumelated_time: f32,
-
     pub render: Render,
     col_solver: CollisionSolver,
     pub world: World,
@@ -124,8 +120,6 @@ impl App {
     pub fn new() -> Self {
         Self {
             resources: Resources::new(),
-            accumelated_time: 0.0,
-
             render: Render::new(),
             col_solver: CollisionSolver::new(),
             world: World::new(),
@@ -150,14 +144,12 @@ impl App {
             #[cfg(feature = "dbg")]
             debug.ui(&mut self, game);
 
-            let real_dt = get_frame_time();
-            if self.update_ticking(real_dt) {
-                #[cfg(feature = "dbg")]
-                debug.new_update();
-                self.game_update(game);
-            }
+            let dt = get_frame_time();
+            #[cfg(feature = "dbg")]
+            debug.new_update();
+            self.game_update(game, dt);
 
-            self.game_present(real_dt);
+            self.game_present(dt);
 
             #[cfg(feature = "dbg")]
             debug.draw(&mut self);
@@ -173,12 +165,12 @@ impl App {
             .render(&self.resources, self.render_world, real_dt);
     }
 
-    fn game_update<G: Game>(&mut self, game: &mut G) {
+    fn game_update<G: Game>(&mut self, game: &mut G, dt: f32) {
         self.col_solver.import_colliders(&mut self.world);
         self.col_solver.export_kinematic_moves(&mut self.world);
 
         game.plan_collision_queries(
-            GAME_TICKRATE,
+            dt,
             &self.resources,
             &mut self.world,
             &mut self.cmds,
@@ -188,7 +180,7 @@ impl App {
         self.col_solver.compute_collisions(&mut self.world);
 
         game.update(
-            GAME_TICKRATE,
+            dt,
             &self.resources,
             &mut self.world,
             &self.col_solver,
@@ -197,21 +189,6 @@ impl App {
         self.cmds.run_on(&mut self.world);
 
         self.world.flush();
-    }
-
-    fn update_ticking(&mut self, real_dt: f32) -> bool {
-        self.accumelated_time += real_dt;
-        let lag_ms = (self.accumelated_time - 2.0 * GAME_TICKRATE) * 1000.0;
-        if lag_ms > 1.0 {
-            warn!("LAG by {lag_ms:.2}ms");
-            self.accumelated_time = 0.0;
-            false
-        } else if self.accumelated_time >= GAME_TICKRATE {
-            self.accumelated_time -= GAME_TICKRATE;
-            true
-        } else {
-            false
-        }
     }
 }
 

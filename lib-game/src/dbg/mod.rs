@@ -87,7 +87,6 @@ impl DebugStuff {
     pub fn draw(&self, app: &mut App) {
         let ent_count = app.world.iter().count();
 
-        dump!("Dt: {:.2}", app.accumelated_time);
         dump!("FPS: {:?}", get_fps());
         dump!("Entities: {ent_count}");
         self.dump_archetypes(app);
