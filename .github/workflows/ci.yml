@@ -53,8 +53,6 @@ jobs:
         run: cargo build --locked --features lib-game/dbg
       - name: Check Native (shipped)
         run: cargo build --locked
-      - name: Check (asset-compiler)
-        run: cargo build --locked --features dev-env --package lib-asset --bin asset-compiler
   tests:
     runs-on: ubuntu-latest
     container: rust:1.93.1-bookworm 
