@@ -1,5 +1,5 @@
 use hecs::{Entity, World};
-use macroquad::prelude::*;
+use glam::*;
 
 mod components;
 mod debug;

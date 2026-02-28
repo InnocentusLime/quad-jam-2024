@@ -4,30 +4,20 @@ version = "0.21.0"
 edition = "2024"
 
 [dependencies]
+winit = "0.30"
+image = { version = "0.25", features = ["png"], default-features = false }
 log = { workspace = true }
 anyhow = { workspace = true }
 hecs = { workspace = true }
-macroquad = { workspace = true }
+mimiq = { workspace = true }
+glam = { workspace = true }
 hashbrown = { workspace = true }
 lib-col = { path = "../lib-col" }
 lib-asset = { path = "../lib-asset" }
-# FIXME: we do not want to pull dev-tools on WASM
-# NOTE: Macroquad is patched, because some things may depend on it.
-#       There are no dependencies on egui-macroquad.
-#       Just pull it as git dep.
-egui = { version = "0.31.1", optional = true }
-
-[dependencies.egui-macroquad]
-git = "https://github.com/InnocentusLime/egui-macroquad.git" 
-rev = "0061aee361e908d15e95e4c6bd02ec6beee3d7fd" 
-features = ["audio", "logs-rs"]
-optional = true
-
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-sapp-jsutils = { version = "^0.1" }
+egui = { version = "0.33", optional = true }
 
 [features]
-dbg = ["dep:egui", "dep:egui-macroquad", "lib-col/dbg", "lib-asset/dbg"]
+dbg = ["dep:egui", "mimiq/egui", "lib-col/dbg", "lib-asset/dbg"]
 dev-env = ["dbg", "lib-asset/dev-env"]
 
 [dev-dependencies]

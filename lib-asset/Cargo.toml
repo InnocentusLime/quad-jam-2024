@@ -9,7 +9,7 @@ log = { workspace = true }
 anyhow = { workspace = true }
 serde = { workspace = true }
 hashbrown = { workspace = true, features = ["serde"] }
-macroquad = { workspace = true }
+mimiq = { workspace = true }
 lib-col = { path = "../lib-col" }
 serde_json = "1" 
 slab = "0.4"

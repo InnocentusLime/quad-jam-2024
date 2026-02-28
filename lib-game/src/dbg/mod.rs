@@ -4,7 +4,6 @@ mod screendump;
 use hashbrown::{HashMap, HashSet};
 use hecs::World;
 use log::set_logger;
-use macroquad::prelude::*;
 
 pub use cmd::*;
 pub use screendump::*;
@@ -34,15 +33,15 @@ impl DebugStuff {
         self.cmd_center.should_pause() || self.force_freeze
     }
 
-    pub fn ui(&mut self, app: &mut App, state: &mut dyn State) {
-        egui_macroquad::ui(|egui_ctx| {
-            let cmd = self.cmd_center.show(egui_ctx, get_char_pressed());
-            if let Some(cmd) = cmd {
-                self.handle_command(app, state, cmd);
-            }
-            GLOBAL_DUMP.show(egui_ctx);
-        });
-    }
+    // pub fn ui(&mut self, app: &mut App, state: &mut dyn State) {
+    //     egui_macroquad::ui(|egui_ctx| {
+    //         let cmd = self.cmd_center.show(egui_ctx, get_char_pressed());
+    //         if let Some(cmd) = cmd {
+    //             self.handle_command(app, state, cmd);
+    //         }
+    //         GLOBAL_DUMP.show(egui_ctx);
+    //     });
+    // }
 
     fn handle_command(&mut self, app: &mut App, state: &mut dyn State, cmd: DebugCommand) {
         match cmd.command.as_str() {
@@ -52,33 +51,33 @@ impl DebugStuff {
             "sw" => app.render_world = true,
             "dde" => {
                 if cmd.args.is_empty() {
-                    error!("Not enough args");
+                    // error!("Not enough args");
                     return;
                 }
 
                 let dd_name = &cmd.args[0];
                 if !self.debug_draws.contains_key(dd_name) {
-                    error!("No such debug draw: {:?}", dd_name);
+                    // error!("No such debug draw: {:?}", dd_name);
                     return;
                 }
                 self.enabled_debug_draws.insert(dd_name.to_owned());
             }
             "ddd" => {
                 if cmd.args.is_empty() {
-                    error!("Not enough args");
+                    // error!("Not enough args");
                     return;
                 }
 
                 let dd_name = &cmd.args[0];
                 if !self.enabled_debug_draws.contains(dd_name) {
-                    error!("No enabled debug draw: {:?}", dd_name);
+                    // error!("No enabled debug draw: {:?}", dd_name);
                     return;
                 }
                 self.enabled_debug_draws.remove(dd_name);
             }
             unmatched => {
                 if !state.handle_command(app, &cmd) {
-                    error!("Unknown command: {unmatched:?}");
+                    // error!("Unknown command: {unmatched:?}");
                 }
             }
         }
@@ -91,7 +90,7 @@ impl DebugStuff {
     pub fn draw(&self, app: &mut App) {
         let ent_count = app.world.iter().count();
 
-        dump!("FPS: {:?}", get_fps());
+        // dump!("FPS: {:?}", get_fps());
         dump!("Entities: {ent_count}");
         self.dump_archetypes(app);
         GLOBAL_DUMP.lock();
@@ -102,8 +101,6 @@ impl DebugStuff {
                 draw(&app.world, &app.resources);
             }
         });
-
-        egui_macroquad::draw();
     }
 
     fn dump_archetypes(&self, app: &mut App) {

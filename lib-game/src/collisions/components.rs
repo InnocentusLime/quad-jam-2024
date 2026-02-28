@@ -1,4 +1,4 @@
-use macroquad::prelude::*;
+use glam::*;
 
 pub use lib_col::{Group, Shape};
 

@@ -7,12 +7,16 @@ pub mod dbg;
 
 pub mod sys;
 
-use std::path::Path;
 
 pub use collisions::*;
 pub use components::*;
 pub use lib_asset::*;
 pub use render::*;
+use winit::{event::WindowEvent, window::Window};
+
+use std::{path::Path, rc::Rc};
+use hecs::{CommandBuffer, World};
+use glam::*;
 
 #[macro_export]
 #[cfg(feature = "dbg")]
@@ -35,9 +39,6 @@ pub struct DebugCommand {
     pub command: String,
     pub args: Vec<String>,
 }
-
-use hecs::{CommandBuffer, World};
-use macroquad::prelude::*;
 
 /// The trait containing all callbacks for the game,
 /// that is run inside the App. It is usually best to
@@ -95,134 +96,130 @@ pub struct App {
     col_solver: CollisionSolver,
     pub world: World,
     cmds: CommandBuffer,
+    // state: Box<dyn State>,
 
     render_world: bool,
 }
 
-impl App {
-    pub fn new() -> Self {
+impl mimiq::EventHandler for App {
+    fn init(gl_ctx: Rc<mimiq::GlContext>, fs_server: mimiq::FsServerHandle) -> Self {
+        fs_server.submit_task("assets/atlas/bnuuy.png", 0);
+        let resources = Resources::new(gl_ctx, fs_server);
+
         Self {
-            resources: Resources::new(),
-            render: Render::new(),
+            render: Render::new(&resources),
             col_solver: CollisionSolver::new(),
             world: World::new(),
             cmds: CommandBuffer::new(),
+            resources,
 
             render_world: true,
         }
     }
 
-    /// Just runs the game. This is what you call after loading all the resources.
-    /// This method will run forever as it provides the application loop.
-    pub async fn run(mut self, mut state: Box<dyn State>) {
-        #[cfg(feature = "dbg")]
-        let mut debug = dbg::DebugStuff::new();
+    fn file_ready(&mut self, event: mimiq::FileReady) {
+        let Ok(bytes) = event.bytes_result else {
+            return;
+        };
+        let img = image::load_from_memory(&bytes).expect("Image load failed");
+        
+        let texture = self.resources.gl_ctx.new_texture(
+            img, 
+            mimiq::Texture2DParams {
+                internal_format: mimiq::Texture2DFormat::RGBA8,
+                wrap: mimiq::TextureWrap::Clamp,
+                min_filter: mimiq::FilterMode::Nearest,
+                mag_filter: mimiq::FilterMode::Nearest,
+            },
+        );
+        let texture = self.resources.textures.insert(
+            "atlas/bnuuy.png", 
+            texture,
+        );
 
-        let texture = self.resources.load_texture("atlas/bnuuy.png").await;
         self.world.spawn((
             Transform::from_pos(vec2(64.0, 64.0)),
             Sprite {
                 layer: 0,
                 texture,
-                rect: Rect {
-                    x: 0.0,
-                    y: 0.0,
-                    w: 67.0,
-                    h: 17.0,
-                },
-                color: WHITE,
+                color: mimiq::WHITE,
                 sort_offset: 0.0,
                 local_offset: Vec2::ZERO,
+                tex_rect_pos: uvec2(0, 0),
+                tex_rect_size: uvec2(67, 17),
             },
         ));
+    }
 
-        sys::done_loading();
+    fn update(&mut self, dt: std::time::Duration) {
+        // #[cfg(feature = "dbg")]
+        // if !debug.should_pause() {
+        //     if let Some(new_state) = self.update(&mut *state, dt) {
+        //         state = new_state;
+        //     }
+        // }
+        // #[cfg(not(feature = "dbg"))]
+        // if let Some(new_state) = self.update_inner(&mut *state, dt) {
+        //     state = new_state;
+        // }
+        
+        self.update_inner(dt.as_secs_f32());
+    }
 
-        info!("Done loading");
-        info!("lib-game version: {}", env!("CARGO_PKG_VERSION"));
-
-        loop {
-            #[cfg(feature = "dbg")]
-            {
-                debug.ui(&mut self, &mut *state);
-                debug.new_update();
-            }
-
-            let dt = get_frame_time();
-            #[cfg(feature = "dbg")]
-            if !debug.should_pause() {
-                if let Some(new_state) = self.update(&mut *state, dt) {
-                    state = new_state;
-                }
-            }
-            #[cfg(not(feature = "dbg"))]
-            if let Some(new_state) = self.update(&mut *state, dt) {
-                state = new_state;
-            }
-
-            self.render(dt);
-
-            #[cfg(feature = "dbg")]
-            debug.draw(&mut self);
-
-            next_frame().await
+    fn window_event(&mut self, event: WindowEvent, _window: &Window) {
+        match event {
+            WindowEvent::RedrawRequested => {
+                self.render.new_frame();
+                self.render.buffer_sprites(&mut self.world);
+                self.render.render(&self.resources, self.render_world);
+            },
+            _ => (),
         }
     }
+}
 
-    fn render(&mut self, real_dt: f32) {
-        self.render.new_frame();
-        self.render.buffer_sprites(&mut self.world);
-        self.render
-            .render(&self.resources, self.render_world, real_dt);
-    }
-
-    fn update(&mut self, state: &mut dyn State, dt: f32) -> Option<Box<dyn State>> {
+impl App {
+    fn update_inner(&mut self, _dt: f32) -> Option<Box<dyn State>> {
         self.col_solver.import_colliders(&mut self.world);
         self.col_solver.export_kinematic_moves(&mut self.world);
 
-        state.plan_collision_queries(dt, &self.resources, &mut self.world, &mut self.cmds);
+        // state.plan_collision_queries(dt, &self.resources, &mut self.world, &mut self.cmds);
         self.cmds.run_on(&mut self.world);
 
         self.col_solver.compute_collisions(&mut self.world);
 
-        let res = state.update(
-            dt,
-            &self.resources,
-            &mut self.world,
-            &self.col_solver,
-            &mut self.cmds,
-        );
+        // let res = state.update(
+        //     dt,
+        //     &self.resources,
+        //     &mut self.world,
+        //     &self.col_solver,
+        //     &mut self.cmds,
+        // );
         self.cmds.run_on(&mut self.world);
 
         self.world.flush();
-        res
+        // res
+        None
     }
 }
 
 pub struct Resources {
+    pub fs_server: mimiq::FsServerHandle,
+    pub gl_ctx: Rc<mimiq::GlContext>,
+    pub sprite_pipeline: mimiq::Pipeline<mimiq::util::BasicSpritePipelineMeta>,
     pub resolver: FsResolver,
-    pub textures: AssetContainer<Texture2D>,
+    pub textures: AssetContainer<mimiq::Texture2D>,
 }
 
 impl Resources {
-    pub fn new() -> Self {
+    pub fn new(gl_ctx: Rc<mimiq::GlContext>, fs_server: mimiq::FsServerHandle) -> Self {
         Resources {
+            fs_server,
+            sprite_pipeline: gl_ctx.new_pipeline(),
             resolver: FsResolver::new(),
             textures: AssetContainer::new(),
+            gl_ctx,
         }
     }
-
-    pub async fn load_texture(&mut self, path: impl AsRef<Path>) -> AssetKey {
-        let src_path = path.as_ref();
-        let path = self.resolver.get_path(AssetRoot::Assets, src_path);
-        let path = path.to_string_lossy();
-        let texture = load_texture(&path).await.unwrap();
-        self.textures.insert(src_path, texture)
-    }
 }
 
-impl Default for Resources {
-    fn default() -> Self {
-        Resources::new()
-    }
-}
