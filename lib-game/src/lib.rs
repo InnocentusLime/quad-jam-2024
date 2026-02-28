@@ -118,6 +118,24 @@ impl App {
         #[cfg(feature = "dbg")]
         let mut debug = dbg::DebugStuff::new();
 
+        let texture = self.resources.load_texture("atlas/bnuuy.png").await;
+        self.world.spawn((
+            Transform::from_pos(vec2(64.0, 64.0)),
+            Sprite {
+                layer: 0,
+                texture,
+                rect: Rect {
+                    x: 0.0,
+                    y: 0.0,
+                    w: 67.0,
+                    h: 17.0,
+                },
+                color: WHITE,
+                sort_offset: 0.0,
+                local_offset: Vec2::ZERO,
+            },
+        ));
+
         sys::done_loading();
 
         info!("Done loading");
