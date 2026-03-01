@@ -10,5 +10,5 @@ fn window_conf() -> Conf {
 }
 
 fn main() {
-    mimiq::run::<lib_game::App>(window_conf());
+    mimiq::run::<_, lib_game::App>(window_conf(), Box::new(MainGame::new()));
 }

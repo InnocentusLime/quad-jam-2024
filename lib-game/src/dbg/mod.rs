@@ -105,9 +105,9 @@ impl App {
                 self.debug.enabled_debug_draws.remove(dd_name);
             }
             unmatched => {
-                // if !state.handle_command(app, &cmd) {
-                error!("Unknown command: {unmatched:?}");
-                // }
+                if !self.state.handle_command(&cmd) {
+                    error!("Unknown command: {unmatched:?}");
+                }
             }
         }
     }

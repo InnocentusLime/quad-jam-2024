@@ -14,8 +14,8 @@ pub use render::*;
 use winit::{event::WindowEvent, window::Window};
 
 use glam::*;
-use log::*;
 use hecs::{CommandBuffer, World};
+use log::*;
 use std::{path::Path, rc::Rc};
 
 #[macro_export]
@@ -53,7 +53,7 @@ pub struct DebugCommand {
 /// 6. Game::update
 /// 7. Game::render
 pub trait State: 'static {
-    fn handle_command(&mut self, app: &mut App, cmd: &DebugCommand) -> bool;
+    fn handle_command(&mut self, cmd: &DebugCommand) -> bool;
 
     /// Set up all physics queries. This can be considered as a sort of
     /// pre-update phase.
@@ -98,12 +98,17 @@ pub struct App {
     #[cfg(feature = "dbg")]
     debug: dbg::DebugStuff,
     cmds: CommandBuffer,
+    state: Box<dyn State>,
 
     render_world: bool,
 }
 
-impl mimiq::EventHandler for App {
-    fn init(gl_ctx: Rc<mimiq::GlContext>, fs_server: mimiq::FsServerHandle) -> Self {
+impl mimiq::EventHandler<Box<dyn State>> for App {
+    fn init(
+        gl_ctx: Rc<mimiq::GlContext>,
+        fs_server: mimiq::FsServerHandle,
+        state: Box<dyn State>,
+    ) -> Self {
         fs_server.submit_task("assets/atlas/bnuuy.png", 0);
         let resources = Resources::new(gl_ctx, fs_server);
 
@@ -117,6 +122,7 @@ impl mimiq::EventHandler for App {
             #[cfg(feature = "dbg")]
             debug: dbg::DebugStuff::new(),
             resources,
+            state,
 
             render_world: true,
         }
@@ -159,12 +165,12 @@ impl mimiq::EventHandler for App {
         #[cfg(feature = "dbg")]
         if !self.debug.should_pause() {
             if let Some(new_state) = self.update_inner(dt.as_secs_f32()) {
-                // state = new_state;
+                self.state = new_state;
             }
         }
         #[cfg(not(feature = "dbg"))]
         if let Some(new_state) = self.update_inner(dt.as_secs_f32()) {
-            // state = new_state;
+            self.state = new_state;
         }
     }
 
@@ -188,27 +194,27 @@ impl mimiq::EventHandler for App {
 }
 
 impl App {
-    fn update_inner(&mut self, _dt: f32) -> Option<Box<dyn State>> {
+    fn update_inner(&mut self, dt: f32) -> Option<Box<dyn State>> {
         self.col_solver.import_colliders(&mut self.world);
         self.col_solver.export_kinematic_moves(&mut self.world);
 
-        // state.plan_collision_queries(dt, &self.resources, &mut self.world, &mut self.cmds);
+        self.state
+            .plan_collision_queries(dt, &self.resources, &mut self.world, &mut self.cmds);
         self.cmds.run_on(&mut self.world);
 
         self.col_solver.compute_collisions(&mut self.world);
 
-        // let res = state.update(
-        //     dt,
-        //     &self.resources,
-        //     &mut self.world,
-        //     &self.col_solver,
-        //     &mut self.cmds,
-        // );
+        let res = self.state.update(
+            dt,
+            &self.resources,
+            &mut self.world,
+            &self.col_solver,
+            &mut self.cmds,
+        );
         self.cmds.run_on(&mut self.world);
 
         self.world.flush();
-        // res
-        None
+        res
     }
 }
 
