@@ -4,12 +4,12 @@ mod screendump;
 use egui::Context;
 use hashbrown::{HashMap, HashSet};
 use hecs::World;
-use log::set_logger;
+use log::*;
 
 pub use cmd::*;
 pub use screendump::*;
 
-use crate::{App, DebugCommand, Resources, State, dump};
+use crate::{App, DebugCommand, Resources, dump};
 
 pub(crate) struct DebugStuff {
     pub cmd_center: CommandCenter,
@@ -80,33 +80,33 @@ impl App {
             "sw" => self.render_world = true,
             "dde" => {
                 if cmd.args.is_empty() {
-                    // error!("Not enough args");
+                    error!("Not enough args");
                     return;
                 }
 
                 let dd_name = &cmd.args[0];
                 if !self.debug.debug_draws.contains_key(dd_name) {
-                    // error!("No such debug draw: {:?}", dd_name);
+                    error!("No such debug draw: {:?}", dd_name);
                     return;
                 }
                 self.debug.enabled_debug_draws.insert(dd_name.to_owned());
             }
             "ddd" => {
                 if cmd.args.is_empty() {
-                    // error!("Not enough args");
+                    error!("Not enough args");
                     return;
                 }
 
                 let dd_name = &cmd.args[0];
                 if !self.debug.enabled_debug_draws.contains(dd_name) {
-                    // error!("No enabled debug draw: {:?}", dd_name);
+                    error!("No enabled debug draw: {:?}", dd_name);
                     return;
                 }
                 self.debug.enabled_debug_draws.remove(dd_name);
             }
             unmatched => {
                 // if !state.handle_command(app, &cmd) {
-                // error!("Unknown command: {unmatched:?}");
+                error!("Unknown command: {unmatched:?}");
                 // }
             }
         }

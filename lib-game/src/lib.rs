@@ -14,6 +14,7 @@ pub use render::*;
 use winit::{event::WindowEvent, window::Window};
 
 use glam::*;
+use log::*;
 use hecs::{CommandBuffer, World};
 use std::{path::Path, rc::Rc};
 
@@ -105,6 +106,8 @@ impl mimiq::EventHandler for App {
     fn init(gl_ctx: Rc<mimiq::GlContext>, fs_server: mimiq::FsServerHandle) -> Self {
         fs_server.submit_task("assets/atlas/bnuuy.png", 0);
         let resources = Resources::new(gl_ctx, fs_server);
+
+        info!("Lib-game version: {}", env!("CARGO_PKG_VERSION"));
 
         Self {
             render: Render::new(&resources),
