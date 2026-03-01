@@ -28,13 +28,11 @@ impl CommandCenter {
         !self.buff.is_empty()
     }
 
-    pub fn show(&mut self, ctx: &egui::Context, ch: Option<char>) -> Option<DebugCommand> {
+    pub fn show(&mut self, ctx: &egui::Context) -> Option<DebugCommand> {
         let (close, submit, begin_command) = ctx.input(|inp| {
             let close = inp.key_pressed(egui::Key::Escape);
             let submit = inp.key_pressed(egui::Key::Enter);
-            // FIXME: broken with macroquad backend this doesn't work
-            //        inp.key_pressed(egui::Key::Colon)
-            let begin_command = ch == Some(':');
+            let begin_command = inp.key_pressed(egui::Key::Colon);
             (close, submit, begin_command)
         });
         if begin_command {

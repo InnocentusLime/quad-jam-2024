@@ -7,16 +7,15 @@ pub mod dbg;
 
 pub mod sys;
 
-
 pub use collisions::*;
 pub use components::*;
 pub use lib_asset::*;
 pub use render::*;
 use winit::{event::WindowEvent, window::Window};
 
-use std::{path::Path, rc::Rc};
-use hecs::{CommandBuffer, World};
 use glam::*;
+use hecs::{CommandBuffer, World};
+use std::{path::Path, rc::Rc};
 
 #[macro_export]
 #[cfg(feature = "dbg")]
@@ -95,8 +94,9 @@ pub struct App {
     pub render: Render,
     col_solver: CollisionSolver,
     pub world: World,
+    #[cfg(feature = "dbg")]
+    debug: dbg::DebugStuff,
     cmds: CommandBuffer,
-    // state: Box<dyn State>,
 
     render_world: bool,
 }
@@ -111,6 +111,8 @@ impl mimiq::EventHandler for App {
             col_solver: CollisionSolver::new(),
             world: World::new(),
             cmds: CommandBuffer::new(),
+            #[cfg(feature = "dbg")]
+            debug: dbg::DebugStuff::new(),
             resources,
 
             render_world: true,
@@ -122,9 +124,9 @@ impl mimiq::EventHandler for App {
             return;
         };
         let img = image::load_from_memory(&bytes).expect("Image load failed");
-        
+
         let texture = self.resources.gl_ctx.new_texture(
-            img, 
+            img,
             mimiq::Texture2DParams {
                 internal_format: mimiq::Texture2DFormat::RGBA8,
                 wrap: mimiq::TextureWrap::Clamp,
@@ -132,10 +134,7 @@ impl mimiq::EventHandler for App {
                 mag_filter: mimiq::FilterMode::Nearest,
             },
         );
-        let texture = self.resources.textures.insert(
-            "atlas/bnuuy.png", 
-            texture,
-        );
+        let texture = self.resources.textures.insert("atlas/bnuuy.png", texture);
 
         self.world.spawn((
             Transform::from_pos(vec2(64.0, 64.0)),
@@ -152,18 +151,18 @@ impl mimiq::EventHandler for App {
     }
 
     fn update(&mut self, dt: std::time::Duration) {
-        // #[cfg(feature = "dbg")]
-        // if !debug.should_pause() {
-        //     if let Some(new_state) = self.update(&mut *state, dt) {
-        //         state = new_state;
-        //     }
-        // }
-        // #[cfg(not(feature = "dbg"))]
-        // if let Some(new_state) = self.update_inner(&mut *state, dt) {
-        //     state = new_state;
-        // }
-        
-        self.update_inner(dt.as_secs_f32());
+        #[cfg(feature = "dbg")]
+        self.debug.new_update();
+        #[cfg(feature = "dbg")]
+        if !self.debug.should_pause() {
+            if let Some(new_state) = self.update_inner(dt.as_secs_f32()) {
+                // state = new_state;
+            }
+        }
+        #[cfg(not(feature = "dbg"))]
+        if let Some(new_state) = self.update_inner(dt.as_secs_f32()) {
+            // state = new_state;
+        }
     }
 
     fn window_event(&mut self, event: WindowEvent, _window: &Window) {
@@ -172,9 +171,16 @@ impl mimiq::EventHandler for App {
                 self.render.new_frame();
                 self.render.buffer_sprites(&mut self.world);
                 self.render.render(&self.resources, self.render_world);
-            },
+                #[cfg(feature = "dbg")]
+                self.debug_draw();
+            }
             _ => (),
         }
+    }
+
+    #[cfg(feature = "dbg")]
+    fn egui(&mut self, egui_ctx: &egui::Context) {
+        self.debug_ui(egui_ctx);
     }
 }
 
@@ -222,4 +228,3 @@ impl Resources {
         }
     }
 }
-

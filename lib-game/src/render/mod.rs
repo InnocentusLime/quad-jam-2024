@@ -4,11 +4,11 @@ use std::rc::Rc;
 
 use crate::{Sprite, dump};
 pub use components::*;
+use glam::*;
 use hecs::World;
 use lib_asset::{AssetKey, INVALID_ASSET};
-use glam::*;
-use mimiq::{Clear, GlContext, Texture2D, BLACK};
 use mimiq::util::SpriteBatcher;
+use mimiq::{BLACK, Clear, GlContext, Texture2D};
 
 use crate::{Resources, Transform};
 
@@ -25,14 +25,17 @@ impl Render {
         }
     }
 
-    pub fn new_frame(&mut self) { /* NO-OP */ }
+    pub fn new_frame(&mut self) { /* NO-OP */
+    }
 
     pub fn render(&mut self, resources: &Resources, render_world: bool) {
-        resources.gl_ctx.default_pass(Clear::depth_color(BLACK), |width, height| {
-            if render_world {
-                self.draw_sprites(resources, width, height);
-            }
-        });
+        resources
+            .gl_ctx
+            .default_pass(Clear::depth_color(BLACK), |width, height| {
+                if render_world {
+                    self.draw_sprites(resources, width, height);
+                }
+            });
     }
 
     pub fn debug_render<F>(&mut self, code: F)
@@ -58,29 +61,20 @@ impl Render {
             return;
         };
 
-         let view_projection = Mat4::orthographic_rh_gl(
-            0.0,
-            width as f32,
-            height as f32,
-            0.0,
-            0.0,
-            100.0,
-        );
+        let view_projection =
+            Mat4::orthographic_rh_gl(0.0, width as f32, height as f32, 0.0, 0.0, 100.0);
         self.sprite_batcher.draw(
-            &resources.gl_ctx, 
-            view_projection, 
-            &resources.sprite_pipeline, 
+            &resources.gl_ctx,
+            view_projection,
+            &resources.sprite_pipeline,
             texture,
         );
     }
 
     pub fn buffer_sprites(&mut self, world: &mut World) {
         for (_, (tf, sprite)) in world.query_mut::<(&Transform, &Sprite)>() {
-            let transform = Affine2::from_angle_translation(
-                tf.angle, 
-                tf.pos,
-            );
-            
+            let transform = Affine2::from_angle_translation(tf.angle, tf.pos);
+
             self.curr_texture = sprite.texture;
             self.sprite_batcher.add_sprite(mimiq::util::Sprite {
                 tex_rect_pos: sprite.tex_rect_pos,

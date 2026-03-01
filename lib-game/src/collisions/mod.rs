@@ -1,5 +1,5 @@
-use hecs::{Entity, World};
 use glam::*;
+use hecs::{Entity, World};
 
 mod components;
 mod debug;

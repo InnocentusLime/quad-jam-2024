@@ -1,5 +1,5 @@
-use lib_asset::AssetKey;
 use glam::*;
+use lib_asset::AssetKey;
 use mimiq::Color;
 
 #[derive(Debug, Clone, Copy)]
