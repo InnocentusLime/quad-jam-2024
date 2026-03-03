@@ -9,11 +9,11 @@ use log::*;
 pub use cmd::*;
 pub use screendump::*;
 
-use crate::{App, DebugCommand, Resources, dump};
+use crate::{App, DebugCommand, Render, Resources, draw_physics_debug, dump};
 
 pub(crate) struct DebugStuff {
     pub cmd_center: CommandCenter,
-    pub debug_draws: HashMap<String, fn(&World, &Resources)>,
+    pub debug_draws: HashMap<String, fn(&World, &mut Render)>,
     pub enabled_debug_draws: HashSet<String>,
     pub force_freeze: bool,
 }
@@ -21,10 +21,12 @@ pub(crate) struct DebugStuff {
 impl DebugStuff {
     pub(crate) fn new() -> Self {
         // set_logger(&*GLOBAL_CON as &dyn log::Log).expect("failed to init logger");
+        let mut debug_draws = HashMap::<String, fn(&World, &mut Render)>::new();
+        debug_draws.insert("phys".to_string(), draw_physics_debug);
 
         Self {
             cmd_center: CommandCenter::new(),
-            debug_draws: HashMap::new(),
+            debug_draws,
             enabled_debug_draws: HashSet::new(),
             force_freeze: false,
         }
@@ -48,12 +50,9 @@ impl App {
         self.dump_archetypes();
         GLOBAL_DUMP.lock();
 
-        // app.render.debug_render(|| {
-        //     for debug_draw_name in self.enabled_debug_draws.iter() {
-        //         let draw = self.debug_draws[debug_draw_name];
-        //         draw(&app.world, &app.resources);
-        //     }
-        // });
+        for debug_draw_name in self.debug.enabled_debug_draws.iter() {
+            (self.debug.debug_draws[debug_draw_name])(&self.world, &mut self.render);
+        }
     }
 
     fn dump_archetypes(&self) {
@@ -90,6 +89,7 @@ impl App {
                     return;
                 }
                 self.debug.enabled_debug_draws.insert(dd_name.to_owned());
+                info!("Enabled debug draw {dd_name:?}");
             }
             "ddd" => {
                 if cmd.args.is_empty() {
@@ -103,6 +103,7 @@ impl App {
                     return;
                 }
                 self.debug.enabled_debug_draws.remove(dd_name);
+                info!("Disabled debug draw {dd_name:?}");
             }
             unmatched => {
                 if !self.state.handle_command(&cmd) {

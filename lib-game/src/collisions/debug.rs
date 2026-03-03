@@ -1,8 +1,9 @@
-use crate::Resources;
+use crate::Render;
 use crate::collisions::*;
 use crate::components::*;
 
 use hecs::World;
+use mimiq::Color;
 
 // fn draw_queries<const ID: usize>(world: &World) {
 //     for (_, (tf, query)) in &mut world.query::<(&Transform, &CollisionQuery<ID>)>() {
@@ -16,40 +17,34 @@ use hecs::World;
 //     }
 // }
 
-// fn draw_bodies(world: &World) {
-//     for (_, (tf, tag)) in &mut world.query::<(&Transform, &BodyTag)>() {
-//         draw_shape(tf, &tag.shape, DARKBLUE);
-//     }
-// }
+fn draw_bodies(world: &World, render: &mut Render) {
+    for (_, (tf, tag)) in &mut world.query::<(&Transform, &BodyTag)>() {
+        draw_shape(render, tf, &tag.shape, mimiq::DARKBLUE);
+    }
+}
 
-// pub fn draw_physics_debug(world: &World, _resources: &Resources) {
-//     draw_bodies(world);
-//     draw_queries::<0>(world);
-//     draw_queries::<1>(world);
-//     draw_queries::<2>(world);
-//     draw_queries::<3>(world);
-//     draw_queries::<4>(world);
-//     draw_queries::<5>(world);
-//     draw_queries::<6>(world);
-//     draw_queries::<7>(world);
-// }
+pub fn draw_physics_debug(world: &World, render: &mut Render) {
+    draw_bodies(world, render);
+    //     draw_queries::<0>(world);
+    //     draw_queries::<1>(world);
+    //     draw_queries::<2>(world);
+    //     draw_queries::<3>(world);
+    //     draw_queries::<4>(world);
+    //     draw_queries::<5>(world);
+    //     draw_queries::<6>(world);
+    //     draw_queries::<7>(world);
+}
 
-// pub fn draw_shape(tf: &Transform, shape: &Shape, color: Color) {
-//     match *shape {
-//         Shape::Rect { width, height } => draw_rectangle_ex(
-//             tf.pos.x,
-//             tf.pos.y,
-//             width,
-//             height,
-//             DrawRectangleParams {
-//                 offset: vec2(0.5, 0.5),
-//                 rotation: tf.angle,
-//                 color,
-//             },
-//         ),
-//         Shape::Circle { radius } => draw_circle(tf.pos.x, tf.pos.y, radius, color),
-//     }
-// }
+pub fn draw_shape(render: &mut Render, tf: &Transform, shape: &Shape, color: Color) {
+    match *shape {
+        Shape::Rect { width, height } => {
+            render
+                .gizmos
+                .rect(color, tf.pos, vec2(width, height), tf.angle)
+        }
+        Shape::Circle { radius } => render.gizmos.circle(color, tf.pos, radius),
+    }
+}
 
 // pub fn draw_shape_lines(tf: &Transform, shape: &Shape, color: Color) {
 //     match *shape {

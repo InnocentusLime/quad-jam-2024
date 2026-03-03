@@ -147,6 +147,13 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
 
         self.world.spawn((
             Transform::from_pos(vec2(64.0, 64.0)),
+            BodyTag {
+                groups: col_group::CHARACTERS,
+                shape: Shape::Rect {
+                    width: 32.0,
+                    height: 64.0,
+                },
+            },
             Sprite {
                 layer: 0,
                 texture,
@@ -178,10 +185,10 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
         match event {
             WindowEvent::RedrawRequested => {
                 self.render.new_frame();
-                self.render.buffer_sprites(&mut self.world);
-                self.render.render(&self.resources, self.render_world);
                 #[cfg(feature = "dbg")]
                 self.debug_draw();
+                self.render.buffer_sprites(&mut self.world);
+                self.render.render(&self.resources, self.render_world);
             }
             _ => (),
         }
@@ -222,6 +229,7 @@ pub struct Resources {
     pub fs_server: mimiq::FsServerHandle,
     pub gl_ctx: Rc<mimiq::GlContext>,
     pub sprite_pipeline: mimiq::Pipeline<mimiq::util::BasicSpritePipelineMeta>,
+    pub basic_pipeline: mimiq::Pipeline<mimiq::util::BasicPipelineMeta>,
     pub resolver: FsResolver,
     pub textures: AssetContainer<mimiq::Texture2D>,
 }
@@ -231,6 +239,7 @@ impl Resources {
         Resources {
             fs_server,
             sprite_pipeline: gl_ctx.new_pipeline(),
+            basic_pipeline: gl_ctx.new_pipeline(),
             resolver: FsResolver::new(),
             textures: AssetContainer::new(),
             gl_ctx,

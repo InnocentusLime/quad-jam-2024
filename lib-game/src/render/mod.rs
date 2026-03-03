@@ -7,7 +7,7 @@ pub use components::*;
 use glam::*;
 use hecs::World;
 use lib_asset::{AssetKey, INVALID_ASSET};
-use mimiq::util::SpriteBatcher;
+use mimiq::util::{ShapeBatcher, SpriteBatcher};
 use mimiq::{BLACK, Clear, GlContext, Texture2D};
 
 use crate::{Resources, Transform};
@@ -15,6 +15,8 @@ use crate::{Resources, Transform};
 pub struct Render {
     pub curr_texture: AssetKey,
     pub sprite_batcher: SpriteBatcher,
+
+    pub gizmos: ShapeBatcher,
 }
 
 impl Render {
@@ -22,6 +24,7 @@ impl Render {
         Self {
             curr_texture: INVALID_ASSET,
             sprite_batcher: SpriteBatcher::new_from_size(&resources.gl_ctx, 1_000),
+            gizmos: ShapeBatcher::new_from_size(&resources.gl_ctx, 20_000, 20_000),
         }
     }
 
@@ -32,20 +35,20 @@ impl Render {
         resources
             .gl_ctx
             .default_pass(Clear::depth_color(BLACK), |width, height| {
+                let view_projection =
+                    Mat4::orthographic_rh_gl(0.0, width as f32, height as f32, 0.0, 0.0, 100.0);
                 if render_world {
-                    self.draw_sprites(resources, width, height);
+                    self.draw_sprites(resources, view_projection);
                 }
+                self.gizmos.basic_draw(
+                    &resources.gl_ctx,
+                    view_projection,
+                    &resources.basic_pipeline,
+                );
             });
     }
 
-    pub fn debug_render<F>(&mut self, code: F)
-    where
-        F: FnOnce(),
-    {
-        code();
-    }
-
-    fn draw_sprites(&mut self, resources: &Resources, width: u32, height: u32) {
+    fn draw_sprites(&mut self, resources: &Resources, view_projection: Mat4) {
         // TODO: need sprite length
         // dump!("sprites drawn: {}", self.sprite_buffer.len());
 
@@ -61,8 +64,6 @@ impl Render {
             return;
         };
 
-        let view_projection =
-            Mat4::orthographic_rh_gl(0.0, width as f32, height as f32, 0.0, 0.0, 100.0);
         self.sprite_batcher.draw(
             &resources.gl_ctx,
             view_projection,
