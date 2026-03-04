@@ -31,7 +31,9 @@ impl Render {
     pub fn new_frame(&mut self) { /* NO-OP */
     }
 
-    pub fn render(&mut self, resources: &Resources, render_world: bool) {
+    pub fn render(&mut self, resources: &mut Resources, render_world: bool) {
+        self.buffer_sprites(&mut resources.world);
+
         resources
             .gl_ctx
             .default_pass(Clear::depth_color(BLACK), |width, height| {

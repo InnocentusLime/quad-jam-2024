@@ -183,8 +183,7 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
                 self.render.new_frame();
                 #[cfg(feature = "dbg")]
                 self.debug_draw();
-                self.render.buffer_sprites(&mut self.resources.world);
-                self.render.render(&self.resources, self.render_world);
+                self.render.render(&mut self.resources, self.render_world);
             }
             _ => (),
         }
