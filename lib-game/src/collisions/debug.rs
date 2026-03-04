@@ -17,13 +17,13 @@ use mimiq::Color;
 //     }
 // }
 
-fn draw_bodies(world: &World, render: &mut Render) {
-    for (_, (tf, tag)) in &mut world.query::<(&Transform, &BodyTag)>() {
+fn draw_bodies(world: &mut World, render: &mut Render) {
+    for (_, (tf, tag)) in world.query_mut::<(&Transform, &BodyTag)>() {
         draw_shape(render, tf, &tag.shape, mimiq::DARKBLUE);
     }
 }
 
-pub fn draw_physics_debug(world: &World, render: &mut Render) {
+pub fn draw_physics_debug(world: &mut World, render: &mut Render) {
     draw_bodies(world, render);
     //     draw_queries::<0>(world);
     //     draw_queries::<1>(world);

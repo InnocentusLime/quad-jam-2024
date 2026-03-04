@@ -17,7 +17,7 @@ impl MainGame {
 }
 
 impl State for MainGame {
-    fn handle_command(&mut self, cmd: &DebugCommand) -> bool {
+    fn handle_command(&mut self, _resources: &mut Resources, cmd: &DebugCommand) -> bool {
         match cmd.command.as_str() {
             "nopl" => self.do_player_controls = false,
             "pl" => self.do_player_controls = true,
@@ -31,8 +31,7 @@ impl State for MainGame {
     fn plan_collision_queries(
         &mut self,
         _dt: f32,
-        _resources: &lib_game::Resources,
-        _world: &mut World,
+        _resources: &mut lib_game::Resources,
         _cmds: &mut CommandBuffer,
     ) {
     }
@@ -40,12 +39,11 @@ impl State for MainGame {
     fn update(
         &mut self,
         dt: f32,
-        _resources: &lib_game::Resources,
-        world: &mut World,
+        resources: &mut lib_game::Resources,
         _collisions: &CollisionSolver,
         _cmds: &mut CommandBuffer,
     ) -> Option<Box<dyn State>> {
-        for (_, tf) in world.query_mut::<&mut Transform>() {
+        for (_, tf) in resources.world.query_mut::<&mut Transform>() {
             tf.pos.x += 13.0 * dt;
         }
         None

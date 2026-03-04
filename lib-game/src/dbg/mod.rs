@@ -13,7 +13,7 @@ use crate::{App, DebugCommand, Render, Resources, draw_physics_debug, dump};
 
 pub(crate) struct DebugStuff {
     pub cmd_center: CommandCenter,
-    pub debug_draws: HashMap<String, fn(&World, &mut Render)>,
+    pub debug_draws: HashMap<String, fn(&mut World, &mut Render)>,
     pub enabled_debug_draws: HashSet<String>,
     pub force_freeze: bool,
 }
@@ -21,7 +21,7 @@ pub(crate) struct DebugStuff {
 impl DebugStuff {
     pub(crate) fn new() -> Self {
         // set_logger(&*GLOBAL_CON as &dyn log::Log).expect("failed to init logger");
-        let mut debug_draws = HashMap::<String, fn(&World, &mut Render)>::new();
+        let mut debug_draws = HashMap::<String, fn(&mut World, &mut Render)>::new();
         debug_draws.insert("phys".to_string(), draw_physics_debug);
 
         Self {
@@ -43,7 +43,7 @@ impl DebugStuff {
 
 impl App {
     pub fn debug_draw(&mut self) {
-        let ent_count = self.world.iter().count();
+        let ent_count = self.resources.world.iter().count();
 
         // dump!("FPS: {:?}", get_fps());
         dump!("Entities: {ent_count}");
@@ -51,13 +51,13 @@ impl App {
         GLOBAL_DUMP.lock();
 
         for debug_draw_name in self.debug.enabled_debug_draws.iter() {
-            (self.debug.debug_draws[debug_draw_name])(&self.world, &mut self.render);
+            (self.debug.debug_draws[debug_draw_name])(&mut self.resources.world, &mut self.render);
         }
     }
 
     fn dump_archetypes(&self) {
         let mut total_archetypes = 0;
-        for _arch in self.world.archetypes() {
+        for _arch in self.resources.world.archetypes() {
             total_archetypes += 1;
         }
 
@@ -106,7 +106,7 @@ impl App {
                 info!("Disabled debug draw {dd_name:?}");
             }
             unmatched => {
-                if !self.state.handle_command(&cmd) {
+                if !self.state.handle_command(&mut self.resources, &cmd) {
                     error!("Unknown command: {unmatched:?}");
                 }
             }

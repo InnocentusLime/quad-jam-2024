@@ -53,7 +53,7 @@ pub struct DebugCommand {
 /// 6. Game::update
 /// 7. Game::render
 pub trait State: 'static {
-    fn handle_command(&mut self, cmd: &DebugCommand) -> bool;
+    fn handle_command(&mut self, resources: &mut Resources, cmd: &DebugCommand) -> bool;
 
     /// Set up all physics queries. This can be considered as a sort of
     /// pre-update phase.
@@ -62,8 +62,7 @@ pub trait State: 'static {
     fn plan_collision_queries(
         &mut self,
         dt: f32,
-        resources: &Resources,
-        world: &mut World,
+        resources: &mut Resources,
         cmds: &mut CommandBuffer,
     );
 
@@ -74,8 +73,7 @@ pub trait State: 'static {
     fn update(
         &mut self,
         dt: f32,
-        resources: &Resources,
-        world: &mut World,
+        resources: &mut Resources,
         collisions: &CollisionSolver,
         cmds: &mut CommandBuffer,
     ) -> Option<Box<dyn State>>;
@@ -94,7 +92,6 @@ pub struct App {
     pub resources: Resources,
     pub render: Render,
     col_solver: CollisionSolver,
-    pub world: World,
     #[cfg(feature = "dbg")]
     debug: dbg::DebugStuff,
     cmds: CommandBuffer,
@@ -117,7 +114,6 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
         Self {
             render: Render::new(&resources),
             col_solver: CollisionSolver::new(),
-            world: World::new(),
             cmds: CommandBuffer::new(),
             #[cfg(feature = "dbg")]
             debug: dbg::DebugStuff::new(),
@@ -145,7 +141,7 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
         );
         let texture = self.resources.textures.insert("atlas/bnuuy.png", texture);
 
-        self.world.spawn((
+        self.resources.world.spawn((
             Transform::from_pos(vec2(64.0, 64.0)),
             BodyTag {
                 groups: col_group::CHARACTERS,
@@ -187,7 +183,7 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
                 self.render.new_frame();
                 #[cfg(feature = "dbg")]
                 self.debug_draw();
-                self.render.buffer_sprites(&mut self.world);
+                self.render.buffer_sprites(&mut self.resources.world);
                 self.render.render(&self.resources, self.render_world);
             }
             _ => (),
@@ -202,30 +198,29 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
 
 impl App {
     fn update_inner(&mut self, dt: f32) -> Option<Box<dyn State>> {
-        self.col_solver.import_colliders(&mut self.world);
-        self.col_solver.export_kinematic_moves(&mut self.world);
+        self.col_solver.import_colliders(&mut self.resources.world);
+        self.col_solver
+            .export_kinematic_moves(&mut self.resources.world);
 
         self.state
-            .plan_collision_queries(dt, &self.resources, &mut self.world, &mut self.cmds);
-        self.cmds.run_on(&mut self.world);
+            .plan_collision_queries(dt, &mut self.resources, &mut self.cmds);
+        self.cmds.run_on(&mut self.resources.world);
 
-        self.col_solver.compute_collisions(&mut self.world);
+        self.col_solver
+            .compute_collisions(&mut self.resources.world);
 
-        let res = self.state.update(
-            dt,
-            &self.resources,
-            &mut self.world,
-            &self.col_solver,
-            &mut self.cmds,
-        );
-        self.cmds.run_on(&mut self.world);
+        let res = self
+            .state
+            .update(dt, &mut self.resources, &self.col_solver, &mut self.cmds);
+        self.cmds.run_on(&mut self.resources.world);
 
-        self.world.flush();
+        self.resources.world.flush();
         res
     }
 }
 
 pub struct Resources {
+    pub world: World,
     pub fs_server: mimiq::FsServerHandle,
     pub gl_ctx: Rc<mimiq::GlContext>,
     pub sprite_pipeline: mimiq::Pipeline<mimiq::util::BasicSpritePipelineMeta>,
@@ -237,6 +232,7 @@ pub struct Resources {
 impl Resources {
     pub fn new(gl_ctx: Rc<mimiq::GlContext>, fs_server: mimiq::FsServerHandle) -> Self {
         Resources {
+            world: World::new(),
             fs_server,
             sprite_pipeline: gl_ctx.new_pipeline(),
             basic_pipeline: gl_ctx.new_pipeline(),
