@@ -2,9 +2,10 @@ mod components;
 
 use std::rc::Rc;
 
-use crate::{Sprite, dump};
+use crate::{Sprite, draw_physics_debug, dump};
 pub use components::*;
 use glam::*;
+use hashbrown::{HashMap, HashSet};
 use hecs::World;
 use lib_asset::{AssetKey, INVALID_ASSET};
 use mimiq::util::{ShapeBatcher, SpriteBatcher};
@@ -17,31 +18,43 @@ pub struct Render {
     pub sprite_batcher: SpriteBatcher,
 
     pub gizmos: ShapeBatcher,
+
+    pub render_world: bool,
+    pub debug_draws: HashMap<String, fn(&mut World, &mut ShapeBatcher)>,
+    pub enabled_debug_draws: HashSet<String>,
 }
 
 impl Render {
     pub fn new(resources: &Resources) -> Self {
+        let mut debug_draws = HashMap::<String, fn(&mut World, &mut ShapeBatcher)>::new();
+        debug_draws.insert("phys".to_string(), draw_physics_debug);
+
         Self {
             curr_texture: INVALID_ASSET,
             sprite_batcher: SpriteBatcher::new_from_size(&resources.gl_ctx, 1_000),
             gizmos: ShapeBatcher::new_from_size(&resources.gl_ctx, 20_000, 20_000),
+            render_world: true,
+            debug_draws,
+            enabled_debug_draws: HashSet::new(),
         }
     }
 
-    pub fn new_frame(&mut self) { /* NO-OP */
-    }
-
-    pub fn render(&mut self, resources: &mut Resources, render_world: bool) {
+    pub fn render(&mut self, resources: &mut Resources) {
         self.buffer_sprites(&mut resources.world);
+        for debug_draw_name in self.enabled_debug_draws.iter() {
+            let ddraw = self.debug_draws[debug_draw_name];
+            ddraw(&mut resources.world, &mut self.gizmos);
+        }
 
         resources
             .gl_ctx
             .default_pass(Clear::depth_color(BLACK), |width, height| {
                 let view_projection =
                     Mat4::orthographic_rh_gl(0.0, width as f32, height as f32, 0.0, 0.0, 100.0);
-                if render_world {
+                if self.render_world {
                     self.draw_sprites(resources, view_projection);
                 }
+
                 self.gizmos.basic_draw(
                     &resources.gl_ctx,
                     view_projection,

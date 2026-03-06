@@ -4,6 +4,7 @@ use crate::components::*;
 
 use hecs::World;
 use mimiq::Color;
+use mimiq::util::ShapeBatcher;
 
 // fn draw_queries<const ID: usize>(world: &World) {
 //     for (_, (tf, query)) in &mut world.query::<(&Transform, &CollisionQuery<ID>)>() {
@@ -17,14 +18,14 @@ use mimiq::Color;
 //     }
 // }
 
-fn draw_bodies(world: &mut World, render: &mut Render) {
+fn draw_bodies(world: &mut World, gizmos: &mut ShapeBatcher) {
     for (_, (tf, tag)) in world.query_mut::<(&Transform, &BodyTag)>() {
-        draw_shape(render, tf, &tag.shape, mimiq::DARKBLUE);
+        draw_shape(gizmos, tf, &tag.shape, mimiq::DARKBLUE);
     }
 }
 
-pub fn draw_physics_debug(world: &mut World, render: &mut Render) {
-    draw_bodies(world, render);
+pub fn draw_physics_debug(world: &mut World, gizmos: &mut ShapeBatcher) {
+    draw_bodies(world, gizmos);
     //     draw_queries::<0>(world);
     //     draw_queries::<1>(world);
     //     draw_queries::<2>(world);
@@ -35,14 +36,10 @@ pub fn draw_physics_debug(world: &mut World, render: &mut Render) {
     //     draw_queries::<7>(world);
 }
 
-pub fn draw_shape(render: &mut Render, tf: &Transform, shape: &Shape, color: Color) {
+pub fn draw_shape(gizmos: &mut ShapeBatcher, tf: &Transform, shape: &Shape, color: Color) {
     match *shape {
-        Shape::Rect { width, height } => {
-            render
-                .gizmos
-                .rect(color, tf.pos, vec2(width, height), tf.angle)
-        }
-        Shape::Circle { radius } => render.gizmos.circle(color, tf.pos, radius),
+        Shape::Rect { width, height } => gizmos.rect(color, tf.pos, vec2(width, height), tf.angle),
+        Shape::Circle { radius } => gizmos.circle(color, tf.pos, radius),
     }
 }
 

@@ -13,21 +13,15 @@ use crate::{App, DebugCommand, Render, Resources, draw_physics_debug, dump};
 
 pub(crate) struct DebugStuff {
     pub cmd_center: CommandCenter,
-    pub debug_draws: HashMap<String, fn(&mut World, &mut Render)>,
-    pub enabled_debug_draws: HashSet<String>,
     pub force_freeze: bool,
 }
 
 impl DebugStuff {
     pub(crate) fn new() -> Self {
         // set_logger(&*GLOBAL_CON as &dyn log::Log).expect("failed to init logger");
-        let mut debug_draws = HashMap::<String, fn(&mut World, &mut Render)>::new();
-        debug_draws.insert("phys".to_string(), draw_physics_debug);
 
         Self {
             cmd_center: CommandCenter::new(),
-            debug_draws,
-            enabled_debug_draws: HashSet::new(),
             force_freeze: false,
         }
     }
@@ -42,17 +36,13 @@ impl DebugStuff {
 }
 
 impl App {
-    pub fn debug_draw(&mut self) {
+    pub fn dump_common_info(&mut self) {
         let ent_count = self.resources.world.iter().count();
 
         // dump!("FPS: {:?}", get_fps());
         dump!("Entities: {ent_count}");
         self.dump_archetypes();
         GLOBAL_DUMP.lock();
-
-        for debug_draw_name in self.debug.enabled_debug_draws.iter() {
-            (self.debug.debug_draws[debug_draw_name])(&mut self.resources.world, &mut self.render);
-        }
     }
 
     fn dump_archetypes(&self) {
@@ -75,8 +65,8 @@ impl App {
         match cmd.command.as_str() {
             "f" => self.debug.force_freeze = true,
             "uf" => self.debug.force_freeze = false,
-            "hw" => self.render_world = false,
-            "sw" => self.render_world = true,
+            "hw" => self.render.render_world = false,
+            "sw" => self.render.render_world = true,
             "dde" => {
                 if cmd.args.is_empty() {
                     error!("Not enough args");
@@ -84,11 +74,11 @@ impl App {
                 }
 
                 let dd_name = &cmd.args[0];
-                if !self.debug.debug_draws.contains_key(dd_name) {
+                if !self.render.debug_draws.contains_key(dd_name) {
                     error!("No such debug draw: {:?}", dd_name);
                     return;
                 }
-                self.debug.enabled_debug_draws.insert(dd_name.to_owned());
+                self.render.enabled_debug_draws.insert(dd_name.to_owned());
                 info!("Enabled debug draw {dd_name:?}");
             }
             "ddd" => {
@@ -98,11 +88,11 @@ impl App {
                 }
 
                 let dd_name = &cmd.args[0];
-                if !self.debug.enabled_debug_draws.contains(dd_name) {
+                if !self.render.enabled_debug_draws.contains(dd_name) {
                     error!("No enabled debug draw: {:?}", dd_name);
                     return;
                 }
-                self.debug.enabled_debug_draws.remove(dd_name);
+                self.render.enabled_debug_draws.remove(dd_name);
                 info!("Disabled debug draw {dd_name:?}");
             }
             unmatched => {

@@ -96,8 +96,6 @@ pub struct App {
     debug: dbg::DebugStuff,
     cmds: CommandBuffer,
     state: Box<dyn State>,
-
-    render_world: bool,
 }
 
 impl mimiq::EventHandler<Box<dyn State>> for App {
@@ -119,8 +117,6 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
             debug: dbg::DebugStuff::new(),
             resources,
             state,
-
-            render_world: true,
         }
     }
 
@@ -179,18 +175,14 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
 
     fn window_event(&mut self, event: WindowEvent, _window: &Window) {
         match event {
-            WindowEvent::RedrawRequested => {
-                self.render.new_frame();
-                #[cfg(feature = "dbg")]
-                self.debug_draw();
-                self.render.render(&mut self.resources, self.render_world);
-            }
+            WindowEvent::RedrawRequested => self.render.render(&mut self.resources),
             _ => (),
         }
     }
 
     #[cfg(feature = "dbg")]
     fn egui(&mut self, egui_ctx: &egui::Context) {
+        self.dump_common_info();
         self.debug_ui(egui_ctx);
     }
 }
