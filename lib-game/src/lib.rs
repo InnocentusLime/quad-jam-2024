@@ -159,15 +159,15 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
     }
 
     fn update(&mut self, dt: std::time::Duration) {
-        #[cfg(feature = "dbg")]
-        self.debug.new_update();
-        #[cfg(feature = "dbg")]
-        if !self.debug.should_pause() {
-            if let Some(new_state) = self.update_inner(dt.as_secs_f32()) {
-                self.state = new_state;
-            }
-        }
         #[cfg(not(feature = "dbg"))]
+        let update = true;
+        #[cfg(feature = "dbg")]
+        let update = !self.debug.should_pause();
+
+        if !update {
+            return;
+        }
+
         if let Some(new_state) = self.update_inner(dt.as_secs_f32()) {
             self.state = new_state;
         }
@@ -184,6 +184,7 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
     fn egui(&mut self, egui_ctx: &egui::Context) {
         self.dump_common_info();
         self.debug_ui(egui_ctx);
+        self.debug.new_update();
     }
 }
 
