@@ -66,17 +66,8 @@ impl CollisionSolver {
         self.compute_collisions_query::<6>(world);
         self.compute_collisions_query::<7>(world);
 
-        dump!("Colliders: {}", self.solver.perf().colliders_loaded);
-        dump!("Shapecasts: {}", self.solver.perf().shapecast_query_count);
-        dump!(
-            "Overlap queries: {}",
-            self.solver.perf().overlap_query_count
-        );
-        dump!("Projections: {}", self.solver.perf().projection_count);
-        dump!(
-            "Projections (vert): {}",
-            self.solver.perf().projected_vertices
-        );
+        let col_solver_perf = self.solver.perf();
+        dump!("Collision solver perf: {col_solver_perf:#.2?}");
     }
 
     pub fn compute_collisions_query<const ID: usize>(&mut self, world: &mut World) {
