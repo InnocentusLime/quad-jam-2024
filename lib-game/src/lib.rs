@@ -1,5 +1,6 @@
 mod collisions;
 mod components;
+mod input;
 mod render;
 
 #[cfg(feature = "dbg")]
@@ -9,6 +10,7 @@ pub mod sys;
 
 pub use collisions::*;
 pub use components::*;
+pub use input::*;
 pub use lib_asset::*;
 pub use render::*;
 use winit::{event::WindowEvent, window::Window};
@@ -58,6 +60,14 @@ pub struct DebugCommand {
 pub trait State: 'static {
     fn handle_command(&mut self, resources: &mut Resources, cmd: &DebugCommand) -> bool;
 
+    fn input(
+        &mut self,
+        dt: f32,
+        input_model: &InputModel,
+        resources: &mut Resources,
+        cmds: &mut CommandBuffer,
+    );
+
     /// Set up all physics queries. This can be considered as a sort of
     /// pre-update phase.
     /// This phase accepts a command buffer. The commands get executed right
@@ -94,6 +104,7 @@ pub trait State: 'static {
 pub struct App {
     pub resources: Resources,
     pub render: Render,
+    input: Input,
     col_solver: CollisionSolver,
     #[cfg(feature = "dbg")]
     debug: dbg::DebugStuff,
@@ -110,7 +121,7 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
     ) -> Self {
         let resources = Resources::new(gl_ctx);
         let mut asset_manager = AssetManager::new(fs_server);
-        asset_manager.load_image("atlas/bnuuy.pn", Resources::init_texture);
+        asset_manager.load_image("atlas/bnuuy.png", Resources::init_texture);
 
         info!("Lib-game version: {}", env!("CARGO_PKG_VERSION"));
 
@@ -118,6 +129,7 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
             render: Render::new(&resources),
             col_solver: CollisionSolver::new(),
             cmds: CommandBuffer::new(),
+            input: Input::new(),
             asset_manager,
             #[cfg(feature = "dbg")]
             debug: dbg::DebugStuff::new(),
@@ -169,6 +181,7 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
     }
 
     fn window_event(&mut self, event: WindowEvent, _window: &Window) {
+        self.input.handle_event(&event);
         match event {
             WindowEvent::RedrawRequested => self.render.render(&mut self.resources),
             _ => (),
@@ -185,6 +198,10 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
 
 impl App {
     fn update_inner(&mut self, dt: f32) -> Option<Box<dyn State>> {
+        let input_model = self.input.get_input_model();
+        self.state
+            .input(dt, &input_model, &mut self.resources, &mut self.cmds);
+
         self.col_solver.import_colliders(&mut self.resources.world);
         self.col_solver
             .export_kinematic_moves(&mut self.resources.world);
@@ -202,6 +219,7 @@ impl App {
         self.cmds.run_on(&mut self.resources.world);
 
         self.resources.world.flush();
+        self.input.update();
         res
     }
 }

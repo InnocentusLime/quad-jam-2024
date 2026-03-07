@@ -38,14 +38,23 @@ impl State for MainGame {
 
     fn update(
         &mut self,
-        dt: f32,
-        resources: &mut lib_game::Resources,
+        _dt: f32,
+        _resources: &mut lib_game::Resources,
         _collisions: &CollisionSolver,
         _cmds: &mut CommandBuffer,
     ) -> Option<Box<dyn State>> {
-        for (_, tf) in resources.world.query_mut::<&mut Transform>() {
-            tf.pos.x += 13.0 * dt;
-        }
         None
+    }
+
+    fn input(
+        &mut self,
+        dt: f32,
+        input_model: &InputModel,
+        resources: &mut Resources,
+        _cmds: &mut CommandBuffer,
+    ) {
+        for (_, tf) in resources.world.query_mut::<&mut Transform>() {
+            tf.pos += 13.0 * dt * input_model.player_move_direction;
+        }
     }
 }
