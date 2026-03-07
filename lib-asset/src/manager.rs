@@ -34,7 +34,7 @@ impl<T> AssetManager<T> {
             .insert(Box::new(move |ctx, res, data| {
                 let _span = tracing::info_span!(
                     target: TARGET_NAME,
-                    "Image task callback",
+                    "load_image",
                     ?src,
                 )
                 .entered();
