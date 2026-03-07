@@ -16,7 +16,10 @@ use winit::{event::WindowEvent, window::Window};
 use glam::*;
 use hecs::{CommandBuffer, World};
 use log::*;
-use std::{path::Path, rc::Rc};
+use std::{
+    path::{Path, PathBuf},
+    rc::Rc,
+};
 
 #[macro_export]
 #[cfg(feature = "dbg")]
@@ -95,6 +98,7 @@ pub struct App {
     #[cfg(feature = "dbg")]
     debug: dbg::DebugStuff,
     cmds: CommandBuffer,
+    asset_manager: AssetManager<Resources>,
     state: Box<dyn State>,
 }
 
@@ -104,8 +108,9 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
         fs_server: mimiq::FsServerHandle,
         state: Box<dyn State>,
     ) -> Self {
-        fs_server.submit_task("assets/atlas/bnuuy.png", 0);
-        let resources = Resources::new(gl_ctx, fs_server);
+        let resources = Resources::new(gl_ctx);
+        let mut asset_manager = AssetManager::new(fs_server);
+        asset_manager.load_image("atlas/bnuuy.pn", Resources::init_texture);
 
         info!("Lib-game version: {}", env!("CARGO_PKG_VERSION"));
 
@@ -113,6 +118,7 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
             render: Render::new(&resources),
             col_solver: CollisionSolver::new(),
             cmds: CommandBuffer::new(),
+            asset_manager,
             #[cfg(feature = "dbg")]
             debug: dbg::DebugStuff::new(),
             resources,
@@ -121,22 +127,11 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
     }
 
     fn file_ready(&mut self, event: mimiq::FileReady) {
-        let Ok(bytes) = event.bytes_result else {
+        self.asset_manager.on_file_ready(&mut self.resources, event);
+
+        let Some(texture) = self.resources.textures.resolve("atlas/bnuuy.png") else {
             return;
         };
-        let img = image::load_from_memory(&bytes).expect("Image load failed");
-
-        let texture = self.resources.gl_ctx.new_texture(
-            img,
-            mimiq::Texture2DParams {
-                internal_format: mimiq::Texture2DFormat::RGBA8,
-                wrap: mimiq::TextureWrap::Clamp,
-                min_filter: mimiq::FilterMode::Nearest,
-                mag_filter: mimiq::FilterMode::Nearest,
-            },
-        );
-        let texture = self.resources.textures.insert("atlas/bnuuy.png", texture);
-
         self.resources.world.spawn((
             Transform::from_pos(vec2(64.0, 64.0)),
             BodyTag {
@@ -213,24 +208,38 @@ impl App {
 
 pub struct Resources {
     pub world: World,
-    pub fs_server: mimiq::FsServerHandle,
     pub gl_ctx: Rc<mimiq::GlContext>,
     pub sprite_pipeline: mimiq::Pipeline<mimiq::util::BasicSpritePipelineMeta>,
     pub basic_pipeline: mimiq::Pipeline<mimiq::util::BasicPipelineMeta>,
-    pub resolver: FsResolver,
     pub textures: AssetContainer<mimiq::Texture2D>,
 }
 
 impl Resources {
-    pub fn new(gl_ctx: Rc<mimiq::GlContext>, fs_server: mimiq::FsServerHandle) -> Self {
+    pub fn new(gl_ctx: Rc<mimiq::GlContext>) -> Self {
         Resources {
             world: World::new(),
-            fs_server,
             sprite_pipeline: gl_ctx.new_pipeline(),
             basic_pipeline: gl_ctx.new_pipeline(),
-            resolver: FsResolver::new(),
             textures: AssetContainer::new(),
             gl_ctx,
         }
+    }
+
+    fn init_texture(
+        &mut self,
+        _fs_resolver: &FsResolver,
+        image: image::DynamicImage,
+        src: PathBuf,
+    ) {
+        let tex = self.gl_ctx.new_texture(
+            image,
+            mimiq::Texture2DParams {
+                internal_format: mimiq::Texture2DFormat::RGBA8,
+                wrap: mimiq::TextureWrap::Clamp,
+                min_filter: mimiq::FilterMode::Nearest,
+                mag_filter: mimiq::FilterMode::Nearest,
+            },
+        );
+        self.textures.insert(src, tex);
     }
 }

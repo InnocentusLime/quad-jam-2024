@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 winit = "0.30"
-image = { version = "0.25", features = ["png"], default-features = false }
+image = { workspace = true }
 log = { workspace = true }
 anyhow = { workspace = true }
 hecs = { workspace = true }

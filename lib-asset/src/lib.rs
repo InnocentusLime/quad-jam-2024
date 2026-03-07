@@ -1,8 +1,10 @@
 mod asset_roots;
 mod containers;
+mod manager;
 
 pub use asset_roots::*;
 pub use containers::*;
+pub use manager::*;
 
 use hashbrown::HashMap;
 

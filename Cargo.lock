@@ -910,12 +910,13 @@ dependencies = [
  "anyhow",
  "glam",
  "hashbrown 0.14.5",
+ "image",
  "lib-col",
- "log",
  "mimiq",
  "serde",
  "serde_json",
  "slab",
+ "tracing",
 ]
 
 [[package]]
