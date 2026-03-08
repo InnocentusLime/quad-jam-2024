@@ -16,7 +16,7 @@ pub use render::*;
 use winit::{event::WindowEvent, window::Window};
 
 use glam::*;
-use hecs::{CommandBuffer, World};
+use hecs::{BuiltEntityClone, CommandBuffer, EntityBuilderClone, World};
 use log::*;
 use std::{
     path::{Path, PathBuf},
@@ -144,7 +144,9 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
         let Some(texture) = self.resources.textures.resolve("atlas/bnuuy.png") else {
             return;
         };
-        self.resources.world.spawn((
+
+        let mut template = EntityBuilderClone::new();
+        template.add_bundle((
             Transform::from_pos(vec2(64.0, 64.0)),
             BodyTag {
                 groups: col_group::CHARACTERS,
@@ -163,6 +165,14 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
                 tex_rect_size: uvec2(67, 17),
             },
         ));
+        let handle = self
+            .resources
+            .templates
+            .insert("player.json", template.build());
+
+        self.resources
+            .world
+            .spawn(self.resources.templates.get(handle).unwrap());
     }
 
     fn update(&mut self, dt: std::time::Duration) {
@@ -230,6 +240,7 @@ pub struct Resources {
     pub sprite_pipeline: mimiq::Pipeline<mimiq::util::BasicSpritePipelineMeta>,
     pub basic_pipeline: mimiq::Pipeline<mimiq::util::BasicPipelineMeta>,
     pub textures: AssetContainer<mimiq::Texture2D>,
+    pub templates: AssetContainer<BuiltEntityClone>,
 }
 
 impl Resources {
@@ -239,6 +250,7 @@ impl Resources {
             sprite_pipeline: gl_ctx.new_pipeline(),
             basic_pipeline: gl_ctx.new_pipeline(),
             textures: AssetContainer::new(),
+            templates: AssetContainer::new(),
             gl_ctx,
         }
     }
