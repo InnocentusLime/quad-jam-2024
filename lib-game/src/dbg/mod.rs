@@ -3,13 +3,13 @@ mod screendump;
 
 use egui::Context;
 use hashbrown::{HashMap, HashSet};
-use hecs::World;
+use hecs::{DynamicBundle, World};
 use log::*;
 
 pub use cmd::*;
 pub use screendump::*;
 
-use crate::{App, DebugCommand, Render, Resources, draw_physics_debug, dump};
+use crate::{draw_physics_debug, dump, App, DebugCommand, Render, Resources, Transform};
 
 pub(crate) struct DebugStuff {
     pub cmd_center: CommandCenter,
@@ -94,6 +94,33 @@ impl App {
                 }
                 self.render.enabled_debug_draws.remove(dd_name);
                 info!("Disabled debug draw {dd_name:?}");
+            }
+            "spawn" => {
+                if cmd.args.len() < 3 {
+                    error!("Not enough args");
+                    return;
+                }
+
+                let template_path = &cmd.args[0];
+                let Ok(x) = cmd.args[1].trim().parse::<f32>() else {
+                    error!("Second argument is not a number");
+                    return;
+                };
+                let Ok(y) = cmd.args[2].trim().parse::<f32>() else {
+                    error!("Third argument is not a number");
+                    return;
+                };
+                let Some(template_handle) = self.resources.templates.resolve(template_path) else {
+                    error!("No such template: {template_path:?}");
+                    return;
+                };
+                let template = self.resources.templates.get(template_handle).unwrap();
+                let entity = self.resources.world.spawn(template);
+                if template.has::<Transform>() {
+                    info!("Template has Transform. Override to ({x:.2}, {y:.2})");
+                    self.resources.world.insert_one(entity, Transform::from_xy(x, y)).unwrap();
+                }
+                info!("Spawned {template_path:?} as {entity:?}");
             }
             unmatched => {
                 if !self.state.handle_command(&mut self.resources, &cmd) {
