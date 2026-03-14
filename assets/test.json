@@ -1,0 +1,19 @@
+{
+    "transform": [64.0, 64.0],
+    "sprite": {
+        "layer": 0,
+        "texture": "atlas/bnuuy.png",
+        "sort_offset": 0.0,
+        "local_offset": [0.0, 0.0],
+        "tex_rect_pos": [0, 0],
+        "tex_rect_size": [67, 17]
+    },
+    "body": {
+        "groups": ["Characters"],
+        "shape": {
+            "type": "Rect",
+            "width": 64.0,
+            "height": 32.0
+        }
+    }
+}

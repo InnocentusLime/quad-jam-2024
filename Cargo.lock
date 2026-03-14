@@ -910,6 +910,7 @@ dependencies = [
  "anyhow",
  "glam",
  "hashbrown 0.14.5",
+ "hecs",
  "image",
  "lib-col",
  "mimiq",
@@ -945,6 +946,7 @@ dependencies = [
  "log",
  "mimiq",
  "rand",
+ "serde",
  "winit",
 ]
 

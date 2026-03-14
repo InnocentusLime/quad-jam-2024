@@ -101,7 +101,7 @@ impl App {
                     return;
                 }
 
-                let template_path = &cmd.args[0];
+                let prefab_path = &cmd.args[0];
                 let Ok(x) = cmd.args[1].trim().parse::<f32>() else {
                     error!("Second argument is not a number");
                     return;
@@ -110,20 +110,20 @@ impl App {
                     error!("Third argument is not a number");
                     return;
                 };
-                let Some(template_handle) = self.resources.templates.resolve(template_path) else {
-                    error!("No such template: {template_path:?}");
+                let Some(prefab_handle) = self.resources.prefabs.resolve(prefab_path) else {
+                    error!("No such prefab: {prefab_path:?}");
                     return;
                 };
-                let template = self.resources.templates.get(template_handle).unwrap();
-                let entity = self.resources.world.spawn(template);
-                if template.has::<Transform>() {
-                    info!("Template has Transform. Override to ({x:.2}, {y:.2})");
+                let prefab = self.resources.prefabs.get(prefab_handle).unwrap();
+                let entity = self.resources.world.spawn(prefab);
+                if prefab.has::<Transform>() {
+                    info!("prefab has Transform. Override to ({x:.2}, {y:.2})");
                     self.resources
                         .world
                         .insert_one(entity, Transform::from_xy(x, y))
                         .unwrap();
                 }
-                info!("Spawned {template_path:?} as {entity:?}");
+                info!("Spawned {prefab_path:?} as {entity:?}");
             }
             unmatched => {
                 if !self.state.handle_command(&mut self.resources, &cmd) {
