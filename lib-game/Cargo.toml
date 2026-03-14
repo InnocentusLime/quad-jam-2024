@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 winit = "0.30"
+serde = { workspace = true }
 image = { workspace = true }
 log = { workspace = true }
 anyhow = { workspace = true }

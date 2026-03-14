@@ -1,10 +1,12 @@
 mod asset_roots;
 mod containers;
 mod manager;
+mod prefab;
 
 pub use asset_roots::*;
 pub use containers::*;
 pub use manager::*;
+pub use prefab::*;
 
 use hashbrown::HashMap;
 

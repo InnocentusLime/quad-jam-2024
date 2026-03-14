@@ -1,6 +1,7 @@
 mod collisions;
 mod components;
 mod input;
+mod prefab;
 mod render;
 
 #[cfg(feature = "dbg")]
@@ -111,6 +112,8 @@ pub struct App {
     cmds: CommandBuffer,
     asset_manager: AssetManager<Resources>,
     state: Box<dyn State>,
+
+    counter: usize,
 }
 
 impl mimiq::EventHandler<Box<dyn State>> for App {
@@ -120,7 +123,8 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
         state: Box<dyn State>,
     ) -> Self {
         let resources = Resources::new(gl_ctx);
-        let mut asset_manager = AssetManager::new(fs_server);
+        let prefab_factory = prefab::make_prefab_factory();
+        let mut asset_manager = AssetManager::new(fs_server, prefab_factory);
         asset_manager.load_image("atlas/bnuuy.png", Resources::init_texture);
 
         info!("Lib-game version: {}", env!("CARGO_PKG_VERSION"));
@@ -135,44 +139,21 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
             debug: dbg::DebugStuff::new(),
             resources,
             state,
+
+            counter: 0,
         }
     }
 
     fn file_ready(&mut self, event: mimiq::FileReady) {
+        self.counter += 1;
         self.asset_manager.on_file_ready(&mut self.resources, event);
 
-        let Some(texture) = self.resources.textures.resolve("atlas/bnuuy.png") else {
+        if self.counter > 1 {
             return;
-        };
+        }
 
-        let mut template = EntityBuilderClone::new();
-        template.add_bundle((
-            Transform::from_pos(vec2(64.0, 64.0)),
-            BodyTag {
-                groups: col_group::CHARACTERS,
-                shape: Shape::Rect {
-                    width: 32.0,
-                    height: 64.0,
-                },
-            },
-            Sprite {
-                layer: 0,
-                texture,
-                color: mimiq::WHITE,
-                sort_offset: 0.0,
-                local_offset: Vec2::ZERO,
-                tex_rect_pos: uvec2(0, 0),
-                tex_rect_size: uvec2(67, 17),
-            },
-        ));
-        let handle = self
-            .resources
-            .templates
-            .insert("player.json", template.build());
-
-        self.resources
-            .world
-            .spawn(self.resources.templates.get(handle).unwrap());
+        self.asset_manager
+            .load_prefab("test.json", Resources::init_prefab);
     }
 
     fn update(&mut self, dt: std::time::Duration) {
@@ -240,7 +221,7 @@ pub struct Resources {
     pub sprite_pipeline: mimiq::Pipeline<mimiq::util::BasicSpritePipelineMeta>,
     pub basic_pipeline: mimiq::Pipeline<mimiq::util::BasicPipelineMeta>,
     pub textures: AssetContainer<mimiq::Texture2D>,
-    pub templates: AssetContainer<BuiltEntityClone>,
+    pub prefabs: AssetContainer<BuiltEntityClone>,
 }
 
 impl Resources {
@@ -250,9 +231,13 @@ impl Resources {
             sprite_pipeline: gl_ctx.new_pipeline(),
             basic_pipeline: gl_ctx.new_pipeline(),
             textures: AssetContainer::new(),
-            templates: AssetContainer::new(),
+            prefabs: AssetContainer::new(),
             gl_ctx,
         }
+    }
+
+    fn init_prefab(&mut self, _fs_resolver: &FsResolver, prefab: BuiltEntityClone, src: PathBuf) {
+        self.prefabs.insert(src, prefab);
     }
 
     fn init_texture(
