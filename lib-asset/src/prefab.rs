@@ -87,7 +87,7 @@ impl<T> PrefabFactory<T> {
             let Some(builder) = self.registry.get(*name) else {
                 anyhow::bail!("unknown component: {name:?}");
             };
-            tracing::info!(entry=name, "build prefab component");
+            tracing::info!(entry = name, "build prefab component");
             builder(ctx, start, value).with_context(|| format!("build {name:?}"))?;
         }
         Ok(())

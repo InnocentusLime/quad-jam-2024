@@ -73,8 +73,7 @@ impl<T: 'static> AssetManager<T> {
             request_id,
             "Submitting prefab task"
         );
-        self.fs_server
-            .submit_task(&path.to_string_lossy(), request_id as u64);
+        self.fs_server.submit_task(&path, request_id as u64);
     }
 
     pub fn load_image(
@@ -109,8 +108,7 @@ impl<T: 'static> AssetManager<T> {
             request_id,
             "Submitting an image task"
         );
-        self.fs_server
-            .submit_task(&path.to_string_lossy(), request_id as u64);
+        self.fs_server.submit_task(&path, request_id as u64);
     }
 
     pub fn on_file_ready(&mut self, ctx: &mut T, event: FileReady) {
