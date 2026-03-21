@@ -8,10 +8,10 @@ image = { workspace = true }
 glam = { workspace = true }
 anyhow = { workspace = true }
 serde = { workspace = true }
+serde_json = { workspace = true }
 hashbrown = { workspace = true, features = ["serde"] }
 mimiq = { workspace = true }
 lib-col = { path = "../lib-col" }
-serde_json = { version = "1", features = ["raw_value"] }
 hecs = { workspace = true }
 slab = "0.4"
 tracing = "0.1.44"

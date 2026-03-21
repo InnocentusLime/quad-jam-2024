@@ -112,8 +112,6 @@ pub struct App {
     cmds: CommandBuffer,
     asset_manager: AssetManager<Resources>,
     state: Box<dyn State>,
-
-    counter: usize,
 }
 
 impl mimiq::EventHandler<Box<dyn State>> for App {
@@ -125,7 +123,7 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
         let resources = Resources::new(gl_ctx);
         let prefab_factory = prefab::make_prefab_factory();
         let mut asset_manager = AssetManager::new(fs_server, prefab_factory);
-        asset_manager.load_image("atlas/bnuuy.png", Resources::init_texture);
+        asset_manager.load_prefab("test.json", Resources::init_prefab);
 
         info!("Lib-game version: {}", env!("CARGO_PKG_VERSION"));
 
@@ -139,21 +137,24 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
             debug: dbg::DebugStuff::new(),
             resources,
             state,
-
-            counter: 0,
         }
     }
 
     fn file_ready(&mut self, event: mimiq::FileReady) {
-        self.counter += 1;
         self.asset_manager.on_file_ready(&mut self.resources, event);
-
-        if self.counter > 1 {
-            return;
+        let assets_to_load = self
+            .asset_manager
+            .iter_assets_to_load()
+            .cloned()
+            .collect::<Vec<_>>();
+        for unresolved in assets_to_load {
+            if unresolved.starts_with("atlas/") {
+                self.asset_manager
+                    .load_image(&unresolved, Resources::init_texture);
+                continue;
+            }
+            warn!("unknown dep: {unresolved:?}");
         }
-
-        self.asset_manager
-            .load_prefab("test.json", Resources::init_prefab);
     }
 
     fn update(&mut self, dt: std::time::Duration) {
@@ -236,16 +237,11 @@ impl Resources {
         }
     }
 
-    fn init_prefab(&mut self, _fs_resolver: &FsResolver, prefab: BuiltEntityClone, src: PathBuf) {
-        self.prefabs.insert(src, prefab);
+    fn init_prefab(&mut self, _fs_resolver: &FsResolver, prefab: BuiltEntityClone, src: &Path) {
+        self.prefabs.insert(src.to_path_buf(), prefab);
     }
 
-    fn init_texture(
-        &mut self,
-        _fs_resolver: &FsResolver,
-        image: image::DynamicImage,
-        src: PathBuf,
-    ) {
+    fn init_texture(&mut self, _fs_resolver: &FsResolver, image: image::DynamicImage, src: &Path) {
         let tex = self.gl_ctx.new_texture(
             image,
             mimiq::Texture2DParams {
@@ -255,6 +251,6 @@ impl Resources {
                 mag_filter: mimiq::FilterMode::Nearest,
             },
         );
-        self.textures.insert(src, tex);
+        self.textures.insert(src.to_path_buf(), tex);
     }
 }

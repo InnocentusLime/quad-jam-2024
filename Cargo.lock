@@ -947,6 +947,7 @@ dependencies = [
  "mimiq",
  "rand",
  "serde",
+ "serde_json",
  "winit",
 ]
 

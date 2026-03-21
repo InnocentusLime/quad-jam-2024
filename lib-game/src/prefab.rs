@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use crate::{BodyTag, Resources, col_group, components::*};
 use glam::*;
@@ -9,8 +9,13 @@ use serde::Deserialize;
 pub fn make_prefab_factory() -> PrefabFactory<Resources> {
     let mut prefab_factory = PrefabFactory::new();
     prefab_factory.register_component_with_constructor("transform", Transform::from_pos);
-    prefab_factory.register_component_with_constructor_ctx("sprite", SpriteManifest::into_sprite);
     prefab_factory.register_component_with_constructor("body", BodyTagManifest::into_body_tag);
+
+    prefab_factory.register_component_with_constructor_ctx(
+        "sprite",
+        SpriteManifest::into_sprite,
+        SpriteManifest::dependencies,
+    );
 
     prefab_factory
 }
@@ -39,6 +44,16 @@ impl SpriteManifest {
             sort_offset: self.sort_offset,
             local_offset: self.local_offset,
         })
+    }
+
+    pub fn dependencies(data: &serde_json::value::RawValue) -> anyhow::Result<Vec<PathBuf>> {
+        #[derive(Deserialize)]
+        pub struct Deps<'a> {
+            #[serde(borrow)]
+            pub texture: &'a Path,
+        }
+        let deps = serde_json::from_str::<Deps>(data.get())?;
+        Ok(vec![deps.texture.into()])
     }
 }
 
