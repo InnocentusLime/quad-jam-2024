@@ -5,6 +5,7 @@ use mimiq::*;
 
 fn window_conf() -> Conf {
     Conf {
+        fs_root: "assets".into(),
         ..Default::default()
     }
 }

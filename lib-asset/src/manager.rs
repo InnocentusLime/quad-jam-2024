@@ -3,9 +3,9 @@ use std::{
     rc::Rc,
 };
 
+use hashbrown::HashMap;
 use hecs::{BuiltEntityClone, EntityBuilderClone};
 use mimiq::{FileReady, FsServerHandle};
-use slab::Slab;
 
 use crate::{AssetRoot, FsResolver, PrefabFactory};
 
@@ -15,7 +15,7 @@ pub struct AssetManager<T> {
     pub fs_resolver: FsResolver,
     prefab_factory: Rc<PrefabFactory<T>>,
     fs_server: FsServerHandle,
-    outgoing_requests: Slab<Callback<T>>,
+    outgoing_requests: HashMap<PathBuf, Callback<T>>,
 }
 
 impl<T: 'static> AssetManager<T> {
@@ -24,7 +24,7 @@ impl<T: 'static> AssetManager<T> {
             fs_server,
             prefab_factory: Rc::new(prefab_factory),
             fs_resolver: FsResolver::new(),
-            outgoing_requests: Slab::new(),
+            outgoing_requests: HashMap::new(),
         }
     }
 
@@ -34,46 +34,34 @@ impl<T: 'static> AssetManager<T> {
         callback: impl FnOnce(&mut T, &FsResolver, BuiltEntityClone, PathBuf) + 'static,
     ) {
         let factory = self.prefab_factory.clone();
-        let src = src.as_ref().to_path_buf();
-        let path = self.fs_resolver.get_path(AssetRoot::Assets, &src);
-        let request_id = self
-            .outgoing_requests
-            .insert(Box::new(move |ctx, res, data| {
+        let path = src.as_ref().to_path_buf();
+        
+        tracing::info!(target: TARGET_NAME, file_path=?path, "Submitting prefab task");
+        self.fs_server.load_file(path.clone());
+        self.outgoing_requests.insert(
+            path.clone(),
+            Box::new(move |ctx, res, data| {
                 let _span = tracing::info_span!(
                     target: TARGET_NAME,
                     "load_json",
-                    ?src,
+                    ?path,
                 )
                 .entered();
                 let pre_prefab = match serde_json::from_slice(&data) {
                     Ok(manifest) => manifest,
                     Err(err) => {
-                        tracing::error!(
-                            target: TARGET_NAME,
-                            %err,
-                            "failed to deserialize prefab",
-                        );
+                        tracing::error!(target: TARGET_NAME, %err, "failed to deserialize prefab");
                         return;
                     }
                 };
                 let mut builder = EntityBuilderClone::new();
                 if let Err(err) = factory.build(ctx, &mut builder, &pre_prefab) {
-                    tracing::error!(
-                        target: TARGET_NAME,
-                        %err,
-                        "failed to build prefab",
-                    );
+                    tracing::error!(target: TARGET_NAME, %err, "failed to build prefab");
                 };
-                callback(ctx, res, builder.build(), src);
-            }));
-
-        tracing::info!(
-            target: TARGET_NAME,
-            file_path=?path,
-            request_id,
-            "Submitting prefab task"
+                callback(ctx, res, builder.build(), path);
+            }),
         );
-        self.fs_server.submit_task(&path, request_id as u64);
+
     }
 
     pub fn load_image(
@@ -81,49 +69,38 @@ impl<T: 'static> AssetManager<T> {
         src: impl AsRef<Path>,
         callback: impl FnOnce(&mut T, &FsResolver, image::DynamicImage, PathBuf) + 'static,
     ) {
-        let src = src.as_ref().to_path_buf();
-        let path = self.fs_resolver.get_path(AssetRoot::Assets, &src);
-        let request_id = self
-            .outgoing_requests
-            .insert(Box::new(move |ctx, res, data| {
+        let path = src.as_ref().to_path_buf();
+        
+        tracing::info!(target: TARGET_NAME, file_path=?path, "Submitting an image task");
+        self.fs_server.load_file(path.clone());
+        self.outgoing_requests.insert(
+            path.clone(),
+            Box::new(move |ctx, res, data| {
                 let _span = tracing::info_span!(
                     target: TARGET_NAME,
                     "load_image",
-                    ?src,
+                    ?path,
                 )
                 .entered();
                 match image::load_from_memory(&data) {
-                    Ok(img) => callback(ctx, res, img, src),
-                    Err(err) => tracing::error!(
-                        target: TARGET_NAME,
-                        %err,
-                        "failed to decode image",
-                    ),
+                    Ok(img) => callback(ctx, res, img, path),
+                    Err(err) => {
+                        tracing::error!(target: TARGET_NAME, %err, "failed to decode image")
+                    }
                 }
-            }));
-
-        tracing::info!(
-            target: TARGET_NAME,
-            file_path=?path,
-            request_id,
-            "Submitting an image task"
+            }),
         );
-        self.fs_server.submit_task(&path, request_id as u64);
     }
 
     pub fn on_file_ready(&mut self, ctx: &mut T, event: FileReady) {
-        let request_id = event.user_id as usize;
         match event.bytes_result {
             Ok(data) => {
-                let callback = self.outgoing_requests.remove(request_id);
+                let callback = self.outgoing_requests.remove(&event.path).unwrap();
                 callback(ctx, &self.fs_resolver, data);
             }
-            Err(err) => tracing::error!(
-                target: TARGET_NAME,
-                request_id,
-                %err,
-                "Failed to load the file",
-            ),
+            Err(err) => {
+                tracing::error!(target: TARGET_NAME, path=?event.path, %err, "Failed to load the file")
+            }
         }
     }
 }

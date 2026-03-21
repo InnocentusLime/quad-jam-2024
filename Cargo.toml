@@ -33,7 +33,7 @@ anyhow = "1"
 hashbrown = "0.14.5"
 glam = { version = "0.30", features = ["serde"] }
 # The fork of miniquad
-mimiq = { git = "https://github.com/InnocentusLime/miniquad", tag = "v0.3.0" }
+mimiq = { git = "https://github.com/InnocentusLime/miniquad", tag = "v0.4.0" }
 
 [profile.dev.package."*"]
 opt-level = 3
