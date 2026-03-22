@@ -123,7 +123,7 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
         let resources = Resources::new(gl_ctx);
         let prefab_factory = prefab::make_prefab_factory();
         let mut asset_manager = AssetManager::new(fs_server, prefab_factory);
-        asset_manager.load_prefab("test.json", Resources::init_prefab);
+        asset_manager.load_prefab("prefab/test.json", Resources::init_prefab);
 
         info!("Lib-game version: {}", env!("CARGO_PKG_VERSION"));
 
@@ -147,13 +147,18 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
             .iter_assets_to_load()
             .cloned()
             .collect::<Vec<_>>();
-        for unresolved in assets_to_load {
-            if unresolved.starts_with("atlas/") {
+        for unloaded in assets_to_load {
+            if unloaded.starts_with("atlas/") {
                 self.asset_manager
-                    .load_image(&unresolved, Resources::init_texture);
+                    .load_image(&unloaded, Resources::init_texture);
                 continue;
             }
-            warn!("unknown dep: {unresolved:?}");
+            if unloaded.starts_with("prefab/") {
+                self.asset_manager
+                    .load_prefab(&unloaded, Resources::init_prefab);
+                continue;
+            }
+            warn!("unknown dep: {unloaded:?}");
         }
     }
 
