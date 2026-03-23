@@ -40,6 +40,14 @@ macro_rules! dump {
     };
 }
 
+pub fn run(init: AppInit) {
+    let conf = mimiq::Conf {
+        fs_root: "assets".into(),
+        ..Default::default()
+    };
+    mimiq::run::<_, App>(conf, init);
+}
+
 #[derive(Debug)]
 pub struct DebugCommand {
     pub command: String,
@@ -93,6 +101,11 @@ pub trait State: 'static {
     ) -> Option<Box<dyn State>>;
 }
 
+pub struct AppInit {
+    pub initial_state: Box<dyn State>,
+    pub prefab_factory: PrefabFactory<Resources>,
+}
+
 /// The app run all the boilerplate code to make the game tick.
 /// The following features are provided:
 /// * State transitions and handling
@@ -114,14 +127,17 @@ pub struct App {
     state: Box<dyn State>,
 }
 
-impl mimiq::EventHandler<Box<dyn State>> for App {
+impl mimiq::EventHandler<AppInit> for App {
     fn init(
         gl_ctx: Rc<mimiq::GlContext>,
         fs_server: mimiq::FsServerHandle,
-        state: Box<dyn State>,
+        init: AppInit,
     ) -> Self {
         let resources = Resources::new(gl_ctx);
-        let prefab_factory = prefab::make_prefab_factory();
+
+        let mut prefab_factory = init.prefab_factory; 
+        prefab::register_libgame_components(&mut prefab_factory);
+        
         let mut asset_manager = AssetManager::new(fs_server, prefab_factory);
         asset_manager.load_prefab("prefab/test.json", Resources::init_prefab);
 
@@ -136,7 +152,7 @@ impl mimiq::EventHandler<Box<dyn State>> for App {
             #[cfg(feature = "dbg")]
             debug: dbg::DebugStuff::new(),
             resources,
-            state,
+            state: init.initial_state,
         }
     }
 

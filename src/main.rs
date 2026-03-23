@@ -1,15 +1,12 @@
 mod game;
 
 use game::MainGame;
-use mimiq::*;
-
-fn window_conf() -> Conf {
-    Conf {
-        fs_root: "assets".into(),
-        ..Default::default()
-    }
-}
 
 fn main() {
-    mimiq::run::<_, lib_game::App>(window_conf(), Box::new(MainGame::new()));
+    let prefab_factory = lib_game::PrefabFactory::new();
+
+    lib_game::run(lib_game::AppInit {
+        initial_state: Box::new(MainGame::new()),
+        prefab_factory,
+    });
 }

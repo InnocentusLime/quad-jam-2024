@@ -6,8 +6,7 @@ use lib_asset::PrefabFactory;
 use lib_col::{Group, Shape};
 use serde::Deserialize;
 
-pub fn make_prefab_factory() -> PrefabFactory<Resources> {
-    let mut prefab_factory = PrefabFactory::new();
+pub fn register_libgame_components(prefab_factory: &mut PrefabFactory<Resources>) {
     prefab_factory.register_component_with_constructor("transform", Transform::from_pos);
     prefab_factory.register_component_with_constructor("body", BodyTagManifest::into_body_tag);
 
@@ -16,8 +15,6 @@ pub fn make_prefab_factory() -> PrefabFactory<Resources> {
         SpriteManifest::into_sprite,
         SpriteManifest::dependencies,
     );
-
-    prefab_factory
 }
 
 #[derive(Debug, Deserialize)]
