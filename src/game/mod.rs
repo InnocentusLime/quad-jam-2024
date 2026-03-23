@@ -1,5 +1,7 @@
 mod prelude;
 
+use glam::Vec2;
+use log::info;
 use prelude::*;
 
 use crate::PlayerTag;
@@ -53,10 +55,22 @@ impl State for MainGame {
         dt: f32,
         input_model: &InputModel,
         resources: &mut Resources,
-        _cmds: &mut CommandBuffer,
+        cmds: &mut CommandBuffer,
     ) {
+        let mut pos = Vec2::ZERO;
         for (_, tf) in resources.world.query_mut::<&mut Transform>().with::<&PlayerTag>() {
             tf.pos += 13.0 * dt * input_model.player_move_direction;
+            pos = tf.pos + glam::vec2(32.0, 0.0);
+        }
+
+        if input_model.shoot_pressed {
+            info!("shoot");
+            if let Some(temp) = resources.prefabs.resolve("prefab/player.json") {
+                let prefab = resources.prefabs.get(temp).unwrap();
+                let ent = resources.world.reserve_entity();
+                cmds.insert(ent, prefab);
+                cmds.insert_one(ent, Transform::from_pos(pos));
+            }
         }
     }
 }

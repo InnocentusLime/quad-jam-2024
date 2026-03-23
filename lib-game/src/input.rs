@@ -1,12 +1,13 @@
 use glam::Vec2;
 use mimiq::util::InputTracker;
-use winit::{event::WindowEvent, keyboard::KeyCode};
+use winit::{event::{MouseButton, WindowEvent}, keyboard::KeyCode};
 
 use crate::dump;
 
 #[derive(Debug)]
 pub struct InputModel {
     pub player_move_direction: Vec2,
+    pub shoot_pressed: bool,
 }
 
 pub struct Input {
@@ -44,8 +45,11 @@ impl Input {
         }
         player_move_direction = player_move_direction.normalize_or_zero();
 
+        let shoot_pressed = self.buttons.is_button_pressed(MouseButton::Left);
+
         let model = InputModel {
             player_move_direction,
+            shoot_pressed,
         };
         dump!("input: {model:#.2?}");
         model
