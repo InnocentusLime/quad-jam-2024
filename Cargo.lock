@@ -1587,6 +1587,7 @@ dependencies = [
  "lib-game",
  "log",
  "mimiq",
+ "serde",
 ]
 
 [[package]]

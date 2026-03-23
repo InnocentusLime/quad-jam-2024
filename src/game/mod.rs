@@ -2,6 +2,8 @@ mod prelude;
 
 use prelude::*;
 
+use crate::PlayerTag;
+
 pub struct MainGame {
     do_ai: bool,
     do_player_controls: bool,
@@ -53,7 +55,7 @@ impl State for MainGame {
         resources: &mut Resources,
         _cmds: &mut CommandBuffer,
     ) {
-        for (_, tf) in resources.world.query_mut::<&mut Transform>() {
+        for (_, tf) in resources.world.query_mut::<&mut Transform>().with::<&PlayerTag>() {
             tf.pos += 13.0 * dt * input_model.player_move_direction;
         }
     }

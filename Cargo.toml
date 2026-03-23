@@ -9,6 +9,7 @@ members = [ "lib-asset", "lib-col", "lib-game" ]
 [dependencies]
 clap = { version = "4.5.53", features = ["derive"], optional = true }
 # Workspace deps
+serde = { workspace = true }
 anyhow = { workspace = true }
 hecs = { workspace = true }
 log = { workspace = true }
