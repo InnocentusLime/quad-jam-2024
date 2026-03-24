@@ -1,10 +1,10 @@
 mod prelude;
 
 use glam::Vec2;
-use log::info;
+use log::{error, info};
 use prelude::*;
 
-use crate::PlayerTag;
+use crate::{BulletTag, PlayerTag};
 
 pub struct MainGame {
     do_ai: bool,
@@ -57,20 +57,25 @@ impl State for MainGame {
         resources: &mut Resources,
         cmds: &mut CommandBuffer,
     ) {
-        let mut pos = Vec2::ZERO;
-        for (_, tf) in resources.world.query_mut::<&mut Transform>().with::<&PlayerTag>() {
+        for (_, tf) in &mut resources.world.query::<&mut Transform>().with::<&PlayerTag>() {
             tf.pos += 13.0 * dt * input_model.player_move_direction;
-            pos = tf.pos + glam::vec2(32.0, 0.0);
-        }
+            let pos = tf.pos + glam::vec2(32.0, 0.0);
 
-        if input_model.shoot_pressed {
-            info!("shoot");
-            if let Some(temp) = resources.prefabs.resolve("prefab/player.json") {
-                let prefab = resources.prefabs.get(temp).unwrap();
-                let ent = resources.world.reserve_entity();
-                cmds.insert(ent, prefab);
-                cmds.insert_one(ent, Transform::from_pos(pos));
+            if input_model.shoot_pressed {
+                info!("shoot");
+                if let Some(temp) = resources.prefabs.resolve("prefab/bullet.json") {
+                    let prefab = resources.prefabs.get(temp).unwrap();
+                    let ent = resources.world.reserve_entity();
+                    cmds.insert(ent, prefab);
+                    cmds.insert_one(ent, Transform::from_pos(pos));
+                } else {
+                    error!("no bullet prefab :(");
+                }
             }
+        }
+        
+        for (_, tf) in &mut resources.world.query::<&mut Transform>().with::<&BulletTag>() {
+            tf.pos += 34.0 * dt * glam::Vec2::X;
         }
     }
 }

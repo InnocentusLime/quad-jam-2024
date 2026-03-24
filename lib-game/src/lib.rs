@@ -140,6 +140,7 @@ impl mimiq::EventHandler<AppInit> for App {
         
         let mut asset_manager = AssetManager::new(fs_server, prefab_factory);
         asset_manager.load_prefab("prefab/player.json", Resources::init_prefab);
+        asset_manager.load_prefab("prefab/bullet.json", Resources::init_prefab);
 
         info!("Lib-game version: {}", env!("CARGO_PKG_VERSION"));
 
