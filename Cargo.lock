@@ -1588,6 +1588,7 @@ dependencies = [
  "log",
  "mimiq",
  "serde",
+ "serde_json",
 ]
 
 [[package]]

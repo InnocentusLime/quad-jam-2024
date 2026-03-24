@@ -1,5 +1,7 @@
 {
-    "player": null,
+    "player": {
+        "bullet_prefab": "prefab/bullet.json"
+    },
     "transform": [64.0, 64.0],
     "sprite": {
         "layer": 0,

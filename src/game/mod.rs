@@ -57,20 +57,16 @@ impl State for MainGame {
         resources: &mut Resources,
         cmds: &mut CommandBuffer,
     ) {
-        for (_, tf) in &mut resources.world.query::<&mut Transform>().with::<&PlayerTag>() {
+        for (_, (tf, tag)) in &mut resources.world.query::<(&mut Transform, &PlayerTag)>() {
             tf.pos += 13.0 * dt * input_model.player_move_direction;
             let pos = tf.pos + glam::vec2(32.0, 0.0);
 
             if input_model.shoot_pressed {
                 info!("shoot");
-                if let Some(temp) = resources.prefabs.resolve("prefab/bullet.json") {
-                    let prefab = resources.prefabs.get(temp).unwrap();
-                    let ent = resources.world.reserve_entity();
-                    cmds.insert(ent, prefab);
-                    cmds.insert_one(ent, Transform::from_pos(pos));
-                } else {
-                    error!("no bullet prefab :(");
-                }
+                let prefab = resources.prefabs.get(tag.bullet_prefab).unwrap();
+                let ent = resources.world.reserve_entity();
+                cmds.insert(ent, prefab);
+                cmds.insert_one(ent, Transform::from_pos(pos));
             }
         }
         
