@@ -1,22 +1,12 @@
+pub use crate::collisions::components::*;
+pub use crate::render::components::*;
+
 use glam::*;
-use lib_asset::AssetKey;
-use mimiq::Color;
 
 #[derive(Debug, Clone, Copy)]
 pub struct ProjectileData {
     pub dir: Vec2,
     pub speed: f32,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct Sprite {
-    pub layer: u32,
-    pub texture: AssetKey,
-    pub tex_rect_pos: UVec2,
-    pub tex_rect_size: UVec2,
-    pub color: Color,
-    pub sort_offset: f32,
-    pub local_offset: Vec2,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

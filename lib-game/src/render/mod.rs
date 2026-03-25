@@ -1,17 +1,10 @@
-mod components;
+pub mod components;
 
-use std::rc::Rc;
+use crate::prelude::*;
+use crate::components::*;
 
-use crate::{Sprite, draw_physics_debug, dump};
-pub use components::*;
-use glam::*;
-use hashbrown::{HashMap, HashSet};
-use hecs::World;
-use lib_asset::{AssetKey, INVALID_ASSET};
 use mimiq::util::{ShapeBatcher, SpriteBatcher};
-use mimiq::{BLACK, Clear, GlContext, Texture2D};
-
-use crate::{Resources, Transform};
+use mimiq::{BLACK, Clear};
 
 pub struct Render {
     pub curr_texture: AssetKey,
@@ -27,7 +20,7 @@ pub struct Render {
 impl Render {
     pub fn new(resources: &Resources) -> Self {
         let mut debug_draws = HashMap::<String, fn(&mut World, &mut ShapeBatcher)>::new();
-        debug_draws.insert("phys".to_string(), draw_physics_debug);
+        debug_draws.insert("phys".to_string(), crate::collisions::debug::draw_physics_debug);
 
         Self {
             curr_texture: INVALID_ASSET,

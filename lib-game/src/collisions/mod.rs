@@ -1,12 +1,8 @@
-use glam::*;
-use hecs::{Entity, World};
+pub mod components;
+pub mod debug;
 
-mod components;
-mod debug;
-
-use crate::{components::Transform, dump};
-pub use components::*;
-pub use debug::*;
+use crate::prelude::*;
+use crate::components::*;
 
 const CHAR_MOVEMENT_ITERS: usize = 10;
 const CHAR_NORMAL_NUDGE: f32 = 0.001;

@@ -1,6 +1,4 @@
-use glam::*;
-
-pub use lib_col::{Group, Shape};
+use crate::prelude::*;
 
 pub const MAX_COLLISION_QUERIES: usize = 8;
 

@@ -1,15 +1,14 @@
 mod cmd;
 mod screendump;
 
-use egui::Context;
-use hashbrown::{HashMap, HashSet};
-use hecs::{DynamicBundle, World};
-use log::*;
+use crate::prelude::*;
+use crate::components::*;
+use crate::{App, DebugCommand};
 
 pub use cmd::*;
 pub use screendump::*;
 
-use crate::{App, DebugCommand, Render, Resources, Transform, draw_physics_debug, dump};
+use egui::Context;
 
 pub(crate) struct DebugStuff {
     pub cmd_center: CommandCenter,
@@ -18,8 +17,6 @@ pub(crate) struct DebugStuff {
 
 impl DebugStuff {
     pub(crate) fn new() -> Self {
-        // set_logger(&*GLOBAL_CON as &dyn log::Log).expect("failed to init logger");
-
         Self {
             cmd_center: CommandCenter::new(),
             force_freeze: false,

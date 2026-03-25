@@ -1,8 +1,6 @@
-use glam::Vec2;
-use mimiq::util::InputTracker;
-use winit::{event::{MouseButton, WindowEvent}, keyboard::KeyCode};
+use crate::prelude::*;
 
-use crate::dump;
+use mimiq::util::InputTracker;
 
 #[derive(Debug)]
 pub struct InputModel {

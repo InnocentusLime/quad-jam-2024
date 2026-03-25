@@ -3,6 +3,7 @@ mod components;
 mod input;
 mod prefab;
 mod render;
+mod prelude;
 
 #[cfg(feature = "dbg")]
 pub mod dbg;
@@ -10,22 +11,15 @@ pub mod dbg;
 pub mod sys;
 pub mod state;
 
-pub use state::*;
-pub use collisions::*;
 pub use components::*;
-pub use input::*;
-pub use lib_asset::*;
-pub use render::*;
+pub use prelude::*;
+pub use state::*;
+pub use collisions::CollisionSolver;
+pub use input::InputModel;
 pub use prefab::spawn_prefab;
-use winit::{event::WindowEvent, window::Window};
 
-use glam::*;
-use hecs::{BuiltEntityClone, CommandBuffer, EntityBuilderClone, World};
-use log::*;
-use std::{
-    path::{Path, PathBuf},
-    rc::Rc,
-};
+use std::path::Path;
+use std::rc::Rc;
 
 #[macro_export]
 #[cfg(feature = "dbg")]
@@ -73,8 +67,8 @@ pub struct AppInit {
 /// * Drawing of the `dump!` macro
 pub struct App {
     pub resources: Resources,
-    pub render: Render,
-    input: Input,
+    pub render: render::Render,
+    input: input::Input,
     col_solver: CollisionSolver,
     #[cfg(feature = "dbg")]
     debug: dbg::DebugStuff,
@@ -99,10 +93,10 @@ impl mimiq::EventHandler<AppInit> for App {
         info!("Lib-game version {}. Started.", env!("CARGO_PKG_VERSION"));
 
         Self {
-            render: Render::new(&resources),
+            render: render::Render::new(&resources),
             col_solver: CollisionSolver::new(),
             cmds: CommandBuffer::new(),
-            input: Input::new(),
+            input: input::Input::new(),
             asset_manager,
             #[cfg(feature = "dbg")]
             debug: dbg::DebugStuff::new(),

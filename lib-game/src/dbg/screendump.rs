@@ -1,7 +1,7 @@
-use egui::Window;
-
 use std::fmt;
 use std::sync::{LazyLock, Mutex};
+
+use egui::Window;
 
 const DUMP_LINE_CAPACITY: usize = 255;
 const DUMP_CAPACITY: usize = 100;

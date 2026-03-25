@@ -12,11 +12,6 @@ clap = { version = "4.5.53", features = ["derive"], optional = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 anyhow = { workspace = true }
-hecs = { workspace = true }
-log = { workspace = true }
-mimiq = { workspace = true }
-hashbrown = { workspace = true }
-glam = { workspace = true }
 # Internal deps
 lib-col = { path = "./lib-col"}
 lib-game = { path = "./lib-game" }

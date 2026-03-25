@@ -46,22 +46,6 @@ impl FsResolver {
     pub fn get_path(&self, root: AssetRoot, filename: impl AsRef<Path>) -> PathBuf {
         PathBuf::from_iter([self.get_dir(root).as_ref(), filename.as_ref()])
     }
-
-    // #[cfg(feature = "dev-env")]
-    // pub(crate) fn get_filename(&self, root: AssetRoot, path: &Path) -> anyhow::Result<PathBuf> {
-    //     use anyhow::Context;
-
-    //     let path = match std::fs::canonicalize(&path) {
-    //         Ok(x) => x,
-    //         Err(e) => return Err(e).context(format!("canonicalizing {path:?}")),
-    //     };
-
-    //     let dir = self.get_dir(root);
-    //     let dir = dir.as_ref();
-    //     path.strip_prefix(dir)
-    //         .with_context(|| format!("Resolving against {dir:?}"))
-    //         .map(|x| x.to_path_buf())
-    // }
 }
 
 impl Default for FsResolver {

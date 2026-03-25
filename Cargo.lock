@@ -948,7 +948,6 @@ dependencies = [
  "rand",
  "serde",
  "serde_json",
- "winit",
 ]
 
 [[package]]
@@ -1579,14 +1578,9 @@ version = "0.26.0"
 dependencies = [
  "anyhow",
  "clap",
- "glam",
- "hashbrown 0.14.5",
- "hecs",
  "lib-asset",
  "lib-col",
  "lib-game",
- "log",
- "mimiq",
  "serde",
  "serde_json",
 ]

@@ -1,17 +1,14 @@
 use core::fmt;
-use std::{
-    collections::VecDeque,
-    path::{Path, PathBuf},
-    rc::Rc,
-};
+use std::collections::VecDeque;
+use std::path::{Path, PathBuf};
+use std::rc::Rc;
+
+use crate::{FsResolver, PrefabFactory};
+use mimiq::{FileReady, FsServerHandle};
 
 use anyhow::Context;
 use hashbrown::HashMap;
 use hecs::{BuiltEntityClone, EntityBuilderClone};
-use mimiq::{FileReady, FsServerHandle};
-use tracing::error;
-
-use crate::{FsResolver, PrefabFactory};
 
 const TARGET_NAME: &str = "asset_manager";
 
@@ -147,7 +144,7 @@ impl<T: 'static> AssetManager<T> {
         let data = match event.bytes_result {
             Ok(x) => x,
             Err(err) => {
-                error!(err=?err, path=?asset_path, "fs error");
+                tracing::error!(err=?err, path=?asset_path, "fs error");
                 self.nodes.insert(asset_path, node.fail());
                 return None;
             }

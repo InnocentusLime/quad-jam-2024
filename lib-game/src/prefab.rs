@@ -1,10 +1,8 @@
 use std::path::{Path, PathBuf};
 
-use crate::{BodyTag, Resources, col_group, components::*};
-use glam::*;
-use hecs::{CommandBuffer, DynamicBundle};
-use lib_asset::{AssetKey, PrefabFactory};
-use lib_col::{Group, Shape};
+use crate::components::*;
+use crate::prelude::*;
+
 use serde::Deserialize;
 
 pub fn spawn_prefab(cmds: &mut CommandBuffer, resources: &Resources, prefab: AssetKey, tf: Transform) {
