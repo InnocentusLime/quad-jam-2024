@@ -59,8 +59,7 @@ impl CollisionSolver {
         self.compute_collisions_query::<6>(world);
         self.compute_collisions_query::<7>(world);
 
-        let col_solver_perf = self.solver.perf();
-        dump!("Collision solver perf: {col_solver_perf:#.2?}");
+        dump!("Collision solver perf: {:#.2?}", self.solver.perf());
     }
 
     pub fn compute_collisions_query<const ID: usize>(&mut self, world: &mut World) {
