@@ -2,9 +2,19 @@ use std::path::{Path, PathBuf};
 
 use crate::{BodyTag, Resources, col_group, components::*};
 use glam::*;
-use lib_asset::PrefabFactory;
+use hecs::{CommandBuffer, DynamicBundle};
+use lib_asset::{AssetKey, PrefabFactory};
 use lib_col::{Group, Shape};
 use serde::Deserialize;
+
+pub fn spawn_prefab(cmds: &mut CommandBuffer, resources: &Resources, prefab: AssetKey, tf: Transform) {
+    let prefab = resources.prefabs.get(prefab).expect("Dangling prefab key");
+    let ent = resources.world.reserve_entity();
+    cmds.insert(ent, prefab);
+    if prefab.has::<Transform>() {
+        cmds.insert_one(ent, tf);
+    }
+}
 
 pub fn register_libgame_components(prefab_factory: &mut PrefabFactory<Resources>) {
     prefab_factory.register_component_with_constructor("transform", Transform::from_pos);

@@ -63,10 +63,7 @@ impl State for MainGame {
 
             if input_model.shoot_pressed {
                 info!("shoot");
-                let prefab = resources.prefabs.get(tag.bullet_prefab).unwrap();
-                let ent = resources.world.reserve_entity();
-                cmds.insert(ent, prefab);
-                cmds.insert_one(ent, Transform::from_pos(pos));
+                spawn_prefab(cmds, resources, tag.bullet_prefab, Transform::from_pos(pos));
             }
         }
         

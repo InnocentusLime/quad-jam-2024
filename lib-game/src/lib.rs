@@ -14,6 +14,7 @@ pub use components::*;
 pub use input::*;
 pub use lib_asset::*;
 pub use render::*;
+pub use prefab::spawn_prefab;
 use winit::{event::WindowEvent, window::Window};
 
 use glam::*;
