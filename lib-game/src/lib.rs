@@ -8,7 +8,6 @@ mod prelude;
 #[cfg(feature = "dbg")]
 pub mod dbg;
 
-pub mod sys;
 pub mod state;
 
 pub use components::*;
