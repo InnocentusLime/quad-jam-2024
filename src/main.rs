@@ -9,7 +9,7 @@ fn main() {
     components::register_components(&mut prefab_factory);
 
     lib_game::run(lib_game::AppInit {
-        initial_state: Box::new(MainGame::new()),
+        initial_state: MainGame::make_state_request(),
         prefab_factory,
     });
 }

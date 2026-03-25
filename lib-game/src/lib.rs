@@ -8,7 +8,9 @@ mod render;
 pub mod dbg;
 
 pub mod sys;
+pub mod state;
 
+pub use state::*;
 pub use collisions::*;
 pub use components::*;
 pub use input::*;
@@ -55,55 +57,8 @@ pub struct DebugCommand {
     pub args: Vec<String>,
 }
 
-/// The trait containing all callbacks for the game,
-/// that is run inside the App. It is usually best to
-/// only keep configuration stuff inside this struct.
-///
-/// The application loop is structured as follows:
-/// 1. Clearing the physics state
-/// 2. Game::input_phase
-/// 3. Physics simulation step and writeback
-/// 4. Game::pre_physics_query_phase
-/// 5. Handling of the physics queries
-/// 6. Game::update
-/// 7. Game::render
-pub trait State: 'static {
-    fn handle_command(&mut self, resources: &mut Resources, cmd: &DebugCommand) -> bool;
-
-    fn input(
-        &mut self,
-        dt: f32,
-        input_model: &InputModel,
-        resources: &mut Resources,
-        cmds: &mut CommandBuffer,
-    );
-
-    /// Set up all physics queries. This can be considered as a sort of
-    /// pre-update phase.
-    /// This phase accepts a command buffer. The commands get executed right
-    /// after the this phase.
-    fn plan_collision_queries(
-        &mut self,
-        dt: f32,
-        resources: &mut Resources,
-        cmds: &mut CommandBuffer,
-    );
-
-    /// Main update routine. You can request the App to transition
-    /// into a new state by returning [Option::Some].
-    /// This phase accepts a command buffer. The commands get executed right
-    /// after the this phase.
-    fn update(
-        &mut self,
-        dt: f32,
-        resources: &mut Resources,
-        collisions: &CollisionSolver,
-        cmds: &mut CommandBuffer,
-    ) -> Option<Box<dyn State>>;
-}
-
 pub struct AppInit {
-    pub initial_state: Box<dyn State>,
+    pub initial_state: StateRequest,
     pub prefab_factory: PrefabFactory<Resources>,
 }
 
@@ -126,6 +81,7 @@ pub struct App {
     cmds: CommandBuffer,
     asset_manager: AssetManager<Resources>,
     state: Box<dyn State>,
+    queued_state: Option<StateRequest>,
 }
 
 impl mimiq::EventHandler<AppInit> for App {
@@ -138,11 +94,9 @@ impl mimiq::EventHandler<AppInit> for App {
 
         let mut prefab_factory = init.prefab_factory; 
         prefab::register_libgame_components(&mut prefab_factory);
-        
-        let mut asset_manager = AssetManager::new(fs_server, prefab_factory);
-        asset_manager.load_prefab("prefab/player.json", Resources::init_prefab);
+        let asset_manager = AssetManager::new(fs_server, prefab_factory);
 
-        info!("Lib-game version: {}", env!("CARGO_PKG_VERSION"));
+        info!("Lib-game version {}. Started.", env!("CARGO_PKG_VERSION"));
 
         Self {
             render: Render::new(&resources),
@@ -153,29 +107,30 @@ impl mimiq::EventHandler<AppInit> for App {
             #[cfg(feature = "dbg")]
             debug: dbg::DebugStuff::new(),
             resources,
-            state: init.initial_state,
+            state: Box::new(BootState { redirect: Some(init.initial_state) }),
+            queued_state: None 
         }
     }
 
     fn file_ready(&mut self, event: mimiq::FileReady) {
         self.asset_manager.on_file_ready(&mut self.resources, event);
-        let assets_to_load = self
+        self.queue_assets(self
             .asset_manager
             .iter_assets_to_load()
             .cloned()
-            .collect::<Vec<_>>();
-        for unloaded in assets_to_load {
-            if unloaded.starts_with("atlas/") {
-                self.asset_manager
-                    .load_image(&unloaded, Resources::init_texture);
-                continue;
-            }
-            if unloaded.starts_with("prefab/") {
-                self.asset_manager
-                    .load_prefab(&unloaded, Resources::init_prefab);
-                continue;
-            }
-            warn!("unknown dep: {unloaded:?}");
+            .collect::<Vec<_>>());
+
+        let Some(queued_state) = self.queued_state.take() else {
+            return;
+        };
+        let is_state_ready = queued_state.dependencies.iter()
+            .all(|dep| self.asset_manager.is_loaded(dep));
+        if is_state_ready {
+            info!("queued state ready: {:?}", queued_state.name);
+            self.resources.world.clear();
+            self.state = (queued_state.constructor)(&mut self.resources);
+        } else {
+            self.queued_state = Some(queued_state)
         }
     }
 
@@ -190,8 +145,14 @@ impl mimiq::EventHandler<AppInit> for App {
             return;
         }
 
-        if let Some(new_state) = self.update_inner(dt.as_secs_f32()) {
-            self.state = new_state;
+        let dt = dt.as_secs_f32();
+        match (self.update_inner(dt), self.queued_state.is_some()) {
+            (None, _) | (Some(_), true) => (),
+            (Some(request), false) => {
+                info!("new state ({:?}) requested with deps: {:?}", request.name, request.dependencies);
+                self.queue_assets(request.dependencies.iter());
+                self.queued_state = Some(request);
+            },
         }
     }
 
@@ -220,7 +181,7 @@ impl mimiq::EventHandler<AppInit> for App {
 }
 
 impl App {
-    fn update_inner(&mut self, dt: f32) -> Option<Box<dyn State>> {
+    fn update_inner(&mut self, dt: f32) -> Option<StateRequest> {
         let input_model = self.input.get_input_model();
         self.state
             .input(dt, &input_model, &mut self.resources, &mut self.cmds);
@@ -244,6 +205,23 @@ impl App {
         self.resources.world.flush();
         self.input.update();
         res
+    }
+
+    fn queue_assets<P: AsRef<Path>>(&mut self, asset_list: impl IntoIterator<Item = P>) {
+        for unloaded in asset_list.into_iter() {
+            let unloaded = unloaded.as_ref();
+            if unloaded.starts_with("atlas/") {
+                self.asset_manager
+                    .load_image(&unloaded, Resources::init_texture);
+                continue;
+            }
+            if unloaded.starts_with("prefab/") {
+                self.asset_manager
+                    .load_prefab(&unloaded, Resources::init_prefab);
+                continue;
+            }
+            warn!("unknown dep: {unloaded:?}");
+        }
     }
 }
 
