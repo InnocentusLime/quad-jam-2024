@@ -26,7 +26,7 @@ impl DebugStuff {
         }
     }
 
-    pub fn should_pause(&self) -> bool {
+    pub fn game_freeze_active(&self) -> bool {
         self.cmd_center.should_pause() || self.force_freeze
     }
 
