@@ -1,8 +1,9 @@
-mod game;
+mod main_game;
+mod prelude;
 
 use std::path::{Path, PathBuf};
 
-use game::MainGame;
+use main_game::MainGame;
 use lib_game::{AssetKey, Resources};
 use serde::Deserialize;
 

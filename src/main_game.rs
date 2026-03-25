@@ -1,8 +1,6 @@
-mod prelude;
-
 use glam::Vec2;
 use log::{error, info};
-use prelude::*;
+use crate::prelude::*;
 
 use crate::{BulletTag, PlayerTag};
 
