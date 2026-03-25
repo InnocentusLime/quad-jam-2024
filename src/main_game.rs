@@ -9,12 +9,12 @@ impl MainGame {
     pub fn make_state_request() -> StateRequest {
         StateRequest {
             name: "main game",
-            constructor: Box::new(Self::new),
+            constructor: Box::new(Self::new_state),
             dependencies: vec!["prefab/player.json".into()],
         }
     }
 
-    pub fn new(_resources: &mut Resources) -> Box<dyn State> {
+    pub fn new_state(_resources: &mut Resources) -> Box<dyn State> {
         Box::new(MainGame { do_player_controls: true, do_ai: true })
     }
 }

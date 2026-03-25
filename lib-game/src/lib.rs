@@ -158,9 +158,8 @@ impl mimiq::EventHandler<AppInit> for App {
             self.input.handle_event(&event);
         }
 
-        match event {
-            WindowEvent::RedrawRequested => self.render.render(&mut self.resources),
-            _ => (),
+        if event == WindowEvent::RedrawRequested {
+            self.render.render(&mut self.resources);
         }
     }
 
@@ -204,12 +203,12 @@ impl App {
             let unloaded = unloaded.as_ref();
             if unloaded.starts_with("atlas/") {
                 self.asset_manager
-                    .load_image(&unloaded, Resources::init_texture);
+                    .load_image(unloaded, Resources::init_texture);
                 continue;
             }
             if unloaded.starts_with("prefab/") {
                 self.asset_manager
-                    .load_prefab(&unloaded, Resources::init_prefab);
+                    .load_prefab(unloaded, Resources::init_prefab);
                 continue;
             }
             warn!("unknown dep: {unloaded:?}");
@@ -239,7 +238,7 @@ impl Resources {
     }
 
     fn init_prefab(&mut self, _fs_resolver: &FsResolver, prefab: BuiltEntityClone, src: &Path) {
-        self.prefabs.insert(src.to_path_buf(), prefab);
+        self.prefabs.insert(src, prefab);
     }
 
     fn init_texture(&mut self, _fs_resolver: &FsResolver, image: image::DynamicImage, src: &Path) {
@@ -252,6 +251,6 @@ impl Resources {
                 mag_filter: mimiq::FilterMode::Nearest,
             },
         );
-        self.textures.insert(src.to_path_buf(), tex);
+        self.textures.insert(src, tex);
     }
 }

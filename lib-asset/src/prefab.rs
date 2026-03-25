@@ -100,7 +100,7 @@ impl<T> PrefabFactory<T> {
             let Some(entry) = self.registry.get(*name) else {
                 anyhow::bail!("unknown component: {name:?}");
             };
-            let deps = (entry.deps)(*value).with_context(|| format!("deps of {name:?}"))?;
+            let deps = (entry.deps)(value).with_context(|| format!("deps of {name:?}"))?;
             result.extend(deps);
         }
 
@@ -121,6 +121,12 @@ impl<T> PrefabFactory<T> {
             (entry.builder)(ctx, start, value).with_context(|| format!("build {name:?}"))?;
         }
         Ok(())
+    }
+}
+
+impl<T> Default for PrefabFactory<T> {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

@@ -8,9 +8,11 @@ use hecs::CommandBuffer;
 
 pub struct StateRequest {
     pub name: &'static str,
-    pub constructor: Box<dyn FnOnce(&mut Resources) -> Box<dyn State>>,
+    pub constructor: StateConstructor,
     pub dependencies: Vec<PathBuf>,
 }
+
+type StateConstructor = Box<dyn FnOnce(&mut Resources) -> Box<dyn State>>;
 
 /// The trait containing all callbacks for the game,
 /// that is run inside the App. It is usually best to

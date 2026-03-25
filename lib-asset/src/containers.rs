@@ -68,3 +68,9 @@ impl<T> AssetContainer<T> {
         }
     }
 }
+
+impl<T> Default for AssetContainer<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
