@@ -73,9 +73,7 @@ impl<T: 'static> AssetManager<T> {
                 Ok(())
             }),
         );
-
-        self.nodes.insert(path.clone(), node);
-        self.fs_server.load_file(&path);
+        self.create_asset_task(path, node);
     }
 
     pub fn load_image(
@@ -96,6 +94,14 @@ impl<T: 'static> AssetManager<T> {
                 Ok(())
             }),
         );
+        self.create_asset_task(path, node);
+    }
+
+    fn create_asset_task(&mut self, path: Rc<Path>, node: AssetNode<T>) {
+        if self.nodes.contains_key(&path) {
+            tracing::debug!(?path, "Will not queue. Already have a node");
+            return;
+        }
 
         self.nodes.insert(path.clone(), node);
         self.fs_server.load_file(&path);
