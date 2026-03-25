@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
-use crate::{Resources, DebugCommand};
-use crate::input::InputModel;
 use crate::collisions::CollisionSolver;
+use crate::input::InputModel;
+use crate::{DebugCommand, Resources};
 
 use hecs::CommandBuffer;
 
@@ -75,7 +75,6 @@ impl State for BootState {
         _resources: &mut Resources,
         _cmds: &mut CommandBuffer,
     ) {
-
     }
 
     fn plan_collision_queries(

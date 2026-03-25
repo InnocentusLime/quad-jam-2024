@@ -14,9 +14,7 @@ pub struct Input {
 
 impl Input {
     pub fn new() -> Self {
-        Input {
-            buttons: InputTracker::new(),
-        }
+        Input { buttons: InputTracker::new() }
     }
 
     pub fn reset(&mut self) {
@@ -49,10 +47,7 @@ impl Input {
 
         let shoot_pressed = self.buttons.is_button_pressed(MouseButton::Left);
 
-        let model = InputModel {
-            player_move_direction,
-            shoot_pressed,
-        };
+        let model = InputModel { player_move_direction, shoot_pressed };
         dump!("input: {model:#.2?}");
         model
     }

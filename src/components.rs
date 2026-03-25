@@ -5,7 +5,11 @@ use lib_game::{AssetKey, Resources};
 use serde::Deserialize;
 
 pub fn register_components(prefab_factory: &mut lib_game::PrefabFactory<Resources>) {
-    prefab_factory.register_component_with_constructor_ctx("player", PlayerTagManifest::into_tag, PlayerTagManifest::dependencies);
+    prefab_factory.register_component_with_constructor_ctx(
+        "player",
+        PlayerTagManifest::into_tag,
+        PlayerTagManifest::dependencies,
+    );
     prefab_factory.register_component::<BulletTag>("bullet");
 }
 

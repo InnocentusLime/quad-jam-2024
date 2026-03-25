@@ -1,7 +1,7 @@
 pub mod components;
 
-use crate::prelude::*;
 use crate::components::*;
+use crate::prelude::*;
 
 use mimiq::util::{ShapeBatcher, SpriteBatcher};
 use mimiq::{BLACK, Clear};
@@ -20,7 +20,10 @@ pub struct Render {
 impl Render {
     pub fn new(resources: &Resources) -> Self {
         let mut debug_draws = HashMap::<String, fn(&mut World, &mut ShapeBatcher)>::new();
-        debug_draws.insert("phys".to_string(), crate::collisions::debug::draw_physics_debug);
+        debug_draws.insert(
+            "phys".to_string(),
+            crate::collisions::debug::draw_physics_debug,
+        );
 
         Self {
             curr_texture: INVALID_ASSET,

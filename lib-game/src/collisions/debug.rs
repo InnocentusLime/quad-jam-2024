@@ -44,18 +44,9 @@ pub fn draw_shape(gizmos: &mut ShapeBatcher, tf: &Transform, shape: &Shape, colo
 
 pub fn draw_shape_lines(gizmos: &mut ShapeBatcher, tf: &Transform, shape: &Shape, color: Color) {
     match *shape {
-        Shape::Rect { width, height } => gizmos.rect_lines(
-            color,
-            1.0,
-            tf.pos,
-            vec2(width, height),
-            tf.angle,
-        ),
-        Shape::Circle { radius } => gizmos.circle_lines(
-            color,
-            1.0,
-            tf.pos,
-            radius,
-        ),
+        Shape::Rect { width, height } => {
+            gizmos.rect_lines(color, 1.0, tf.pos, vec2(width, height), tf.angle)
+        }
+        Shape::Circle { radius } => gizmos.circle_lines(color, 1.0, tf.pos, radius),
     }
 }

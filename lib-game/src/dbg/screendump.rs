@@ -59,11 +59,7 @@ struct ScreenDumpBuff {
 
 impl ScreenDumpBuff {
     fn new() -> Self {
-        ScreenDumpBuff {
-            locked: false,
-            lines: Vec::with_capacity(DUMP_CAPACITY),
-            next_line: 0,
-        }
+        ScreenDumpBuff { locked: false, lines: Vec::with_capacity(DUMP_CAPACITY), next_line: 0 }
     }
 
     fn get_next_line(&mut self) -> &mut String {

@@ -16,10 +16,7 @@ pub struct PrefabFactory<T> {
 
 impl<T> PrefabFactory<T> {
     pub fn new() -> Self {
-        PrefabFactory {
-            registry: HashMap::new(),
-            _phantom: PhantomData,
-        }
+        PrefabFactory { registry: HashMap::new(), _phantom: PhantomData }
     }
 
     pub fn register_bundle<B: DeserializeOwned + Clone + DynamicBundleClone>(&mut self, key: &str) {

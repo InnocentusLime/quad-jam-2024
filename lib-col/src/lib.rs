@@ -186,11 +186,7 @@ impl CollisionSolver {
             }
         }
 
-        if toi == f32::INFINITY {
-            None
-        } else {
-            Some((entity, toi, normal))
-        }
+        if toi == f32::INFINITY { None } else { Some((entity, toi, normal)) }
     }
 
     fn time_of_impact_slice(
@@ -232,11 +228,7 @@ impl CollisionSolver {
             }
         }
 
-        if toi == -f32::INFINITY {
-            (f32::INFINITY, push_normal)
-        } else {
-            (toi, push_normal)
-        }
+        if toi == -f32::INFINITY { (f32::INFINITY, push_normal) } else { (toi, push_normal) }
     }
 
     /// Computes the time of impact for a fixed axis.
@@ -265,11 +257,7 @@ impl CollisionSolver {
             (proj1.x - proj2.y) / dproj
         };
 
-        if t <= 0.0 || t > t_max {
-            (f32::INFINITY, Vec2::ZERO)
-        } else {
-            (t, -axis_normal)
-        }
+        if t <= 0.0 || t > t_max { (f32::INFINITY, Vec2::ZERO) } else { (t, -axis_normal) }
     }
 
     fn slices_collide(&self, slice1: &ColliderSlice, slice2: &ColliderSlice) -> bool {
@@ -324,11 +312,7 @@ impl CollisionSolver {
         let offset_slice1_proj = offset_slice1.dot_into_vec(axis);
         let proj1 = self.project_slice(slice1, axis) + offset_slice1_proj;
         let proj2 = self.project_slice(slice2, axis);
-        let (l_proj, r_proj) = if proj1.x < proj2.x {
-            (proj1, proj2)
-        } else {
-            (proj2, proj1)
-        };
+        let (l_proj, r_proj) = if proj1.x < proj2.x { (proj1, proj2) } else { (proj2, proj1) };
 
         l_proj.y < r_proj.x
     }

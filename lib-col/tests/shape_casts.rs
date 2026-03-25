@@ -29,20 +29,12 @@ impl TestCase for ShapeCastTest {
         let mut solver = CollisionSolver::new();
         solver.fill([(
             entity(1),
-            Collider {
-                tf: self.tf2,
-                shape: self.shape2,
-                group: Group::from_id(0),
-            },
+            Collider { tf: self.tf2, shape: self.shape2, group: Group::from_id(0) },
         )]);
 
         let res = solver
             .query_shape_cast(
-                Collider {
-                    tf: self.tf1,
-                    shape: self.shape1,
-                    group: Group::from_id(0),
-                },
+                Collider { tf: self.tf1, shape: self.shape1, group: Group::from_id(0) },
                 self.cast_dir,
                 self.toi_max,
             )
@@ -124,15 +116,9 @@ fn shape_cast_tests() -> impl IntoIterator<Item = ShapeCastTest> {
         ShapeCastTest {
             name: "aabb (right cast)",
             tf1: Affine2::IDENTITY,
-            shape1: Shape::Rect {
-                width: 8.0,
-                height: 8.0,
-            },
+            shape1: Shape::Rect { width: 8.0, height: 8.0 },
             tf2: Affine2::from_translation(vec2(32.0, 0.0)),
-            shape2: Shape::Rect {
-                width: 8.0,
-                height: 8.0,
-            },
+            shape2: Shape::Rect { width: 8.0, height: 8.0 },
             cast_dir: vec2(1.0, 0.0),
             toi_estimate: Some((24.0, vec2(-1.0, 0.0))),
             toi_max: 100.0,
@@ -140,15 +126,9 @@ fn shape_cast_tests() -> impl IntoIterator<Item = ShapeCastTest> {
         ShapeCastTest {
             name: "aabb (left cast)",
             tf1: Affine2::IDENTITY,
-            shape1: Shape::Rect {
-                width: 8.0,
-                height: 8.0,
-            },
+            shape1: Shape::Rect { width: 8.0, height: 8.0 },
             tf2: Affine2::from_translation(vec2(-32.0, 0.0)),
-            shape2: Shape::Rect {
-                width: 8.0,
-                height: 8.0,
-            },
+            shape2: Shape::Rect { width: 8.0, height: 8.0 },
             cast_dir: vec2(-1.0, 0.0),
             toi_estimate: Some((24.0, vec2(1.0, 0.0))),
             toi_max: 100.0,
@@ -156,15 +136,9 @@ fn shape_cast_tests() -> impl IntoIterator<Item = ShapeCastTest> {
         ShapeCastTest {
             name: "aabb (top cast)",
             tf1: Affine2::IDENTITY,
-            shape1: Shape::Rect {
-                width: 8.0,
-                height: 8.0,
-            },
+            shape1: Shape::Rect { width: 8.0, height: 8.0 },
             tf2: Affine2::from_translation(vec2(0.0, 32.0)),
-            shape2: Shape::Rect {
-                width: 8.0,
-                height: 8.0,
-            },
+            shape2: Shape::Rect { width: 8.0, height: 8.0 },
             cast_dir: vec2(0.0, 1.0),
             toi_estimate: Some((24.0, vec2(0.0, -1.0))),
             toi_max: 100.0,
@@ -172,15 +146,9 @@ fn shape_cast_tests() -> impl IntoIterator<Item = ShapeCastTest> {
         ShapeCastTest {
             name: "aabb (bot cast)",
             tf1: Affine2::IDENTITY,
-            shape1: Shape::Rect {
-                width: 8.0,
-                height: 8.0,
-            },
+            shape1: Shape::Rect { width: 8.0, height: 8.0 },
             tf2: Affine2::from_translation(vec2(0.0, -32.0)),
-            shape2: Shape::Rect {
-                width: 8.0,
-                height: 8.0,
-            },
+            shape2: Shape::Rect { width: 8.0, height: 8.0 },
             cast_dir: vec2(0.0, -1.0),
             toi_estimate: Some((24.0, vec2(0.0, 1.0))),
             toi_max: 100.0,
@@ -188,15 +156,9 @@ fn shape_cast_tests() -> impl IntoIterator<Item = ShapeCastTest> {
         ShapeCastTest {
             name: "aabb (touch)",
             tf1: Affine2::IDENTITY,
-            shape1: Shape::Rect {
-                width: 8.0,
-                height: 8.0,
-            },
+            shape1: Shape::Rect { width: 8.0, height: 8.0 },
             tf2: Affine2::from_translation(vec2(24.0, 0.0)),
-            shape2: Shape::Rect {
-                width: 8.0,
-                height: 10.0,
-            },
+            shape2: Shape::Rect { width: 8.0, height: 10.0 },
             cast_dir: Vec2::from_angle((0.5f32).atan()),
             toi_estimate: Some((
                 (8.0f32 * 8.0f32 + 16.0f32 * 16.0f32).sqrt(),
@@ -208,15 +170,9 @@ fn shape_cast_tests() -> impl IntoIterator<Item = ShapeCastTest> {
         ShapeCastTest {
             name: "aabb (right cast) (fail)",
             tf1: Affine2::IDENTITY,
-            shape1: Shape::Rect {
-                width: 8.0,
-                height: 8.0,
-            },
+            shape1: Shape::Rect { width: 8.0, height: 8.0 },
             tf2: Affine2::from_translation(vec2(32.0, 0.0)),
-            shape2: Shape::Rect {
-                width: 8.0,
-                height: 8.0,
-            },
+            shape2: Shape::Rect { width: 8.0, height: 8.0 },
             cast_dir: vec2(1.0, 0.0),
             toi_estimate: None,
             toi_max: 10.0,
@@ -224,15 +180,9 @@ fn shape_cast_tests() -> impl IntoIterator<Item = ShapeCastTest> {
         ShapeCastTest {
             name: "aabb (miss)",
             tf1: Affine2::IDENTITY,
-            shape1: Shape::Rect {
-                width: 8.0,
-                height: 8.0,
-            },
+            shape1: Shape::Rect { width: 8.0, height: 8.0 },
             tf2: Affine2::from_translation(vec2(32.0, 0.0)),
-            shape2: Shape::Rect {
-                width: 8.0,
-                height: 8.0,
-            },
+            shape2: Shape::Rect { width: 8.0, height: 8.0 },
             cast_dir: vec2(0.0, 1.0),
             toi_estimate: None,
             toi_max: 100.0,
@@ -240,10 +190,7 @@ fn shape_cast_tests() -> impl IntoIterator<Item = ShapeCastTest> {
         ShapeCastTest {
             name: "character regression (miss)",
             tf1: Affine2::from_translation(vec2(32.0, -16.0)),
-            shape1: Shape::Rect {
-                width: 32.0,
-                height: 16.0,
-            },
+            shape1: Shape::Rect { width: 32.0, height: 16.0 },
             tf2: conv::topleft_corner_tf_to_crate(vec2(97.0, 128.0), 1.0471976),
             shape2: Shape::Circle { radius: 32.0 },
             cast_dir: vec2(-1.0, 0.0),

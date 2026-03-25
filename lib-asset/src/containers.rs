@@ -21,10 +21,7 @@ pub struct AssetContainer<T> {
 
 impl<T> AssetContainer<T> {
     pub fn new() -> Self {
-        Self {
-            storage: slab::Slab::new(),
-            path_lookup: HashMap::new(),
-        }
+        Self { storage: slab::Slab::new(), path_lookup: HashMap::new() }
     }
 
     pub fn get(&self, key: AssetKey) -> Option<&T> {

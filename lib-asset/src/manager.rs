@@ -40,7 +40,10 @@ impl<T: 'static> AssetManager<T> {
     }
 
     pub fn is_loaded(&self, path: impl AsRef<Path>) -> bool {
-        self.nodes.get(path.as_ref()).map(|x| x.state.is_initialized()).unwrap_or_default()
+        self.nodes
+            .get(path.as_ref())
+            .map(|x| x.state.is_initialized())
+            .unwrap_or_default()
     }
 
     pub fn load_prefab(
@@ -180,18 +183,12 @@ impl<T> AssetNode<T> {
         on_bytes_ready: OnBytesReady,
         on_deps_ready: OnDepsReady<T>,
     ) -> Self {
-        let state = AssetNodeState::PendingFsRequest {
-            on_bytes_ready,
-            on_deps_ready,
-        };
+        let state = AssetNodeState::PendingFsRequest { on_bytes_ready, on_deps_ready };
         AssetNode { src, ty, state }
     }
 
     fn fail(self) -> Self {
-        AssetNode {
-            state: AssetNodeState::Failed,
-            ..self
-        }
+        AssetNode { state: AssetNodeState::Failed, ..self }
     }
 
     fn dependency_ready(self, fs_resolver: &FsResolver, ctx: &mut T) -> Self {
@@ -226,27 +223,15 @@ impl<T> AssetNode<T> {
 }
 
 enum AssetNodeState<T> {
-    PendingFsRequest {
-        on_bytes_ready: OnBytesReady,
-        on_deps_ready: OnDepsReady<T>,
-    },
-    BytesReady {
-        data: Vec<u8>,
-        deps_not_loaded: usize,
-        on_deps_ready: OnDepsReady<T>,
-    },
+    PendingFsRequest { on_bytes_ready: OnBytesReady, on_deps_ready: OnDepsReady<T> },
+    BytesReady { data: Vec<u8>, deps_not_loaded: usize, on_deps_ready: OnDepsReady<T> },
     Initialized,
     Failed,
 }
 
 impl<T> AssetNodeState<T> {
     fn dependency_ready(self, fs_resolver: &FsResolver, ctx: &mut T) -> Self {
-        let AssetNodeState::BytesReady {
-            data,
-            deps_not_loaded,
-            on_deps_ready,
-        } = self
-        else {
+        let AssetNodeState::BytesReady { data, deps_not_loaded, on_deps_ready } = self else {
             tracing::warn!("not waiting for deps");
             return self;
         };
@@ -273,11 +258,7 @@ impl<T> AssetNodeState<T> {
         others: &HashMap<Rc<Path>, AssetNode<T>>,
         data: Vec<u8>,
     ) -> (Vec<PathBuf>, Self) {
-        let AssetNodeState::PendingFsRequest {
-            on_bytes_ready,
-            on_deps_ready,
-        } = self
-        else {
+        let AssetNodeState::PendingFsRequest { on_bytes_ready, on_deps_ready } = self else {
             tracing::warn!("not wating for bytes");
             return (Vec::new(), AssetNodeState::Failed);
         };
@@ -300,11 +281,7 @@ impl<T> AssetNodeState<T> {
             .count();
         (
             deps,
-            AssetNodeState::BytesReady {
-                data,
-                deps_not_loaded,
-                on_deps_ready,
-            },
+            AssetNodeState::BytesReady { data, deps_not_loaded, on_deps_ready },
         )
     }
 
@@ -325,9 +302,7 @@ impl<T> fmt::Debug for AssetNodeState<T> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::PendingFsRequest { .. } => write!(f, "PendingFsRequest"),
-            Self::BytesReady {
-                deps_not_loaded, ..
-            } => f
+            Self::BytesReady { deps_not_loaded, .. } => f
                 .debug_struct("BytesReady")
                 .field("deps_left", deps_not_loaded)
                 .finish(),

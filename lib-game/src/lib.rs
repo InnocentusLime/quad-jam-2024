@@ -2,20 +2,20 @@ mod collisions;
 mod components;
 mod input;
 mod prefab;
-mod render;
 mod prelude;
+mod render;
 
 #[cfg(feature = "dbg")]
 pub mod dbg;
 
 pub mod state;
 
-pub use components::*;
-pub use prelude::*;
-pub use state::*;
 pub use collisions::CollisionSolver;
+pub use components::*;
 pub use input::InputModel;
 pub use prefab::spawn_prefab;
+pub use prelude::*;
+pub use state::*;
 
 use std::path::Path;
 use std::rc::Rc;
@@ -37,10 +37,7 @@ macro_rules! dump {
 }
 
 pub fn run(init: AppInit) {
-    let conf = mimiq::Conf {
-        fs_root: "assets".into(),
-        ..Default::default()
-    };
+    let conf = mimiq::Conf { fs_root: "assets".into(), ..Default::default() };
     mimiq::run::<_, App>(conf, init);
 }
 
@@ -78,14 +75,10 @@ pub struct App {
 }
 
 impl mimiq::EventHandler<AppInit> for App {
-    fn init(
-        gl_ctx: Rc<mimiq::GlContext>,
-        fs_server: mimiq::FsServerHandle,
-        init: AppInit,
-    ) -> Self {
+    fn init(gl_ctx: Rc<mimiq::GlContext>, fs_server: mimiq::FsServerHandle, init: AppInit) -> Self {
         let resources = Resources::new(gl_ctx);
 
-        let mut prefab_factory = init.prefab_factory; 
+        let mut prefab_factory = init.prefab_factory;
         prefab::register_libgame_components(&mut prefab_factory);
         let asset_manager = AssetManager::new(fs_server, prefab_factory);
 
@@ -101,22 +94,25 @@ impl mimiq::EventHandler<AppInit> for App {
             debug: dbg::DebugStuff::new(),
             resources,
             state: Box::new(BootState { redirect: Some(init.initial_state) }),
-            queued_state: None 
+            queued_state: None,
         }
     }
 
     fn file_ready(&mut self, event: mimiq::FileReady) {
         self.asset_manager.on_file_ready(&mut self.resources, event);
-        self.queue_assets(self
-            .asset_manager
-            .iter_assets_to_load()
-            .cloned()
-            .collect::<Vec<_>>());
+        self.queue_assets(
+            self.asset_manager
+                .iter_assets_to_load()
+                .cloned()
+                .collect::<Vec<_>>(),
+        );
 
         let Some(queued_state) = self.queued_state.take() else {
             return;
         };
-        let is_state_ready = queued_state.dependencies.iter()
+        let is_state_ready = queued_state
+            .dependencies
+            .iter()
             .all(|dep| self.asset_manager.is_loaded(dep));
         if is_state_ready {
             info!("queued state ready: {:?}", queued_state.name);
@@ -142,10 +138,13 @@ impl mimiq::EventHandler<AppInit> for App {
         match (self.update_inner(dt), self.queued_state.is_some()) {
             (None, _) | (Some(_), true) => (),
             (Some(request), false) => {
-                info!("new state ({:?}) requested with deps: {:?}", request.name, request.dependencies);
+                info!(
+                    "new state ({:?}) requested with deps: {:?}",
+                    request.name, request.dependencies
+                );
                 self.queue_assets(request.dependencies.iter());
                 self.queued_state = Some(request);
-            },
+            }
         }
     }
 
@@ -154,7 +153,7 @@ impl mimiq::EventHandler<AppInit> for App {
         let allow_input = true;
         #[cfg(feature = "dbg")]
         let allow_input = !self.debug.game_freeze_active();
-        
+
         if allow_input {
             self.input.handle_event(&event);
         }

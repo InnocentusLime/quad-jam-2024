@@ -83,26 +83,17 @@ const CIRCLE_COUNT: usize = 3;
 static CIRCLES: [Collider; CIRCLE_COUNT] = [
     Collider {
         shape: CIRCLE,
-        tf: Affine2 {
-            translation: vec2(0.0, 1.5),
-            matrix2: Mat2::IDENTITY,
-        },
+        tf: Affine2 { translation: vec2(0.0, 1.5), matrix2: Mat2::IDENTITY },
         group: Group::from_id(0),
     },
     Collider {
         shape: CIRCLE,
-        tf: Affine2 {
-            translation: vec2(1.0, -1.0),
-            matrix2: Mat2::IDENTITY,
-        },
+        tf: Affine2 { translation: vec2(1.0, -1.0), matrix2: Mat2::IDENTITY },
         group: Group::from_id(1),
     },
     Collider {
         shape: CIRCLE,
-        tf: Affine2 {
-            translation: vec2(-1.0, -1.0),
-            matrix2: Mat2::IDENTITY,
-        },
+        tf: Affine2 { translation: vec2(-1.0, -1.0), matrix2: Mat2::IDENTITY },
         group: Group::from_id(2),
     },
 ];

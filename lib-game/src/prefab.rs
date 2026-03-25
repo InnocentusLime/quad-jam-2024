@@ -5,7 +5,12 @@ use crate::prelude::*;
 
 use serde::Deserialize;
 
-pub fn spawn_prefab(cmds: &mut CommandBuffer, resources: &Resources, prefab: AssetKey, tf: Transform) {
+pub fn spawn_prefab(
+    cmds: &mut CommandBuffer,
+    resources: &Resources,
+    prefab: AssetKey,
+    tf: Transform,
+) {
     let prefab = resources.prefabs.get(prefab).expect("Dangling prefab key");
     let ent = resources.world.reserve_entity();
     cmds.insert(ent, prefab);
@@ -75,10 +80,7 @@ impl BodyTagManifest {
             .into_iter()
             .map(CollisionGroupManifest::into_group)
             .fold(col_group::NONE, Group::union);
-        BodyTag {
-            groups,
-            shape: self.shape,
-        }
+        BodyTag { groups, shape: self.shape }
     }
 }
 

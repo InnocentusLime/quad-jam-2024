@@ -48,9 +48,6 @@ impl Aabb {
     }
 
     pub fn expand(self, delta: Vec2) -> Aabb {
-        Aabb {
-            min: self.min - delta,
-            max: self.max + delta,
-        }
+        Aabb { min: self.min - delta, max: self.max + delta }
     }
 }

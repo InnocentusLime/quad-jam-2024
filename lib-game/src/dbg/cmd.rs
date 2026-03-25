@@ -11,9 +11,7 @@ pub struct CommandCenter {
 
 impl CommandCenter {
     pub fn new() -> Self {
-        Self {
-            buff: String::with_capacity(MAX_CMD_LEN),
-        }
+        Self { buff: String::with_capacity(MAX_CMD_LEN) }
     }
 
     pub fn should_pause(&self) -> bool {
@@ -72,8 +70,5 @@ fn parse_command(s: &str) -> Option<DebugCommand> {
     let s = &s[1..];
     let mut parts = s.split_ascii_whitespace();
     let command = parts.next()?.to_string();
-    Some(DebugCommand {
-        command,
-        args: parts.map(|x| x.to_string()).collect(),
-    })
+    Some(DebugCommand { command, args: parts.map(|x| x.to_string()).collect() })
 }

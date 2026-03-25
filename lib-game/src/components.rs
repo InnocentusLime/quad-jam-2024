@@ -37,11 +37,7 @@ pub struct Health {
 
 impl Health {
     pub fn new(value: i32) -> Self {
-        Self {
-            value,
-            damage: 0,
-            is_invulnerable: false,
-        }
+        Self { value, damage: 0, is_invulnerable: false }
     }
 }
 
@@ -58,10 +54,7 @@ pub struct DamageCooldown {
 
 impl DamageCooldown {
     pub fn new(max_value: f32) -> Self {
-        Self {
-            max_value,
-            remaining: 0.0,
-        }
+        Self { max_value, remaining: 0.0 }
     }
 }
 
@@ -72,10 +65,7 @@ pub struct Transform {
 }
 
 impl Transform {
-    pub const IDENTITY: Self = Self {
-        pos: Vec2::ZERO,
-        angle: 0.0,
-    };
+    pub const IDENTITY: Self = Self { pos: Vec2::ZERO, angle: 0.0 };
 
     pub fn from_pos(pos: Vec2) -> Self {
         Self { pos, angle: 0.0 }

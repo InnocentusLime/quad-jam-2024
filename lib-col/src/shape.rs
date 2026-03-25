@@ -6,19 +6,11 @@ use glam::{Affine2, Vec2, vec2};
 
 pub const MAX_AXIS_NORMALS: usize = 8;
 pub const SHAPE_TOI_EPSILON: f32 = f32::EPSILON * 100.0f32;
-pub static RECT_VERTICES: [Vec2; 4] = [
-    vec2(-1.0, 1.0),
-    vec2(1.0, 1.0),
-    vec2(1.0, -1.0),
-    vec2(-1.0, -1.0),
-];
+pub static RECT_VERTICES: [Vec2; 4] =
+    [vec2(-1.0, 1.0), vec2(1.0, 1.0), vec2(1.0, -1.0), vec2(-1.0, -1.0)];
 /// Untransformed rectangle normals
-pub static RECT_NORMALS: [Vec2; 4] = [
-    vec2(0.0, 1.0),
-    vec2(1.0, 0.0),
-    vec2(0.0, -1.0),
-    vec2(-1.0, 0.0),
-];
+pub static RECT_NORMALS: [Vec2; 4] =
+    [vec2(0.0, 1.0), vec2(1.0, 0.0), vec2(0.0, -1.0), vec2(-1.0, 0.0)];
 pub const FRAC_SQRT_2_2: f32 = std::f32::consts::SQRT_2 / 2.0;
 pub static CIRCLE_VERTICES: [Vec2; 8] = [
     vec2(1.0, 0.0),
@@ -91,10 +83,7 @@ impl Shape {
 
 impl Default for Shape {
     fn default() -> Self {
-        Shape::Rect {
-            width: 0.0,
-            height: 0.0,
-        }
+        Shape::Rect { width: 0.0, height: 0.0 }
     }
 }
 

@@ -144,10 +144,7 @@ pub fn draw_shape(canvas: &mut svg::Document, color: &str, shape: Shape, tf: Aff
 
 #[allow(dead_code)]
 pub fn draw_aabb(canvas: &mut svg::Document, aabb: Aabb, color: &str) {
-    let shape = Shape::Rect {
-        width: aabb.size().x,
-        height: aabb.size().y,
-    };
+    let shape = Shape::Rect { width: aabb.size().x, height: aabb.size().y };
     let tf = Affine2::from_translation(aabb.min + aabb.size() / 2.0);
     draw_shape(canvas, color, shape, tf);
 }

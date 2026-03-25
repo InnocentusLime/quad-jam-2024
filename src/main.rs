@@ -1,5 +1,5 @@
-mod main_game;
 mod components;
+mod main_game;
 mod prelude;
 
 use main_game::MainGame;

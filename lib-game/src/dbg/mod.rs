@@ -1,8 +1,8 @@
 mod cmd;
 mod screendump;
 
-use crate::prelude::*;
 use crate::components::*;
+use crate::prelude::*;
 use crate::{App, DebugCommand};
 
 pub use cmd::*;
@@ -17,10 +17,7 @@ pub(crate) struct DebugStuff {
 
 impl DebugStuff {
     pub(crate) fn new() -> Self {
-        Self {
-            cmd_center: CommandCenter::new(),
-            force_freeze: false,
-        }
+        Self { cmd_center: CommandCenter::new(), force_freeze: false }
     }
 
     pub fn game_freeze_active(&self) -> bool {

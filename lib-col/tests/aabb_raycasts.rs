@@ -10,10 +10,7 @@ fn raycast_aabb() {
     run_tests_no_fuzz([
         RectRaycastTest {
             name: "basic-left",
-            rect: Aabb {
-                min: vec2(0.0, 0.0),
-                max: vec2(10.0, 10.0),
-            },
+            rect: Aabb { min: vec2(0.0, 0.0), max: vec2(10.0, 10.0) },
             t_max: f32::INFINITY,
             origin: vec2(-10.0, 5.0),
             direction: Vec2::X,
@@ -21,10 +18,7 @@ fn raycast_aabb() {
         },
         RectRaycastTest {
             name: "basic-left too-short",
-            rect: Aabb {
-                min: vec2(0.0, 0.0),
-                max: vec2(10.0, 10.0),
-            },
+            rect: Aabb { min: vec2(0.0, 0.0), max: vec2(10.0, 10.0) },
             t_max: 1.0,
             origin: vec2(-10.0, 5.0),
             direction: Vec2::X,
@@ -32,10 +26,7 @@ fn raycast_aabb() {
         },
         RectRaycastTest {
             name: "basic-left miss 1",
-            rect: Aabb {
-                min: vec2(0.0, 0.0),
-                max: vec2(10.0, 10.0),
-            },
+            rect: Aabb { min: vec2(0.0, 0.0), max: vec2(10.0, 10.0) },
             t_max: f32::INFINITY,
             origin: vec2(-10.0, 5.0),
             direction: Vec2::Y,
@@ -43,10 +34,7 @@ fn raycast_aabb() {
         },
         RectRaycastTest {
             name: "basic-left miss 2",
-            rect: Aabb {
-                min: vec2(0.0, 0.0),
-                max: vec2(10.0, 10.0),
-            },
+            rect: Aabb { min: vec2(0.0, 0.0), max: vec2(10.0, 10.0) },
             t_max: f32::INFINITY,
             origin: vec2(-10.0, 5.0),
             direction: Vec2::NEG_Y,
@@ -54,10 +42,7 @@ fn raycast_aabb() {
         },
         RectRaycastTest {
             name: "basic-left on edge",
-            rect: Aabb {
-                min: vec2(0.0, 0.0),
-                max: vec2(10.0, 10.0),
-            },
+            rect: Aabb { min: vec2(0.0, 0.0), max: vec2(10.0, 10.0) },
             t_max: f32::INFINITY,
             origin: vec2(0.0, 5.0),
             direction: Vec2::X,

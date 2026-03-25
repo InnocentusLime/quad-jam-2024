@@ -22,12 +22,7 @@ pub struct CollisionQuery<const ID: usize> {
 
 impl<const ID: usize> CollisionQuery<ID> {
     pub fn new(collider: Shape, group: Group, filter: Group) -> Self {
-        Self {
-            collider,
-            group,
-            filter,
-            collision_slice: CollisionQuerySlice { off: 0, len: 0 },
-        }
+        Self { collider, group, filter, collision_slice: CollisionQuerySlice { off: 0, len: 0 } }
     }
 
     pub fn has_collided(&self) -> bool {
@@ -53,21 +48,11 @@ impl KinematicControl {
     /// Creates a new [KinematicControl].
     /// * `collision` -- the layer which the body will collide against
     pub fn new_slide(collision: Group) -> Self {
-        Self {
-            dr: Vec2::ZERO,
-            collision,
-            slide: true,
-            collided: false,
-        }
+        Self { dr: Vec2::ZERO, collision, slide: true, collided: false }
     }
 
     pub fn new_nonslide(collision: Group) -> Self {
-        Self {
-            dr: Vec2::ZERO,
-            collision,
-            slide: false,
-            collided: false,
-        }
+        Self { dr: Vec2::ZERO, collision, slide: false, collided: false }
     }
 }
 

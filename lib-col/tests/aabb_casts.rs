@@ -10,28 +10,16 @@ fn raycast_aabb() {
     run_tests_no_fuzz([
         ShapecastRectTest {
             name: "basic-left",
-            rect1: Aabb {
-                min: vec2(0.0, 0.0),
-                max: vec2(10.0, 10.0),
-            },
-            rect2: Aabb {
-                min: vec2(-12.0, 5.0),
-                max: vec2(-12.0, 8.0),
-            },
+            rect1: Aabb { min: vec2(0.0, 0.0), max: vec2(10.0, 10.0) },
+            rect2: Aabb { min: vec2(-12.0, 5.0), max: vec2(-12.0, 8.0) },
             t_max: f32::INFINITY,
             direction: Vec2::X,
             expected: true,
         },
         ShapecastRectTest {
             name: "basic-left too-short",
-            rect1: Aabb {
-                min: vec2(0.0, 0.0),
-                max: vec2(10.0, 10.0),
-            },
-            rect2: Aabb {
-                min: vec2(-12.0, 5.0),
-                max: vec2(-12.0, 8.0),
-            },
+            rect1: Aabb { min: vec2(0.0, 0.0), max: vec2(10.0, 10.0) },
+            rect2: Aabb { min: vec2(-12.0, 5.0), max: vec2(-12.0, 8.0) },
             t_max: 1.0,
             direction: Vec2::X,
             expected: false,
