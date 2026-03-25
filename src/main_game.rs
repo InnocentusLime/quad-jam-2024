@@ -1,8 +1,4 @@
-use glam::Vec2;
-use log::{error, info};
 use crate::prelude::*;
-
-use crate::{BulletTag, PlayerTag};
 
 pub struct MainGame {
     do_ai: bool,
@@ -33,7 +29,7 @@ impl State for MainGame {
     fn plan_collision_queries(
         &mut self,
         _dt: f32,
-        _resources: &mut lib_game::Resources,
+        _resources: &mut Resources,
         _cmds: &mut CommandBuffer,
     ) {
     }
@@ -41,7 +37,7 @@ impl State for MainGame {
     fn update(
         &mut self,
         _dt: f32,
-        _resources: &mut lib_game::Resources,
+        _resources: &mut Resources,
         _collisions: &CollisionSolver,
         _cmds: &mut CommandBuffer,
     ) -> Option<Box<dyn State>> {
@@ -57,7 +53,7 @@ impl State for MainGame {
     ) {
         for (_, (tf, tag)) in &mut resources.world.query::<(&mut Transform, &PlayerTag)>() {
             tf.pos += 13.0 * dt * input_model.player_move_direction;
-            let pos = tf.pos + glam::vec2(32.0, 0.0);
+            let pos = tf.pos + vec2(32.0, 0.0);
 
             if input_model.shoot_pressed {
                 info!("shoot");
@@ -66,7 +62,7 @@ impl State for MainGame {
         }
         
         for (_, tf) in &mut resources.world.query::<&mut Transform>().with::<&BulletTag>() {
-            tf.pos += 34.0 * dt * glam::Vec2::X;
+            tf.pos += 34.0 * dt * Vec2::X;
         }
     }
 }
