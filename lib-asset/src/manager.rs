@@ -42,6 +42,10 @@ impl<T: 'static> AssetManager<T> {
             .filter(|x| self.nodes.get(*x).is_none())
     }
 
+    pub fn is_loaded(&self, path: impl AsRef<Path>) -> bool {
+        self.nodes.get(path.as_ref()).map(|x| x.state.is_initialized()).unwrap_or_default()
+    }
+
     pub fn load_prefab(
         &mut self,
         src: impl AsRef<Path>,
