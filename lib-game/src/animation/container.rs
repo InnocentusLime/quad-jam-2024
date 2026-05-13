@@ -526,14 +526,18 @@ mod tests {
         let mut anim = Animation::default();
 
         let kinds = anim.all_containers().map(|x| x.action_kind());
+        let len1 = kinds.len();
         for kind in kinds {
             assert_eq!(anim.get_container(kind).action_kind(), kind);
         }
 
         let kinds = anim.all_containers_mut().map(|x| x.action_kind());
+        let len2 = kinds.len();
         for kind in kinds {
             assert_eq!(anim.get_container_mut(kind).action_kind(), kind);
         }
+
+        assert_eq!(len1, len2);
     }
 
     #[test]
