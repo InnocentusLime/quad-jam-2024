@@ -7,7 +7,7 @@ use hashbrown::HashMap;
 use macroquad::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue as RawJson;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub async fn load_animation_manifest(path: &Path) -> anyhow::Result<AnimationPack> {
     let json = load_string(path.to_str().unwrap())
@@ -74,10 +74,11 @@ pub enum AnimationId {
     ShooterAttack,
 }
 
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
-pub struct DrawSprite {
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DrawSprite<'a> {
     pub layer: u32,
-    pub atlas_file: PathBuf,
+    #[serde(borrow)]
+    pub atlas_file: &'a Path,
     pub local_pos: Vec2,
     pub local_rotation: f32,
     pub rect_pos: UVec2,

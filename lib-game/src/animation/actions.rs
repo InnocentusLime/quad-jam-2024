@@ -151,7 +151,7 @@ impl ClipAction for DrawSprite {
         let atlas_file = resources.textures.inverse_resolve(self.texture_id);
         let raw_manifest = lib_asset::animation_manifest::DrawSprite {
             layer: self.layer,
-            atlas_file: atlas_file.to_path_buf(),
+            atlas_file,
             local_pos: self.local_pos,
             local_rotation: self.local_rotation,
             rect_pos: self.rect_pos,
