@@ -6,6 +6,7 @@ use glam::{UVec2, Vec2};
 use hashbrown::HashMap;
 use macroquad::prelude::*;
 use serde::{Deserialize, Serialize};
+use serde_json::value::RawValue as RawJson;
 use std::path::{Path, PathBuf};
 
 pub async fn load_animation_manifest(path: &Path) -> anyhow::Result<AnimationPack> {
@@ -34,7 +35,7 @@ pub struct Clip {
     pub track_id: u32,
     pub start: u32,
     pub len: u32,
-    pub action: serde_json::Value,
+    pub action: Box<RawJson>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
