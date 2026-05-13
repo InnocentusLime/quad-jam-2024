@@ -4,11 +4,12 @@ use lib_asset::AssetContainer;
 use lib_asset::{AssetKey, level::CharacterInfo};
 use macroquad::prelude::*;
 use serde::{Deserialize, Serialize};
-use std::any::TypeId;
 
 use crate::Resources;
 
 pub trait ClipAction: std::fmt::Debug + Default + Copy + 'static {
+    const ACTION_KIND: u32;
+
     fn manifest_key() -> &'static str;
 
     fn global_offset(&mut self, _off: Vec2) {}
@@ -23,19 +24,12 @@ pub trait ClipAction: std::fmt::Debug + Default + Copy + 'static {
     fn to_manifest(&self, resources: &Resources) -> serde_json::Value;
 }
 
-pub const CLIP_TYPES: [TypeId; 6] = [
-    TypeId::of::<Invulnerability>(),
-    TypeId::of::<Move>(),
-    TypeId::of::<DrawSprite>(),
-    TypeId::of::<AttackBox>(),
-    TypeId::of::<LockInput>(),
-    TypeId::of::<Spawn>(),
-];
-
 #[derive(Default, Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Invulnerability;
 
 impl ClipAction for Invulnerability {
+    const ACTION_KIND: u32 = 0;
+
     fn manifest_key() -> &'static str {
         "invulnerability"
     }
@@ -53,6 +47,8 @@ impl ClipAction for Invulnerability {
 pub struct Move;
 
 impl ClipAction for Move {
+    const ACTION_KIND: u32 = 1;
+
     fn manifest_key() -> &'static str {
         "move"
     }
@@ -79,6 +75,8 @@ pub struct DrawSprite {
 }
 
 impl ClipAction for DrawSprite {
+    const ACTION_KIND: u32 = 2;
+
     fn global_offset(&mut self, off: Vec2) {
         self.local_pos += off;
     }
@@ -175,6 +173,8 @@ pub struct AttackBox {
 }
 
 impl ClipAction for AttackBox {
+    const ACTION_KIND: u32 = 3;
+
     fn global_offset(&mut self, off: Vec2) {
         self.local_pos += off;
     }
@@ -224,6 +224,8 @@ pub struct LockInput {
 }
 
 impl ClipAction for LockInput {
+    const ACTION_KIND: u32 = 4;
+
     #[cfg(feature = "dev-env")]
     fn editor_ui(&mut self, _resources: &AssetContainer<Texture2D>, ui: &mut egui::Ui) {
         ui.checkbox(&mut self.allow_walk_input, "allow walk input");
@@ -253,6 +255,8 @@ pub struct Spawn {
 }
 
 impl ClipAction for Spawn {
+    const ACTION_KIND: u32 = 5;
+
     fn global_offset(&mut self, off: Vec2) {
         self.local_pos += off;
     }

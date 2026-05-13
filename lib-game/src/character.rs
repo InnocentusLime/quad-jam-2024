@@ -1,4 +1,4 @@
-use crate::{LockInput, Move, animation::Animation};
+use crate::animation::Animation;
 use hecs::{Entity, EntityBuilder, Query, World};
 use lib_asset::animation_manifest::AnimationId;
 use lib_col::{Group, Shape};
@@ -128,7 +128,8 @@ impl<'a, T> Character<'a, T> {
 
     pub fn get_input_flags(&self) -> (bool, bool) {
         self.animation
-            .active_clips::<LockInput>(self.anim_cursor())
+            .lock_input
+            .active_clips(self.anim_cursor())
             .map(|(_, x)| (x.allow_walk_input, x.allow_look_input))
             .next()
             .unwrap_or((true, true))
@@ -136,7 +137,8 @@ impl<'a, T> Character<'a, T> {
 
     pub fn can_move(&self) -> bool {
         self.animation
-            .active_clips::<Move>(self.anim_cursor())
+            .mov
+            .active_clips(self.anim_cursor())
             .next()
             .is_some()
     }

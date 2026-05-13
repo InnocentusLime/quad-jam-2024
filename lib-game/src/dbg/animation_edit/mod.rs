@@ -2,8 +2,6 @@ mod clips;
 mod save_ui;
 mod sequencer;
 
-use std::any::TypeId;
-
 use egui::{Button, ComboBox, DragValue, Label, Modal, Response, WidgetText, vec2};
 use egui::{Ui, Widget};
 use macroquad::math::Vec2;
@@ -16,17 +14,17 @@ use save_ui::*;
 use sequencer::*;
 
 use crate::animation::Animation;
-use crate::{AnimationPlay, AttackBox, CLIP_TYPES, CharacterLook, Resources};
+use crate::{AnimationPlay, AttackBox, CharacterLook, ClipAction, Resources};
 
 pub struct AnimationEdit {
     pub playback: Entity,
     sequencer_state: SequencerState,
     tf: TimelineTf,
-    selected_clip: Option<(TypeId, u32)>,
-    selected_track: Option<(TypeId, u32)>,
+    selected_clip: Option<(u32, u32)>,
+    selected_track: Option<(u32, u32)>,
 
     open_track_creation_modal: bool,
-    track_kind: TypeId,
+    track_kind: u32,
     track_label: String,
 
     open_global_offset_modal: bool,
@@ -40,7 +38,7 @@ impl AnimationEdit {
             sequencer_state: SequencerState::Idle,
             selected_clip: None,
             selected_track: None,
-            track_kind: TypeId::of::<AttackBox>(),
+            track_kind: AttackBox::ACTION_KIND,
             tf: TimelineTf {
                 zoom: 1.0,
                 pan: 0.0,
@@ -168,13 +166,13 @@ impl AnimationEdit {
             ui.set_width(250.0);
             ui.heading("Create track");
             ui.text_edit_singleline(&mut self.track_label);
-            let action_track = &anim.action_tracks[&self.track_kind];
-            let current_text = action_track.manifest_key();
+            let current_text = anim.get_container_mut(self.track_kind).manifest_key();
             ComboBox::new("track-kind", current_text)
                 .selected_text(current_text)
                 .show_ui(ui, |ui| {
-                    for selected_value in CLIP_TYPES {
-                        let selected_text = anim.action_tracks[&selected_value].manifest_key();
+                    for container in anim.all_containers() {
+                        let selected_value = container.action_kind();
+                        let selected_text = container.manifest_key();
                         ui.selectable_value(&mut self.track_kind, selected_value, selected_text);
                     }
                 });
@@ -241,7 +239,7 @@ fn selected_clip_ui(
     ui: &mut Ui,
     resources: &AssetContainer<Texture2D>,
     anim: &mut Animation,
-    selected_clip: &mut Option<(TypeId, u32)>,
+    selected_clip: &mut Option<(u32, u32)>,
 ) {
     ui.group(|ui| {
         ui.set_min_size(vec2(200.0, 300.0));

@@ -1,15 +1,16 @@
 use anyhow::Context;
-use hashbrown::HashMap;
 #[cfg(feature = "dev-env")]
 use lib_asset::AssetContainer;
 use macroquad::prelude::*;
-use std::any::{Any, TypeId, type_name};
+use std::any::{Any, type_name};
 
 use crate::Resources;
 
 use super::actions::*;
 
 pub trait AnimContainer: std::fmt::Debug + Any {
+    fn action_kind(&self) -> u32;
+
     fn clip_count(&self) -> u32;
     fn get_clip(&self, clip_id: u32) -> Option<Clip>;
     #[cfg(feature = "dev-env")]
@@ -45,21 +46,21 @@ pub trait AnimContainer: std::fmt::Debug + Any {
     fn max_pos(&self) -> u32;
 
     fn to_manifest(&self, resources: &Resources) -> lib_asset::animation_manifest::Clips;
-    fn from_manifest(
-        resources: &Resources,
-        generic: &lib_asset::animation_manifest::Clips,
-    ) -> anyhow::Result<Box<dyn AnimContainer>>
-    where
-        Self: Sized;
 }
 
 #[derive(Default, Debug)]
 pub struct Animation {
     pub is_looping: bool,
-    pub action_tracks: HashMap<TypeId, Box<dyn AnimContainer>>,
+
+    pub invulerability: Clips<Invulnerability>,
+    pub mov: Clips<Move>,
+    pub draw_sprite: Clips<DrawSprite>,
+    pub attack_box: Clips<AttackBox>,
+    pub lock_input: Clips<LockInput>,
+    pub spawn: Clips<Spawn>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Default, Clone, Debug)]
 pub struct Clips<T> {
     pub clips: Vec<(Clip, T)>,
     pub tracks: Vec<Track>,
@@ -70,7 +71,7 @@ pub struct Track {
     pub name: String,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Clip {
     pub track_id: u32,
     pub start: u32,
@@ -89,8 +90,8 @@ impl Clip {
 
 impl Animation {
     pub fn max_pos(&self) -> u32 {
-        self.action_tracks
-            .values()
+        self.all_containers()
+            .into_iter()
             .map(|x| x.max_pos())
             .max()
             .unwrap_or_default()
@@ -100,8 +101,8 @@ impl Animation {
         lib_asset::animation_manifest::Animation {
             is_looping: self.is_looping,
             action_tracks: self
-                .action_tracks
-                .values()
+                .all_containers()
+                .into_iter()
                 .map(|container| {
                     (
                         container.manifest_key().to_string(),
@@ -116,80 +117,131 @@ impl Animation {
         resources: &Resources,
         manifest: &lib_asset::animation_manifest::Animation,
     ) -> anyhow::Result<Self> {
-        let mut action_tracks = HashMap::new();
-
-        Self::add_action_track::<Invulnerability>(resources, &mut action_tracks, manifest)?;
-        Self::add_action_track::<Move>(resources, &mut action_tracks, manifest)?;
-        Self::add_action_track::<DrawSprite>(resources, &mut action_tracks, manifest)?;
-        Self::add_action_track::<AttackBox>(resources, &mut action_tracks, manifest)?;
-        Self::add_action_track::<LockInput>(resources, &mut action_tracks, manifest)?;
-        Self::add_action_track::<Spawn>(resources, &mut action_tracks, manifest)?;
-        debug_assert_eq!(
-            action_tracks.len(),
-            CLIP_TYPES.len(),
-            "incomplete maninfest"
-        );
         Ok(Animation {
             is_looping: manifest.is_looping,
-            action_tracks,
+            invulerability: Self::parse_clips(resources, manifest)?,
+            mov: Self::parse_clips(resources, manifest)?,
+            draw_sprite: Self::parse_clips(resources, manifest)?,
+            attack_box: Self::parse_clips(resources, manifest)?,
+            lock_input: Self::parse_clips(resources, manifest)?,
+            spawn: Self::parse_clips(resources, manifest)?,
         })
     }
 
-    fn add_action_track<T: ClipAction>(
+    pub fn all_inactive_clips(&self, pos: u32) -> impl Iterator<Item = (u32, u32)> {
+        self.all_containers()
+            .into_iter()
+            .flat_map(move |container| {
+                let elem_id = container.action_kind();
+                (0..container.clip_count()).filter_map(move |clip_id| {
+                    let clip = container.get_clip(clip_id).unwrap();
+                    if clip.contains_pos(pos) {
+                        None
+                    } else {
+                        Some((elem_id, clip_id))
+                    }
+                })
+            })
+    }
+
+    pub fn all_containers(&self) -> [&'_ dyn AnimContainer; 6] {
+        [
+            &self.invulerability as &dyn AnimContainer,
+            &self.mov as &dyn AnimContainer,
+            &self.draw_sprite as &dyn AnimContainer,
+            &self.attack_box as &dyn AnimContainer,
+            &self.lock_input as &dyn AnimContainer,
+            &self.spawn as &dyn AnimContainer,
+        ]
+    }
+
+    pub fn all_containers_mut<'a>(&mut self) -> [&'_ mut dyn AnimContainer; 6] {
+        [
+            &mut self.invulerability as &mut dyn AnimContainer,
+            &mut self.mov as &mut dyn AnimContainer,
+            &mut self.draw_sprite as &mut dyn AnimContainer,
+            &mut self.attack_box as &mut dyn AnimContainer,
+            &mut self.lock_input as &mut dyn AnimContainer,
+            &mut self.spawn as &mut dyn AnimContainer,
+        ]
+    }
+
+    pub fn get_container(&self, kind: u32) -> &'_ dyn AnimContainer {
+        let all_containers = self.all_containers();
+        assert!(
+            (kind as usize) < all_containers.len(),
+            "Invalid kind: {kind}"
+        );
+        self.all_containers()[kind as usize]
+    }
+
+    pub fn get_container_mut(&mut self, kind: u32) -> &'_ mut dyn AnimContainer {
+        let all_containers = self.all_containers_mut();
+        assert!(
+            (kind as usize) < all_containers.len(),
+            "Invalid kind: {kind}"
+        );
+        self.all_containers_mut()[kind as usize]
+    }
+
+    fn parse_clips<T: ClipAction>(
         resources: &Resources,
-        action_tracks: &mut HashMap<TypeId, Box<dyn AnimContainer>>,
         manifest: &lib_asset::animation_manifest::Animation,
-    ) -> anyhow::Result<()> {
+    ) -> anyhow::Result<Clips<T>> {
         let manifest_key = T::manifest_key();
         let Some(entry) = manifest.action_tracks.get(manifest_key) else {
             anyhow::bail!("No such action track: {manifest_key:?}");
         };
-        let clips = Clips::<T>::from_manifest(resources, entry)?;
-        action_tracks.insert(TypeId::of::<T>(), clips);
-        Ok(())
-    }
 
-    pub fn active_clips<T: ClipAction>(&self, pos: u32) -> impl Iterator<Item = (u32, T)> {
-        self.action_track::<T>()
-            .clips
+        Clips::<T>::from_manifest(resources, entry)
+    }
+}
+
+impl<T> Clips<T> {
+    pub fn active_clips(&self, pos: u32) -> impl Iterator<Item = (u32, &T)> {
+        self.clips
             .iter()
-            .copied()
             .enumerate()
             .filter(move |(_, (x, _))| x.contains_pos(pos))
             .map(|(idx, (_, action))| (idx as u32, action))
     }
 
-    pub fn inactive_clips<T: ClipAction>(&self, pos: u32) -> impl Iterator<Item = (u32, T)> {
-        self.action_track::<T>()
-            .clips
+    pub fn inactive_clips(&self, pos: u32) -> impl Iterator<Item = (u32, &T)> {
+        self.clips
             .iter()
-            .copied()
             .enumerate()
             .filter(move |(_, (x, _))| !x.contains_pos(pos))
             .map(|(idx, (_, action))| (idx as u32, action))
     }
+}
 
-    pub fn all_inactive_clips(&self, pos: u32) -> impl Iterator<Item = (TypeId, u32)> {
-        CLIP_TYPES.into_iter().flat_map(move |kind| {
-            let container = &self.action_tracks[&kind];
-            (0..container.clip_count()).filter_map(move |clip_id| {
-                let clip = container.get_clip(clip_id).unwrap();
-                if clip.contains_pos(pos) {
-                    None
-                } else {
-                    Some((kind, clip_id))
-                }
-            })
-        })
-    }
-
-    pub fn action_track<T: ClipAction>(&self) -> &Clips<T> {
-        let container = &self.action_tracks[&TypeId::of::<T>()];
-        let container: &dyn AnimContainer = container.as_ref();
-        match (container as &dyn Any).downcast_ref::<Clips<T>>() {
-            Some(x) => x,
-            None => panic!("Type mismatch"),
+impl<T: ClipAction> Clips<T> {
+    fn from_manifest(
+        resources: &Resources,
+        generic: &lib_asset::animation_manifest::Clips,
+    ) -> anyhow::Result<Self> {
+        let mut tracks = Vec::new();
+        for track in &generic.tracks {
+            tracks.push(Track {
+                name: track.name.clone(),
+            });
         }
+
+        let mut clips = Vec::new();
+        for (clip_id, clip) in generic.clips.iter().enumerate() {
+            let action = T::from_manifest(resources, &clip.action)
+                .with_context(|| format!("clip {clip_id}"))?;
+            clips.push((
+                Clip {
+                    track_id: clip.track_id,
+                    start: clip.start,
+                    len: clip.len,
+                },
+                action,
+            ));
+        }
+
+        Ok(Self { clips, tracks })
     }
 }
 
@@ -332,37 +384,6 @@ impl<T: ClipAction> AnimContainer for Clips<T> {
         self.tracks.get(track_id as usize)
     }
 
-    fn from_manifest(
-        resources: &Resources,
-        generic: &lib_asset::animation_manifest::Clips,
-    ) -> anyhow::Result<Box<dyn AnimContainer>>
-    where
-        Self: Sized,
-    {
-        let mut tracks = Vec::new();
-        for track in &generic.tracks {
-            tracks.push(Track {
-                name: track.name.clone(),
-            });
-        }
-
-        let mut clips = Vec::new();
-        for (clip_id, clip) in generic.clips.iter().enumerate() {
-            let action = T::from_manifest(resources, &clip.action)
-                .with_context(|| format!("clip {clip_id}"))?;
-            clips.push((
-                Clip {
-                    track_id: clip.track_id,
-                    start: clip.start,
-                    len: clip.len,
-                },
-                action,
-            ));
-        }
-
-        Ok(Box::new(Self { clips, tracks }))
-    }
-
     fn to_manifest(&self, resources: &Resources) -> lib_asset::animation_manifest::Clips {
         let tracks = self
             .tracks
@@ -401,6 +422,10 @@ impl<T: ClipAction> AnimContainer for Clips<T> {
     ) {
         self.clips[clip_id as usize].1.editor_ui(resources, ui);
     }
+
+    fn action_kind(&self) -> u32 {
+        T::ACTION_KIND
+    }
 }
 
 #[cfg(feature = "dev-env")]
@@ -408,108 +433,167 @@ impl Animation {
     pub fn clip_editor_ui(
         &mut self,
         resources: &AssetContainer<Texture2D>,
-        kind: TypeId,
+        kind: u32,
         clip_id: u32,
         ui: &mut egui::Ui,
     ) {
-        let Some(container) = self.action_tracks.get_mut(&kind) else {
-            return;
-        };
-        container.clip_action_editor_ui(resources, clip_id, ui);
+        self.get_container_mut(kind)
+            .clip_action_editor_ui(resources, clip_id, ui);
     }
 
-    pub fn get_clip(&self, kind: TypeId, clip_id: u32) -> Option<Clip> {
-        let container = self.action_tracks.get(&kind)?;
-        container.get_clip(clip_id)
+    pub fn get_clip(&self, kind: u32, clip_id: u32) -> Option<Clip> {
+        self.get_container(kind).get_clip(clip_id)
     }
 
-    pub fn get_track(&self, kind: TypeId, track_id: u32) -> Option<&Track> {
-        let container = self.action_tracks.get(&kind)?;
-        container.get_track(track_id)
+    pub fn get_track(&self, kind: u32, track_id: u32) -> Option<&Track> {
+        self.get_container(kind).get_track(track_id)
     }
 
     pub fn global_offset(&mut self, off: Vec2) {
-        for container in self.action_tracks.values_mut() {
+        for container in self.all_containers_mut() {
             container.offset_clip_actions(off);
         }
     }
 
-    pub fn add_track(&mut self, kind: TypeId, name: String) {
-        let Some(container) = self.action_tracks.get_mut(&kind) else {
-            return;
-        };
-        container.add_track(name);
+    pub fn add_track(&mut self, kind: u32, name: String) {
+        self.get_container_mut(kind).add_track(name);
     }
 
-    pub fn delete_track(&mut self, kind: TypeId, track_id: u32) {
-        let Some(container) = self.action_tracks.get_mut(&kind) else {
-            return;
-        };
-        container.delete_track(track_id);
+    pub fn delete_track(&mut self, kind: u32, track_id: u32) {
+        self.get_container_mut(kind).delete_track(track_id);
     }
 
-    pub fn add_clip(&mut self, kind: TypeId, track_id: u32, start: u32, len: u32) {
-        let Some(container) = self.action_tracks.get_mut(&kind) else {
-            return;
-        };
-        container.add_clip(track_id, start, len);
+    pub fn add_clip(&mut self, kind: u32, track_id: u32, start: u32, len: u32) {
+        self.get_container_mut(kind).add_clip(track_id, start, len);
     }
 
-    pub fn delete_clip(&mut self, kind: TypeId, clip_id: u32) {
-        let Some(container) = self.action_tracks.get_mut(&kind) else {
-            return;
-        };
-        container.delete_clip(clip_id);
+    pub fn delete_clip(&mut self, kind: u32, clip_id: u32) {
+        self.get_container_mut(kind).delete_clip(clip_id);
     }
 
     pub fn set_clip_pos_len(
         &mut self,
-        kind: TypeId,
+        kind: u32,
         idx: u32,
         new_track: u32,
         new_pos: u32,
         new_len: u32,
     ) {
-        let Some(container) = self.action_tracks.get_mut(&kind) else {
-            return;
-        };
-        container.set_clip_pos_len(idx, new_track, new_pos, new_len);
+        self.get_container_mut(kind)
+            .set_clip_pos_len(idx, new_track, new_pos, new_len);
     }
 
-    pub fn all_clips(&self) -> impl Iterator<Item = (TypeId, &str, u32, u32, Clip)> {
-        CLIP_TYPES
+    pub fn all_clips(&self) -> impl Iterator<Item = (u32, &str, u32, u32, Clip)> {
+        let mut kind_offset = 0;
+        self.all_containers()
             .into_iter()
-            .zip(self.all_track_ofsets())
-            .flat_map(|(kind, y_off)| {
-                let container = &self.action_tracks[&kind];
+            .flat_map(move |container| {
+                let kind = container.action_kind();
+                let curr_kind_offset = kind_offset;
                 let name = container.manifest_key();
+                kind_offset += container.track_count();
                 (0..container.clip_count()).map(move |clip_id| {
                     let clip = container.get_clip(clip_id).unwrap();
-                    (kind, name, clip_id, y_off + clip.track_id, clip)
+                    (kind, name, clip_id, curr_kind_offset + clip.track_id, clip)
                 })
             })
     }
 
-    pub fn all_tracks(&self) -> impl Iterator<Item = (TypeId, u32, u32, &Track)> {
-        CLIP_TYPES
+    pub fn all_tracks(&self) -> impl Iterator<Item = (u32, u32, u32, &Track)> {
+        let mut kind_offset = 0;
+        self.all_containers()
             .into_iter()
-            .zip(self.all_track_ofsets())
-            .flat_map(|(kind, y_off)| {
-                let container = &self.action_tracks[&kind];
+            .flat_map(move |container| {
+                let kind = container.action_kind();
+                let curr_kind_offset = kind_offset;
+                kind_offset += container.track_count();
                 (0..container.track_count()).map(move |track_id| {
                     let track = container.get_track(track_id).unwrap();
-                    (kind, track_id, track_id + y_off, track)
+                    (kind, track_id, curr_kind_offset + track_id, track)
                 })
             })
     }
+}
 
-    fn all_track_ofsets(&self) -> [u32; CLIP_TYPES.len()] {
-        let mut track_offsets = [0; CLIP_TYPES.len()];
-        let mut curr_off = 0;
-        for (kind, off) in CLIP_TYPES.into_iter().zip(&mut track_offsets) {
-            *off = curr_off;
-            curr_off += self.action_tracks[&kind].track_count();
+#[cfg(test)]
+mod tests {
+    use hashbrown::HashSet;
+
+    use crate::{AnimContainer, Clip, ClipAction, DrawSprite, animation::container::Animation};
+
+    #[test]
+    fn container_lookup_consistent() {
+        let mut anim = Animation::default();
+
+        let kinds = anim.all_containers().map(|x| x.action_kind());
+        for kind in kinds {
+            assert_eq!(anim.get_container(kind).action_kind(), kind);
         }
-        track_offsets
+
+        let kinds = anim.all_containers_mut().map(|x| x.action_kind());
+        for kind in kinds {
+            assert_eq!(anim.get_container_mut(kind).action_kind(), kind);
+        }
+    }
+
+    #[test]
+    fn all_tracks_y_contigious_basic() {
+        let mut anim = Animation::default();
+        anim.all_containers_mut()
+            .into_iter()
+            .for_each(|x| x.add_track("test1".to_string()));
+
+        let mut tracks = anim.all_tracks().map(|x| x.2).collect::<Vec<_>>();
+        tracks.sort();
+
+        assert_eq!(tracks, (0..tracks.len() as u32).collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn all_tracks_y_contigious_dup() {
+        let mut anim = Animation::default();
+        anim.all_containers_mut()
+            .into_iter()
+            .for_each(|x| x.add_track("test1".to_string()));
+        anim.draw_sprite.add_track("test2".to_string());
+
+        let mut tracks = anim.all_tracks().map(|x| x.2).collect::<Vec<_>>();
+        tracks.sort();
+
+        assert_eq!(tracks, (0..tracks.len() as u32).collect::<Vec<_>>());
+    }
+
+    #[test]
+    fn clip_kinds_unique() {
+        let anim = Animation::default();
+        let container_kinds = anim
+            .all_containers()
+            .into_iter()
+            .map(|x| x.action_kind())
+            .collect::<HashSet<_>>();
+        let container_count = anim.all_containers().into_iter().count();
+
+        assert_eq!(container_kinds.len(), container_count);
+    }
+
+    #[test]
+    fn all_clips_basic() {
+        let mut anim = Animation::default();
+        anim.draw_sprite.add_track("test1".to_string());
+        anim.draw_sprite.add_track("test2".to_string());
+        anim.draw_sprite.add_clip(0, 0, 1);
+        let clips = anim.all_clips().collect::<Vec<_>>();
+        let expected = [(
+            DrawSprite::ACTION_KIND,
+            DrawSprite::manifest_key(),
+            0,
+            0,
+            Clip {
+                track_id: 0,
+                start: 0,
+                len: 1,
+            },
+        )];
+        assert_eq!(clips.as_slice(), expected.as_slice());
     }
 }

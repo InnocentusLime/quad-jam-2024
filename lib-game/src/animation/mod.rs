@@ -1,8 +1,6 @@
 mod actions;
 mod container;
 
-use std::any::TypeId;
-
 use hashbrown::HashMap;
 use hecs::{CommandBuffer, Entity, EntityBuilder, World};
 use lib_asset::level::CharacterDef;
@@ -98,13 +96,14 @@ pub(crate) fn update_attack_boxes(
     for_each_character::<()>(world, resources, |parent, character| {
         for (clip_id, attack) in character
             .animation
-            .active_clips::<AttackBox>(character.anim_cursor())
+            .attack_box
+            .active_clips(character.anim_cursor())
         {
             let event = ClipActionObject {
                 parent,
                 animation: character.animation_id(),
                 clip_id,
-                kind: TypeId::of::<AttackBox>(),
+                kind: AttackBox::ACTION_KIND,
             };
             let new_col_tf = character.transform_child(
                 attack.rotate_with_parent,
@@ -150,13 +149,14 @@ pub(crate) fn update_spawned<G: Game>(
     for_each_character::<()>(world, resources, |parent, character| {
         for (clip_id, spawn) in character
             .animation
-            .active_clips::<Spawn>(character.anim_cursor())
+            .spawn
+            .active_clips(character.anim_cursor())
         {
             let event = ClipActionObject {
                 parent,
                 animation: character.animation_id(),
                 clip_id,
-                kind: TypeId::of::<Spawn>(),
+                kind: Spawn::ACTION_KIND,
             };
             let (pos, look_angle) = character.transform_character(
                 spawn.rotate_with_parent,
@@ -189,7 +189,8 @@ pub(crate) fn update_invulnerability(world: &mut World, resources: &Resources) {
     for_each_character::<()>(world, resources, |_, character| {
         let is_invulnerable = character
             .animation
-            .active_clips::<Invulnerability>(character.anim_cursor())
+            .invulerability
+            .active_clips(character.anim_cursor())
             .next()
             .is_some();
         character.character_q.hp.is_invulnerable = is_invulnerable;
@@ -205,13 +206,14 @@ pub(crate) fn update_draw_sprites(
     for_each_character::<()>(world, resources, |parent, character| {
         for (clip_id, draw_sprite) in character
             .animation
-            .active_clips::<DrawSprite>(character.anim_cursor())
+            .draw_sprite
+            .active_clips(character.anim_cursor())
         {
             let event = ClipActionObject {
                 parent,
                 animation: character.animation_id(),
                 clip_id,
-                kind: TypeId::of::<DrawSprite>(),
+                kind: DrawSprite::ACTION_KIND,
             };
             let new_sprite_tf = character.transform_child(
                 draw_sprite.rotate_with_parent,
