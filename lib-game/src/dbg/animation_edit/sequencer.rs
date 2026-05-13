@@ -1,5 +1,3 @@
-use std::any::TypeId;
-
 use egui::{
     Color32, FontId, Key, Painter, Pos2, Rect, Response, Sense, Stroke, Ui, Vec2, Widget, pos2,
 };
@@ -14,8 +12,8 @@ pub const TIMELINE_HEADER_HEIGHT: f32 = 32.0;
 
 pub struct Sequencer<'a> {
     pub cursor_pos: &'a mut u32,
-    pub selected_clip: &'a mut Option<(TypeId, u32)>,
-    pub selected_track: &'a mut Option<(TypeId, u32)>,
+    pub selected_clip: &'a mut Option<(u32, u32)>,
+    pub selected_track: &'a mut Option<(u32, u32)>,
     pub anim: &'a mut Animation,
     pub state: &'a mut SequencerState,
     pub tf: &'a mut TimelineTf,
@@ -232,7 +230,7 @@ impl<'a> Sequencer<'a> {
         &mut self,
         ui: &mut Ui,
         response: &Response,
-        kind: TypeId,
+        kind: u32,
         clip_id: u32,
         start_pos_x: f32,
         start_pos_y: f32,
@@ -283,7 +281,7 @@ impl<'a> Sequencer<'a> {
         &mut self,
         ui: &mut Ui,
         response: &Response,
-        kind: TypeId,
+        kind: u32,
         clip_id: u32,
         start_left: f32,
         start_right: f32,
@@ -513,7 +511,7 @@ impl TimelineTf {
 pub enum SequencerState {
     Idle,
     MoveClip {
-        kind: TypeId,
+        kind: u32,
         clip_id: u32,
         start_pos_x: f32,
         start_pos_y: f32,
@@ -521,7 +519,7 @@ pub enum SequencerState {
         total_drag_delta_y: f32,
     },
     ResizeClip {
-        kind: TypeId,
+        kind: u32,
         clip_id: u32,
         start_left: f32,
         start_right: f32,

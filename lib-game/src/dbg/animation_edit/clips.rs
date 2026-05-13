@@ -1,5 +1,3 @@
-use std::any::TypeId;
-
 use crate::animation::{Animation, Clip};
 use egui::{Color32, Painter, Pos2, Rect, Stroke, TextStyle, Ui, WidgetText, pos2, vec2};
 
@@ -143,7 +141,7 @@ impl<'a> ClipsUi<'a> {
         ui: &mut Ui,
         painter: &Painter,
         widget_rect: Rect,
-        selected_track: Option<(TypeId, u32)>,
+        selected_track: Option<(u32, u32)>,
     ) {
         for (track_kind, track_id, track_y, track) in self.0.all_tracks() {
             let top = widget_rect.top() + (track_y as f32) * CLIP_HEIGHT;
@@ -185,9 +183,14 @@ impl<'a> ClipsUi<'a> {
         painter: &Painter,
         timeline_rect: Rect,
         tf: TimelineTf,
-        selected_clip: Option<(TypeId, u32)>,
+        selected_clip: Option<(u32, u32)>,
     ) {
+        let mut m = 0;
         for (clip_kind, clip_name, clip_id, clip_y, clip) in self.0.all_clips() {
+            if selected_clip == Some((clip_kind, clip_id)) {
+                m += 1;
+                log::info!("Selected: y={clip_y} id={clip_id} m={m}");
+            }
             ClipWidget(clip).paint(
                 ui,
                 painter,

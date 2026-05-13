@@ -1,5 +1,3 @@
-use std::any::TypeId;
-
 use crate::animation::Animation;
 use hecs::Entity;
 use lib_asset::{AssetKey, animation_manifest::AnimationId};
@@ -118,7 +116,7 @@ impl AnimationPlay {
 pub struct ClipActionObject {
     pub parent: Entity,
     pub animation: AnimationId,
-    pub kind: TypeId,
+    pub kind: u32,
     pub clip_id: u32,
 }
 
