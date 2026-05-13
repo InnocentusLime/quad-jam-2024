@@ -102,10 +102,10 @@ fn load_clips_from_aseprite(
     Ok(result)
 }
 
-fn collect_frames(
-    sheet: &Sheet,
+fn collect_frames<'a>(
+    sheet: &'a Sheet,
     layer: Option<&str>,
-) -> anyhow::Result<HashMap<u32, Vec<(u32, u32, DrawSprite)>>> {
+) -> anyhow::Result<HashMap<u32, Vec<(u32, u32, DrawSprite<'a>)>>> {
     let mut result = HashMap::<u32, Vec<(u32, u32, DrawSprite)>>::new();
     for frame in &sheet.frames {
         let pieces = frame.filename.split('.').collect::<Vec<_>>();
@@ -126,7 +126,7 @@ fn collect_frames(
             frame.duration,
             DrawSprite {
                 layer: 1,
-                atlas_file: sheet.meta.image.clone().into(),
+                atlas_file: Path::new(&sheet.meta.image),
                 local_pos: vec2(-(frame.frame.w as f32) * 0.5, -(frame.frame.h as f32) * 0.5),
                 local_rotation: 0.0,
                 rect_pos: uvec2(frame.frame.x, frame.frame.y),
