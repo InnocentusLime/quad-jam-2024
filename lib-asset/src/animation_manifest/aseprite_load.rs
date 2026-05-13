@@ -5,6 +5,7 @@ use glam::{uvec2, vec2};
 use hashbrown::HashMap;
 use log::{info, warn};
 use serde::Deserialize;
+use serde_json::value::to_raw_value as to_raw_json;
 
 use super::{Animation, AnimationId, Clip, Clips, DrawSprite, Track};
 
@@ -87,7 +88,7 @@ fn load_clips_from_aseprite(
                     track_id: *track_id,
                     start,
                     len: *duration,
-                    action: serde_json::to_value(action).unwrap(),
+                    action: to_raw_json(action).unwrap(),
                 });
                 assert!(shared_duration.is_none() || shared_duration == Some(*duration));
                 shared_duration = Some(*duration);
